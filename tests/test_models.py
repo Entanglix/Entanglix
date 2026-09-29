@@ -49,24 +49,24 @@ def test_junction_shunt_matches_transmon_at_nonzero_offset():
     e_total = e**2 / (2 * h * (c_junction + 60e-15) * 1e9)
     reference = scq.Transmon(EJ=15.0, EC=e_total, ng=0.23, ncut=30, truncated_dim=6)
     evals, evecs = reference.eigensys(evals_count=6)
-    np.testing.assert_allclose(np.diag(model.hamiltonian_ghz), evals, atol=1e-8)
+    np.testing.assert_allclose(np.diag(model.hamiltonian_ghz), evals, rtol=0, atol=1e-8)
     assert model.dimensions == (6,) and model.basis == "isolated_eigenstates"
     # Eigenvector signs may differ; diagonal charge expectations do not.
     expected_charge = evecs.conj().T @ reference.n_operator() @ evecs - 0.23 * np.eye(6)
     np.testing.assert_allclose(
-        np.diag(model.operators["charge"]), np.diag(expected_charge), atol=1e-8
+        np.diag(model.operators["charge"]), np.diag(expected_charge), rtol=0, atol=1e-8
     )
     expected_cos = evecs.conj().T @ reference.cos_phi_operator() @ evecs
     np.testing.assert_allclose(
-        np.diag(model.operators["cos_phase"]), np.diag(expected_cos), atol=1e-8
+        np.diag(model.operators["cos_phase"]), np.diag(expected_cos), rtol=0, atol=1e-8
     )
     np.testing.assert_allclose(
-        np.abs(model.operators["cos_phase"]), np.abs(expected_cos), atol=1e-8
+        np.abs(model.operators["cos_phase"]), np.abs(expected_cos), rtol=0, atol=1e-8
     )
     expected_sin = evecs.conj().T @ reference.sin_phi_operator() @ evecs
     assert np.linalg.norm(expected_sin) > 0.1
     np.testing.assert_allclose(
-        np.abs(model.operators["sin_phase"]), np.abs(expected_sin), atol=1e-8
+        np.abs(model.operators["sin_phase"]), np.abs(expected_sin), rtol=0, atol=1e-8
     )
     np.testing.assert_allclose(
         model.operators["sin_phase"], model.operators["sin_phase"].conj().T, atol=1e-8
@@ -180,6 +180,33 @@ def test_cli_and_generated_schema(tmp_path):
         text=True,
     )
     assert valid.returncode == 0 and "lower" in valid.stdout
+    assert "lower: declared by the spec" in valid.stdout
+    circuit = subprocess.run(
+        [sys.executable, "-m", "entanglix", "validate", str(JUNCTION)],
+        capture_output=True,
+        text=True,
+    )
+    assert circuit.returncode == 0
+    assert "operators:\n  charge: n − ng in Cooper-pair units\n  cos_phase:" in circuit.stdout
+    assert "  sin_phase: sine of phase" in circuit.stdout
+    assert "transformation (scqubits default): [[1.0]]" in circuit.stdout
+    assert "node offset charges: {'1': 0.23}" in circuit.stdout
+    assert "derived coordinate offset charges: [0.23]" in circuit.stdout
+    composite = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "entanglix",
+            "validate",
+            str(ROOT / "examples/qubit-resonator/system.toml"),
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert composite.returncode == 0
+    assert "q.charge: n − ng in Cooper-pair units" in composite.stdout
+    assert "r.position: oscillator quadrature a + a†" in composite.stdout
+    assert "q transformation (scqubits default)" in composite.stdout
     invalid_source = _copy_two_level(tmp_path)
     invalid_source.write_text(invalid_source.read_text().replace('unit = "1/ns"', 'unit = "GHz"'))
     invalid = subprocess.run(

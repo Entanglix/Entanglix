@@ -88,21 +88,21 @@ The [M1 guide](m1-guide.md) develops both blocks as one implementation plan. Its
 
 **Acceptance evidence:** [GPU environment](environment.md).
 
-### [-] Block 1 — System Spec and Model Adapter
+### [x] Block 1 — System Spec and Model Adapter
 
 **Depends on:** Block 0.
 
 - [x] [`system.toml` JSON schema](../schemas/system.schema.json) + [pydantic model](../src/entanglix/models.py) (circuit, truncation, drives, dissipators, parameters + priors, units)
-- [ ] scqubits adapter: circuit → truncated operators in a chosen basis; `validate` reports derived offsets, available operator names, and the default transformation ([circuit reference tests](../tests/test_circuit_models.py))
+- [x] scqubits adapter: circuit → truncated operators in a chosen basis; `validate` reports applied and dropped offsets, oriented flux loops, available operators and meanings, the effective transformation, and scqubits' default when a multi-node author must supply one ([circuit reference tests](../tests/test_circuit_models.py), [CLI tests](../tests/test_models.py), [syntax reference](operations/system-spec.md))
 - [x] Explicit-operator fallback ([CPU model tests](../tests/test_models.py))
-- [ ] CPU-testable QuTiP `Qobj`, numerical arrays suitable for JAX, and per-subsystem operator terms with dimensions/order for the cuDensityMat adapter, including drive and dissipator factors; no GPU packages required ([composition tests](../tests/test_composition.py))
+- [x] CPU-testable QuTiP `Qobj`, numerical arrays suitable for JAX, and per-subsystem operator terms with dimensions/order for the cuDensityMat adapter, including drive and dissipator factors; no GPU packages required ([composition tests](../tests/test_composition.py))
 - [x] `entanglix validate <system.toml>` / `load_system` backing capability ([CPU model tests](../tests/test_models.py))
 - [x] Concrete representation coverage and fixture systems/parameters selected during this block under ADR §3.1, exercising component, composition, and explicit-operator paths; fixed units, array/output unit semantics, and one level of leaf system references ([examples](../examples/), [operational syntax](operations/system-spec.md))
-- [ ] Pin numerical acceptance thresholds/rationale after independent CPU reference refinement; operator/spectral comparisons and separate basis/retained-level convergence evidence pass
+- [x] Pin numerical acceptance thresholds/rationale after independent CPU reference refinement; operator/spectral comparisons and separate basis/retained-level convergence evidence pass ([numerical policy](operations/system-spec.md#numerical-checks-for-the-bundled-models), [circuit tests](../tests/test_circuit_models.py), [composition tests](../tests/test_composition.py))
 - [x] Malformed units, rates, dimensions, references, and unsupported forms produce actionable diagnostics; intentionally insufficient truncation demonstrates the refinement check ([model](../tests/test_models.py), [circuit](../tests/test_circuit_models.py), [composition](../tests/test_composition.py) tests)
 - [x] Implemented syntax, tensor/basis order, 2π conversion, collapse normalization, units, and operator names documented in [system-spec.md](operations/system-spec.md); [worked examples](../examples/cpu_reference.py) and [README](../README.md) usage/compatibility describe available behavior
-- [ ] Applicable quality evidence recorded
-- [ ] **Done:** fixtures validate and export CPU objects/arrays/factorized terms with preserved units/bases; reference spectra/operators, model refinement, and input diagnostics pass without GPU dependencies
+- [x] Applicable quality evidence recorded ([model tests](../tests/test_models.py), [circuit tests](../tests/test_circuit_models.py), [composition tests](../tests/test_composition.py), [system interface and numerical checks](operations/system-spec.md), [worked CPU example](../examples/cpu_reference.py), [usage and changes](../README.md))
+- [x] **Done:** fixtures validate and export CPU objects/arrays/factorized terms with preserved units/bases; reference spectra/operators, model refinement, and input diagnostics pass without GPU dependencies
 
 ### [ ] Block 2 — Engines v0
 

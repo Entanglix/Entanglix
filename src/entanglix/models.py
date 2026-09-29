@@ -249,6 +249,8 @@ class ConstructedSystem:
     subsystem_ids: tuple[str, ...] = ()
     hamiltonian_terms: tuple[TensorTerm, ...] = ()
     operator_factors: dict[str, tuple[np.ndarray, ...]] = field(default_factory=dict)
+    drive_factors: dict[str, tuple[np.ndarray, ...]] = field(default_factory=dict)
+    dissipator_factors: dict[str, tuple[np.ndarray, ...]] = field(default_factory=dict)
 
     def qutip_hamiltonian(self):
         import qutip as qt
@@ -410,7 +412,10 @@ def _construct_circuit(spec: SystemSpec):
         if count == 1 and model.transformation is not None:
             raise SpecError("single-coordinate circuit does not need a transformation matrix")
         if count > 1 and model.transformation is None:
-            raise SpecError("multi-node circuit requires an explicit transformation matrix")
+            raise SpecError(
+                "multi-node circuit requires an explicit transformation matrix; "
+                f"scqubits default to adopt: {np.asarray(circuit.transformation_matrix).tolist()}"
+            )
         categories = circuit.var_categories
         active = set(categories["periodic"] + categories["extended"])
         if active != set(range(1, count + 1)):
@@ -488,6 +493,13 @@ def _construct_circuit(spec: SystemSpec):
             [model.offset_charges.get(str(index), 0.0) for index in range(1, count + 1)]
         )
         coordinate_offsets = matrix.T @ node_offsets
+        dropped_offsets = {
+            f"theta{index}": float(coordinate_offsets[index - 1])
+            for index in categories["extended"]
+            if coordinate_offsets[index - 1] != 0
+        }
+        for index in categories["extended"]:
+            coordinate_offsets[index - 1] = 0
         for index in categories["periodic"]:
             setattr(circuit, f"ng{index}", -coordinate_offsets[index - 1])
         eigenvalues, eigenvectors = circuit.eigensys(evals_count=truncation.retained_levels)
@@ -547,9 +559,21 @@ def _construct_circuit(spec: SystemSpec):
         "converted_branches": converted,
         "node_offsets": dict(model.offset_charges),
         "coordinate_offsets": coordinate_offsets.tolist(),
+        "dropped_offsets": dropped_offsets,
         "transformation": matrix.tolist(),
+        "transformation_source": "authored"
+        if model.transformation is not None
+        else "scqubits default",
         "cutoffs": dict(truncation.cutoffs),
-        "closure_branches": closure_ids,
+        "oriented_loops": [
+            {
+                "branch": bias.branch,
+                "nodes": list(model.branches[branch_ids[bias.branch]].nodes),
+                "value": bias.value,
+                "unit": bias.unit,
+            }
+            for bias in model.external_fluxes
+        ],
     }
     return (
         np.diag(eigenvalues),
@@ -750,6 +774,8 @@ def _load_system(path: str | Path, *, allow_composite: bool) -> ConstructedSyste
         raise SpecError("model.hamiltonian: matrix must be Hermitian")
     drives = {}
     dissipators = {}
+    drive_factors = {}
+    dissipator_factors = {}
     for drive in spec.drives:
         if drive.id in drives or drive.id in dissipators:
             raise SpecError(f"duplicate drive or dissipator ID {drive.id!r}")
@@ -760,6 +786,7 @@ def _load_system(path: str | Path, *, allow_composite: bool) -> ConstructedSyste
         if not np.allclose(operator, operator.conj().T, rtol=0, atol=1e-10):
             raise SpecError(f"drives.{drive.id}: operator must be Hermitian")
         drives[drive.id] = operator
+        drive_factors[drive.id] = factors
     for dissipator in spec.dissipators:
         if dissipator.id in dissipators or dissipator.id in drives:
             raise SpecError(f"duplicate drive or dissipator ID {dissipator.id!r}")
@@ -770,6 +797,7 @@ def _load_system(path: str | Path, *, allow_composite: bool) -> ConstructedSyste
         if rate < 0:
             raise SpecError(f"dissipators.{dissipator.id}: rate must be nonnegative")
         dissipators[dissipator.id] = (_tensor(factors), rate)
+        dissipator_factors[dissipator.id] = factors
     provenance["parameters"] = {
         name: parameter.model_dump(exclude_none=True) for name, parameter in spec.parameters.items()
     }
@@ -786,6 +814,8 @@ def _load_system(path: str | Path, *, allow_composite: bool) -> ConstructedSyste
         subsystem_ids,
         terms,
         operator_factors,
+        drive_factors,
+        dissipator_factors,
     )
 
 

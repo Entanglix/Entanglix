@@ -25,7 +25,7 @@ The [system specification guide](docs/operations/system-spec.md) describes the a
 
 ## Changes and compatibility
 
-Unreleased: add system models for component circuits and composites, validation, CPU exports, driven and dissipative QuTiP reference evolution, and worked examples.
+Unreleased: add system models for component circuits and composites, validation with transformation, offset, oriented-loop, and operator-meaning diagnostics, CPU exports including factorized drive and dissipator operators, driven and dissipative QuTiP reference evolution, and worked examples.
 
 Version 0.1.0 established the installable package and CLI foundation.
 

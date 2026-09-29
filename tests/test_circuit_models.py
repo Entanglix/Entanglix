@@ -7,6 +7,7 @@ import pytest
 import scqubits as scq
 from scipy.constants import e, h, pi
 
+from entanglix.cli import main
 from entanglix.models import SpecError, load_system
 
 ROOT = Path(__file__).resolve().parents[1] / "examples"
@@ -40,12 +41,12 @@ def test_lc_operators_follow_node_orientation():
     assert circuit.transformation_matrix[0, 0] == -1
     circuit.cutoff_ext_1 = 30
     _, vectors = circuit.eigensys(evals_count=6)
-    np.testing.assert_allclose(
-        model.operators["charge"], -vectors.conj().T @ circuit.Q1_operator() @ vectors
-    )
-    np.testing.assert_allclose(
-        model.operators["phase"], -vectors.conj().T @ circuit.θ1_operator() @ vectors
-    )
+    # At a fixed basis, the independent circuit's projected operators should
+    # agree to roundoff. The absolute floor also covers a zero operator.
+    for name, raw in (("charge", -circuit.Q1_operator()), ("phase", -circuit.θ1_operator())):
+        expected = vectors.conj().T @ raw @ vectors
+        residual = np.linalg.norm(model.operators[name] - expected)
+        assert residual <= max(1e-12 * np.linalg.norm(expected), 1e-12)
 
 
 def test_scqubits_unit_setting_must_match_spec(monkeypatch):
@@ -58,14 +59,16 @@ def test_fluxonium_circuit_spectrum_and_oriented_flux(tmp_path):
     model = load_system(ROOT / "fluxonium/system.toml")
     reference = scq.Fluxonium(EJ=5.7, EC=1.2, EL=0.4, flux=0.25, cutoff=60, truncated_dim=6)
     expected = reference.eigenvals(evals_count=6)
+    # The separate circuit/constructor paths differ by 1.55e-8 GHz here.
     np.testing.assert_allclose(
         np.diag(model.hamiltonian_ghz).real - model.hamiltonian_ghz[0, 0].real,
         expected - expected[0],
         atol=2e-8,
+        rtol=0,
     )
     reversed_flux = load_system(_variant(tmp_path, "fluxonium", "value = 0.25", "value = -0.25"))
     np.testing.assert_allclose(
-        np.diag(model.hamiltonian_ghz), np.diag(reversed_flux.hamiltonian_ghz), atol=2e-8
+        np.diag(model.hamiltonian_ghz), np.diag(reversed_flux.hamiltonian_ghz), rtol=0, atol=2e-8
     )
     assert model.operators["sin_phase"][0, 0].real > 0.1
     np.testing.assert_allclose(
@@ -73,7 +76,7 @@ def test_fluxonium_circuit_spectrum_and_oriented_flux(tmp_path):
         -reversed_flux.operators["sin_phase"][0, 0],
         atol=2e-8,
     )
-    assert model.provenance["closure_branches"] == ["inductor"]
+    assert [loop["branch"] for loop in model.provenance["oriented_loops"]] == ["inductor"]
     reversed_branch = load_system(
         _variant(
             tmp_path,
@@ -89,20 +92,48 @@ def test_fluxonium_circuit_spectrum_and_oriented_flux(tmp_path):
     )
 
 
+def test_extended_offset_is_dropped_and_reported_with_oriented_loop(tmp_path, capsys):
+    source = _variant(
+        tmp_path, "fluxonium", "offset_charges = {}", 'offset_charges = { "1" = 0.3 }'
+    )
+    baseline = load_system(ROOT / "fluxonium/system.toml")
+    shifted = load_system(source)
+    np.testing.assert_array_equal(shifted.hamiltonian_ghz, baseline.hamiltonian_ghz)
+    np.testing.assert_array_equal(shifted.operators["charge"], baseline.operators["charge"])
+    assert shifted.provenance["coordinate_offsets"] == [0.0]
+    assert shifted.provenance["dropped_offsets"] == {"theta1": 0.3}
+    assert shifted.provenance["oriented_loops"] == [
+        {"branch": "inductor", "nodes": [0, 1], "value": 0.25, "unit": "Phi0"}
+    ]
+    assert main(["validate", str(source)]) == 0
+    output = capsys.readouterr().out
+    assert "derived coordinate offset charges: [0.0]" in output
+    assert "dropped extended-coordinate offsets: {'theta1': 0.3}" in output
+    assert "closure branch inductor (0→1): 0.25 Phi0" in output
+    assert "charge: n − ng in Cooper-pair units" in output
+    assert "phase: extended-coordinate phase in radians" in output
+
+
 def test_fluxonium_harmonic_cutoff_refines_independently_of_retained_levels(tmp_path):
     values = []
+    sin_expectations = []
     for cutoff in (40, 60, 80):
         model = load_system(_variant(tmp_path, "fluxonium", "theta1 = 60", f"theta1 = {cutoff}"))
         energies = np.diag(model.hamiltonian_ghz).real
         values.append(energies[:4] - energies[0])
-    assert np.max(np.abs(values[0] - values[1])) > 1e-6
-    assert np.max(np.abs(values[1] - values[2])) < 1e-6
+        sin_expectations.append(model.operators["sin_phase"][0, 0].real)
+    # The 40-state cutoff visibly fails; 60→80 changes energies and a signed
+    # ground-state observable by much less than their declared fixture limits.
+    assert np.max(np.abs(values[0] - values[1])) > 1e-5
+    assert np.max(np.abs(values[1] - values[2])) <= 1e-5
+    assert abs(sin_expectations[0] - sin_expectations[1]) > 1e-6
+    assert abs(sin_expectations[1] - sin_expectations[2]) <= 1e-6
     larger = load_system(
         _variant(tmp_path, "fluxonium", "retained_levels = 6", "retained_levels = 8")
     )
     original = load_system(ROOT / "fluxonium/system.toml")
     np.testing.assert_allclose(
-        np.diag(original.hamiltonian_ghz), np.diag(larger.hamiltonian_ghz)[:6], atol=2e-8
+        np.diag(original.hamiltonian_ghz), np.diag(larger.hamiltonian_ghz)[:6], rtol=0, atol=2e-8
     )
     assert larger.dimensions == (8,) and original.dimensions == (6,)
 
@@ -134,14 +165,15 @@ def test_two_mode_component_circuit_and_node_charge_reference(tmp_path):
     circuit.ng1 = -0.2
     circuit.ng2 = 0.1
     energies, vectors = circuit.eigensys(evals_count=6)
-    np.testing.assert_allclose(np.diag(model.hamiltonian_ghz), energies, atol=1e-8)
+    np.testing.assert_allclose(np.diag(model.hamiltonian_ghz), energies, rtol=0, atol=1e-8)
     for node, offset in ((1, 0.2), (2, -0.1)):
         expected = vectors.conj().T @ getattr(circuit, f"n{node}_operator")() @ vectors
         expected -= offset * np.eye(6)
         np.testing.assert_allclose(
-            np.diag(model.operators[f"node{node}.charge"]), np.diag(expected), atol=1e-8
+            np.diag(model.operators[f"node{node}.charge"]), np.diag(expected), rtol=0, atol=1e-8
         )
     assert model.provenance["transformation"] == [[1.0, 0.0], [0.0, 1.0]]
+    assert model.provenance["transformation_source"] == "authored"
 
 
 def test_two_mode_cutoff_refinement(tmp_path):
@@ -157,8 +189,8 @@ def test_two_mode_cutoff_refinement(tmp_path):
         )
         energies = np.diag(model.hamiltonian_ghz).real
         values.append(energies[:4] - energies[0])
-    assert np.max(np.abs(values[0] - values[1])) > 1e-3
-    assert np.max(np.abs(values[1] - values[2])) < 1e-5
+    assert np.max(np.abs(values[0] - values[1])) > 1e-5
+    assert np.max(np.abs(values[1] - values[2])) <= 1e-5
 
 
 def test_nontrivial_unimodular_transform_maps_node_charges(tmp_path):
@@ -189,12 +221,14 @@ def test_nontrivial_unimodular_transform_maps_node_charges(tmp_path):
     circuit.ng1 = -0.1
     circuit.ng2 = -0.2
     energies, vectors = circuit.eigensys(evals_count=6)
-    np.testing.assert_allclose(np.diag(model.hamiltonian_ghz), energies, atol=1e-8)
+    np.testing.assert_allclose(np.diag(model.hamiltonian_ghz), energies, rtol=0, atol=1e-8)
     q1 = circuit.n2_operator() - 0.2 * np.eye(441)
     q2 = circuit.n1_operator() - circuit.n2_operator() + 0.1 * np.eye(441)
     for name, raw in (("node1.charge", q1), ("node2.charge", q2)):
         expected = vectors.conj().T @ raw @ vectors
-        np.testing.assert_allclose(np.diag(model.operators[name]), np.diag(expected), atol=1e-8)
+        np.testing.assert_allclose(
+            np.diag(model.operators[name]), np.diag(expected), rtol=0, atol=1e-8
+        )
 
 
 @pytest.mark.parametrize(
@@ -214,3 +248,11 @@ def test_nontrivial_unimodular_transform_maps_node_charges(tmp_path):
 def test_invalid_circuit_conventions_have_diagnostics(tmp_path, fixture, old, new, message):
     with pytest.raises(SpecError, match=message):
         load_system(_variant(tmp_path, fixture, old, new))
+
+
+def test_missing_multinode_transformation_shows_default_to_author(tmp_path, capsys):
+    source = _variant(tmp_path, "two-mode-circuit", "transformation = [[1, 0], [0, 1]]\n", "")
+    assert main(["validate", str(source)]) == 64
+    captured = capsys.readouterr()
+    assert "scqubits default to adopt: [[" in captured.err
+    assert captured.out == ""

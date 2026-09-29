@@ -150,15 +150,12 @@ For time-dependent tests, first define one constant and one piecewise-constant e
 
 For the differentiable lane, compare a nonzero derivative of a final expectation value with respect to a drive amplitude or a dissipative rate, using an analytic result when available and central finite differences at multiple step sizes. This demonstrates differentiation through evolution. Differentiation through scqubits quantization/eigendecomposition is outside the M1 claim. Dynamiqs provides examples of differentiating observables through evolution. [dynamiqs examples](https://www.dynamiqs.org/stable/documentation/getting_started/examples.html)
 
-### Proposed numerical targets
+### Proposed engine numerical targets
 
-Targets below are for double-precision, reference-size fixtures. Pin the final values and their rationale after CPU reference refinement and before accepting GPU comparisons. Failures require diagnosis of units, bases, dtype, solver settings, or truncation before changing a threshold.
+The Block 1 CPU fixture thresholds and rationale are recorded in the [operational model reference](operations/system-spec.md#numerical-checks-for-the-bundled-models) and its linked tests. The remaining targets below are proposals for double-precision, reference-size engine fixtures. Pin their final values before accepting GPU comparisons. Failures require diagnosis of units, bases, dtype, solver settings, or truncation before changing a threshold.
 
 | Check | Proposed target or comparison |
 |---|---|
-| Operator exports at fixed basis/cutoff | Relative Frobenius residual ≤ `1e-12` with an absolute floor appropriate to the declared units; reject NaN/Inf and dimensional inconsistencies |
-| Spectra at identical cutoffs | Compare excitation energies relative to the ground state; `atol = 1e-8 GHz`, `rtol = 1e-8` against the direct reference |
-| Physical model convergence | Refine basis cutoff and retained levels independently; target excitation-energy changes ≤ `1e-5 GHz` and declared observable changes ≤ `1e-5` for these fixtures |
 | Cross-engine dynamics | Maximum density-matrix Frobenius difference ≤ `1e-6` at matching times/bases; dimensionless population/coherence differences ≤ `1e-6` |
 | State validity | Trace and Hermiticity residuals ≤ `1e-8`; minimum density-matrix eigenvalue ≥ `-1e-8`; check the supplied initial state as well |
 | Integration refinement | Tighten solver tolerances/internal-step limits and compare at the same output grid; target changes below one tenth of the cross-engine tolerance |
@@ -212,7 +209,7 @@ Record compilation/setup and steady-state costs separately if timing is reported
 |---|---|---|
 | System representation, bases, biases, operator names, and numeric array input | Settled in ADR-0002 | Step A (settled) |
 | Evolution API details | Explicit initial state, observables, controls, output grid, solver settings, and typed result aligned with the Integrator contract | Before the first adapter; update the operational contract if its callable signature needs clarification |
-| Reference fixtures and numerical thresholds | Start with §6; freeze values/cutoffs and tolerance rationale after independent CPU refinement | Before claiming cross-engine acceptance |
+| Reference fixtures and numerical thresholds | Block 1 CPU limits are pinned in the operational model reference; settle the remaining §6 engine limits against independent CPU references | Before claiming cross-engine acceptance |
 | Dependency pins and device settings | One validated workstation stack; explicit double precision; lazy GPU loading and bounded memory use | First execution step before A; final GPU evidence completes Block 2 |
 | Storage and dispatch thresholds | Reimplement the unreleased Dense/Dia rule in the Block 2 adapter; retain CPU tensor factors; check thresholds on the target device | Block 2, before accepting GPU wrapping and the engine-selection table |
 

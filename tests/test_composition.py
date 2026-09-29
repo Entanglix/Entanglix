@@ -34,7 +34,7 @@ def test_qubit_resonator_agrees_with_independent_transmon_reference():
         + 0.05 * np.kron(charge, position)
     )
     np.testing.assert_allclose(
-        np.linalg.eigvalsh(model.hamiltonian_ghz), np.linalg.eigvalsh(reference), atol=2e-8
+        np.linalg.eigvalsh(model.hamiltonian_ghz), np.linalg.eigvalsh(reference), rtol=0, atol=2e-8
     )
     np.testing.assert_allclose(model.operators["r.position"], np.kron(np.eye(6), position))
     assert model.dimensions == (6, 5) and model.subsystem_ids == ("q", "r")
@@ -48,6 +48,22 @@ def test_qubit_resonator_agrees_with_independent_transmon_reference():
         ),
         model.hamiltonian_ghz,
     )
+    assert set(model.drive_factors) == set(model.drives) == {"charge_drive"}
+    assert set(model.dissipator_factors) == set(model.dissipators) == {"resonator_loss"}
+    for name, factors in model.drive_factors.items():
+        assert tuple(factor.shape for factor in factors) == ((6, 6), (5, 5))
+        np.testing.assert_allclose(np.kron(*factors), model.drives[name], rtol=0, atol=1e-12)
+    for name, factors in model.dissipator_factors.items():
+        assert tuple(factor.shape for factor in factors) == ((6, 6), (5, 5))
+        np.testing.assert_allclose(
+            np.kron(*factors), model.dissipators[name][0], rtol=0, atol=1e-12
+        )
+    np.testing.assert_allclose(model.drive_factors["charge_drive"][1], np.eye(5))
+    np.testing.assert_allclose(model.dissipator_factors["resonator_loss"][0], np.eye(6))
+    np.testing.assert_allclose(
+        np.diag(model.drive_factors["charge_drive"][0]), np.diag(charge), atol=1e-10
+    )
+    np.testing.assert_allclose(model.dissipator_factors["resonator_loss"][1], lower)
     assert model.provenance["subsystems"]["q"]["parameters"]["Csh"]["prior"]["kind"] == "uniform"
 
 
@@ -137,11 +153,12 @@ retained_levels = 2
     np.testing.assert_allclose(
         np.diag(model.hamiltonian_ghz)[::2] - np.diag(model.hamiltonian_ghz)[0],
         energies - energies[0],
+        rtol=0,
         atol=2e-8,
     )
     expected_phase = vectors.conj().T @ reference.phi_operator() @ vectors
     np.testing.assert_allclose(
-        np.diag(model.operators["f.phase"])[::2], np.diag(expected_phase), atol=2e-8
+        np.diag(model.operators["f.phase"])[::2], np.diag(expected_phase), rtol=0, atol=2e-8
     )
     circuit_text = (ROOT / "examples/fluxonium/system.toml").read_text()
     forward_path = tmp_path / "forward.toml"
@@ -158,10 +175,10 @@ retained_levels = 2
     for name in ("phase", "sin_phase"):
         constructor_diagonal = np.diag(model.operators[f"f.{name}"])[::2]
         np.testing.assert_allclose(
-            constructor_diagonal, np.diag(reversed_circuit.operators[name]), atol=1e-7
+            constructor_diagonal, np.diag(reversed_circuit.operators[name]), rtol=0, atol=1e-7
         )
         np.testing.assert_allclose(
-            constructor_diagonal, -np.diag(forward.operators[name]), atol=1e-7
+            constructor_diagonal, -np.diag(forward.operators[name]), rtol=0, atol=1e-7
         )
 
 
@@ -174,11 +191,12 @@ def test_transmon_constructor_keeps_conventional_ng(tmp_path):
     np.testing.assert_allclose(
         np.diag(model.hamiltonian_ghz)[::20] - model.hamiltonian_ghz[0, 0],
         energies - energies[0],
+        rtol=0,
         atol=1e-8,
     )
     charge = vectors.conj().T @ reference.n_operator() @ vectors - 0.23 * np.eye(3)
     np.testing.assert_allclose(
-        np.diag(model.operators["q1.charge"])[::20], np.diag(charge), atol=1e-8
+        np.diag(model.operators["q1.charge"])[::20], np.diag(charge), rtol=0, atol=1e-8
     )
 
 

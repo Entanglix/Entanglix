@@ -12,6 +12,43 @@ class Parser(argparse.ArgumentParser):
         self.exit(64, f"{self.prog}: error: {message}\n")
 
 
+def _operator_meaning(name: str, provenance: dict[str, object]) -> str:
+    if "asset_sha256" in provenance:
+        return "declared by the spec"
+    if "subsystems" in provenance:
+        subsystem, _, local = name.partition(".")
+        return _operator_meaning(local, provenance["subsystems"][subsystem])
+    if name == "charge" or (name.startswith("node") and name.endswith(".charge")):
+        return "n − ng in Cooper-pair units"
+    return {
+        "phase": "extended-coordinate phase in radians",
+        "cos_phase": "cosine of phase",
+        "sin_phase": "sine of phase",
+        "annihilation": "oscillator lowering operator a",
+        "number": "oscillator occupation a†a",
+        "position": "oscillator quadrature a + a†",
+    }.get(name, "declared by the spec")
+
+
+def _print_circuit_diagnostics(provenance: dict[str, object], label: str) -> None:
+    if "transformation" in provenance:
+        print(
+            f"{label} transformation ({provenance['transformation_source']}): {provenance['transformation']}"
+        )
+        print(f"{label} node offset charges: {provenance['node_offsets']}")
+        print(f"{label} derived coordinate offset charges: {provenance['coordinate_offsets']}")
+        if provenance["dropped_offsets"]:
+            print(f"{label} dropped extended-coordinate offsets: {provenance['dropped_offsets']}")
+        for loop in provenance["oriented_loops"]:
+            first, second = loop["nodes"]
+            print(
+                f"{label} closure branch {loop['branch']} ({first}→{second}): "
+                f"{loop['value']} {loop['unit']}"
+            )
+    for name, child in provenance.get("subsystems", {}).items():
+        _print_circuit_diagnostics(child, name)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = Parser(prog="entanglix", description="Quantum system research harness.")
     parser.add_argument("--version", action="version", version=f"entanglix {__version__}")
@@ -28,7 +65,10 @@ def main(argv: list[str] | None = None) -> int:
             print(f"entanglix: invalid system: {exc}", file=sys.stderr)
             return 64
         print(f"valid system: {system.id} ({system.basis}, dimensions {system.dimensions})")
-        print("operators: " + ", ".join(sorted(system.operators)))
+        print("operators:")
+        for name in sorted(system.operators):
+            print(f"  {name}: {_operator_meaning(name, system.provenance)}")
+        _print_circuit_diagnostics(system.provenance, "circuit")
         return 0
     parser.print_help()
     return 0
