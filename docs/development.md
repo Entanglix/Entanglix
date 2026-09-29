@@ -4,7 +4,7 @@ For maintainers and coding agents working on Entanglix. Root `AGENTS.md` and `CL
 
 ## Document ownership
 
-- [roadmap.md](roadmap.md) owns scope, dependencies, quality criteria, and open choices; [checklist.md](checklist.md) owns completion and acceptance evidence.
+- [roadmap.md](roadmap.md) owns scope, dependencies, quality criteria, and open choices; [checklist.md](checklist.md) owns completion status and links to acceptance evidence.
 - [HARNESS_CONTRACT.md](../HARNESS_CONTRACT.md) owns shared interfaces and execution guarantees; [ADRs](adr/) retain decisions and rationale. Draft recommendations remain proposals.
 - [README.md](../README.md) owns supported usage and release notes; [research-agent.md](research-agent.md) is a draft operational reference pending runtime integration. Follow the [documentation boundary and sharing rule](README.md).
 
@@ -19,7 +19,7 @@ Run `uv sync --locked`, `uv run --locked pytest`, `uv run --locked ruff check .`
 - Keep core imports and CPU tests usable without GPU or private packages. Preserve [ADR-0001's numerical policy](adr/0001-mandate.md#33-units-time-grid-and-truncation-defaults).
 - Lean by default: reuse existing facilities and implement capabilities when needed.
 - ADRs hold design decisions only, stated as final. Document organization belongs in the docs index, and edit history in git. A substantive change to an accepted decision gets a new ADR that supersedes the old one.
-- Record acceptance evidence in the checklist; distinguish implemented, validated, and planned behavior.
+- Link acceptance artifacts from the checklist; distinguish implemented, validated, and planned behavior. Keep progress narratives in conversation. Retain implementation details and scientific evidence in the appropriate operational docs, code, tests, or artifacts.
 - Commit or push only with the user's go-ahead. A request to "save" means stash.
 
 ## Reviews

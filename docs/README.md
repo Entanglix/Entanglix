@@ -17,7 +17,7 @@ This index supports project planning and implementation. Operational entry point
 ## Planning and development
 
 - [roadmap.md](roadmap.md) — Research direction, scope, milestones, dependencies, quality criteria, and open choices.
-- [checklist.md](checklist.md) — Implementation status and acceptance evidence.
+- [checklist.md](checklist.md) — Completion status and links to acceptance evidence; progress narratives stay in conversation.
 - [m1-guide.md](m1-guide.md) — Draft implementation guide for M1 (Blocks 1–2): model representation, engine integration, scientific fixtures, and acceptance evidence.
 - [development.md](development.md) — Maintainer and coding-agent instructions. Root [AGENTS.md](../AGENTS.md) and [CLAUDE.md](../CLAUDE.md) are one-line pointers here; they are excluded from research-runtime guidance.
 - Phase guides may be added as needed, including before code exists.
@@ -28,7 +28,7 @@ This index supports project planning and implementation. Operational entry point
 - [research-agent.md](research-agent.md) — Draft research conduct for user agents; instruction delivery is decided before Block 6b. It avoids an auto-load filename and is not repository development guidance.
 - [../HARNESS_CONTRACT.md](../HARNESS_CONTRACT.md) — Shared interfaces, permissions, evidence requirements, and execution guarantees.
 - Runtime skills will be introduced in the root `skills/` directory with agent integration. Implemented system syntax and modeling conventions will live in `docs/operations/system-spec.md` as M1 capabilities arrive; other usage guides may live under `docs/operations/` when needed.
-- `environment.md` will document validated environment pins when GPU support is available; it should serve as a retained operational reference, independently of validation plans.
+- [environment.md](environment.md) — Observed GPU compatibility, tested package versions, limitations, and reproduction commands.
 
 ## Decision records
 

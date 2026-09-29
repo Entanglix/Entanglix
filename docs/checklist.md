@@ -1,6 +1,6 @@
 # Entanglix Build Checklist
 
-**Status:** Implementation tracker for the pinned [`roadmap.md`](roadmap.md) and derived [`../HARNESS_CONTRACT.md`](../HARNESS_CONTRACT.md). The roadmap defines scope, milestones, and dependencies; the contract defines enforceable behavior; this file tracks completion and acceptance evidence.
+**Status:** Implementation tracker for the pinned [`roadmap.md`](roadmap.md) and derived [`../HARNESS_CONTRACT.md`](../HARNESS_CONTRACT.md). The roadmap defines scope, milestones, and dependencies; the contract defines enforceable behavior; this file tracks completion status and links to acceptance evidence. Progress narratives belong in conversation, not this checklist.
 
 Status legend: `[ ]` open · `[-]` in progress / partial · `[x]` done. Dependencies below follow the roadmap. Supporting milestones can proceed when their own prerequisites are ready. A block is complete when its required functional and applicable quality criteria are checked; numbering imposes no additional dependencies. No calendar: exit criteria gate progress, not dates.
 
@@ -81,10 +81,12 @@ M3 demonstrates quality for a complete sweep/search workflow. The preferred sequ
 
 The [M1 guide](m1-guide.md) develops both blocks as one implementation plan. Its proposed schemas, fixtures, and numerical targets remain draft choices; this checklist records implemented and validated work.
 
-### [ ] M1 entry — GPU compatibility probe
+### [x] M1 entry — GPU compatibility probe
 
-- [ ] Before step A/implementation: a disposable environment runs one tiny cuDensityMat solve through qutip-cuquantum and one dynamiqs solve on the actual RTX 5090; both match a known reference
-- [ ] Record commands, Python/package versions, driver/CUDA observations, and device evidence; retain Python 3.13 unless an observed blocker requires a pin change. This probe is not full engine acceptance
+- [x] Before step A/implementation: a disposable environment runs one tiny cuDensityMat solve through qutip-cuquantum and one dynamiqs solve on the actual RTX 5090; both match a known reference
+- [x] Record commands, Python/package versions, driver/CUDA observations, and device evidence; retain Python 3.13 unless an observed blocker requires a pin change. This probe is not full engine acceptance
+
+**Acceptance evidence:** [GPU environment](environment.md).
 
 ### [ ] Block 1 — System Spec and Model Adapter
 
