@@ -67,7 +67,7 @@ Use a Pydantic model for the parsed TOML structure and generate its JSON schema 
 
 [ADR-0002](adr/0002-system-model-representation.md) fixes the representation: model kinds and constructors, units and `[units]`, circuit coordinates and the pinned transformation, cutoffs, biases, operator names, composite basis, tensor order, and explicit-operator arrays. Proposed top-level fields are `format_version`, `id`, `units`, `parameters`, `model`, `truncation`, `drives`, and `dissipators`; exact syntax is fixed with the implementation.
 
-Parameters have a resolved value and unit, with an optional declared source and prior. Begin with validated uniform and normal prior records if needed by the fixtures; normal widths must be positive and uniform bounds ordered. Priors are metadata at M1; construction uses explicit resolved values. Sampling, calibration, and prior propagation follow their consuming workflows.
+Parameters have a resolved value and unit, with an optional declared source and prior. The current fixture uses a validated uniform prior. Priors are metadata at M1; construction uses explicit resolved values. Other prior families, sampling, calibration, and prior propagation follow the workflows that need them.
 
 ### Constructed model
 
@@ -90,134 +90,15 @@ Initial state, time grid, drive envelopes, observables, solver options, and grad
 - Use a uniform output grid in ns. Internal adaptive integration is permitted. Drive sample times and discontinuities are explicit, and all adapters use the same interpolation/end-point convention.
 - Start reference validation with float64/complex128. Configure and verify JAX precision before array creation; dynamiqs defaults to single precision and exposes an explicit double-precision setting. Lower-precision support needs separate tolerances and evidence. [dynamiqs precision](https://www.dynamiqs.org/stable/python_api/utils/global_settings/set_precision.html)
 
-## 4. Proposed system examples
+## 4. Runnable starting examples
 
-These are candidate Entanglix TOML shapes following ADR-0002, not implemented syntax. Values are illustrative inputs, not measured device parameters. Exact field names are fixed with the implementation. The companion files named below will be supplied with the implemented examples.
+The operational [system-spec reference](operations/system-spec.md) owns implemented syntax. These files own the concrete TOML and fixture values; they are illustrative inputs, not measured device parameters.
 
-### A. Component-defined circuit
+- **A — Component-defined circuit:** [junction with shunt](../examples/junction-shunt/system.toml) derives its reference transmon parameters from the supplied junction and shunt capacitances. The authored node offset and charge cutoff make sign and truncation checks observable.
+- **B — Coupled circuit and resonator:** [composite](../examples/qubit-resonator/system.toml) references a [leaf circuit](../examples/qubit-resonator/qubit.toml) and an oscillator constructor. The loss test starts from one resonator photon so the dissipator is measurable. Coupling, tensor order, and retained-level refinement are checked independently.
+- **C — Explicit operators:** [two-level model](../examples/two-level/system.toml) reads a numeric NPZ archive with a GHz Hamiltonian and dimensionless operators. Analytic decay and coherence checks separate rates from the 2π energy conversion.
 
-This is a junction with a shunt capacitor. Its component topology and physical capacitance are authored explicitly; the reference transmon parameters are derived from the same total capacitance.
-
-```toml
-format_version = 1
-id = "junction_with_shunt"
-
-[units]
-energy = "GHz"
-time = "ns"
-
-[parameters.EJ]
-value = 15.0
-unit = "GHz"
-
-[parameters.ECJ]
-value = 2.0
-unit = "GHz"
-
-[parameters.Csh]
-value = 60.0
-unit = "fF"
-prior = { kind = "uniform", lower = 55.0, upper = 65.0 }
-
-[model]
-kind = "circuit"
-nodes = [0, 1]
-ground = 0
-offset_charges = { "1" = 0.0 }
-
-[[model.branches]]
-id = "junction"
-kind = "JJ"
-nodes = [0, 1]
-josephson_energy = { parameter = "EJ" }
-charging_energy = { parameter = "ECJ" }
-
-[[model.branches]]
-id = "shunt"
-kind = "C"
-nodes = [0, 1]
-capacitance = { parameter = "Csh" }
-
-[truncation]
-cutoffs = { theta1 = 30 }
-retained_levels = 6
-```
-
-`theta1` is periodic, so its cutoff means charge states from `-30` through `30`. The offset charge is authored on node 1. A prior's numerical bounds inherit its parameter's unit. An inductive single-mode circuit and a coupled component circuit are required fixtures in addition to this example.
-
-### B. Coupled circuit and resonator
-
-`qubit.toml` contains example A, referenced one level deep as ADR-0002 requires. Resolve paths against the containing file and report missing files, duplicate subsystem IDs, and forbidden nesting.
-
-```toml
-format_version = 1
-id = "qubit_resonator"
-
-[units]
-energy = "GHz"
-time = "ns"
-
-[model]
-kind = "composite"
-
-[[model.subsystems]]
-id = "q"
-source = "qubit.toml"
-
-[[model.subsystems]]
-id = "r"
-kind = "oscillator"
-frequency = { value = 6.2, unit = "GHz" }
-retained_levels = 5
-
-[[model.interactions]]
-coefficient = { value = 0.05, unit = "GHz" }
-factors = ["q.charge", "r.position"]
-add_hermitian_conjugate = false
-
-[[drives]]
-id = "charge_drive"
-factors = ["q.charge"]
-amplitude_unit = "GHz"
-
-[[dissipators]]
-id = "resonator_loss"
-factors = ["r.annihilation"]
-rate = { value = 0.01, unit = "1/ns" }
-```
-
-The initial Hilbert space is `6 × 5`. `q.charge` is the charge relative to the offset, in Cooper-pair units, projected onto the qubit's retained eigenstates. A drive envelope supplied to evolution multiplies this operator; its GHz amplitude receives the same explicit angular conversion as static Hamiltonian coefficients. A composite retains local product-basis metadata even if its spectrum is diagonalized for inspection. For the loss fixture, initialize the qubit in its ground state and the resonator in the one-photon state, and evolve for `50 ns` (`γT = 0.5`). Compare loss-enabled and loss-disabled trajectories; use the zero-coupling limit for an analytic oscillator decay reference.
-
-### C. Explicit-operator model
-
-```toml
-format_version = 1
-id = "two_level_reference"
-
-[units]
-energy = "GHz"
-time = "ns"
-
-[model]
-kind = "operators"
-dimensions = [2]
-basis = "ground_excited"
-array_file = "operators.npz"
-hamiltonian = "H0"
-operators = { x = "sigma_x", lower = "lowering" }
-
-[[drives]]
-id = "x_drive"
-factors = ["x"]
-amplitude_unit = "GHz"
-
-[[dissipators]]
-id = "relaxation"
-factors = ["lower"]
-rate = { value = 0.01, unit = "1/ns" }
-```
-
-The proposed fixture archive contains `H0 = diag(0, 0.2)` in GHz, inherited from `[units].energy`, and the dimensionless arrays `sigma_x = [[0, 1], [1, 0]]` and `lowering = [[0, 1], [0, 0]]`. Neither the dimensionless operators nor the `1/ns` decay rate receives a 2π conversion. Complex arrays are supported; object arrays/pickle loading are excluded. Check shapes against declared dimensions and preserve the file content digest in model provenance. This finite model has no additional physical truncation to refine; reports state that distinction explicitly.
+The [LC](../examples/lc-circuit/system.toml), [fluxonium](../examples/fluxonium/system.toml), [two-mode component](../examples/two-mode-circuit/system.toml), and [three-subsystem](../examples/three-subsystem/system.toml) fixtures broaden representation coverage. Section 6 defines the evidence each fixture must provide.
 
 ## 5. Engine integration and storage
 

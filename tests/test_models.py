@@ -33,6 +33,7 @@ def test_explicit_model_decay_and_closed_coherence():
     times = np.linspace(0, 100, 11)
     result = evolve_cpu(model, excited, times, observables={"excited": projector})
     np.testing.assert_allclose(result.expectations["excited"], np.exp(-0.01 * times), atol=2e-8)
+    assert np.isrealobj(result.expectations["excited"])
     assert all(abs(np.trace(state) - 1) < 1e-9 for state in result.states)
 
     closed = replace(model, dissipators={})

@@ -16,6 +16,7 @@ unit = "GHz"
 [parameters.Csh]
 value = 60.0
 unit = "fF"
+prior = { kind = "uniform", lower = 55.0, upper = 65.0 }
 
 [model]
 kind = "circuit"

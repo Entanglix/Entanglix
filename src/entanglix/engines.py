@@ -28,10 +28,11 @@ def evolve_cpu(
     times_ns: np.ndarray,
     *,
     observables: dict[str, np.ndarray] | None = None,
+    drive_amplitudes_ghz: dict[str, float] | None = None,
     rtol: float = 1e-10,
     atol: float = 1e-12,
 ) -> EvolutionResult:
-    """Evolve a small model with a static Hamiltonian and optional collapse terms."""
+    """Evolve a small model with optional constant drive amplitudes."""
     times = np.asarray(times_ns, dtype=float)
     if (
         times.ndim != 1
@@ -71,13 +72,26 @@ def evolve_cpu(
                 f"observable {name!r} must be a finite ({dimension}, {dimension}) matrix"
             )
         q_observables[name] = qt.Qobj(data, dims=qdims)
+    hamiltonian = np.array(system.hamiltonian_ghz, dtype=np.complex128, copy=True)
+    for name, amplitude in (drive_amplitudes_ghz or {}).items():
+        if name not in system.drives:
+            raise EvolutionInputError(f"unknown drive {name!r}; available: {sorted(system.drives)}")
+        try:
+            values = np.asarray(amplitude, dtype=float)
+        except (TypeError, ValueError) as exc:
+            raise EvolutionInputError(
+                f"drive {name!r} amplitude must be a finite scalar GHz value"
+            ) from exc
+        if values.ndim != 0 or not np.isfinite(values):
+            raise EvolutionInputError(f"drive {name!r} amplitude must be a finite scalar GHz value")
+        hamiltonian += float(values) * system.drives[name]
     collapse = [
         qt.Qobj(math.sqrt(rate) * operator, dims=qdims)
         for operator, rate in system.dissipators.values()
         if rate > 0
     ]
     result = qt.mesolve(
-        2 * np.pi * system.qutip_hamiltonian(),
+        qt.Qobj(2 * np.pi * hamiltonian, dims=qdims),
         qt.Qobj(initial, dims=qdims),
         times,
         c_ops=collapse,

@@ -13,6 +13,10 @@ array_file = "operators.npz"
 hamiltonian = "H0"
 operators = { x = "sigma_x", lower = "lowering" }
 
+[[drives]]
+id = "x_drive"
+factors = ["x"]
+
 [[dissipators]]
 id = "relaxation"
 factors = ["lower"]

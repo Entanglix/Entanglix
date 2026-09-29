@@ -88,19 +88,19 @@ The [M1 guide](m1-guide.md) develops both blocks as one implementation plan. Its
 
 **Acceptance evidence:** [GPU environment](environment.md).
 
-### [ ] Block 1 — System Spec and Model Adapter
+### [-] Block 1 — System Spec and Model Adapter
 
 **Depends on:** Block 0.
 
-- [ ] `system.toml` JSON schema + pydantic model (circuit, truncation, drives, dissipators, parameters + priors, units)
-- [ ] scqubits adapter: circuit → truncated operators in a chosen basis
-- [ ] Explicit-operator fallback
-- [ ] CPU-testable QuTiP `Qobj`, numerical arrays suitable for JAX, and per-subsystem operator terms with dimensions/order for the cuDensityMat adapter; no GPU packages required
-- [ ] `entanglix validate <system.toml>` / `validate_system` backing capability
-- [ ] Concrete representation coverage and fixture systems/parameters selected during this block under ADR §3.1, exercising component, composition, and explicit-operator paths; fixed units, array/output unit semantics, and one level of leaf system references
+- [x] [`system.toml` JSON schema](../schemas/system.schema.json) + [pydantic model](../src/entanglix/models.py) (circuit, truncation, drives, dissipators, parameters + priors, units)
+- [ ] scqubits adapter: circuit → truncated operators in a chosen basis; `validate` reports derived offsets, available operator names, and the default transformation ([circuit reference tests](../tests/test_circuit_models.py))
+- [x] Explicit-operator fallback ([CPU model tests](../tests/test_models.py))
+- [ ] CPU-testable QuTiP `Qobj`, numerical arrays suitable for JAX, and per-subsystem operator terms with dimensions/order for the cuDensityMat adapter, including drive and dissipator factors; no GPU packages required ([composition tests](../tests/test_composition.py))
+- [x] `entanglix validate <system.toml>` / `load_system` backing capability ([CPU model tests](../tests/test_models.py))
+- [x] Concrete representation coverage and fixture systems/parameters selected during this block under ADR §3.1, exercising component, composition, and explicit-operator paths; fixed units, array/output unit semantics, and one level of leaf system references ([examples](../examples/), [operational syntax](operations/system-spec.md))
 - [ ] Pin numerical acceptance thresholds/rationale after independent CPU reference refinement; operator/spectral comparisons and separate basis/retained-level convergence evidence pass
-- [ ] Malformed units, rates, dimensions, references, and unsupported forms produce actionable diagnostics; intentionally insufficient truncation demonstrates the refinement check
-- [ ] Implemented syntax, tensor/basis order, 2π conversion, collapse normalization, units, and operator names documented in `docs/operations/system-spec.md`; worked examples and README usage/compatibility describe available behavior
+- [x] Malformed units, rates, dimensions, references, and unsupported forms produce actionable diagnostics; intentionally insufficient truncation demonstrates the refinement check ([model](../tests/test_models.py), [circuit](../tests/test_circuit_models.py), [composition](../tests/test_composition.py) tests)
+- [x] Implemented syntax, tensor/basis order, 2π conversion, collapse normalization, units, and operator names documented in [system-spec.md](operations/system-spec.md); [worked examples](../examples/cpu_reference.py) and [README](../README.md) usage/compatibility describe available behavior
 - [ ] Applicable quality evidence recorded
 - [ ] **Done:** fixtures validate and export CPU objects/arrays/factorized terms with preserved units/bases; reference spectra/operators, model refinement, and input diagnostics pass without GPU dependencies
 

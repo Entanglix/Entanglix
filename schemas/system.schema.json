@@ -4,13 +4,15 @@
       "additionalProperties": false,
       "properties": {
         "id": {
+          "minLength": 1,
           "title": "Id",
           "type": "string"
         },
         "kind": {
           "enum": [
             "JJ",
-            "C"
+            "C",
+            "L"
           ],
           "title": "Kind",
           "type": "string"
@@ -68,6 +70,36 @@
           ],
           "default": null,
           "title": "Capacitance"
+        },
+        "inductive_energy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParameterRef"
+            },
+            {
+              "$ref": "#/$defs/Quantity"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Inductive Energy"
+        },
+        "inductance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParameterRef"
+            },
+            {
+              "$ref": "#/$defs/Quantity"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Inductance"
         }
       },
       "required": [
@@ -110,6 +142,31 @@
           },
           "title": "Branches",
           "type": "array"
+        },
+        "transformation": {
+          "anyOf": [
+            {
+              "items": {
+                "items": {
+                  "type": "number"
+                },
+                "type": "array"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Transformation"
+        },
+        "external_fluxes": {
+          "items": {
+            "$ref": "#/$defs/FluxBias"
+          },
+          "title": "External Fluxes",
+          "type": "array"
         }
       },
       "required": [
@@ -120,6 +177,37 @@
         "branches"
       ],
       "title": "CircuitSpec",
+      "type": "object"
+    },
+    "CompositeSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "composite",
+          "title": "Kind",
+          "type": "string"
+        },
+        "subsystems": {
+          "items": {
+            "$ref": "#/$defs/SubsystemSpec"
+          },
+          "minItems": 2,
+          "title": "Subsystems",
+          "type": "array"
+        },
+        "interactions": {
+          "items": {
+            "$ref": "#/$defs/Interaction"
+          },
+          "title": "Interactions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "subsystems"
+      ],
+      "title": "CompositeSpec",
       "type": "object"
     },
     "Dissipator": {
@@ -154,6 +242,90 @@
         "rate"
       ],
       "title": "Dissipator",
+      "type": "object"
+    },
+    "Drive": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "factors": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Factors",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "factors"
+      ],
+      "title": "Drive",
+      "type": "object"
+    },
+    "FluxBias": {
+      "additionalProperties": false,
+      "properties": {
+        "branch": {
+          "title": "Branch",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        },
+        "unit": {
+          "const": "Phi0",
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "branch",
+        "value",
+        "unit"
+      ],
+      "title": "FluxBias",
+      "type": "object"
+    },
+    "Interaction": {
+      "additionalProperties": false,
+      "properties": {
+        "coefficient": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParameterRef"
+            },
+            {
+              "$ref": "#/$defs/Quantity"
+            }
+          ],
+          "title": "Coefficient"
+        },
+        "factors": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Factors",
+          "type": "array"
+        },
+        "add_hermitian_conjugate": {
+          "default": false,
+          "title": "Add Hermitian Conjugate",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "coefficient",
+        "factors"
+      ],
+      "title": "Interaction",
       "type": "object"
     },
     "OperatorsSpec": {
@@ -233,6 +405,17 @@
           ],
           "default": null,
           "title": "Source"
+        },
+        "prior": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/UniformPrior"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -284,6 +467,161 @@
       "title": "Quantity",
       "type": "object"
     },
+    "SubsystemSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source"
+        },
+        "kind": {
+          "anyOf": [
+            {
+              "enum": [
+                "oscillator",
+                "transmon",
+                "fluxonium"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Kind"
+        },
+        "frequency": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParameterRef"
+            },
+            {
+              "$ref": "#/$defs/Quantity"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Frequency"
+        },
+        "josephson_energy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParameterRef"
+            },
+            {
+              "$ref": "#/$defs/Quantity"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Josephson Energy"
+        },
+        "charging_energy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParameterRef"
+            },
+            {
+              "$ref": "#/$defs/Quantity"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Charging Energy"
+        },
+        "inductive_energy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParameterRef"
+            },
+            {
+              "$ref": "#/$defs/Quantity"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Inductive Energy"
+        },
+        "ng": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ng"
+        },
+        "flux": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParameterRef"
+            },
+            {
+              "$ref": "#/$defs/Quantity"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Flux"
+        },
+        "cutoff": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cutoff"
+        },
+        "retained_levels": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retained Levels"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "title": "SubsystemSpec",
+      "type": "object"
+    },
     "Truncation": {
       "additionalProperties": false,
       "properties": {
@@ -305,6 +643,31 @@
         "retained_levels"
       ],
       "title": "Truncation",
+      "type": "object"
+    },
+    "UniformPrior": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "uniform",
+          "title": "Kind",
+          "type": "string"
+        },
+        "lower": {
+          "title": "Lower",
+          "type": "number"
+        },
+        "upper": {
+          "title": "Upper",
+          "type": "number"
+        }
+      },
+      "required": [
+        "kind",
+        "lower",
+        "upper"
+      ],
+      "title": "UniformPrior",
       "type": "object"
     },
     "Units": {
@@ -355,6 +718,7 @@
       "discriminator": {
         "mapping": {
           "circuit": "#/$defs/CircuitSpec",
+          "composite": "#/$defs/CompositeSpec",
           "operators": "#/$defs/OperatorsSpec"
         },
         "propertyName": "kind"
@@ -365,6 +729,9 @@
         },
         {
           "$ref": "#/$defs/OperatorsSpec"
+        },
+        {
+          "$ref": "#/$defs/CompositeSpec"
         }
       ],
       "title": "Model"
@@ -379,6 +746,13 @@
         }
       ],
       "default": null
+    },
+    "drives": {
+      "items": {
+        "$ref": "#/$defs/Drive"
+      },
+      "title": "Drives",
+      "type": "array"
     },
     "dissipators": {
       "items": {
