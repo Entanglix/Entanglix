@@ -65,23 +65,9 @@ Block 1 completes with CPU-testable QuTiP objects, numerical arrays suitable for
 
 Use a Pydantic model for the parsed TOML structure and generate its JSON schema into `schemas/`. Keep custom scientific validation in Python: JSON schema alone cannot establish Hermiticity, basis compatibility, or physical parameter validity. Do not maintain a second handwritten copy of the field definitions.
 
-Proposed top-level fields are `format_version`, `id`, `units`, `parameters`, `model`, `truncation`, `drives`, and `dissipators`. `model.kind` selects one of three construction paths:
-
-| Path | Initial coverage | Boundary |
-|---|---|---|
-| `circuit` | Grounded circuits built from C, L, and JJ branches, declared static flux/charge biases, explicit basis choices and cutoffs | Quantization is delegated to scqubits. Document supported topologies/bias mapping; reject unsupported elements or coordinate choices |
-| `composite` | Ordered subsystems built from circuit specs, explicit operators, and a small set of named constructors; sums of operator-product interactions | Preserve subsystem identities and term structure; named constructors do not become the only modeling path |
-| `operators` | Finite-dimensional Hamiltonian and named operators supplied as numerical arrays with declared basis/dimensions and units | Support effective/custom models without building a symbolic-language interpreter |
-
-For circuit branches, accept explicitly tagged physical quantities or the corresponding energy parameters, never an ambiguous unlabelled number. Reject specifying both capacitance and charging energy for the same branch. Retain the supplied quantity and conversion in the constructed model's provenance. scqubits supports C/L/JJ branches and physical-unit input, but its exact adapter API must be checked against the selected pin. [scqubits circuit definitions](https://scqubits.readthedocs.io/en/latest/guide/circuit/ipynb/custom_circuit_define_more.html)
-
-Use a fixed unit vocabulary rather than a general units library: `GHz`, `ns`, `1/ns`, `fF`, `nH`, `Phi0` (flux quanta, displayed as Φ0), and `dimensionless`. Charge offsets use dimensionless Cooper-pair numbers; operator normalizations are defined explicitly. Reject unsupported units and quantities incompatible with a field.
-
-`[units]` declares the units of otherwise unlabelled numerical array data and reported energy/time outputs. At M1, `energy = "GHz"` and `time = "ns"` are the supported values. It does not override a parameter's explicit unit: physical component quantities are converted through the documented model construction. Hamiltonian arrays inherit the energy unit; normalized operator arrays are dimensionless. Evolution sample times use the declared time unit.
+[ADR-0002](adr/0002-system-model-representation.md) fixes the representation: model kinds and constructors, units and `[units]`, circuit coordinates and the pinned transformation, cutoffs, biases, operator names, composite basis, tensor order, and explicit-operator arrays. Proposed top-level fields are `format_version`, `id`, `units`, `parameters`, `model`, `truncation`, `drives`, and `dissipators`; exact syntax is fixed with the implementation.
 
 Parameters have a resolved value and unit, with an optional declared source and prior. Begin with validated uniform and normal prior records if needed by the fixtures; normal widths must be positive and uniform bounds ordered. Priors are metadata at M1; construction uses explicit resolved values. Sampling, calibration, and prior propagation follow their consuming workflows.
-
-Use named operator references and explicit products/sums for interactions. Do not evaluate user-provided Python expressions to interpret a system spec. A small registry maps supported operator names to adapter operations; unsupported names report the available choices.
 
 ### Constructed model
 
@@ -100,15 +86,13 @@ Initial state, time grid, drive envelopes, observables, solver options, and grad
 ### Units, basis, and dissipation
 
 - Follow ADR-0001: model energies/frequencies use GHz, time uses ns, and physical components retain explicit units. A GHz-valued Hamiltonian becomes `H_dynamics = 2π × H_GHz` in radians/ns. Perform this once at the model-to-dynamics boundary and expose the conversion; no engine adds another factor. scqubits' unit setting must agree with the declared model units. [scqubits units](https://scqubits.readthedocs.io/en/latest/guide/settings/guide-units.html)
-- Represent collapse terms as a dimensionless operator `A` and a nonnegative rate `γ` in `1/ns`; engines receive `L = sqrt(γ) A`. Rates receive no angular-frequency conversion. This follows the Lindblad convention used by the engines. [QuTiP master-equation convention](https://qutip.readthedocs.io/en/stable/guide/dynamics/dynamics-master.html)
-- Fix tensor ordering: subsystem list order determines the tensor product; the rightmost subsystem index varies fastest in flattened arrays. Exporters retain dimension metadata. Registered oscillator `position` means `a + a†`; other normalizations need distinct names or explicit coefficients.
-- Keep construction-basis cutoffs separate from retained subsystem levels. A circuit with several coordinates has per-coordinate basis/cutoff declarations; the single-mode shorthand below does not limit that representation.
+- Collapse normalization, tensor ordering, and the separation of cutoffs from retained levels follow ADR-0002.
 - Use a uniform output grid in ns. Internal adaptive integration is permitted. Drive sample times and discontinuities are explicit, and all adapters use the same interpolation/end-point convention.
 - Start reference validation with float64/complex128. Configure and verify JAX precision before array creation; dynamiqs defaults to single precision and exposes an explicit double-precision setting. Lower-precision support needs separate tolerances and evidence. [dynamiqs precision](https://www.dynamiqs.org/stable/python_api/utils/global_settings/set_precision.html)
 
 ## 4. Proposed system examples
 
-These are candidate Entanglix TOML shapes, not implemented syntax. Values are illustrative inputs, not measured device parameters. Nested field names and fixture limits are settled at step A. The companion files named below will be supplied with the implemented examples.
+These are candidate Entanglix TOML shapes following ADR-0002, not implemented syntax. Values are illustrative inputs, not measured device parameters. Exact field names are fixed with the implementation. The companion files named below will be supplied with the implemented examples.
 
 ### A. Component-defined circuit
 
@@ -155,16 +139,15 @@ nodes = [0, 1]
 capacitance = { parameter = "Csh" }
 
 [truncation]
-basis = "charge"
-charge_cutoff = 30
+cutoffs = { theta1 = 30 }
 retained_levels = 6
 ```
 
-The charge cutoff means integer charge states from `-30` through `30`; offset charges are dimensionless in Cooper-pair units. A prior's numerical bounds inherit its parameter's unit. For multi-loop circuits, define oriented loop/closure-branch mapping before accepting flux biases; do not rely on an undocumented backend loop index. An inductive single-mode circuit and a coupled component circuit are required fixtures in addition to this example.
+`theta1` is periodic, so its cutoff means charge states from `-30` through `30`. The offset charge is authored on node 1. A prior's numerical bounds inherit its parameter's unit. An inductive single-mode circuit and a coupled component circuit are required fixtures in addition to this example.
 
 ### B. Coupled circuit and resonator
 
-`qubit.toml` contains example A. Composition references have one level: a composite may reference leaf circuit or explicit-operator specs, but a referenced spec cannot itself be composite or reference another system spec. Numeric asset references within a leaf remain allowed. Resolve paths against the containing file and report missing files, duplicate subsystem IDs, and forbidden nesting. Recursive composition/cycle detection is unnecessary under this restriction. The resonator constructor is shorthand for a finite oscillator model.
+`qubit.toml` contains example A, referenced one level deep as ADR-0002 requires. Resolve paths against the containing file and report missing files, duplicate subsystem IDs, and forbidden nesting.
 
 ```toml
 format_version = 1
@@ -203,7 +186,7 @@ factors = ["r.annihilation"]
 rate = { value = 0.01, unit = "1/ns" }
 ```
 
-The initial Hilbert space is `6 × 5`. `q.charge` is the projected dimensionless Cooper-pair number operator. A drive envelope supplied to evolution multiplies this operator; its GHz amplitude receives the same explicit angular conversion as static Hamiltonian coefficients. A composite retains local product-basis metadata even if its spectrum is diagonalized for inspection. For the loss fixture, initialize the qubit in its ground state and the resonator in the one-photon state, and evolve for `50 ns` (`γT = 0.5`). Compare loss-enabled and loss-disabled trajectories; use the zero-coupling limit for an analytic oscillator decay reference.
+The initial Hilbert space is `6 × 5`. `q.charge` is the charge relative to the offset, in Cooper-pair units, projected onto the qubit's retained eigenstates. A drive envelope supplied to evolution multiplies this operator; its GHz amplitude receives the same explicit angular conversion as static Hamiltonian coefficients. A composite retains local product-basis metadata even if its spectrum is diagonalized for inspection. For the loss fixture, initialize the qubit in its ground state and the resonator in the one-photon state, and evolve for `50 ns` (`γT = 0.5`). Compare loss-enabled and loss-disabled trajectories; use the zero-coupling limit for an analytic oscillator decay reference.
 
 ### C. Explicit-operator model
 
@@ -346,9 +329,7 @@ Record compilation/setup and steady-state costs separately if timing is reported
 
 | Decision | Recommendation to start from | When resolved |
 |---|---|---|
-| System schema and supported forms | Tagged circuit/composite/operators paths; fixed units and explicit `[units]` semantics; operator-name registry; one level of leaf system references | Step A, before schema/API implementation |
-| Circuit bases and bias mapping | Explicit coordinate bases/cutoffs; named oriented loop mapping; retained levels recorded separately | Step A, with the custom-circuit fixtures |
-| Numeric array input | Numeric NPZ arrays with explicit keys, dimensions, units, and content digests; no pickle/object arrays | Before explicit-operator loading |
+| System representation, bases, biases, operator names, and numeric array input | Settled in ADR-0002 | Step A (settled) |
 | Evolution API details | Explicit initial state, observables, controls, output grid, solver settings, and typed result aligned with the Integrator contract | Before the first adapter; update the operational contract if its callable signature needs clarification |
 | Reference fixtures and numerical thresholds | Start with §6; freeze values/cutoffs and tolerance rationale after independent CPU refinement | Before claiming cross-engine acceptance |
 | Dependency pins and device settings | One validated workstation stack; explicit double precision; lazy GPU loading and bounded memory use | First execution step before A; final GPU evidence completes Block 2 |

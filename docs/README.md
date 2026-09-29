@@ -34,6 +34,7 @@ This index supports project planning and implementation. Operational entry point
 
 - [adr/](adr/) — Public decision history, retained during operation.
 - [adr/0001-mandate.md](adr/0001-mandate.md) — Accepted foundation mandate and constraints. Future decisions add records as implementation proceeds.
+- [adr/0002-system-model-representation.md](adr/0002-system-model-representation.md) — Accepted system model representation: model kinds, units, circuit coordinates, cutoffs, biases, operator names, and composite basis.
 
 ## Sharing rule
 
