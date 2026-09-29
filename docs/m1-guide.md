@@ -1,0 +1,367 @@
+# M1 Guide — System Models and Numerical Engines
+
+**Status:** Draft implementation plan; no M1 capability or scientific result is claimed by this document. Concrete syntax, fixture values, numerical targets, and file names below are proposals for review.
+**Scope:** M1, covering Block 1 (System Spec and Model Adapter) and Block 2 (Engines v0).
+**Authority:** [roadmap](roadmap.md#block-1--system-spec-and-model-adapter), [accepted mandate](adr/0001-mandate.md#3-decision-0--foundation-choices), and [harness contract](../HARNESS_CONTRACT.md#1-objects-and-interfaces). [The checklist](checklist.md#m1--model--engines-blocks-12) owns completion status and acceptance evidence.
+**Audience:** the owner and implementation agents. This is a planning document; operational docs and production agents must work without it.
+
+## 1. Outcome and boundary
+
+M1 establishes a tested path from a description of a superconducting system to spectra and reference-size dynamics. The same model must retain its meaning across the QuTiP CPU, cuDensityMat, and dynamiqs adapters.
+
+At completion, a developer or expert user can:
+
+1. Describe a system using circuit components, coupled subsystems, or explicit operators.
+2. Validate its parameters, units, bases, truncations, interactions, drives, and dissipation through `entanglix validate <system.toml>` and its Python backing operation.
+3. Construct operators and export equivalent engine inputs without changing subsystem order, normalization, or units.
+4. Exercise static, driven, closed, and open-system evolution through the engine API and worked examples.
+5. Inspect numerical agreement, truncation/refinement evidence, and the actual engine, precision, and device used.
+
+Modeling actual systems is the capability; named qubits are useful constructors and fixtures within that capability. The initial implementation supports a documented subset of circuit descriptions and operator forms, and gives explicit diagnostics outside that subset.
+
+M1 supplies library operations, validation CLI, examples, and acceptance tests. The runner, run directories, `env_hash`, and cancellation/accounting arrive in Block 3; the independent corrector service arrives in Block 4; public `simulate`/`sweep` protocols arrive in Block 5. Numerical checks written here establish engine evidence and can later be reused by the corrector. They do not issue production verification verdicts.
+
+GPU work here is developer testing on the owner's workstation: a compatibility probe comes first, followed by scientific acceptance against refined CPU references. This does not introduce a research-job launch path before the runner exists.
+
+## 2. Build as one milestone
+
+```text
+Block 0: package, CLI, CPU CI, import boundary, GPU test selection
+    |
+    v
+Disposable GPU compatibility probe: Python + both engine stacks
+    |
+    v
+System examples + model/engine conventions
+    |
+    v
+Parse and validate --> construct model --> preserve operators and bases
+                                            |
+                      +---------------------+---------------------+
+                      v                     v                     v
+                 QuTiP CPU             cuDensityMat            dynamiqs
+                      +---------------------+---------------------+
+                                            v
+                         analytic checks + cross-engine agreement
+                         + refinement + GPU environment evidence
+```
+
+Read these as implementation steps, not separate infrastructure projects. Run the compatibility probe before step A or implementation: its outcome may change the Python pin and dependency choices. Once the environment is viable, establish the model boundary before completing engines.
+
+| Step | Work | Evidence needed before advancing |
+|---|---|---|
+| P — Verify compatibility | In a disposable environment, run one tiny cuDensityMat solve through qutip-cuquantum and one dynamiqs solve on the RTX 5090 | Both complete on the actual GPU and match a known reference; record Python, package, driver/CUDA versions, commands, and device evidence; retain Python 3.13 unless an observed blocker requires changing it |
+| A — Pin the representation | Review the examples in §4, operator conventions, and fixture matrix | Supported forms and explicit exclusions are written down; schema fields have a purpose |
+| B — CPU vertical slice | Explicit two-level model and one component-defined circuit; validation, exports, analytic/reference spectra, QuTiP evolution | Unit conversion, dimensions, basis order, and basic dynamics work end to end on CPU |
+| C — Composition | Coupled subsystems, interactions, drives, dissipators, priors, and basis/level refinement | A nontrivial composite model agrees with an independently constructed reference |
+| D — Engine adapters | GPU wrapping and storage selection, cuDensityMat, and dynamiqs | The same normalized inputs work on each adapter; precision and device use are explicit |
+| E — M1 acceptance | Complete the fixture matrix, gradient checks, refinement, diagnostics, and worked examples | Block 1 and Block 2 exits both pass with retained evidence |
+
+Block 1 completes with CPU-testable QuTiP objects, numerical arrays suitable for JAX, and per-subsystem operator terms/dimension metadata for the cuDensityMat adapter. Block 2 constructs GPU objects, selects storage, and validates actual GPU execution. The initial probe demonstrates compatibility, not completion of either block.
+
+## 3. One model boundary
+
+### Representation
+
+Use a Pydantic model for the parsed TOML structure and generate its JSON schema into `schemas/`. Keep custom scientific validation in Python: JSON schema alone cannot establish Hermiticity, basis compatibility, or physical parameter validity. Do not maintain a second handwritten copy of the field definitions.
+
+Proposed top-level fields are `format_version`, `id`, `units`, `parameters`, `model`, `truncation`, `drives`, and `dissipators`. `model.kind` selects one of three construction paths:
+
+| Path | Initial coverage | Boundary |
+|---|---|---|
+| `circuit` | Grounded circuits built from C, L, and JJ branches, declared static flux/charge biases, explicit basis choices and cutoffs | Quantization is delegated to scqubits. Document supported topologies/bias mapping; reject unsupported elements or coordinate choices |
+| `composite` | Ordered subsystems built from circuit specs, explicit operators, and a small set of named constructors; sums of operator-product interactions | Preserve subsystem identities and term structure; named constructors do not become the only modeling path |
+| `operators` | Finite-dimensional Hamiltonian and named operators supplied as numerical arrays with declared basis/dimensions and units | Support effective/custom models without building a symbolic-language interpreter |
+
+For circuit branches, accept explicitly tagged physical quantities or the corresponding energy parameters, never an ambiguous unlabelled number. Reject specifying both capacitance and charging energy for the same branch. Retain the supplied quantity and conversion in the constructed model's provenance. scqubits supports C/L/JJ branches and physical-unit input, but its exact adapter API must be checked against the selected pin. [scqubits circuit definitions](https://scqubits.readthedocs.io/en/latest/guide/circuit/ipynb/custom_circuit_define_more.html)
+
+Use a fixed unit vocabulary rather than a general units library: `GHz`, `ns`, `1/ns`, `fF`, `nH`, `Phi0` (flux quanta, displayed as Φ0), and `dimensionless`. Charge offsets use dimensionless Cooper-pair numbers; operator normalizations are defined explicitly. Reject unsupported units and quantities incompatible with a field.
+
+`[units]` declares the units of otherwise unlabelled numerical array data and reported energy/time outputs. At M1, `energy = "GHz"` and `time = "ns"` are the supported values. It does not override a parameter's explicit unit: physical component quantities are converted through the documented model construction. Hamiltonian arrays inherit the energy unit; normalized operator arrays are dimensionless. Evolution sample times use the declared time unit.
+
+Parameters have a resolved value and unit, with an optional declared source and prior. Begin with validated uniform and normal prior records if needed by the fixtures; normal widths must be positive and uniform bounds ordered. Priors are metadata at M1; construction uses explicit resolved values. Sampling, calibration, and prior propagation follow their consuming workflows.
+
+Use named operator references and explicit products/sums for interactions. Do not evaluate user-provided Python expressions to interpret a system spec. A small registry maps supported operator names to adapter operations; unsupported names report the available choices.
+
+### Constructed model
+
+The shared in-memory model carries:
+
+- Ordered subsystem IDs, dimensions, basis definitions, and projection/retained-level information.
+- Resolved parameters and their units/provenance; supplied component quantities remain inspectable.
+- Static Hamiltonian terms, named drive operators, and dimensionless dissipator operators with rates.
+- Factorized terms for composite models, plus explicit dense operators when supplied by the user.
+- The conversion from model energies to dynamics units, and declared construction limitations.
+
+Preserve local factors until an export needs materialized matrices. Requiring every backend to consume one pre-expanded dense Hamiltonian would discard the composite structure needed by cuDensityMat. Materialization is appropriate for the small CPU reference and moderate-size JAX lane, subject to declared memory limits.
+
+Initial state, time grid, drive envelopes, observables, solver options, and gradient requests belong to an evolution input, separate from the physical system spec. An M1 Python example may construct that input directly. It does not require a new protocol-file schema or a public simulation command.
+
+### Units, basis, and dissipation
+
+- Follow ADR-0001: model energies/frequencies use GHz, time uses ns, and physical components retain explicit units. A GHz-valued Hamiltonian becomes `H_dynamics = 2π × H_GHz` in radians/ns. Perform this once at the model-to-dynamics boundary and expose the conversion; no engine adds another factor. scqubits' unit setting must agree with the declared model units. [scqubits units](https://scqubits.readthedocs.io/en/latest/guide/settings/guide-units.html)
+- Represent collapse terms as a dimensionless operator `A` and a nonnegative rate `γ` in `1/ns`; engines receive `L = sqrt(γ) A`. Rates receive no angular-frequency conversion. This follows the Lindblad convention used by the engines. [QuTiP master-equation convention](https://qutip.readthedocs.io/en/stable/guide/dynamics/dynamics-master.html)
+- Fix tensor ordering: subsystem list order determines the tensor product; the rightmost subsystem index varies fastest in flattened arrays. Exporters retain dimension metadata. Registered oscillator `position` means `a + a†`; other normalizations need distinct names or explicit coefficients.
+- Keep construction-basis cutoffs separate from retained subsystem levels. A circuit with several coordinates has per-coordinate basis/cutoff declarations; the single-mode shorthand below does not limit that representation.
+- Use a uniform output grid in ns. Internal adaptive integration is permitted. Drive sample times and discontinuities are explicit, and all adapters use the same interpolation/end-point convention.
+- Start reference validation with float64/complex128. Configure and verify JAX precision before array creation; dynamiqs defaults to single precision and exposes an explicit double-precision setting. Lower-precision support needs separate tolerances and evidence. [dynamiqs precision](https://www.dynamiqs.org/stable/python_api/utils/global_settings/set_precision.html)
+
+## 4. Proposed system examples
+
+These are candidate Entanglix TOML shapes, not implemented syntax. Values are illustrative inputs, not measured device parameters. Nested field names and fixture limits are settled at step A. The companion files named below will be supplied with the implemented examples.
+
+### A. Component-defined circuit
+
+This is a junction with a shunt capacitor. Its component topology and physical capacitance are authored explicitly; the reference transmon parameters are derived from the same total capacitance.
+
+```toml
+format_version = 1
+id = "junction_with_shunt"
+
+[units]
+energy = "GHz"
+time = "ns"
+
+[parameters.EJ]
+value = 15.0
+unit = "GHz"
+
+[parameters.ECJ]
+value = 2.0
+unit = "GHz"
+
+[parameters.Csh]
+value = 60.0
+unit = "fF"
+prior = { kind = "uniform", lower = 55.0, upper = 65.0 }
+
+[model]
+kind = "circuit"
+nodes = [0, 1]
+ground = 0
+offset_charges = { "1" = 0.0 }
+
+[[model.branches]]
+id = "junction"
+kind = "JJ"
+nodes = [0, 1]
+josephson_energy = { parameter = "EJ" }
+charging_energy = { parameter = "ECJ" }
+
+[[model.branches]]
+id = "shunt"
+kind = "C"
+nodes = [0, 1]
+capacitance = { parameter = "Csh" }
+
+[truncation]
+basis = "charge"
+charge_cutoff = 30
+retained_levels = 6
+```
+
+The charge cutoff means integer charge states from `-30` through `30`; offset charges are dimensionless in Cooper-pair units. A prior's numerical bounds inherit its parameter's unit. For multi-loop circuits, define oriented loop/closure-branch mapping before accepting flux biases; do not rely on an undocumented backend loop index. An inductive single-mode circuit and a coupled component circuit are required fixtures in addition to this example.
+
+### B. Coupled circuit and resonator
+
+`qubit.toml` contains example A. Composition references have one level: a composite may reference leaf circuit or explicit-operator specs, but a referenced spec cannot itself be composite or reference another system spec. Numeric asset references within a leaf remain allowed. Resolve paths against the containing file and report missing files, duplicate subsystem IDs, and forbidden nesting. Recursive composition/cycle detection is unnecessary under this restriction. The resonator constructor is shorthand for a finite oscillator model.
+
+```toml
+format_version = 1
+id = "qubit_resonator"
+
+[units]
+energy = "GHz"
+time = "ns"
+
+[model]
+kind = "composite"
+
+[[model.subsystems]]
+id = "q"
+source = "qubit.toml"
+
+[[model.subsystems]]
+id = "r"
+kind = "oscillator"
+frequency = { value = 6.2, unit = "GHz" }
+retained_levels = 5
+
+[[model.interactions]]
+coefficient = { value = 0.05, unit = "GHz" }
+factors = ["q.charge", "r.position"]
+add_hermitian_conjugate = false
+
+[[drives]]
+id = "charge_drive"
+factors = ["q.charge"]
+amplitude_unit = "GHz"
+
+[[dissipators]]
+id = "resonator_loss"
+factors = ["r.annihilation"]
+rate = { value = 0.01, unit = "1/ns" }
+```
+
+The initial Hilbert space is `6 × 5`. `q.charge` is the projected dimensionless Cooper-pair number operator. A drive envelope supplied to evolution multiplies this operator; its GHz amplitude receives the same explicit angular conversion as static Hamiltonian coefficients. A composite retains local product-basis metadata even if its spectrum is diagonalized for inspection. For the loss fixture, initialize the qubit in its ground state and the resonator in the one-photon state, and evolve for `50 ns` (`γT = 0.5`). Compare loss-enabled and loss-disabled trajectories; use the zero-coupling limit for an analytic oscillator decay reference.
+
+### C. Explicit-operator model
+
+```toml
+format_version = 1
+id = "two_level_reference"
+
+[units]
+energy = "GHz"
+time = "ns"
+
+[model]
+kind = "operators"
+dimensions = [2]
+basis = "ground_excited"
+array_file = "operators.npz"
+hamiltonian = "H0"
+operators = { x = "sigma_x", lower = "lowering" }
+
+[[drives]]
+id = "x_drive"
+factors = ["x"]
+amplitude_unit = "GHz"
+
+[[dissipators]]
+id = "relaxation"
+factors = ["lower"]
+rate = { value = 0.01, unit = "1/ns" }
+```
+
+The proposed fixture archive contains `H0 = diag(0, 0.2)` in GHz, inherited from `[units].energy`, and the dimensionless arrays `sigma_x = [[0, 1], [1, 0]]` and `lowering = [[0, 1], [0, 0]]`. Neither the dimensionless operators nor the `1/ns` decay rate receives a 2π conversion. Complex arrays are supported; object arrays/pickle loading are excluded. Check shapes against declared dimensions and preserve the file content digest in model provenance. This finite model has no additional physical truncation to refine; reports state that distinction explicitly.
+
+## 5. Engine integration and storage
+
+Implement the contract's `Integrator` capability/evolution surface with three adapters. Resolve the concrete initial-state, observable, solver-option, and result types before coding the common interface: these inputs must be explicit even though the contract sketches only `evolve(system, controls, grid)`.
+
+For the first shared comparison, use density matrices and deterministic Lindblad evolution, including zero dissipators for closed systems. State-vector evolution can be supported where the adapter declares it. Results identify output times, requested observables, state representation/dimensions, engine, numerical method, dtype, actual device, and solver diagnostics. Avoid storing every full state for large problems; reference fixtures may retain them for comparison.
+
+| Adapter | M1 responsibility | Required evidence |
+|---|---|---|
+| QuTiP CPU | Small reference-size evolution with explicit CPU data/method selection | Analytic agreement, drive/rate conventions, refinement, and reference results constructed independently of GPU adapters |
+| cuDensityMat through `qutip-cuquantum` | Open/closed dynamics on the RTX 5090, retaining composite terms and supported local operator storage | Actual GPU execution, small-size agreement, and Dense/Dia storage selection; batching is deferred to sweep work |
+| dynamiqs/JAX | Differentiable open/closed dynamics with explicit precision and device selection | CPU/GPU agreement on shared fixtures and an autodiff gradient checked against a numerical/analytic reference |
+
+Use solver methods supported by the pinned plugin; selecting a GPU data type alone is insufficient. The current qutip-cuquantum solver guide specifies plugin integration methods. Isolate backend activation from the QuTiP CPU reference so a global plugin setting cannot turn both sides of a comparison into the same engine. Separate test processes are sufficient where necessary. [qutip-cuquantum solver guide](https://qutip-cuquantum.readthedocs.io/en/latest/solver.html)
+
+### Storage rule to reuse and validate
+
+The local scqubits checkout contains `_cuoperator_data` in `scqubits/utils/spectrum_utils.py`, at inspected revision `ca13baa35c349c24ad3dc2ba5036f60112785db9`: it uses Dense for dimension ≤16; otherwise it uses Dia when there are ≤16 occupied diagonals, and Dense otherwise. The helper is on `origin/nvidia-test` (27 commits beyond v4.3.1 in the inspected checkout), absent from `origin/main` and all available release tags. Reimplement the small selection rule inside the Block 2 cuDensityMat adapter; reuse the rule, not unreleased scqubits code or a sibling-checkout dependency. The threshold of 16 is a starting point to check on the RTX 5090, not a validated Entanglix performance threshold.
+
+Select the effective cuDensityMat representation after probing conversion behavior in the pinned adapter stack. Current qutip-cuquantum documentation distinguishes Dense/Dia local terms and notes that CSR conversion routes through Dense. It also explains why flattening a tensor product into a full matrix loses useful structure. [Data-layer and tensor-structure reference](https://qutip-cuquantum.readthedocs.io/en/latest/data.html)
+
+In Block 1, test per-subsystem numerical terms and dimension/order metadata on CPU. In Block 2, wrap those terms and test diagonal, narrow-band, dense, and factorized composite cases against a materialized small CPU reference. Record the actual selected representation and conversions. Preserve tensor factors when available; do not promise sparse GPU execution merely because the authored or CPU operator is CSR. Inspect the selected package versions before carrying over the threshold.
+
+M1 sends shared CPU model inputs independently to each engine; it requires no cuDensityMat–JAX array exchange. Defer DLPack/CuPy handoff until a concrete workflow needs that boundary, potentially control or co-design. That consuming block owns dtype/order/device, lifetime, synchronization, and copy/zero-copy evidence. No gradient is propagated through the cuDensityMat lane.
+
+Batch-versus-serial acceptance belongs with Block 5 sweeps. Until that capability is implemented and tested, the Entanglix adapter reports `batched = false`, and engine selection rejects requirements it cannot meet.
+
+The versioned engine-selection table follows contract §2. M1 tests may name each adapter to compare them; later research dispatch uses the table. Reference-size and memory thresholds need named units, conservative estimates, and fixture evidence before the table is accepted. Check density-matrix and workspace memory as well as Hamiltonian storage.
+
+## 6. Scientific fixture and acceptance matrix
+
+These starting values and cutoffs are proposals. Establish reference convergence before fixing tolerances; retain failing comparisons rather than weakening thresholds to fit an adapter. “Reference” below means a separately constructed analytic or library reference, not the same Entanglix export fed back into itself.
+
+| Fixture | Proposed starting point | What it establishes |
+|---|---|---|
+| Explicit two-level system | Example C; excited state, `γ = 0.01/ns`, output `0–100 ns`; also a coherent initial state with dissipation disabled | Array loading, phase evolution, analytic `P_exc(t) = exp(-γt)`, complex coherences, and the rate/angular-unit distinction on all engines |
+| LC circuit / oscillator | `C = 80 fF`, `L = 12 nH`; harmonic basis cutoff 30, retain 6 | Physical-component conversion; level spacings against `1/(2π sqrt(LC))`; lossy dynamics from the one-photon state with `γ = 0.01/ns`, `T = 50 ns`; driven dynamics and cutoff refinement |
+| Junction with shunt | Example A; charge cutoffs 20/30/40, retain 4/6/8 | Component construction versus a direct scqubits Transmon using the same total capacitance; charge operator and projection |
+| Fluxonium | `EJ = 5.7`, `EC = 1.2`, `EL = 0.4 GHz`, external flux `0.25 Φ0`; harmonic cutoffs 60/80/100, retain 6/8/10 | Inductive/JJ construction, static flux mapping, basis convergence, reference spectra and matrix elements |
+| Custom two-mode component circuit | Two JJ/shunt branches to ground: `(EJ, ECJ, Csh) = (15 GHz, 2 GHz, 60 fF)` and `(18 GHz, 2 GHz, 70 fF)`; `2 fF` between their nodes; zero offset charge | Coupled circuit topology beyond named-qubit templates; compare with direct scqubits Circuit construction and the zero-coupling limit |
+| Qubit plus resonator | Example B; start at 6×5, refine each subsystem separately | Composite terms, interaction scaling, tensor order, and driven/dissipative comparisons across all three engines; use example B's populated resonator and loss-disabled comparison |
+| Three-subsystem composition | Two transmons with `(EJ, EC) = (15, 0.25)` and `(18, 0.28) GHz`, zero offset charge, and a `6.2 GHz` resonator; retained dimensions 3×4×5; charge–position couplings `0.05` and `0.04 GHz` | Nonuniform tensor dimensions, local-operator embedding, omitted-identity mistakes, and decoupled-limit spectra |
+
+Each dissipative fixture must populate a state on which its collapse operator acts, directly or through a demonstrated drive, and show a measurable difference from loss-disabled evolution. Use `γT` around `0.1–1` for the acceptance cases; illustrative weak physical loss parameters alone do not test the dissipator.
+
+The fixture set must exercise component, composition, and explicit-operator paths. CPU construction/spectral tests cover every row. Required three-engine dynamics cover at least the two-level, driven/lossy oscillator, and coupled qubit–resonator cases, with both static and time-dependent Hamiltonians and closed/open evolution. This separates representation coverage from the cross-engine matrix without multiplying every test combination.
+
+For time-dependent tests, first define one constant and one piecewise-constant envelope. Pin left/right boundary semantics and force integration through discontinuities. Add a smooth envelope if it is needed to establish the adapter's supported modulation path. Comparisons use identical physical envelopes and output times, not merely the same number of samples.
+
+For the differentiable lane, compare a nonzero derivative of a final expectation value with respect to a drive amplitude or a dissipative rate, using an analytic result when available and central finite differences at multiple step sizes. This demonstrates differentiation through evolution. Differentiation through scqubits quantization/eigendecomposition is outside the M1 claim. Dynamiqs provides examples of differentiating observables through evolution. [dynamiqs examples](https://www.dynamiqs.org/stable/documentation/getting_started/examples.html)
+
+### Proposed numerical targets
+
+Targets below are for double-precision, reference-size fixtures. Pin the final values and their rationale after CPU reference refinement and before accepting GPU comparisons. Failures require diagnosis of units, bases, dtype, solver settings, or truncation before changing a threshold.
+
+| Check | Proposed target or comparison |
+|---|---|
+| Operator exports at fixed basis/cutoff | Relative Frobenius residual ≤ `1e-12` with an absolute floor appropriate to the declared units; reject NaN/Inf and dimensional inconsistencies |
+| Spectra at identical cutoffs | Compare excitation energies relative to the ground state; `atol = 1e-8 GHz`, `rtol = 1e-8` against the direct reference |
+| Physical model convergence | Refine basis cutoff and retained levels independently; target excitation-energy changes ≤ `1e-5 GHz` and declared observable changes ≤ `1e-5` for these fixtures |
+| Cross-engine dynamics | Maximum density-matrix Frobenius difference ≤ `1e-6` at matching times/bases; dimensionless population/coherence differences ≤ `1e-6` |
+| State validity | Trace and Hermiticity residuals ≤ `1e-8`; minimum density-matrix eigenvalue ≥ `-1e-8`; check the supplied initial state as well |
+| Integration refinement | Tighten solver tolerances/internal-step limits and compare at the same output grid; target changes below one tenth of the cross-engine tolerance |
+| Gradient | Central-difference/analytic comparison at a nonzero derivative; proposed `rtol = 1e-4`, `atol = 1e-6` in the declared derivative units |
+
+Compare physical observables or aligned subspaces when truncation changes dimensions. Eigenvector signs/phases and rotations within degenerate subspaces are not failures; use projectors or phase-invariant quantities. Include at least one deliberately insufficient cutoff and one malformed-unit/rate/dimension case so failure diagnostics are exercised.
+
+CPU/GPU agreement does not establish physical-device accuracy. State assumptions and unmodeled effects in examples; an M1 pass supports numerical correctness for the tested representations and regimes.
+
+## 7. Dependencies, layout, and validation execution
+
+Keep the single installable project. Add CPU modeling dependencies when the model adapter needs them, and GPU/differentiable dependencies through optional extras. Proposed extras are `differentiable` and `cuquantum`; exact package/version compatibility and whether CUDA support needs a separate extra are resolved by the GPU probe. qutip-cuquantum already declares `cuda12` and `cuda13` extras; depend on the one matching the observed stack rather than duplicating upstream CuPy/cuQuantum dependency declarations. [Upstream dependency metadata](https://github.com/qutip/qutip-cuquantum/blob/main/pyproject.toml)
+
+Preserve `import entanglix` and CPU tests without importing JAX, CuPy, scqubits, or QuTiP at the package root.
+
+Suggested implementation locations, created as code arrives:
+
+```text
+src/entanglix/models/       # spec parsing, validation, construction, operator exports
+src/entanglix/engines/      # common types, selection table, three adapters
+schemas/system.schema.json # generated from the authored-system model
+tests/fixtures/            # small reviewed system specs and numeric references
+tests/                     # model, export, engine, and regression checks
+examples/                  # supported modeling and reference-evolution examples
+docs/environment.md        # validated GPU setup and observed versions
+docs/operations/system-spec.md # supported syntax, units, operators, tensor/basis conventions
+```
+
+Prefer a few focused modules; this tree does not require separate packages, managers, registries beyond supported names, or a generic serialization framework. Keep optional GPU imports inside their adapters. CPU CI runs schema/model validation, analytic spectra/dynamics, export checks that need no device, and existing foundation checks. Each optional engine test lives where an absent extra cannot break CPU collection.
+
+The RTX 5090 workstation is the accepted GPU target. Package compatibility, actual device execution, driver/toolkit versions, and memory behavior still require observation. Sandbox `nvidia-smi` failure is not hardware evidence: run the documented GPU acceptance outside the restricted sandbox when needed. Record GPU/driver/CUDA/cuQuantum/JAX/plugin versions and exact commands in `docs/environment.md`, and pin Python packages in `uv.lock`; do not invent compatibility pins in this guide.
+
+Proposed validation commands after the corresponding capabilities/extras exist:
+
+```sh
+uv sync --locked
+uv run --locked --exact pytest -m "not gpu"
+uv run --locked ruff check .
+uv run --locked ruff format --check .
+uv run --locked --exact entanglix validate examples/qubit-resonator/system.toml
+uv run --locked --exact --extra differentiable --extra cuquantum pytest -m gpu --require-gpu
+```
+
+The GPU suite must assert the actual backend/device used. Missing required engines or initialization failures must fail required-GPU acceptance rather than become `importorskip` successes. Record executed cases and skips; the existing GPU marker alone does not prove all three engines ran. If JAX and cuQuantum initialization compete for memory or alter global settings, run the relevant test groups in separate processes and compare retained small references.
+
+Record compilation/setup and steady-state costs separately if timing is reported. Speedup is useful evidence, not a condition for M1 completion on small fixtures.
+
+## 8. Decisions to pin during M1
+
+| Decision | Recommendation to start from | When resolved |
+|---|---|---|
+| System schema and supported forms | Tagged circuit/composite/operators paths; fixed units and explicit `[units]` semantics; operator-name registry; one level of leaf system references | Step A, before schema/API implementation |
+| Circuit bases and bias mapping | Explicit coordinate bases/cutoffs; named oriented loop mapping; retained levels recorded separately | Step A, with the custom-circuit fixtures |
+| Numeric array input | Numeric NPZ arrays with explicit keys, dimensions, units, and content digests; no pickle/object arrays | Before explicit-operator loading |
+| Evolution API details | Explicit initial state, observables, controls, output grid, solver settings, and typed result aligned with the Integrator contract | Before the first adapter; update the operational contract if its callable signature needs clarification |
+| Reference fixtures and numerical thresholds | Start with §6; freeze values/cutoffs and tolerance rationale after independent CPU refinement | Before claiming cross-engine acceptance |
+| Dependency pins and device settings | One validated workstation stack; explicit double precision; lazy GPU loading and bounded memory use | First execution step before A; final GPU evidence completes Block 2 |
+| Storage and dispatch thresholds | Reimplement the unreleased Dense/Dia rule in the Block 2 adapter; retain CPU tensor factors; check thresholds on the target device | Block 2, before accepting GPU wrapping and the engine-selection table |
+
+These decisions implement the accepted mandate; they do not reopen Decision 0. Document supported conventions in `docs/operations/system-spec.md`; an ADR is useful when a consequential design choice needs retained rationale. Assign ADR numbers when records are created rather than reserving a number for later work.
+
+## 9. Exit evidence and handoff
+
+[Checklist M1](checklist.md#m1--model--engines-blocks-12) is the sole implementation acceptance list. This guide supplies the test approach and proposed numerical targets; settling them updates the checklist before acceptance. Do not add separate completion gates here or mark unchecked/partial GPU work complete.
+
+Retain fixture inputs, tolerance rationale, test commands/results, engine/device identities, and environment observations with the implementation and link them from the checklist. Publish implemented syntax and conventions in `docs/operations/system-spec.md`, environment setup in `docs/environment.md`, and available usage/compatibility in the root README. These operational documents stand alone without linking to planning docs. Routine convention documentation needs no ADR; significant design rationale may warrant one.
+
+The Block 3 handoff is a validated model loader, stable operator conventions, a common engine interface, tested capability/selection data, and observed environment information. The runner can then add dispatch, retained run provenance, environment hashing, and lifecycle management around these operations.
+
+Before retiring this guide, retain consequential design rationale in ADRs and necessary conventions/instructions in operational docs. Preserve the scientific acceptance evidence with the implementation.

@@ -79,6 +79,13 @@ M3 demonstrates quality for a complete sweep/search workflow. The preferred sequ
 
 ## M1 — Model + Engines (Blocks 1–2)
 
+The [M1 guide](m1-guide.md) develops both blocks as one implementation plan. Its proposed schemas, fixtures, and numerical targets remain draft choices; this checklist records implemented and validated work.
+
+### [ ] M1 entry — GPU compatibility probe
+
+- [ ] Before step A/implementation: a disposable environment runs one tiny cuDensityMat solve through qutip-cuquantum and one dynamiqs solve on the actual RTX 5090; both match a known reference
+- [ ] Record commands, Python/package versions, driver/CUDA observations, and device evidence; retain Python 3.13 unless an observed blocker requires a pin change. This probe is not full engine acceptance
+
 ### [ ] Block 1 — System Spec and Model Adapter
 
 **Depends on:** Block 0.
@@ -86,12 +93,14 @@ M3 demonstrates quality for a complete sweep/search workflow. The preferred sequ
 - [ ] `system.toml` JSON schema + pydantic model (circuit, truncation, drives, dissipators, parameters + priors, units)
 - [ ] scqubits adapter: circuit → truncated operators in a chosen basis
 - [ ] Explicit-operator fallback
-- [ ] Operator export to QuTiP `Qobj` and to arrays for JAX
-- [ ] Storage-format selection for cuDensityMat operators (CSR-probe rule from the scqubits GPU work)
+- [ ] CPU-testable QuTiP `Qobj`, numerical arrays suitable for JAX, and per-subsystem operator terms with dimensions/order for the cuDensityMat adapter; no GPU packages required
 - [ ] `entanglix validate <system.toml>` / `validate_system` backing capability
-- [ ] Concrete representation coverage and fixture systems/parameters selected during this block under ADR §3.1, exercising component, composition, and explicit-operator paths
+- [ ] Concrete representation coverage and fixture systems/parameters selected during this block under ADR §3.1, exercising component, composition, and explicit-operator paths; fixed units, array/output unit semantics, and one level of leaf system references
+- [ ] Pin numerical acceptance thresholds/rationale after independent CPU reference refinement; operator/spectral comparisons and separate basis/retained-level convergence evidence pass
+- [ ] Malformed units, rates, dimensions, references, and unsupported forms produce actionable diagnostics; intentionally insufficient truncation demonstrates the refinement check
+- [ ] Implemented syntax, tensor/basis order, 2π conversion, collapse normalization, units, and operator names documented in `docs/operations/system-spec.md`; worked examples and README usage/compatibility describe available behavior
 - [ ] Applicable quality evidence recorded
-- [ ] **Done:** the Block-1 fixture systems validate and export to the three engine input formats; spectra match scqubits to tolerance
+- [ ] **Done:** fixtures validate and export CPU objects/arrays/factorized terms with preserved units/bases; reference spectra/operators, model refinement, and input diagnostics pass without GPU dependencies
 
 ### [ ] Block 2 — Engines v0
 
@@ -101,12 +110,14 @@ M3 demonstrates quality for a complete sweep/search workflow. The preferred sequ
 - [ ] QuTiP CPU reference engine
 - [ ] cuDensityMat engine via `qutip-cuquantum`
 - [ ] dynamiqs engine
-- [ ] DLPack / CuPy zero-copy handoff where needed
-- [ ] Cross-engine agreement tests at reference size (closed, open, time-dependent drive)
+- [ ] Wrap CPU factorized terms and select Dense/Dia storage in the cuDensityMat adapter; reimplement the unreleased scqubits selection rule and check the threshold on the RTX 5090
+- [ ] Cross-engine agreement tests at reference size (closed, open, time-dependent drive); dissipative fixtures populate affected states and show measurable loss, with `γT` around `0.1–1`
+- [ ] Nonzero evolution gradient agrees with an analytic/finite-difference reference; integration refinement and trace/Hermiticity/positivity checks meet the pinned tolerances
+- [ ] Required-GPU acceptance identifies the actual engines and devices used
 - [ ] Verified environment pins in `uv.lock` and observations in `docs/environment.md`: GPU, driver, CUDA, cuQuantum, Python, and engine packages; hashing follows with the runner
-- [ ] Versioned engine-selection table (contract §2); configured memory/size limits; declared fallbacks recorded without silently changing required capabilities
+- [ ] Versioned engine-selection table (contract §2); configured memory/size limits; declared fallbacks recorded without silently changing required capabilities; advertise only implemented/tested capabilities (`batched = false` until sweep batching is validated)
 - [ ] Applicable quality evidence recorded
-- [ ] **Done:** agreement tests green on GPU CI or a documented manual GPU run
+- [ ] **Done:** required agreement, gradient, storage, and refinement checks pass with retained commands/results and actual GPU evidence from CI or a documented manual run; all M1 acceptance items above are satisfied
 
 ---
 
@@ -154,6 +165,7 @@ M3 demonstrates quality for a complete sweep/search workflow. The preferred sequ
 - [ ] Before implementation: choose the exact dynamics metric/observable, pulse if needed, parameter region, and evidence thresholds
 - [ ] First end-to-end sweep exercises open-system dynamics on the local GPU (metric class already fixed)
 - [ ] Spectral-only studies remain usable independently
+- [ ] Representative batched sweep agrees member-by-member with serial execution under declared tolerances before batching is advertised
 - [ ] Plots and `result.toml` summaries expose evidence needed to inspect and refine a sweep
 - [ ] Documented CLI examples for simulation and iterative sweep refinement
 - [ ] Applicable quality evidence recorded
@@ -166,7 +178,7 @@ M3 demonstrates quality for a complete sweep/search workflow. The preferred sequ
 ### [ ] Investigation decisions — after M2
 
 - [ ] Before Block 6a: first investigation question, scope, assumptions, evidence requirements, progress checkpoints, and stop/review criteria; any requested ceilings informed by measured M2 costs
-- [ ] Before Block 6a: what the contract leaves open (user-decision recording, progress-assessment fields, default checkpoint intervals, resume behaviour) in a follow-up ADR (planned ADR-0002)
+- [ ] Before Block 6a: what the contract leaves open (user-decision recording, progress-assessment fields, default checkpoint intervals, resume behaviour) in a follow-up ADR
 - [ ] Before Block 6a: evaluation protocol defines the scripted selection policy, comparable benchmark allowances, evidence thresholds, and outcome/time/compute/human-intervention measures; include supported early stopping after insufficient progress
 - [ ] Before Block 6b: runtime integration and research-agent instruction delivery (MCP instructions, skills, or a generated research-workspace instruction file); user-input event handling, progress reporting, runtime permission settings, and execution checks under the cooperative trust model; no separate grant issuer or OS security boundary required
 

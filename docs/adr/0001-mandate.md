@@ -2,8 +2,6 @@
 
 **Date:** 2026-09-28
 **Status:** Accepted — Decision 0 closed on 2026-09-28. The agreed modeling mandate, local target, numerical conventions, and audience/license policy are recorded in §3; concrete model schemas, supported representation details, and fixtures follow during Block 1.
-**Record type:** retained public decision record. This ADR records the accepted foundation choices; consult the [harness contract](../../HARNESS_CONTRACT.md) for operational guarantees. It need not be loaded for every research task.
-**Editorial update — 2026-09-29:** planning-document dependencies replaced with self-contained context; block and milestone labels retain their historical implementation-stage meaning. Execution scope clarified by the owner the same day: development and testing stay on the workstation, and research runs may also use a cluster through its scheduler. The planned ADR-0002 scope is narrowed to what the harness contract leaves open. Environment-record timing is aligned with the reduced foundation: GPU pins and observations are recorded in Block 2; the hashed run environment record starts with the Block 3 runner.
 **Purpose:** record the foundation choices needed by Blocks 0–2. Implementation starting points are distinguished from mandate decisions. Sweep metrics, investigation design, and deployment mechanisms are decided when their prerequisites are available (§4).
 
 ---
@@ -69,7 +67,7 @@ These do not block acceptance of this foundation ADR:
 | Foundation / Block 2 | Verify environment compatibility and record actual GPU, driver, CUDA, cuQuantum, Python, and engine-package pins; GPU validation gates Block 2 completion |
 | Before Block 5 | Exact dynamics metric/observable, fixed pulse if needed, parameter region, and evidence thresholds. Gate error or leakage under a fixed pulse is a candidate. Spectral studies remain supported but do not satisfy the first GPU dynamics demo |
 | After M2, before Block 6a | First investigation's scope, assumptions, evidence requirements, progress checkpoints, review/stop criteria, and any requested limits; baseline evaluation defines a scripted selection policy and comparable benchmark allowances, including an early-stop case |
-| Before Block 6a | What the harness contract leaves open: how user decisions are recorded, progress-assessment fields, default checkpoint intervals, and resume behaviour. Record these and the evaluation protocol in a follow-up ADR (planned ADR-0002); ordinary investigations remain research records |
+| Before Block 6a | What the harness contract leaves open: how user decisions are recorded, progress-assessment fields, default checkpoint intervals, and resume behaviour. Record these and the evaluation protocol in a follow-up ADR; ordinary investigations remain research records |
 | Before Block 6b | Runtime integration and research-agent instruction delivery (MCP instructions, skills, or a generated research-workspace instruction file); user-input event handling, progress reporting, runtime permission settings (human-action commands blocked, GPU hidden from the agent session), and cooperative execution checks; no separate grant issuer or OS-enforced security boundary required |
 | Before Block 7 | ProblemSpec OSS verbatim vs. an additive `solver.options` table |
 | Before Block 9 | Scheduler target, remote environment, and site execution requirements; the executor reuses the scheduler's time limits, GPU allocation, and accounting and is tested on the workstation against a stubbed scheduler |

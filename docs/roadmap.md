@@ -41,7 +41,7 @@ Every milestone must demonstrate these qualities for the capabilities it introdu
 ### Substrate decisions (fixed)
 
 - **Python-first, single substrate.** Modeling with `scqubits`; dynamics on cuQuantum's cuDensityMat through `qutip-cuquantum`; differentiable dynamics with `dynamiqs` (JAX); QuTiP CPU as the exact small-size reference.
-- **Two engines that do not compose through autodiff.** cuDensityMat is large-scale, batched, non-differentiable. JAX (dynamiqs) is differentiable and moderate-size. Data crosses via DLPack / CuPy zero-copy; gradients do not. Engine selection is a declared property of a protocol run ("needs gradients?" × Hilbert-space size), never an agent's judgment call.
+- **Two engines that do not compose through autodiff.** cuDensityMat is large-scale, batched, non-differentiable. JAX (dynamiqs) is differentiable and moderate-size. When a workflow needs direct cross-engine array exchange, use DLPack / CuPy with measured copy/zero-copy behavior; gradients do not cross. Build that boundary with its first consumer, potentially control or co-design. Engine selection is a declared property of a protocol run ("needs gradients?" × Hilbert-space size), never an agent's judgment call.
 - **Solver-agnostic control spec.** amicode's ProblemSpec OSS schema (`system`, `goal`, `pulse`, `problem`, `integrator`, `solver.backend`) is adopted as the control problem file. `solver.backend` is a string; which solver ran is recorded, never assumed.
 - **Private solver plugins.** High-performance solvers may be proprietary. They attach through a `SolverBackend` / `Integrator` protocol via Python entry points and are never imported by this repo. The repo's tests run with open solvers only; an import-boundary test enforces it. Verification never depends on a private solver (contract §1, §3).
 - **amicode's role is contracts and a corrector, not substrate.** Run-dir shape and schemas are adopted for interoperability; Piccolo (via `amico-run`) is an open second-opinion control solver. Dynamics never route through Julia.
@@ -103,21 +103,23 @@ The core capability progression is **foundation → verified local sweep → bou
 
 ### Block 1 — System Spec and Model Adapter
 
+The [M1 guide](m1-guide.md) covers the joint implementation of Blocks 1–2. Its first execution step is a disposable GPU compatibility probe before model implementation: one tiny cuDensityMat solve and one dynamiqs solve on the RTX 5090, with actual device and known-result checks. Record the working Python/dependency stack; retain Python 3.13 unless an observed incompatibility requires changing it.
+
 - **Depends on:** Block 0.
 - Introduce `schemas/` with the `system.toml` JSON schema and pydantic model; scqubits adapter (circuit → truncated operators in a chosen basis); explicit-operator fallback; dissipators; drive operators; parameter values + priors; unit handling.
-- Operator export to QuTiP `Qobj` and to arrays for JAX; storage-format selection for cuDensityMat operators (reuse the CSR-probe decision rule already prototyped in the scqubits GPU work).
+- CPU-testable exports to QuTiP `Qobj`, numerical arrays suitable for JAX, and per-subsystem operator terms with dimensions/order for the cuDensityMat adapter. GPU wrapping and storage selection belong to Block 2.
 - `entanglix validate <system.toml>`.
-- Pin concrete representation details and representative fixtures/parameters against the accepted modeling mandate during this block.
-- **Done when:** the Block-1 fixture systems validate, export to the three engine input formats, and spectra match scqubits to tolerance in tests.
+- Pin concrete representation details and representative fixtures/parameters against the accepted modeling mandate during this block: fixed units, explicit array/output unit semantics, and one level of leaf system references. Publish implemented conventions and syntax in `docs/operations/system-spec.md`.
+- **Done when:** the Block-1 fixture systems validate and export CPU objects/arrays/factorized terms with preserved units and bases; reference spectra/operators and model-refinement checks pass; invalid inputs produce documented diagnostics. Block 1 requires no GPU packages or device.
 
 ### Block 2 — Engines v0
 
 - **Depends on:** Block 1.
 - QuTiP CPU reference engine; cuDensityMat engine via `qutip-cuquantum`; dynamiqs engine; each behind the `Integrator` protocol with `capabilities()`.
-- DLPack / CuPy zero-copy handoff for arrays between cuDensityMat and JAX where needed.
-- Cross-engine agreement tests at reference size (closed and open system, time-dependent drive).
+- GPU wrapping and Dense/Dia storage selection inside the cuDensityMat adapter; reimplement the small rule from the unreleased scqubits GPU work and check its threshold of 16 on the RTX 5090. Reuse the rule, not unreleased code or a branch dependency.
+- Cross-engine agreement tests at reference size (closed and open system, time-dependent drive), integration refinement, and a nonzero gradient checked against an analytic/finite-difference reference. Defer batching to Block 5 and advertise only implemented, tested capabilities.
 - Verify the target GPU environment; pin compatible dependencies in `uv.lock` and record GPU, driver, CUDA, cuQuantum, Python, and engine-package observations in `docs/environment.md`. Run environment identity is introduced with the runner in Block 3.
-- **Done when:** the engine-selection table (contract §2) is a versioned file, and the agreement tests are green on GPU CI or a documented manual GPU run.
+- **Done when:** the engine-selection table (contract §2) is a versioned file, and required cross-engine, gradient, storage, and refinement checks pass, with GPU evidence from CI or a documented manual run. The checklist owns the detailed M1 acceptance requirements.
 
 ### Block 3 — Runner and Run Contract
 
@@ -142,6 +144,7 @@ The core capability progression is **foundation → verified local sweep → bou
 - **Depends on:** Blocks 1–4.
 - Standalone simulation and a grid sweep over scqubits parameters against declared observables or a simulated metric (for example dispersive shift, T1 limit from a noise model, gate error under a fixed pulse).
 - The first end-to-end example exercises open-system dynamics on the local GPU; this class of metric is settled. Choose the exact observable, fixed pulse if needed, parameter region, and evidence thresholds before implementation of this block. Spectral-only studies remain useful supported workflows.
+- Add representative batch-versus-serial sweep checks before advertising batching; every batch member must agree with its serial counterpart under the declared tolerances.
 - Plots and `result.toml` summaries with enough evidence for a user to inspect results and choose a refined sweep.
 - **Done when:** a documented simulation and one agreed dynamics sweep run end to end through `entanglix`, the sweep exercises the local GPU, corrector checks pass, and a user can inspect and refine the sweep without control or calibration.
 
@@ -149,7 +152,7 @@ The core capability progression is **foundation → verified local sweep → bou
 
 Define the first investigation's question, scope, assumptions, evidence requirements, progress checkpoints, and stop/review criteria. Record any user-specified ceilings or deadlines; ordinary investigations need no mandatory job-count or time allowance. M2 measurements inform cost reporting and experiment sizing without requiring an estimate of total research cost.
 
-Before Block 6a, record what the contract leaves open (how user decisions are recorded, progress-assessment fields, default checkpoint intervals, and resume behaviour) in a follow-up ADR (planned ADR-0002); usage recording and limits are fixed by contract §4. Ordinary investigation specifications remain research records. Before Block 6b, select the runtime integration and how research-agent instructions are delivered (MCP instructions, skills, or a generated research-workspace instruction file), set its permission settings (human-action commands blocked, GPU hidden from the agent session), and validate the cooperative execution path.
+Before Block 6a, record what the contract leaves open (how user decisions are recorded, progress-assessment fields, default checkpoint intervals, and resume behaviour) in a follow-up ADR; usage recording and limits are fixed by contract §4. Ordinary investigation specifications remain research records. Before Block 6b, select the runtime integration and how research-agent instructions are delivered (MCP instructions, skills, or a generated research-workspace instruction file), set its permission settings (human-action commands blocked, GPU hidden from the agent session), and validate the cooperative execution path.
 
 The evaluation protocol names a scripted experiment-selection policy, comparable resource allowances, evidence thresholds, and measures of scientific outcome, elapsed time, compute use, and human interventions. Fixed allowances support this comparison without becoming mandatory for ordinary investigations. Include a case assessing a supported early stop after insufficient progress. A scripted client alone is not a scientific baseline. For optimization tasks, compare best verified objective or time to a feasible candidate; for exploratory tasks, use the declared evidence requirements.
 
@@ -299,7 +302,7 @@ Settled: project name Entanglix; command `entanglix`; runner in Python (`uv`), s
 
 - **During Block 1:** concrete modeling schemas/APIs, supported representation details, and validation fixtures/parameters implementing the accepted mandate in ADR §3.1. Decision 0 is closed; the RTX 5090 target/environment policy, numerical conventions/convergence policy, and audience/license timing are accepted in ADR §3.2–§3.4.
 - **Before Block 5:** exact dynamics observable/metric, pulse if needed, parameter region, and evidence thresholds for the first GPU sweep.
-- **After M2, before Block 6a:** first investigation, progress/review/stop criteria, and evaluation protocol with scripted selection policy and comparable benchmark allowances; user-decision recording, default checkpoint intervals, and resume behaviour (ADR-0002). Usage recording and optional limits are fixed by contract §4; ordinary investigations do not require preallocated budgets.
+- **After M2, before Block 6a:** first investigation, progress/review/stop criteria, and evaluation protocol with scripted selection policy and comparable benchmark allowances; user-decision recording, default checkpoint intervals, and resume behaviour in a follow-up ADR. Usage recording and optional limits are fixed by contract §4; ordinary investigations do not require preallocated budgets.
 - **Before Block 6b:** runtime integration and research-agent instruction delivery (MCP instructions, skills, or a generated research-workspace instruction file); user-input/approval event handling, progress reporting, runtime permission settings, and execution checks under the cooperative trust model.
 - **Before Block 7:** ProblemSpec OSS verbatim vs. an additive `solver.options` table.
 - **Before Block 9:** scheduler target (Slurm or Kubernetes), remote environment, and site execution requirements when needed.
