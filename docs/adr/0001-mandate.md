@@ -9,7 +9,7 @@
 
 ## 1. Context
 
-Entanglix supports expert-guided superconducting-circuit research through independently useful modeling, simulation, sweep/search, control, and calibration workflows. Agents help formulate bounded investigations; a complete device-design objective is optional. The substrate is Python-first: scqubits, cuDensityMat via `qutip-cuquantum`, dynamiqs, and a QuTiP CPU reference. A commodity agent runtime uses skills and MCP; the runner enforces authority, execution limits, and verification. There is no product UI.
+Entanglix supports expert-guided superconducting-circuit research through independently useful modeling, simulation, sweep/search, control, and calibration workflows. Agents help formulate bounded investigations; a complete device-design objective is optional. The substrate is Python-first: scqubits, cuDensityMat via `qutip-cuquantum`, dynamiqs, and a QuTiP CPU reference. A commodity agent runtime uses skills and MCP; the runner enforces structured scope/review checks, configured execution limits, and verification through supported interfaces. There is no product UI.
 
 ## 2. Already decided (recorded here, not reopened)
 
@@ -24,9 +24,10 @@ Entanglix supports expert-guided superconducting-circuit research through indepe
 | amicode's role | Contracts and an open second-opinion solver (Piccolo via `amico-run`); never the dynamics substrate | roadmap §0 |
 | Research direction | Expert-guided formulation, bounded autonomy, independent entry points, professional quality | roadmap §0, §4 |
 | Preferred sequence | Verified local sweep → bounded exploration → control → co-design; technical dependencies govern availability | roadmap §2, §5 |
-| Initial exploration | Runner investigations (6a), then isolated agent integration (6b); calibration and cluster execution are independently scheduled | roadmap §2 |
+| Initial exploration | Runner investigations (6a), then cooperative agent integration (6b); progress-based continuation/stopping; calibration and cluster execution are independently scheduled | roadmap §2 |
+| Initial deployment | Single-owner workstation; one coordinating agent, one active GPU job by default, usage reporting and optional limits; stronger authorization/isolation follows an explicit deployment need | roadmap §1–§2; contract §4, §7 |
 | First end-to-end sweep | Open-system dynamics on the local GPU; exact metric remains open | roadmap Block 5 |
-| Posture | Stage-never-promote; tools enforce authority, limits, verification, and isolation | contract §3–§7 |
+| Posture | Stage-never-promote; supported tools enforce scope/review checks, configured limits, verification, and local run ownership under a cooperative trust model | contract §3–§7 |
 | Out of scope | Gate-model algorithms, circuit compilation, hardware drivers, UI | roadmap §0, §6 |
 
 ## 3. Decision 0 — foundation choices
@@ -65,11 +66,12 @@ These do not block acceptance of this foundation ADR:
 |---|---|
 | Foundation / Block 2 | Verify environment compatibility and record actual GPU, driver, CUDA, cuQuantum, Python, and engine-package pins; GPU validation gates Block 2 completion |
 | Before Block 5 | Exact dynamics metric/observable, fixed pulse if needed, parameter region, and evidence thresholds. Gate error or leakage under a fixed pulse is a candidate. Spectral studies remain supported but do not satisfy the first GPU dynamics demo |
-| After M2, before Block 6a | First investigation's scope, assumptions, evidence requirements, measured-cost budget, review/stop criteria, and baseline evaluation protocol; explicit scripted selection policy and comparable allowances |
-| Before Block 6a | V1 grant issuer/authentication, resource metering, reservation, and cancellation policy; contract §4 defines the resource units. Record the design and evaluation protocol in a follow-up ADR (planned ADR-0002), not a new ADR for every investigation |
-| Before Block 6b | Concrete local process/filesystem/credential/GPU isolation mechanism and authenticated human channel, including enforcement against an agent with a shell |
+| After M2, before Block 6a | First investigation's scope, assumptions, evidence requirements, progress checkpoints, review/stop criteria, usage reporting, and any requested ceilings; baseline evaluation defines a scripted selection policy and comparable benchmark allowances, including an early-stop case |
+| Before Block 6a | Local investigation lifecycle, user-decision recording path, progress-assessment fields, usage metering, optional-limit enforcement, and cancellation/resume policy. Record this design and the evaluation protocol in a follow-up ADR (planned ADR-0002); ordinary investigations remain research records |
+| Before Block 6b | Runtime integration, user-input event handling, progress reporting, and cooperative local execution checks; no separate grant issuer or OS-enforced security boundary required |
 | Before Block 7 | ProblemSpec OSS verbatim vs. an additive `solver.options` table |
-| Before Block 9 | Scheduler target, remote environment, and executor deployment |
+| Before Block 9 | Scheduler target, remote environment, and site execution requirements |
+| When stronger deployment guarantees are needed | Explicit threat model and identity/process/filesystem/credential/network/device controls, reusing suitable platform facilities; bypass-resistance evidence is separate from cooperative local conformance |
 
 M3 acceptance and baseline-evaluation requirements are defined in roadmap Block 6b.
 

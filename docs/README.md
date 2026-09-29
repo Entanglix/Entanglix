@@ -2,7 +2,7 @@
 
 - [roadmap.md](roadmap.md) — Pinned research direction, scope, milestones, build dependencies, and quality criteria.
 - [checklist.md](checklist.md) — Aligned build status and acceptance evidence for core and supporting milestones.
-- [../HARNESS_CONTRACT.md](../HARNESS_CONTRACT.md) — Required interfaces, execution guarantees, verification, grants, resource limits, permissions, lineage, and conformance. Normative once Decision 0 is accepted, as each capability is introduced.
+- [../HARNESS_CONTRACT.md](../HARNESS_CONTRACT.md) — Required interfaces, verification, investigation/progress records, optional execution limits, lineage, and conformance under the cooperative local trust model. Normative once Decision 0 is accepted, as each capability is introduced.
 - [adr/](adr/) — Architecture Decision Records. [0001-mandate.md](adr/0001-mandate.md) is the Draft agenda for foundation decisions in Decision 0. Later decisions are scheduled in roadmap §7.
 - `environment.md` — Pinned GPU, driver, CUDA, cuQuantum, and package versions (to be written with hardware access).
 - `AGENTS.md` — Short coding-agent working instructions, navigation, and commands (planned with the repository foundation).

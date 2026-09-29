@@ -12,7 +12,7 @@
 
 ### Mandate
 
-Entanglix enables expert-guided quantum system research through composable modeling, simulation, search, control, and calibration capabilities. Agents assist with problem formulation and carry out bounded investigations under explicit assumptions and resource limits. Users can enter at any supported stage and progressively compose these capabilities into increasingly autonomous design workflows.
+Entanglix enables expert-guided quantum system research through composable modeling, simulation, search, control, and calibration capabilities. Agents assist with problem formulation and carry out bounded investigations under explicit assumptions, review/stop criteria, and any user-specified resource limits. Users can enter at any supported stage and progressively compose these capabilities into increasingly autonomous design workflows.
 
 - Domain: superconducting-circuit device physics and quantum control. System modeling (circuit parameters → Hamiltonians), open-system simulation on GPU, and three optimization tasks: optimal control (pulse/gate synthesis), model calibration (fit Hamiltonian and noise parameters to data), and device design (optimize circuit parameters against simulated metrics).
 - Not in scope: gate-model algorithms (VQE, QAOA, annealing schedules), circuit compilation, hardware drivers.
@@ -21,7 +21,8 @@ Entanglix enables expert-guided quantum system research through composable model
 ### Research workflow and autonomy
 
 - **Problem formulation is part of the workflow.** A broad ambition such as "design a five-qubit processor with two-qubit gate fidelity > 0.999" starts an expert–agent discussion about architecture, assumptions, constraints, models, and the evidence needed. Expensive work begins once the next investigation is sufficiently defined.
-- **Autonomy is bounded by the investigation.** A task may explore a parameter region, investigate an unexpected result, refine a model, or compare candidates. Its question, permitted changes, assumptions, evidence requirements, resource limits, and stopping or review criteria are explicit. Users choose where to retain checkpoints and where to delegate execution.
+- **Autonomy is bounded by the investigation.** A task may explore a parameter region, investigate an unexpected result, refine a model, or compare candidates. Its question, permitted changes, assumptions, evidence requirements, and stopping or review criteria are explicit. Resource usage is recorded; user-specified ceilings and deadlines are optional and enforced when present. Users choose where to retain checkpoints and where to delegate execution.
+- **Progress determines continuation.** Start with an informative experiment or optimization segment, inspect verified performance, constraints, convergence, cost, and what was learned, then continue, refine, or stop. Remaining budget is not a reason to continue; insufficient progress can justify an early report with the best available evidence and proposed next experiments. Initial cost measurements do not predict total time to convergence.
 - **Useful findings are valid outcomes.** An investigation may yield a promising candidate, a characterized region, an infeasibility finding within the stated assumptions, or unresolved uncertainty with suggested next experiments. A finished device and a single ultimate optimization objective are not prerequisites for useful work.
 - **Capabilities have independent entry points.** Modeling → sweep → search → refined sweep is a complete research workflow. Control can start from an existing device model; calibration can start from measured data. Device–control co-design composes these capabilities when the research question calls for it.
 - **Milestones describe capability development.** Users may enter, iterate within, and stop at any supported stage. The build progression does not prescribe a single user journey.
@@ -35,7 +36,7 @@ Entanglix enables expert-guided quantum system research through composable model
 - **Operational quality:** controlled launches, clear diagnostics, interruption handling and recovery, resource accounting, and observable execution. GPU work goes through the runner and its executor; cluster execution uses the site's scheduler.
 - **Professional usability:** coherent CLI/MCP interfaces, useful documentation and examples, actionable errors, and predictable, versioned releases.
 
-Every milestone must demonstrate these qualities for the capabilities it introduces. The acceptance evidence in §4 develops alongside functionality.
+Every milestone must demonstrate these qualities for the capabilities it introduces. The acceptance evidence in §4 develops alongside functionality. Guarantees match the deployment: professional local research execution comes first; stronger security mechanisms follow an explicit operational need.
 
 ### Substrate decisions (fixed)
 
@@ -64,11 +65,13 @@ Protocol plane   simulate │ sweep │ calibrate │ control        (each: spec
 Workflow plane   problem formulation │ bounded sweep/search │ device–control co-design
 Solver plane     open GRAPE baseline │ Piccolo via amico-run │ private plugins (entry points)
 Run plane        research_runs/<system_id>/<run_id>/ … FINISHED   (amicode run-dir shape)
-Verify plane     corrector: cross-engine, cross-solver, convergence, positivity, holdout   (hashed, outside agent tree)
+Verify plane     corrector: cross-engine, cross-solver, convergence, positivity, holdout   (versioned, outside candidate workspace)
 Evidence plane   run ledger (all attempts, lineage, trial counts) + human-promoted results catalog
 Harness plane    entanglix CLI  ⇄  MCP server  ⇄  skills + AGENTS.md  ⇄  Codex (or any runtime)
 Executors        local GPU │ Slurm │ Kubernetes   (artifacts mirrored back; large arrays stay on the cluster)
 ```
+
+The initial deployment is a cooperative, single-owner workstation workflow with one coordinating agent and one active GPU job by default; a job may still batch calculations. Unique run directories, frozen inputs, controlled history writes, and job cancellation prevent accidental interference. Supported CLI/MCP paths enforce declared checks and configured limits. This deployment does not claim containment of arbitrary shell/code bypass. Multi-agent concurrency, a separate grant issuer, and OS-enforced GPU/credential separation are not prerequisites for local research; stronger deployment guarantees are scoped when needed.
 
 The workflow plane composes available protocols around a research question. Sweep/search is usable independently; control and calibration extend the available workflows. The detailed invariants behind this diagram — object model, engine-selection table, run directory and exit codes, solver and integrator protocols, corrector checks — belong in [`../HARNESS_CONTRACT.md`](../HARNESS_CONTRACT.md) §1–§3.
 
@@ -86,7 +89,7 @@ The core capability progression is **foundation → verified local sweep → bou
 - Actual system modeling includes circuit components and coupled quantum subsystems. Initial representation coverage and validation fixtures remain to be pinned in ADR §3.1; named qubit examples do not define the capability's limits.
 - Initial verification target agreed: the owner's current Linux workstation with an NVIDIA RTX 5090 (owner-confirmed), plus CPU-only foundation CI. Compatible version pins and GPU execution are verified during foundation and Block 2; hardware measurements do not gate scaffolding.
 - Numerical policy agreed: user-facing energy/frequency parameters in GHz, time in ns, explicit angular-frequency conversion for dynamics, a uniform output grid with internal stepping allowed, and separate basis/retained-level cutoffs with model-specific convergence checks. Concrete fixture defaults follow the selected models.
-- **Done when:** `docs/adr/0001-mandate.md` records these foundation choices and is marked Accepted; unblocks Block 0. The first sweep metric is chosen before Block 5; investigation budgets and evaluation design follow M2 measurements before Blocks 6a–6b.
+- **Done when:** `docs/adr/0001-mandate.md` records these foundation choices and is marked Accepted; unblocks Block 0. The first sweep metric is chosen before Block 5; investigation policy, any requested limits, and evaluation design follow M2 measurements before Blocks 6a–6b.
 
 ### Block 0 — Repo Foundation
 
@@ -118,7 +121,7 @@ The core capability progression is **foundation → verified local sweep → bou
 
 - **Depends on:** Blocks 0–2.
 - `entanglix` gate + launch: spec validation, static import scan of any authored script, environment check (driver, cuQuantum, memory), run-dir creation (`run.toml` first), job spawn in its own process group, `FINISHED` last, exit-code contract, `index` and `latest` at the runs root.
-- Local executor only in this block.
+- Local executor only in this block; distinct run directories and frozen inputs, shared GPU ownership with one active job by default, runner-owned history writes, and cancellation of the intended process group. Reconcile unknown process state before reusing the GPU; no custom scheduler is required.
 - Basic append-only run ledger from the first execution: provenance, parent runs, resource use, and outcome for completed, failed, and aborted attempts. This history is available before catalog promotion or agent use.
 - Diagnostics and a documented recovery or rerun path for interrupted work.
 - **Done when:** a killed job leaves no `FINISHED`; a completed job's `result.toml` validates; a run is reproducible from `spec/` + `code_version` + `env_hash`; attempts and their lineage remain queryable after interruption.
@@ -140,28 +143,32 @@ The core capability progression is **foundation → verified local sweep → bou
 
 ### Investigation decisions — after M2, before Blocks 6a–6b
 
-Use measured sweep costs to define the first investigation's question, scope, assumptions, evidence requirements, numeric allowances, and stop/review criteria. A complete device-design target is optional. Before Block 6a, record the v1 grant/issuer model, resource metering, reservation and cancellation policy, and evaluation protocol in a follow-up ADR (planned ADR-0002). Ordinary investigation specifications and grants remain research records, not new ADRs. Before Block 6b, select and document the local process, filesystem, credential, and GPU isolation mechanism.
+Define the first investigation's question, scope, assumptions, evidence requirements, progress checkpoints, and stop/review criteria. Record any user-specified ceilings or deadlines; ordinary investigations need no mandatory job-count or time allowance. M2 measurements inform cost reporting and experiment sizing without requiring an estimate of total research cost.
 
-The evaluation protocol names a scripted experiment-selection policy, comparable resource allowances, evidence thresholds, and measures of scientific outcome, elapsed time, compute use, and human interventions. A scripted client alone is not a scientific baseline. For optimization tasks, compare best verified objective or time to a feasible candidate; for exploratory tasks, use the declared evidence requirements.
+Before Block 6a, record the local investigation lifecycle, user-decision recording path, progress-assessment fields, usage metering, optional-limit enforcement, and cancellation/resume policy in a follow-up ADR (planned ADR-0002). Ordinary investigation specifications remain research records. Before Block 6b, select the runtime integration and validate the cooperative local execution path.
+
+The evaluation protocol names a scripted experiment-selection policy, comparable resource allowances, evidence thresholds, and measures of scientific outcome, elapsed time, compute use, and human interventions. Fixed allowances support this comparison without becoming mandatory for ordinary investigations. Include a case assessing a supported early stop after insufficient progress. A scripted client alone is not a scientific baseline. For optimization tasks, compare best verified objective or time to a feasible candidate; for exploratory tasks, use the declared evidence requirements.
 
 ### Block 6a — Investigation Execution
 
 - **Depends on:** Blocks 3–5 and the decisions identified above as required before Block 6a.
-- Runner-managed investigation records, immutable revisions, findings, and resumable histories.
-- Protected grants issued through an authenticated human administrative channel: scope, typed resource ceilings, review conditions, issuer, validity, and revocation. The runner enforces the same authority checks for CLI, MCP, and submitted code; access to the CLI binary confers no administrative authority.
-- Resource reservation and accounting across concurrent jobs, nested solves, verification, retries, and failures; review/stop gating and cancellation. Contract §4 defines the resource units; choose numeric allowances using M2 measurements.
+- Runner-managed investigation records, immutable revisions, findings, progress assessments, and resumable histories.
+- Human-started investigations with recorded scope and review points. Existing CLI/runtime user-input paths record scope changes, review releases, and optional-limit changes separately from agent proposals. Research tools cannot approve their own proposals; no separate grant issuer or credential service is required.
+- Resource usage recorded across protocol runs, nested work, verification, retries, and failures. Enforce any explicit ceilings/deadlines through the runner and executor. Absence of a ceiling is recorded, not treated as a zero budget or an estimate.
+- Progress checkpoints link observed results, constraints, convergence, learning, cost, and a continue/refine/stop rationale. The runner validates records and review state; research judgment determines whether more computation is worthwhile.
+- Reliable cancellation, pause/resume, and checkpoint recovery where supported; otherwise rerun under a new linked ID. Preserve consumed resources and incomplete attempts across sessions.
 - Scripted iterative sweep/search client, with Bayesian search where appropriate. Document its experiment-selection policy so it can serve as the M3 baseline.
-- **Done when:** the scripted client completes the declared investigation or a supported review/stop handoff; evidence, revisions, and accounting survive restart; concurrent dispatch cannot exceed grants; unauthorized grant changes and review releases are rejected. Fault cases demonstrate enforcement independently of an agent runtime.
+- **Done when:** the scripted client reaches the declared evidence or a supported stop/review handoff; progress and accounting survive resume; no-limit and explicit-limit cases work; cancellation, review gating, and prevention of accidental run interference pass through supported interfaces.
 
 ### Block 6b — Agent Integration
 
-- **Depends on:** Block 6a and the local isolation decision.
-- Support expert–agent problem formulation, explicit review points, and bounded execution after the next investigation is defined. A broad device ambition is refined before it becomes a job request.
-- MCP server over stdio exposing available CLI capabilities; tool-call and prompt audit logs; initial skills (`system-modeler`, `simulate`, `design-sweep`, `gpu-budget`); `AGENTS.md` finalized for these workflows. Control and calibration tools and skills arrive with their capabilities.
-- Local process/filesystem isolation and separate administrative credentials protect grants, runner policy, corrector, ledger, catalog, and device model. The research agent retains a shell but cannot directly use the GPU or exercise human administrative authority; submitted jobs have bounded access through the executor.
-- Prompt-injection, shell/CLI escalation, and isolation tests; a pinned runtime version in CI. Numerical search and agent reasoning have distinct, documented roles.
-- **Done when:** an agent completes the declared sweep/search investigation through logged tools, with an evidence-driven refinement and a justified stop or review handoff; applicable evidence requirements and quality gates pass; resource and isolation guarantees hold. The workflow is documented and usable independently of control and calibration.
-- **M3 evaluation:** execute the declared comparison against the Block 6a baseline and report outcomes, including worse performance or inconclusive benefit. M3 passes on correct execution, required evidence, enforced limits/isolation, independent usability, and completion of the comparison; outperforming the baseline is not required. Claims of acceleration require measured comparative benefit.
+- **Depends on:** Block 6a and the local runtime integration decision.
+- Support expert–agent formulation and bounded execution once the next investigation is defined. Broad ambitions are refined before expensive work.
+- MCP over stdio exposing available CLI capabilities; tool-call and prompt audit logs; initial skills (`system-modeler`, `simulate`, `design-sweep`, `gpu-budget`); `AGENTS.md` links to these workflows. The resource skill covers measured usage and optional limits. Control and calibration tools and skills arrive with their capabilities.
+- One coordinating agent uses the local runner: separate run directories, frozen inputs, controlled history writes, one GPU job at a time by default, and cancellation of owned jobs. Research tools stage model/catalog changes; human actions remain separate in the supported workflow. Reuse available runtime protections and document the cooperative trust assumption.
+- Tests reject agent-supplied approval claims, skipped verification, out-of-scope tool requests, and changes to configured ceilings through research tools. Pin the runtime in CI. OS-level escape resistance and device/credential isolation are deferred deployment work.
+- **Done when:** the agent completes the declared sweep/search investigation through logged tools with evidence-driven refinement, recorded continuation decisions, and a supported final report or review handoff; the declared evidence/reporting criteria and independent usability pass. A stagnation case produces a supported early report with available results and next experiments. Execution protections and any configured limits hold through supported interfaces.
+- **M3 evaluation:** compare against the Block 6a baseline, including scientific outcome, cost, human intervention, and the evidence supporting continuation/stopping decisions. Report worse performance or inconclusive benefit. M3 requires correct execution, declared evidence, local execution reliability, independent usability, and completion of the comparison; outperforming the baseline is not required. Claims of acceleration require measured comparative benefit.
 
 ### Block 7 — Protocol `control`
 
@@ -175,14 +182,14 @@ The evaluation protocol names a scripted experiment-selection policy, comparable
 
 - **Depends on:** Blocks 5, 6a, 6b, and 7.
 - Compose device search and control: propose circuit parameters → construct the model → optimize admissible controls → evaluate verified performance → refine the device search.
-- Declare device and control constraints, relevant parameter uncertainty, and a consistent evaluation and optimization budget for comparing candidates.
+- Declare device and control constraints, relevant parameter uncertainty, and a consistent evaluation and optimization-budget policy for comparing candidates; report any limits and differing conditions explicitly.
 - Support expert checkpoints and bounded agent execution, with evidence linking device candidates to their control runs. Calibration can supply model updates once available.
 - **Done when:** one documented investigation iterates jointly on circuit parameters and controls, reports a verified candidate comparison under the declared constraints and uncertainty, and ends with a supported recommendation or an explicit account of limitations. Users can still choose the standalone sweep/search or control workflows.
 
 ### Block 9 — Cluster Executor
 
 - **Depends on:** Blocks 3–5. Build when remote compute is needed; it does not gate local exploration or control.
-- Slurm or Kubernetes executor behind the same `Executor` interface as local; artifact mirroring (small arrays back, large arrays referenced by path + digest); warming and lost-contact timeouts; abort.
+- Slurm or Kubernetes executor behind the same `Executor` interface as local; artifact mirroring (small arrays back, large arrays referenced by path + digest); warming and lost-contact timeouts; abort. Retain usage accounting, configured-limit enforcement, and lineage; define any stronger access/isolation guarantees required by the deployment before claiming them.
 - **Done when:** `sweep` runs unchanged on the cluster and locally; a lost job terminates as `aborted`, never as `completed`; resource use and recovery diagnostics are recorded.
 
 ### Block 10 — Protocol `calibrate`
@@ -191,7 +198,7 @@ The evaluation protocol names a scripted experiment-selection policy, comparable
 - Data contract for calibration inputs (measured spectra, Ramsey/T1/T2 traces, gate-error tables) with point-in-time provenance.
 - Gradient lane (dynamiqs) and gradient-free / Bayesian lane; holdout split; identifiability report; **write-back to the device model is a proposal file a human applies**.
 - Documented standalone calibration workflow; extend the MCP surface and add the `calibrate` skill when the agent harness is available.
-- **Done when:** synthetic-data round trip recovers known parameters within reported uncertainty; the holdout is unreachable from the fitting code path; a user can inspect a calibration report and device-update proposal independently of control.
+- **Done when:** synthetic-data round trip recovers known parameters within reported uncertainty; fitting receives training data only and the corrector evaluates holdout data; a user can inspect a calibration report and device-update proposal independently of control.
 
 ### Block 11 — Results Catalog
 
@@ -211,13 +218,15 @@ The evaluation protocol names a scripted experiment-selection policy, comparable
 
 Multi-GPU cuDensityMat; cuTensorNet engine for lattice-scale systems; multistart and continuation for control; longer scheduled unattended campaigns after bounded workflows demonstrate reliability; hardware-in-the-loop via an external device bridge behind the same run contract.
 
+Stronger authorization and isolation are conditional deployment work. Before a deployment requires containment of untrusted code, resistance to shell bypass, or stronger separation between users, define its threat model and reuse suitable runtime/OS controls. Grant issuers, isolated administrative credentials, restricted filesystem/network/device access, and adversarial escape tests belong to that scope; they do not gate M3. Parallel development or batching alone does not require that security model.
+
 ---
 
 ## 3. Harness Contract
 
-[`../HARNESS_CONTRACT.md`](../HARNESS_CONTRACT.md) defines bounded investigations (§4), tools and permissions (§5), history/audit/promotion (§6), isolation (§7), and versioning/conformance (§8). Quality standards and open decisions remain in this roadmap (§4 and §7); the checklist tracks acceptance evidence. Working instructions and research procedures arrive through `AGENTS.md` and skills at their planned stages.
+[`../HARNESS_CONTRACT.md`](../HARNESS_CONTRACT.md) defines bounded investigations (§4), tools and permissions (§5), history/audit/promotion (§6), local execution and trust boundaries (§7), and versioning/conformance (§8). Quality standards and open decisions remain in this roadmap (§4 and §7); the checklist tracks acceptance evidence. Working instructions and research procedures arrive through `AGENTS.md` and skills at their planned stages.
 
-Block 6a adds investigation execution to the runner and ledger from Block 3 and corrector from Block 4; Block 6b adds isolated agent access through MCP. Blocks 7 and 10 extend agent access to control and calibration when both capabilities are present; Block 11 adds the promoted catalog.
+Block 6a adds investigation execution to the runner and ledger from Block 3 and corrector from Block 4; Block 6b adds cooperative agent access through MCP and evidence-based continuation/stopping. Blocks 7 and 10 extend agent access to control and calibration when both capabilities are present; Block 11 adds the promoted catalog.
 
 ---
 
@@ -229,7 +238,7 @@ Each milestone's exit includes evidence for the capabilities it introduces:
 |---|---|
 | Scientific | Representative reference cases; documented assumptions and applicable uncertainty, convergence, and verification reports; reproducible examples |
 | Engineering | Appropriate automated tests and regression coverage; documented interfaces and dependencies; supported environment and compatibility expectations |
-| Operational | Observable execution and resource use; actionable failures; interruption and recovery behavior tested where jobs are introduced; budget enforcement for delegated work |
+| Operational | Observable execution and resource use; actionable failures; interruption and recovery behavior tested where jobs are introduced; enforcement of explicitly configured limits for delegated work |
 | Professional usability | A documented entry point and worked example; clear diagnostics; versioned changes and release notes for user-visible behavior |
 
 Apply these criteria to each block's scope: foundation proves installation and development workflows; later blocks add scientific and operational evidence for their capabilities. M3 must meet them for a complete sweep/search workflow. The preferred sequence puts M3 before control; independent control development retains its own quality gates.
@@ -251,7 +260,7 @@ Core progression (capability development; users may enter or stop at any support
 | M0 — Mandate + foundation | Decision 0, Block 0 | mandate ADR accepted; CPU tests green; contributor and compatibility guidance available |
 | M1 — Model + engines | Blocks 1–2 | spectra match scqubits; engines agree at reference size |
 | M2 — Verified local sweep | Blocks 3–5 | documented local GPU sweep, verified and reproducible; run history and interruption diagnostics available |
-| M3 — Bounded agent-assisted exploration | Blocks 6a–6b | declared evidence, correct execution, resource/isolation guarantees, independent workflow usability, and baseline comparison pass Block 6b criteria; no performance advantage required |
+| M3 — Bounded agent-assisted exploration | Blocks 6a–6b | declared evidence, progress-based continuation/stopping, reliable local execution, configured-limit enforcement, independent usability, and baseline comparison pass Block 6b criteria; no performance advantage required |
 | M4 — Control | Block 7 | standalone control workflow; open baseline and Piccolo solve the same gate problem, both verified; agent integration demonstrated when Block 6b is available |
 | M5 — Device–control co-design | Block 8 | joint device/control investigation produces a verified comparison and supported findings under declared constraints and uncertainty |
 
@@ -285,10 +294,11 @@ Settled: project name Entanglix; command `entanglix`; runner in Python (`uv`), s
 
 - **Decision 0 (Blocks 0–2), remaining:** initial system-modeling representation coverage and validation fixtures. The local RTX 5090 target/environment policy, numerical conventions/convergence policy, and audience/license timing are agreed in ADR §3.2–§3.4; the ADR remains Draft pending the modeling decision and acceptance.
 - **Before Block 5:** exact dynamics observable/metric, pulse if needed, parameter region, and evidence thresholds for the first GPU sweep.
-- **After M2, before Block 6a:** first investigation and evaluation protocol, including a defined scripted selection policy and comparable budgets; v1 grant issuer/authentication, resource metering, reservation, and cancellation policy. Contract §4 fixes resource units; numeric allowances use measured costs.
-- **Before Block 6b:** concrete local isolation mechanism covering processes, filesystem, credentials, GPU access, and the authenticated human channel. A separate OS identity and device controls or a container/privilege boundary must enforce the contract; naming commands "human-only" is insufficient.
+- **After M2, before Block 6a:** first investigation, progress/review/stop criteria, and evaluation protocol with scripted selection policy and comparable benchmark allowances; user-decision recording, resource metering, optional-limit enforcement, and cancellation/resume policy. Ordinary investigations do not require preallocated budgets; measurements inform any requested allowances.
+- **Before Block 6b:** runtime integration, user-input/approval event handling, progress reporting, and local execution checks under the cooperative single-owner trust model.
 - **Before Block 7:** ProblemSpec OSS verbatim vs. an additive `solver.options` table.
-- **Before Block 9:** scheduler target (Slurm or Kubernetes) and remote environment when needed.
+- **Before Block 9:** scheduler target (Slurm or Kubernetes), remote environment, and site execution requirements when needed.
+- **When stronger deployment guarantees are needed:** threat model, authorization/identity mechanism, process/filesystem/network/device controls, and evidence of bypass resistance. This is not a Decision-0 or M3 prerequisite.
 
 ---
 
