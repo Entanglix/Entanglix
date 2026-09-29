@@ -4,7 +4,7 @@
 
 Status legend: `[ ]` open · `[-]` in progress / partial · `[x]` done. Dependencies below follow the roadmap. Supporting milestones can proceed when their own prerequisites are ready. A block is complete when its required functional and applicable quality criteria are checked; numbering imposes no additional dependencies. No calendar: exit criteria gate progress, not dates.
 
-The mandate ADR is Draft. Complete and accept its foundation decisions during Decision 0; later choices are tracked with the blocks that need them. Initial execution assumes a cooperative, single-owner workstation workflow. Stronger authorization and isolation are conditional deployment work, not M3 prerequisites.
+The mandate ADR is Accepted and Decision 0 is closed. Concrete modeling schemas and fixtures follow during Block 1; later choices are tracked with the blocks that need them. Development and testing run on the owner's workstation; research runs may also use a cluster through its scheduler, under the same cooperative trust model. Stronger authorization and isolation are conditional deployment work, not M3 prerequisites.
 
 ---
 
@@ -14,7 +14,7 @@ Core capability progression; users may enter, iterate within, and stop at any su
 
 | Milestone | Blocks | Status |
 |---|---|---|
-| M0 — Mandate + foundation | Decision 0, Block 0 | **in progress** |
+| M0 — Mandate + foundation | Decision 0, Block 0 | **in review** |
 | M1 — Model + engines | Blocks 1–2 | open |
 | M2 — Verified local sweep | Blocks 3–5 | open |
 | M3 — Bounded agent-assisted exploration | Blocks 6a–6b | open |
@@ -42,38 +42,43 @@ M3 demonstrates quality for a complete sweep/search workflow. The preferred sequ
 
 ## M0 — Mandate + Foundation (Decision 0, Block 0)
 
-### [-] Decision 0 — Mandate ADR
+### [x] Decision 0 — Mandate ADR
 
-Block 0 implementation begins once `docs/adr/0001-mandate.md` reads **Accepted**. The preparatory documentation already exists. Items marked *walkthrough* need the owner's decision; the draft's recommendations remain proposals.
+[`docs/adr/0001-mandate.md`](adr/0001-mandate.md) is **Accepted**. Foundation choices are closed; detailed modeling and validation choices are implemented during Block 1.
 
 - [x] Project name: Entanglix. Command: `entanglix`. Repository established.
 - [x] Runner language: Python (`uv`), same substrate as the engines.
 - [x] Substrate fixed (roadmap §0): scqubits, cuDensityMat via `qutip-cuquantum`, dynamiqs, QuTiP CPU reference; ProblemSpec OSS control spec; private solvers as entry-point plugins.
 - [x] Research direction pinned: expert-guided formulation, bounded autonomy, independently useful workflows, and enterprise-grade quality across milestones.
 - [x] Core progression pinned: verified local sweep → bounded agent-assisted exploration → control → co-design; supporting capabilities follow their own dependencies.
-- [-] System-modeling scope and validation fixtures — actual component-based and coupled-subsystem modeling agreed; initial representation coverage and fixture set remain to be pinned (ADR §3.1)
+- [x] System-modeling mandate: component-defined circuits, coupled subsystems, and explicit operators; representative validation required, with concrete coverage and fixtures selected during Block 1 (ADR §3.1)
 - [x] Initial verification target: this Linux workstation with an owner-confirmed NVIDIA RTX 5090; one local GPU environment plus CPU-only foundation CI; compatible version pins and GPU validation follow in Block 2 (ADR §3.2)
 - [x] GHz/ns conventions with explicit angular-frequency conversion; uniform output grid with internal stepping allowed; separate basis/retained-level cutoffs and model-specific convergence policy (ADR §3.3)
 - [x] Private development by the owner and explicitly permitted collaborators; distribution license selected before external distribution; existing sharing gates retained (ADR §3.4)
-- [ ] Record foundation decisions in the Draft mandate ADR during the walkthrough; status → Accepted
+- [x] Foundation decisions recorded in the Accepted mandate ADR
 - **Unblocks:** Block 0.
 
 ### [-] Block 0 — Repo Foundation
 
-**Depends on:** Decision 0. Current progress is preparatory documentation only.
+**Depends on:** Decision 0 (Accepted). **In review:** the scaffold and operational docs are stashed pending an overbuild review. Checked items and the evidence notes below describe that stashed version; recheck them after the review.
 
 - [x] `HARNESS_CONTRACT.md` at repo root, aligned with the pinned roadmap
 - [x] `docs/README.md` index with the sharing rule
 - [x] `docs/roadmap.md` and `docs/checklist.md`, with aligned milestones and dependencies
-- [ ] Layout: `packages/entanglix`, `packages/entanglix-mcp`, `schemas/`, `skills/`, `tests/`
-- [ ] `uv` project and `uv.lock`; environment manifest and hashing convention; GPU pins completed in Block 2
-- [ ] `.gitignore` (runs, caches, `.env`, large arrays)
-- [ ] CI: CPU tests for foundation behavior; `gpu` pytest marker skipped when no device
-- [ ] Import-boundary test: no direct private-implementation imports or scheduler-client imports outside `tests/`, per roadmap Block 0
-- [ ] Short `AGENTS.md` for coding-agent working instructions, navigation, and commands; `CLAUDE.md` one-line pointer; research-runtime permissions referenced separately
-- [ ] Contributor setup, architecture overview, test instructions, initial versioning and compatibility policy
-- [ ] Applicable quality evidence recorded
-- [ ] **Done:** clone → `uv sync` → `pytest` green on a machine without a GPU
+- [x] Layout: installable `packages/entanglix` and `packages/entanglix-mcp`, plus `schemas/`, reserved `skills/`, and `tests/`
+- [x] [`uv` workspace](../pyproject.toml) and [`uv.lock`](../uv.lock); [environment collection/hashing](../packages/entanglix/src/entanglix/environment.py) and [versioned schema](../schemas/environment.schema.json); GPU pins follow Block 2
+- [x] [`.gitignore`](../.gitignore) covers runs, caches, `.env`, and generated numerical arrays, with exceptions for small reference fixtures
+- [x] [CPU CI workflow](../.github/workflows/ci.yml): locked installation, tests, lint/format checks, and package builds; [GPU marker policy](../tests/test_gpu_marker.py) skips unavailable devices and rejects empty/unavailable required-GPU runs
+- [x] [Import-boundary tests](../tests/test_import_boundary.py): reviewed public imports only outside `tests/`, including literal/aliased dynamic imports; private-implementation and scheduler-client cases rejected
+- [x] Short operational [AGENTS.md](../AGENTS.md) for research-agent instructions, navigation, and command availability; [CLAUDE.md](../CLAUDE.md) one-line pointer
+- [x] Operational [CLI usage](../README.md#capture-environment-identity) and [changes/compatibility policy](../README.md#changes-and-compatibility); [documentation boundary](README.md#documentation-boundary) documented
+- [x] Documented setup, CLI, tests, and builds verified against the implemented layout and locked CPU environment; README and agent instructions reflect available commands
+- [x] Applicable quality evidence: [installed CLI/package checks](../tests/test_cli.py), [manifest/schema/provenance checks](../tests/test_environment.py), import and marker regression coverage, clean installation, package builds, and local documentation/ignore-rule checks
+- [x] **Done:** a fresh source copy with a new CPU environment syncs from the lockfile and runs `pytest` successfully without GPU dependencies or device access
+
+**Acceptance evidence — 2026-09-28:** Python 3.13.12, uv 0.12.0, pytest 9.1.1. A fresh source copy ran `uv sync --locked --offline`, then activated its new environment and ran `pytest`: **32 passed**. Ruff 0.16.9 lint/format checks passed. `uv build --all-packages` produced source distributions and wheels for both packages; a separate environment containing only the two built runtime wheels imported both packages and ran CLI version/environment capture from outside the checkout. Local Markdown links/anchors, code fences, whitespace, and generated-file/fixture exclusions were checked. The GitHub CPU workflow is configured; hosted execution follows a push. GPU compatibility and scientific validation remain Block 2 work.
+
+**Documentation checks — 2026-09-28/29:** local Markdown links/anchors resolved (66 on 2026-09-29); the operational README's four `uv` commands passed in a fresh CPU environment without development dependencies; runtime wheels contain no internal Markdown; operational docs and ADRs contained no references to planning docs, and the private appendix was unchanged. On 2026-09-29 the boundary was simplified to three classes and `docs/development.md` was removed; its environment-hash rules are implemented in `environment.py`. Runtime delivery and context selection are validated with agent integration.
 
 ---
 
@@ -89,9 +94,9 @@ Block 0 implementation begins once `docs/adr/0001-mandate.md` reads **Accepted**
 - [ ] Operator export to QuTiP `Qobj` and to arrays for JAX
 - [ ] Storage-format selection for cuDensityMat operators (CSR-probe rule from the scqubits GPU work)
 - [ ] `entanglix validate <system.toml>` / `validate_system` backing capability
-- [ ] Fixture systems pinned through ADR §3.1, covering the selected system-model construction and composition paths
+- [ ] Concrete representation coverage and fixture systems/parameters selected during this block under ADR §3.1, exercising component, composition, and explicit-operator paths
 - [ ] Applicable quality evidence recorded
-- [ ] **Done:** the Decision-0 fixture systems validate and export to the three engine input formats; spectra match scqubits to tolerance
+- [ ] **Done:** the Block-1 fixture systems validate and export to the three engine input formats; spectra match scqubits to tolerance
 
 ### [ ] Block 2 — Engines v0
 
@@ -119,14 +124,14 @@ Block 0 implementation begins once `docs/adr/0001-mandate.md` reads **Accepted**
 - [ ] Gate: spec validation, static import scan, environment check (driver, cuQuantum, memory)
 - [ ] Run dir per contract §2: `run.toml` first, `spec/` frozen, `FINISHED` last, atomic `result.toml`
 - [ ] Reproduction inputs: authored code/data references, versions or digests, seeds, solver settings, and environment provenance
-- [ ] Job spawn in its own process group; exit-code contract; enforcement of any configured per-run limits
-- [ ] Separate run directories and assigned outputs prevent accidental interference; shared GPU ownership permits one active job by default across runner instances; a job may batch calculations
+- [ ] Job spawn in its own process group; exit-code contract; per-run timeouts when configured
+- [ ] Separate run directories and assigned outputs prevent accidental interference; a GPU lock permits one active job by default across runner instances; a job may batch calculations
 - [ ] Cancellation targets the intended job and descendants; unknown process state blocks GPU reuse pending reconciliation
 - [ ] `index` and `latest` at the runs root
 - [ ] Local executor, diagnostics, and documented interruption recovery/rerun path
 - [ ] Append-only ledger from first execution: parent run IDs, provenance, outcomes, resource use, and verification status when available; include failed, aborted, and incomplete attempts
 - [ ] Atomic ledger events retain concurrent attempts; reruns get new IDs and preserve lineage
-- [ ] `list_capabilities`, `list_runs`, `read_run`, and `abort_run` backing capabilities
+- [ ] `list_capabilities`, `list_runs`, `read_run`, and `abort_run` backing capabilities; `read_run` shows the live trace of running jobs
 - [ ] Execution outcome remains distinct from scientific verification
 - [ ] Applicable quality evidence recorded
 - [ ] **Done:** abrupt termination leaves no fabricated completion; completed results validate and reproduce; interrupted attempts remain queryable with diagnostics and lineage
@@ -165,9 +170,9 @@ Block 0 implementation begins once `docs/adr/0001-mandate.md` reads **Accepted**
 ### [ ] Investigation decisions — after M2
 
 - [ ] Before Block 6a: first investigation question, scope, assumptions, evidence requirements, progress checkpoints, and stop/review criteria; any requested ceilings informed by measured M2 costs
-- [ ] Before Block 6a: lifecycle, user-decision recording path, progress-assessment fields, usage metering, optional-limit enforcement, and cancellation/resume policy in a follow-up ADR (planned ADR-0002)
+- [ ] Before Block 6a: what the contract leaves open (user-decision recording, progress-assessment fields, default checkpoint intervals, resume behaviour) in a follow-up ADR (planned ADR-0002)
 - [ ] Before Block 6a: evaluation protocol defines the scripted selection policy, comparable benchmark allowances, evidence thresholds, and outcome/time/compute/human-intervention measures; include supported early stopping after insufficient progress
-- [ ] Before Block 6b: runtime integration, user-input event handling, progress reporting, and local execution checks under the cooperative trust model; no separate grant issuer or OS security boundary required
+- [ ] Before Block 6b: runtime integration, user-input event handling, progress reporting, runtime permission settings, and execution checks under the cooperative trust model; no separate grant issuer or OS security boundary required
 
 ### [ ] Block 6a — Investigation Execution
 
@@ -177,14 +182,16 @@ Block 0 implementation begins once `docs/adr/0001-mandate.md` reads **Accepted**
 - [ ] Human-started investigations; user-input events for broader scope changes, review releases, and configured-limit changes are distinct from agent proposals
 - [ ] `create_investigation`, `revise_investigation`, `list_investigations`, `read_investigation`, `record_finding`, and `stop_investigation`; drafts cannot self-approve or start through research-tool fields
 - [ ] Findings and progress assessments link investigation revisions, evidence, verification status, constraints/convergence, observed cost, learning/uncertainty, and continue/refine/stop rationale
-- [ ] Usage recorded across protocol runs, nested work, verification, retries, and failures; no double counting of the same GPU allocation
-- [ ] Optional limits declare quantity/unit/scope; absence is explicit; estimates remain distinct from ceilings; unknown units or unsupported enforcement are rejected
-- [ ] Configured limits enforced at dispatch and through executor deadlines, with recorded metering resolution/termination grace and actual usage; uncertainty does not restore allowances
-- [ ] Stop/review state gates dispatch; cancellation, resume, and supported checkpoint recovery preserve accounting, outstanding reviews, and stopping reasons
+- [ ] Usage recorded from executor reports across protocol runs, nested work, verification, retries, and failures
+- [ ] Optional limits per contract §4 (run timeout; investigation deadline, GPU-seconds, job count); absence is explicit; unknown limit names are rejected
+- [ ] Admission checks and commitment records are atomic; proposed and admitted-but-unsettled jobs, including queued/running jobs, count at their maximum when GPU-seconds are limited; uncertain usage never returns allowance
+- [ ] Executor enforces absolute investigation deadlines across queueing and execution; timeout resolution and termination grace documented; actual usage and overruns recorded
+- [ ] Progress checkpoints (finished-attempt count, including failed/aborted runs, or elapsed interval) gate dispatch until an assessment is recorded
+- [ ] Stop/review state gates dispatch; cancellation, resume, and supported restart files preserve accounting, outstanding reviews, and stopping reasons
 - [ ] Early-stop reports preserve best available results, limitations, and next experiments; remaining allowance does not require continued execution
 - [ ] User-decision events record source, affected revision, starts/resumes, scope/limit changes, and named review releases
 - [ ] Scripted iterative sweep/search client, with Bayesian search where appropriate; documented selection policy qualifies it as the M3 baseline
-- [ ] Tests cover no-limit and configured-limit cases, rejected approval claims, review gating, progress-record requirements, nested/retry accounting, cancellation/resume, and accidental run interference
+- [ ] Tests cover no-limit and configured-limit cases, atomic admission with proposed/queued/running commitments, deadlines across queueing and execution, timeout resolution/grace and overruns, rejected approval claims, review and checkpoint gating including failed/aborted attempts, nested/retry accounting, cancellation/resume, and accidental run interference
 - [ ] Applicable quality evidence recorded
 - [ ] **Done:** scripted investigation reaches declared evidence or a supported stop/review handoff; progress/history survive resume; optional limits, review gates, cancellation, and local execution protections work through supported interfaces
 
@@ -195,10 +202,10 @@ Block 0 implementation begins once `docs/adr/0001-mandate.md` reads **Accepted**
 - [ ] Formulation workflow refines broad ambitions into bounded next investigations; partial workflows and exploratory questions are supported
 - [ ] Agent assesses evidence, constraints, convergence, observed cost, and learning before continuing/refining/stopping; roles of numerical search and agent reasoning documented
 - [ ] MCP over stdio uses CLI backing operations, advertises available capabilities, and distinguishes research requests from runtime user-input events (contract §5)
-- [ ] Tool-call and prompt audit logs (contract §6), including scope revisions and linked run IDs
+- [ ] Tool-call audit log and per-session runtime/model/skill records (contract §6), including scope revisions and linked run IDs
 - [ ] Initial skills: `system-modeler`, `simulate`, `design-sweep`, `gpu-budget`; versioned metadata; resource guidance covers measured usage and optional limits; `AGENTS.md` links to workflows
 - [ ] One coordinating agent uses separate run directories, frozen inputs, runner-owned history, one active GPU job by default, and cancellation of owned jobs; model/catalog changes are staged
-- [ ] Reuse available runtime protections and document the cooperative trust assumption; no claim of resistance to arbitrary shell/code bypass
+- [ ] Runtime permission settings block human-action commands for the agent; the agent session sees no GPU; the cooperative trust assumption is documented; no claim of resistance to arbitrary shell/code bypass
 - [ ] Tests reject agent-authored approval claims, skipped verification, out-of-scope tool requests, and configured-limit changes through research tools; pinned runtime in CI
 - [ ] Demonstrate evidence-driven refinement and a supported early-stop report in an insufficient-progress case; preserve available results and suggested next experiments
 - [ ] Execute the declared baseline comparison; report scientific outcome, elapsed time, compute use, human interventions, and continuation/stopping rationale, including worse or inconclusive performance
@@ -232,7 +239,7 @@ Block 0 implementation begins once `docs/adr/0001-mandate.md` reads **Accepted**
 
 ### [ ] Block 8 — Device–Control Co-design
 
-**Depends on:** Blocks 5, 6a, 6b, and 7.
+**Depends on:** Blocks 5, 6a, and 7; Block 6b for agent-driven co-design.
 
 - [ ] Compose circuit-parameter proposal, model construction, admissible-control optimization, verified evaluation, and device-search refinement
 - [ ] Declared device/control constraints, relevant parameter uncertainty, and a consistent candidate comparison/optimization-budget policy; report any limits and differing conditions
@@ -255,9 +262,11 @@ Block 0 implementation begins once `docs/adr/0001-mandate.md` reads **Accepted**
 - [ ] Slurm or Kubernetes executor behind the local `Executor` interface
 - [ ] Artifact mirroring: small arrays back; large arrays by path + digest with integrity checks
 - [ ] Warming and lost-contact timeouts; abort; documented recovery/rerun path
-- [ ] Cluster preserves run ownership, usage accounting, configured-limit enforcement, audit, and lineage; define site-specific access controls and any stronger deployment guarantees before claiming them
+- [ ] Scheduler time limits, GPU allocation, cancellation, and accounting used instead of Entanglix equivalents; run ownership, audit, and lineage preserved; site-specific access controls and any stronger deployment guarantees defined before claiming them
+- [ ] One executor test suite runs on the workstation against the local executor and a stubbed scheduler (fake submit/status/accounting commands)
+- [ ] One documented smoke run on the target cluster
 - [ ] Applicable quality evidence recorded
-- [ ] **Done:** `sweep` runs unchanged locally and on the cluster; a lost job is aborted, never completed; resource use and recovery diagnostics are recorded
+- [ ] **Done:** `sweep` runs unchanged locally and on the cluster; the executor test suite passes against the stubbed scheduler; a lost job is aborted, never completed; usage comes from scheduler accounting and recovery diagnostics are recorded
 
 ---
 
@@ -314,4 +323,4 @@ Block 0 implementation begins once `docs/adr/0001-mandate.md` reads **Accepted**
 
 Multi-GPU cuDensityMat · cuTensorNet engine for lattice-scale systems · multistart and continuation for control · longer scheduled unattended campaigns after bounded workflows demonstrate reliability · hardware-in-the-loop behind the same run contract.
 
-Stronger authorization and isolation are scoped when a deployment needs bypass resistance or containment of untrusted code. Record its threat model and required identity/process/filesystem/network/device controls before adding acceptance boxes; cooperative local checks do not prove those guarantees.
+Stronger authorization and isolation are scoped when a deployment needs bypass resistance or containment of untrusted code. Record its threat model and required identity/process/filesystem/network/device controls before adding acceptance boxes; cooperative checks do not prove those guarantees.

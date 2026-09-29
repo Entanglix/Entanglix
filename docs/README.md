@@ -1,13 +1,37 @@
-# Entanglix Documentation Index
+# Planning and documentation index
 
-- [roadmap.md](roadmap.md) — Pinned research direction, scope, milestones, build dependencies, and quality criteria.
-- [checklist.md](checklist.md) — Aligned build status and acceptance evidence for core and supporting milestones.
-- [../HARNESS_CONTRACT.md](../HARNESS_CONTRACT.md) — Required interfaces, verification, investigation/progress records, optional execution limits, lineage, and conformance under the cooperative local trust model. Normative once Decision 0 is accepted, as each capability is introduced.
-- [adr/](adr/) — Architecture Decision Records. [0001-mandate.md](adr/0001-mandate.md) is the Draft agenda for foundation decisions in Decision 0. Later decisions are scheduled in roadmap §7.
-- `environment.md` — Pinned GPU, driver, CUDA, cuQuantum, and package versions (to be written with hardware access).
-- `AGENTS.md` — Short coding-agent working instructions, navigation, and commands (planned with the repository foundation).
-- `skills/` — Procedures for research workflows, added with the corresponding capabilities; execution guarantees remain in the contract.
-- Phase guides are written one phase ahead of the code, once there is code to link.
+This index supports project planning and implementation. Operational entry points are the root README, AGENTS.md, and harness contract.
+
+## Documentation boundary
+
+| Class | Examples | Lifecycle |
+|---|---|---|
+| Planning | Roadmap, checklist, phase guides | Written freely to guide high-quality implementation; removable afterward |
+| Operational harness | Root README, `AGENTS.md`, harness contract, skills | Retained and maintained for production users and agents |
+| Decision records | ADRs | Retained public history; consulted when relevant, not automatically loaded into runtime context |
+
+- Operational docs stand alone: they never link to or depend on planning docs. Planning docs may link to anything.
+- Before a planning doc is removed, move lasting decisions into an ADR and operating guidance into an operational doc.
+
+## Planning
+
+- [roadmap.md](roadmap.md) — Research direction, scope, milestones, dependencies, quality criteria, and open choices.
+- [checklist.md](checklist.md) — Implementation status and acceptance evidence.
+- Phase guides may be added as needed, including before code exists.
+
+## Operational harness
+
+- [../README.md](../README.md) — User entry point, available commands, and compatibility.
+- [../AGENTS.md](../AGENTS.md) — Research-agent entry instructions and navigation; [../CLAUDE.md](../CLAUDE.md) points to it.
+- [../HARNESS_CONTRACT.md](../HARNESS_CONTRACT.md) — Shared interfaces, permissions, evidence requirements, and execution guarantees.
+- [../schemas/environment.schema.json](../schemas/environment.schema.json) — Machine-readable environment format reference.
+- Runtime skills belong in the root `skills/` directory; it currently contains no skills. Additional usage guides may live under `docs/operations/` when needed.
+- `environment.md` will document validated environment pins when GPU support is available; it should serve as a retained operational reference, independently of validation plans.
+
+## Decision records
+
+- [adr/](adr/) — Public decision history, retained during operation.
+- [adr/0001-mandate.md](adr/0001-mandate.md) — Accepted foundation mandate and constraints. Future decisions add records as implementation proceeds.
 
 ## Sharing rule
 

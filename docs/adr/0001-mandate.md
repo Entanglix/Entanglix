@@ -1,9 +1,10 @@
 # ADR-0001: Mandate and Constraints
 
 **Date:** 2026-09-28
-**Status:** Draft — Decision 0 walkthrough in progress. Agreed decisions are recorded individually in §3; the initial modeling coverage and fixture set remain to be pinned before acceptance.
-**Source documents:** [roadmap](../roadmap.md) §0 and Decision 0; [harness contract](../../HARNESS_CONTRACT.md).
-**Purpose:** record the foundation choices needed by Blocks 0–2. Recommendations remain proposals. Sweep metrics, investigation design, and deployment mechanisms are decided when their prerequisites are available (§4).
+**Status:** Accepted — Decision 0 closed on 2026-09-28. The agreed modeling mandate, local target, numerical conventions, and audience/license policy are recorded in §3; concrete model schemas, supported representation details, and fixtures follow during Block 1.
+**Record type:** retained public decision record. This ADR records the accepted foundation choices; consult the [harness contract](../../HARNESS_CONTRACT.md) for operational guarantees. It need not be loaded for every research task.
+**Editorial update — 2026-09-29:** planning-document dependencies replaced with self-contained context; block and milestone labels retain their historical implementation-stage meaning. Execution scope clarified by the owner the same day: development and testing stay on the workstation, and research runs may also use a cluster through its scheduler. The planned ADR-0002 scope is narrowed to what the harness contract leaves open.
+**Purpose:** record the foundation choices needed by Blocks 0–2. Implementation starting points are distinguished from mandate decisions. Sweep metrics, investigation design, and deployment mechanisms are decided when their prerequisites are available (§4).
 
 ---
 
@@ -15,20 +16,20 @@ Entanglix supports expert-guided superconducting-circuit research through indepe
 
 | Decision | Value | Where |
 |---|---|---|
-| Name and command | Entanglix; `entanglix` | roadmap header |
-| Runner language | Python, `uv` | roadmap §7 |
-| Substrate | scqubits · cuDensityMat (`qutip-cuquantum`) · dynamiqs · QuTiP CPU reference | roadmap §0 |
+| Name and command | Entanglix; `entanglix` | Accepted foundation mandate |
+| Runner language | Python, `uv` | Accepted foundation mandate |
+| Substrate | scqubits · cuDensityMat (`qutip-cuquantum`) · dynamiqs · QuTiP CPU reference | Accepted foundation mandate |
 | Two-engine rule | cuDensityMat and JAX do not compose through autodiff; engine chosen by a versioned table | contract §2 |
 | Control spec | amicode ProblemSpec OSS; `solver.backend` records the solver | contract §1 |
 | Private solvers | Entry-point plugins; repo code never imports them directly; verification remains open | contract §1, §3 |
-| amicode's role | Contracts and an open second-opinion solver (Piccolo via `amico-run`); never the dynamics substrate | roadmap §0 |
-| Research direction | Expert-guided formulation, bounded autonomy, independent entry points, professional quality | roadmap §0, §4 |
-| Preferred sequence | Verified local sweep → bounded exploration → control → co-design; technical dependencies govern availability | roadmap §2, §5 |
-| Initial exploration | Runner investigations (6a), then cooperative agent integration (6b); progress-based continuation/stopping; calibration and cluster execution are independently scheduled | roadmap §2 |
-| Initial deployment | Single-owner workstation; one coordinating agent, one active GPU job by default, usage reporting and optional limits; stronger authorization/isolation follows an explicit deployment need | roadmap §1–§2; contract §4, §7 |
-| First end-to-end sweep | Open-system dynamics on the local GPU; exact metric remains open | roadmap Block 5 |
-| Posture | Stage-never-promote; supported tools enforce scope/review checks, configured limits, verification, and local run ownership under a cooperative trust model | contract §3–§7 |
-| Out of scope | Gate-model algorithms, circuit compilation, hardware drivers, UI | roadmap §0, §6 |
+| amicode's role | Contracts and an open second-opinion solver (Piccolo via `amico-run`); never the dynamics substrate | Accepted foundation mandate |
+| Research direction | Expert-guided formulation, bounded autonomy, independent entry points, professional quality | Accepted foundation mandate |
+| Preferred sequence | Verified local sweep → bounded exploration → control → co-design; technical dependencies govern availability | Accepted foundation mandate |
+| Initial exploration | Runner investigations (6a), then cooperative agent integration (6b); progress-based continuation/stopping; calibration and cluster execution are independently scheduled | Accepted foundation mandate |
+| Execution environments | Development and testing on the owner's workstation; research runs may also use a cluster through its scheduler. One coordinating agent, one active GPU job by default on the workstation; usage recorded, limits optional, progress checkpoints govern continuation; stronger authorization/isolation follows an explicit deployment need | Accepted foundation mandate; contract §4, §7 |
+| First end-to-end sweep | Open-system dynamics on the local GPU; exact metric remains open | Accepted foundation mandate |
+| Posture | Stage-never-promote; supported tools enforce scope/review checks, configured limits, verification, and run ownership under a cooperative trust model | contract §3–§7 |
+| Out of scope | Gate-model algorithms, circuit compilation, hardware drivers, UI | Accepted foundation mandate |
 
 ## 3. Decision 0 — foundation choices
 
@@ -36,9 +37,9 @@ Entanglix supports expert-guided superconducting-circuit research through indepe
 
 - **Binds:** Block 1 system representation and model construction; Block 2 engine inputs and reference cases; later sweep/search, control, and calibration inputs.
 - **Agreed direction:** system modeling is a research capability used to construct and revise actual device models. Systems can contain circuit components and coupled quantum subsystems; their topology, parameters, interactions, drives, and dissipation must be representable. Named qubit types alone do not define the modeling scope. Validation fixtures exercise this capability without limiting the systems users may model.
-- **Proposed initial coverage:** component-level circuit graphs (capacitors, inductors, Josephson junctions, connectivity, and biases) through the scqubits circuit adapter; composition of qubit, resonator, and coupler subsystem models with explicit interactions; the existing explicit-operator path for effective or custom models. Supported inputs produce Hamiltonians and operators with declared bases, units, truncations, and parameter provenance for the engines. Unsupported elements or representations require explicit diagnostics.
-- **Proposed validation coverage:** transmon–resonator and fluxonium cases, a custom component-defined circuit, and a coupled multi-subsystem example. Choose specific fixtures and parameters to demonstrate the supported construction and composition paths; agreement with a reference alone does not establish accuracy for a physical device.
-- **Decision:** modeling direction agreed; exact initial representation coverage and fixture set _pending_. The distinction between component-defined circuits and composed subsystem models follows scqubits' [Circuit](https://scqubits.readthedocs.io/en/latest/guide/circuit/ipynb/custom_circuit_define.html) and [interaction](https://scqubits.readthedocs.io/en/v4.3/api-doc/_autosummary/scqubits.core.hilbert_space.InteractionTerm.html) interfaces; concrete schema/API design follows the pinned scope.
+- **Decision — agreed 2026-09-28:** modeling supports component-defined circuits, coupled quantum subsystems, and explicit operators for effective/custom models. Outputs declare bases, units, truncations, and parameter provenance. Unsupported elements or representations produce explicit diagnostics. This mandate is sufficient for foundation; concrete schema/API choices and supported representation details are Block 1 implementation work.
+- **Implementation starting points:** scqubits' [Circuit](https://scqubits.readthedocs.io/en/latest/guide/circuit/ipynb/custom_circuit_define.html) interface provides component/connectivity/bias descriptions; its [interaction](https://scqubits.readthedocs.io/en/v4.3/api-doc/_autosummary/scqubits.core.hilbert_space.InteractionTerm.html) interface supports subsystem composition.
+- **Validation policy:** select concrete fixtures and parameters during Block 1 to exercise each implemented construction and composition path. Transmon–resonator, fluxonium, a custom component-defined circuit, and a coupled multi-subsystem case are useful starting examples. Fixtures demonstrate declared coverage; reference agreement alone does not establish physical-device accuracy.
 
 ### 3.2 Target local machine and environment policy
 
@@ -56,7 +57,7 @@ Entanglix supports expert-guided superconducting-circuit research through indepe
 ### 3.4 License, audience, and sharing policy
 
 - **Binds:** repository/license policy, permitted audience, and conditions for sharing.
-- **Decision — agreed 2026-09-28:** private development by the owner and explicitly permitted collaborators. Defer distribution-license selection until before external distribution. Retain the verified-artifact gate in roadmap §5 for the Harmoniqs conversation and the private-content exclusions in `docs/README.md`; collaborator access does not authorize onward distribution.
+- **Decision — agreed 2026-09-28:** private development by the owner and explicitly permitted collaborators. Defer distribution-license selection until before external distribution. The Harmoniqs conversation requires a shared ProblemSpec solved by the open baseline and Piccolo, both independently verified, with inspectable run directories and corrector reports. Agent integration is not a prerequisite. Before sharing, remove private appendices and exclude files marked `*-private.md`; public text uses "private solver plugins" without product names. Collaborator access does not authorize onward distribution.
 
 ## 4. Later decisions and implementation evidence
 
@@ -64,17 +65,18 @@ These do not block acceptance of this foundation ADR:
 
 | When | Decision or evidence |
 |---|---|
+| During Block 1 | Concrete model schemas/APIs, supported representation details, and fixtures/parameters exercising component, composition, and explicit-operator paths; these do not reopen the foundation mandate |
 | Foundation / Block 2 | Verify environment compatibility and record actual GPU, driver, CUDA, cuQuantum, Python, and engine-package pins; GPU validation gates Block 2 completion |
 | Before Block 5 | Exact dynamics metric/observable, fixed pulse if needed, parameter region, and evidence thresholds. Gate error or leakage under a fixed pulse is a candidate. Spectral studies remain supported but do not satisfy the first GPU dynamics demo |
-| After M2, before Block 6a | First investigation's scope, assumptions, evidence requirements, progress checkpoints, review/stop criteria, usage reporting, and any requested ceilings; baseline evaluation defines a scripted selection policy and comparable benchmark allowances, including an early-stop case |
-| Before Block 6a | Local investigation lifecycle, user-decision recording path, progress-assessment fields, usage metering, optional-limit enforcement, and cancellation/resume policy. Record this design and the evaluation protocol in a follow-up ADR (planned ADR-0002); ordinary investigations remain research records |
-| Before Block 6b | Runtime integration, user-input event handling, progress reporting, and cooperative local execution checks; no separate grant issuer or OS-enforced security boundary required |
+| After M2, before Block 6a | First investigation's scope, assumptions, evidence requirements, progress checkpoints, review/stop criteria, and any requested limits; baseline evaluation defines a scripted selection policy and comparable benchmark allowances, including an early-stop case |
+| Before Block 6a | What the harness contract leaves open: how user decisions are recorded, progress-assessment fields, default checkpoint intervals, and resume behaviour. Record these and the evaluation protocol in a follow-up ADR (planned ADR-0002); ordinary investigations remain research records |
+| Before Block 6b | Runtime integration, user-input event handling, progress reporting, runtime permission settings (human-action commands blocked, GPU hidden from the agent session), and cooperative execution checks; no separate grant issuer or OS-enforced security boundary required |
 | Before Block 7 | ProblemSpec OSS verbatim vs. an additive `solver.options` table |
-| Before Block 9 | Scheduler target, remote environment, and site execution requirements |
-| When stronger deployment guarantees are needed | Explicit threat model and identity/process/filesystem/credential/network/device controls, reusing suitable platform facilities; bypass-resistance evidence is separate from cooperative local conformance |
+| Before Block 9 | Scheduler target, remote environment, and site execution requirements; the executor reuses the scheduler's time limits, GPU allocation, and accounting and is tested on the workstation against a stubbed scheduler |
+| When stronger deployment guarantees are needed | Explicit threat model and identity/process/filesystem/credential/network/device controls, reusing suitable platform facilities; bypass-resistance evidence is separate from cooperative conformance |
 
-M3 acceptance and baseline-evaluation requirements are defined in roadmap Block 6b.
+Agent-integration acceptance requires a declared sweep/search investigation with logged tools, evidence-driven refinement, supported reporting or review handoff, and a stagnation case that stops with useful results and next experiments. Compare scientific outcome, cost, human intervention, and continuation/stop evidence against a scripted baseline. Correct execution, declared evidence, local reliability, independent usability, and completion of the comparison are required; outperforming the baseline is not. Acceleration claims require measured comparative benefit.
 
 ## 5. Consequences
 
-The local target, unit/grid/truncation policy, and audience/license policy are agreed. Modeling must support actual component-based and coupled-subsystem research; a small fixture list cannot serve as its capability specification. Pin the initial representation coverage and fixture set, then reflect the resulting scope and accepted decisions in the roadmap, contract, and checklist before accepting this ADR. Acceptance unblocks Block 0; later decisions retain their own gates in roadmap §2 and §7.
+Decision 0 is closed and Block 0 is unblocked. Modeling supports actual component-based and coupled-subsystem research, with an explicit-operator path; a fixture list does not limit that mandate. Concrete representation and validation choices are made during Block 1. The local target, unit/grid/truncation policy, and audience/license policy are accepted; later decisions retain the capability-specific prerequisites recorded in §4.
