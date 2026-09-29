@@ -82,10 +82,10 @@ The core capability progression is **foundation → verified local sweep → bou
 
 ### Decision 0 — Mandate ADR
 
-- Name, command, and repo are settled: Entanglix, `entanglix`, this repository. License for the shareable harness, and who may see it, remain open.
-- First platform family and fixture systems (recommendation: transmon and fluxonium, matching existing scqubits work).
-- Target local GPU machine and environment policy. Actual compatible version pins are recorded during foundation and engine validation; hardware measurements do not gate scaffolding.
-- Unit conventions, including angular vs. cyclic frequency, time-grid conventions, and default truncations.
+- Name, command, and repo are settled: Entanglix, `entanglix`, this repository. Audience and license timing are agreed: private development by the owner and explicitly permitted collaborators; choose a distribution license before external distribution and retain the sharing gates.
+- Actual system modeling includes circuit components and coupled quantum subsystems. Initial representation coverage and validation fixtures remain to be pinned in ADR §3.1; named qubit examples do not define the capability's limits.
+- Initial verification target agreed: the owner's current Linux workstation with an NVIDIA RTX 5090 (owner-confirmed), plus CPU-only foundation CI. Compatible version pins and GPU execution are verified during foundation and Block 2; hardware measurements do not gate scaffolding.
+- Numerical policy agreed: user-facing energy/frequency parameters in GHz, time in ns, explicit angular-frequency conversion for dynamics, a uniform output grid with internal stepping allowed, and separate basis/retained-level cutoffs with model-specific convergence checks. Concrete fixture defaults follow the selected models.
 - **Done when:** `docs/adr/0001-mandate.md` records these foundation choices and is marked Accepted; unblocks Block 0. The first sweep metric is chosen before Block 5; investigation budgets and evaluation design follow M2 measurements before Blocks 6a–6b.
 
 ### Block 0 — Repo Foundation
@@ -283,7 +283,7 @@ The Harmoniqs conversation is gated by concrete artifacts: the shared ProblemSpe
 
 Settled: project name Entanglix; command `entanglix`; runner in Python (`uv`), same substrate as the engines. Expert-guided problem formulation and bounded autonomous investigations; independently useful entry points; the core milestone progression in §5; supporting capabilities scheduled by dependency and need; enterprise-grade quality across every milestone. The initial agent harness supports sweep/search; control and calibration extend it as those capabilities become available. The first end-to-end sweep exercises open-system GPU dynamics; its exact metric remains open.
 
-- **Decision 0 (Blocks 0–2):** license/audience and sharing policy; platform family and fixture systems; target local machine and environment policy; units, time grid, and truncation defaults.
+- **Decision 0 (Blocks 0–2), remaining:** initial system-modeling representation coverage and validation fixtures. The local RTX 5090 target/environment policy, numerical conventions/convergence policy, and audience/license timing are agreed in ADR §3.2–§3.4; the ADR remains Draft pending the modeling decision and acceptance.
 - **Before Block 5:** exact dynamics observable/metric, pulse if needed, parameter region, and evidence thresholds for the first GPU sweep.
 - **After M2, before Block 6a:** first investigation and evaluation protocol, including a defined scripted selection policy and comparable budgets; v1 grant issuer/authentication, resource metering, reservation, and cancellation policy. Contract §4 fixes resource units; numeric allowances use measured costs.
 - **Before Block 6b:** concrete local isolation mechanism covering processes, filesystem, credentials, GPU access, and the authenticated human channel. A separate OS identity and device controls or a container/privilege boundary must enforce the contract; naming commands "human-only" is insufficient.

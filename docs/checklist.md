@@ -51,10 +51,10 @@ Block 0 implementation begins once `docs/adr/0001-mandate.md` reads **Accepted**
 - [x] Substrate fixed (roadmap §0): scqubits, cuDensityMat via `qutip-cuquantum`, dynamiqs, QuTiP CPU reference; ProblemSpec OSS control spec; private solvers as entry-point plugins.
 - [x] Research direction pinned: expert-guided formulation, bounded autonomy, independently useful workflows, and enterprise-grade quality across milestones.
 - [x] Core progression pinned: verified local sweep → bounded agent-assisted exploration → control → co-design; supporting capabilities follow their own dependencies.
-- [ ] Platform family and fixture systems for v1 — *walkthrough*
-- [ ] Target local GPU machine and environment policy — *walkthrough*; actual pins recorded during foundation/engine validation
-- [ ] Unit conventions (energy, time, angular vs. cyclic frequency), time-grid convention, and default truncations — *walkthrough*
-- [ ] License for the shareable harness and who may see it — *walkthrough*
+- [-] System-modeling scope and validation fixtures — actual component-based and coupled-subsystem modeling agreed; initial representation coverage and fixture set remain to be pinned (ADR §3.1)
+- [x] Initial verification target: this Linux workstation with an owner-confirmed NVIDIA RTX 5090; one local GPU environment plus CPU-only foundation CI; compatible version pins and GPU validation follow in Block 2 (ADR §3.2)
+- [x] GHz/ns conventions with explicit angular-frequency conversion; uniform output grid with internal stepping allowed; separate basis/retained-level cutoffs and model-specific convergence policy (ADR §3.3)
+- [x] Private development by the owner and explicitly permitted collaborators; distribution license selected before external distribution; existing sharing gates retained (ADR §3.4)
 - [ ] Record foundation decisions in the Draft mandate ADR during the walkthrough; status → Accepted
 - **Unblocks:** Block 0.
 
@@ -89,7 +89,7 @@ Block 0 implementation begins once `docs/adr/0001-mandate.md` reads **Accepted**
 - [ ] Operator export to QuTiP `Qobj` and to arrays for JAX
 - [ ] Storage-format selection for cuDensityMat operators (CSR-probe rule from the scqubits GPU work)
 - [ ] `entanglix validate <system.toml>` / `validate_system` backing capability
-- [ ] Fixture systems confirmed in Decision 0; roadmap currently proposes transmon–resonator and fluxonium
+- [ ] Fixture systems pinned through ADR §3.1, covering the selected system-model construction and composition paths
 - [ ] Applicable quality evidence recorded
 - [ ] **Done:** the Decision-0 fixture systems validate and export to the three engine input formats; spectra match scqubits to tolerance
 
