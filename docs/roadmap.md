@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-27
 **Project:** Entanglix — quantum device physics research harness: modeling → simulation → optimization (control, calibration, device design)
-**Status:** Roadmap for this repository. Moved here from the amicode draft on 2026-09-28. Settled: project name Entanglix; command `entanglix` (no `-run` suffix). `amico-run` remains the external Piccolo launcher.
+**Status:** Authoritative for scope and block order. Status lives in [`checklist.md`](checklist.md); invariants in [`../HARNESS_CONTRACT.md`](../HARNESS_CONTRACT.md); decisions in [`adr/`](adr/). Moved here from the amicode draft on 2026-09-28. Settled: project name Entanglix; command `entanglix` (no `-run` suffix). `amico-run` remains the external Piccolo launcher.
 **Source documents:** amicode `packages/extension/CONTRACT.md` (run-dir shape), amicode `packages/schema/schemas/problemspec.oss.schema.json` (control spec), amicode ADR-0008 (domain-pack boundary), ADR-0011 (harness contract).
 
 ---
@@ -21,7 +21,7 @@
 - **Python-first, single substrate.** Modeling with `scqubits`; dynamics on cuQuantum's cuDensityMat through `qutip-cuquantum`; differentiable dynamics with `dynamiqs` (JAX); QuTiP CPU as the exact small-size reference.
 - **Two engines that do not compose through autodiff.** cuDensityMat is large-scale, batched, non-differentiable. JAX (dynamiqs) is differentiable and moderate-size. Data crosses via DLPack / CuPy zero-copy; gradients do not. Engine selection is a declared property of a protocol run ("needs gradients?" × Hilbert-space size), never an agent's judgment call.
 - **Solver-agnostic control spec.** amicode's ProblemSpec OSS schema (`system`, `goal`, `pulse`, `problem`, `integrator`, `solver.backend`) is adopted as the control problem file. `solver.backend` is a string; which solver ran is recorded, never assumed.
-- **Private solver plugins.** High-performance solvers may be proprietary. They attach through a `SolverBackend` / `Integrator` protocol via Python entry points and are never imported by this repo. The repo's tests run with open solvers only; an import-boundary test enforces it. Verification never depends on a private solver (§2.5).
+- **Private solver plugins.** High-performance solvers may be proprietary. They attach through a `SolverBackend` / `Integrator` protocol via Python entry points and are never imported by this repo. The repo's tests run with open solvers only; an import-boundary test enforces it. Verification never depends on a private solver (contract §4–§5).
 - **amicode's role is contracts and a corrector, not substrate.** Run-dir shape and schemas are adopted for interoperability; Piccolo (via `amico-run`) is an open second-opinion control solver. Dynamics never route through Julia.
 
 ### Key principles
@@ -47,66 +47,7 @@ Harness plane    entanglix CLI  ⇄  MCP server  ⇄  skills + AGENTS.md  ⇄  C
 Executors        local GPU │ Slurm │ Kubernetes   (artifacts mirrored back; large arrays stay on the cluster)
 ```
 
-### 1.1 Object model
-
-| Object | Definition | Home |
-|---|---|---|
-| **System** | `system.toml`: scqubits circuit (or explicit operators), truncation, drive operators, dissipators, parameter values and priors, units | `entanglix/model` |
-| **Protocol spec** | one of `simulate`, `sweep`, `calibrate`, `control`; declares engine needs (gradients, size), budgets, metrics | `entanglix/protocols`, JSON schemas |
-| **Run** | one protocol execution; `run.toml` first, `FINISHED` last, atomic `result.toml`, `AMICODE_ITER` trace lines, `iter_*.png` | `research_runs/` |
-| **Result** | metrics + provenance (spec hash, code version, env hash, engine, solver backend string, corrector verdict) | `result.toml` |
-| **Catalog entry** | a human-promoted result with lineage (`parent_entry_ids`), used for warm-starts and device-model updates | catalog dir, one file per entry |
-| **Device model** | the current best parameter set per device; written only by humans from calibration results | device dir; schema shared with amicode where it overlaps |
-
-### 1.2 Engine selection rule
-
-| Need gradients? | Hilbert-space size | Engine |
-|---|---|---|
-| no | small (reference-sized) | QuTiP CPU |
-| no | large / batched | cuDensityMat (`qutip-cuquantum`) |
-| yes | fits in JAX memory budget | dynamiqs |
-| yes | does not fit | gradient-free lane: Bayesian / NLP over batched cuDensityMat evaluations |
-
-The rule is a versioned table read by the runner; the protocol spec declares the need, the table picks the engine, the run records which one ran.
-
-### 1.3 Run-dir contract (adopted from amicode)
-
-```text
-research_runs/<system_id>/<run_id>/
-  run.toml           # written first by the runner: run_id, spec hashes, code_version, env_hash, engine, executor
-  spec/              # frozen copies of system.toml + protocol spec
-  run.log            # AMICODE_ITER iter=<n> f=<obj> … lines for optimizer traces; tracebacks
-  iter_<N>.png       # per-iteration plots where meaningful
-  result.toml        # atomic (tmp + rename); metrics, solver.backend, corrector verdict
-  artifacts/         # small arrays only; large state/density arrays stay on the cluster, referenced by path + digest
-  FINISHED           # written last: status (completed|failed|aborted), exit_code
-```
-
-A run without `FINISHED` is not evidence. Exit codes follow amicode: 0 completed, 130 aborted, 64 usage/config/orchestrator fault, otherwise the job's return code.
-
-### 1.4 Solver backend protocol
-
-```text
-SolverBackend
-  capabilities() -> {gradients: bool, constraints: [...], gpu: bool, problem_kinds: [...]}
-  solve(problem_spec, system, budget) -> Solution{pulse, objective, certificate, trace}
-Integrator
-  capabilities() -> {differentiable: bool, open_system: bool, batched: bool}
-  evolve(system, controls, grid) -> trajectory
-```
-
-Discovery: entry point group `entanglix.solvers` / `entanglix.integrators`. The open repo ships a GRAPE-style baseline (QuTiP or dynamiqs) and the Piccolo adapter (writes a ProblemSpec, launches `amico-run`, reads its `result.toml`). Absence of a plugin degrades to open solvers; it never fails a run.
-
-### 1.5 Corrector
-
-Independent, deterministic, hashed at load, thresholds versioned and externally approved. Runs after every protocol:
-
-- **Simulate / sweep:** cross-engine agreement at reference size (QuTiP CPU vs. cuDensityMat vs. dynamiqs) within tolerance; convergence under step-size and truncation refinement; trace, hermiticity, positivity of the state.
-- **Control:** re-simulate the optimized pulse on a different engine than the one used inside the solver; cross-solver agreement on the same ProblemSpec with at least one **open** solver; constraint satisfaction re-checked outside the solver.
-- **Calibrate:** holdout data fit; identifiability report (parameter covariance / profile likelihood); no refit on holdout.
-- **Design sweep:** reproducibility across seeds; metric monotonicity where physics predicts it.
-
-A result carries the corrector verdict; `UNVERIFIED` results cannot be catalogued.
+The invariants behind this diagram — object model, engine-selection table, run directory and exit codes, solver and integrator protocols, corrector checks — are specified in [`../HARNESS_CONTRACT.md`](../HARNESS_CONTRACT.md) §1–§5. That file is normative; this roadmap says when each part gets built.
 
 ---
 
@@ -126,7 +67,7 @@ No calendar. A block is done when its done criteria hold. Each block is independ
 
 - Layout: `packages/entanglix` (library and the `entanglix` command), `packages/entanglix-mcp`, `schemas/`, `skills/`, `docs/`, `tests/`; `uv` project; pinned CUDA / cuQuantum / driver versions recorded in an environment lockfile with a hash.
 - CI: unit tests on CPU (no GPU required), a `gpu` marker for GPU tests, an **import-boundary test** asserting no module outside `tests/` imports a private plugin or a scheduler client.
-- `HARNESS_CONTRACT.md` (this document's §1, §3), `AGENTS.md`, `CLAUDE.md` one-line pointer, `docs/README.md` index.
+- `HARNESS_CONTRACT.md` and `docs/README.md` exist (2026-09-28); `AGENTS.md` and the `CLAUDE.md` one-line pointer are written once the layout is real.
 - **Done when:** clone → `uv sync` → `pytest` green on a machine without a GPU.
 
 ### Block 1 — System Spec and Model Adapter
@@ -141,7 +82,7 @@ No calendar. A block is done when its done criteria hold. Each block is independ
 - QuTiP CPU reference engine; cuDensityMat engine via `qutip-cuquantum`; dynamiqs engine; each behind the `Integrator` protocol with `capabilities()`.
 - DLPack / CuPy zero-copy handoff for arrays between cuDensityMat and JAX where needed.
 - Cross-engine agreement tests at reference size (closed and open system, time-dependent drive).
-- **Done when:** the engine-selection table (§1.2) is a versioned file, and the agreement tests are green on GPU CI or a documented manual GPU run.
+- **Done when:** the engine-selection table (contract §2) is a versioned file, and the agreement tests are green on GPU CI or a documented manual GPU run.
 
 ### Block 3 — Runner and Run Contract
 
@@ -168,7 +109,7 @@ No calendar. A block is done when its done criteria hold. Each block is independ
 ### Block 7 — Protocol `control`
 
 - Adopt ProblemSpec OSS verbatim; `SolverBackend` protocol and entry-point discovery; open GRAPE-style baseline; Piccolo adapter via `amico-run`.
-- Cross-solver corrector check (§1.5) and re-simulation on a different engine.
+- Cross-solver corrector check (contract §5) and re-simulation on a different engine.
 - **Done when:** one gate (Decision-0 platform) is solved by the open baseline and by Piccolo from the same ProblemSpec, both results verified, both in run dirs; a private plugin, if present, is discovered and its result is verified by the open solver.
 
 ### Block 8 — Protocol `calibrate`
@@ -185,7 +126,7 @@ No calendar. A block is done when its done criteria hold. Each block is independ
 
 ### Block 10 — Agent Harness
 
-- MCP server projecting the tool table (§3.1) over stdio; tool-call audit log; skills (`system-modeler`, `simulate`, `design-sweep`, `control`, `calibrate`, `gpu-budget`, plus vendored generic research skills); `AGENTS.md` finalized.
+- MCP server projecting the tool table (contract §6) over stdio; tool-call audit log; skills (`system-modeler`, `simulate`, `design-sweep`, `control`, `calibrate`, `gpu-budget`, plus vendored generic research skills); `AGENTS.md` finalized.
 - Prompt-injection test cases; pinned runtime version in CI.
 - **Done when:** an agent session runs `sweep` and `control` end to end through tools only, every call logged, no path to promotion or device-model write.
 
@@ -201,36 +142,9 @@ Multi-GPU cuDensityMat; cuTensorNet engine for lattice-scale systems; multistart
 
 ---
 
-## 3. Harness Contract Summary
+## 3. Harness Contract
 
-### 3.1 Tool table
-
-| Tool | Permission class | Backing surface |
-|---|---|---|
-| `validate_system` | read-only | Block 1 schema + adapter |
-| `list_runs` / `read_run` | read-only | run dirs + ledger |
-| `list_catalog` / `read_entry` | read-only | catalog |
-| `simulate` / `sweep` / `control` / `calibrate` | controlled job | `entanglix` protocols; budgets enforced |
-| `compare_reference` | controlled job | corrector |
-| `register_result` | controlled write | stages a result for human promotion |
-| `propose_device_update` | controlled write | writes a proposal file from a calibration result; never the device model |
-
-Permission classes: read-only, controlled job, controlled write. No fourth class.
-
-### 3.2 Hard prohibitions and enforcement
-
-| Prohibition | Enforcement |
-|---|---|
-| Promote a result or edit the device model | no tool; promotion and write-back are human CLI commands outside the agent environment |
-| Bypass the runner (run a script directly on GPU nodes) | agent environment has no scheduler credentials; GPU nodes are reachable only through the executor |
-| Exceed compute budget | budgets in the protocol spec, enforced by the runner and the executor |
-| Edit the corrector or its thresholds | outside the agent-editable tree; hashed at load |
-| Import a private solver from harness code | import-boundary test in CI |
-| Treat data or notes as instructions | typed tools; prompt-injection cases in CI |
-
-### 3.3 Audit
-
-Tool-call log per call (`timestamp`, `session_id`, `tool`, `permission_class`, `args_hash`, `result_hash`, `outcome`); prompt log per turn (system prompt hash, skill versions, model id). Append-only.
+Tool table and permission classes, prohibitions with their enforcement, staging and promotion, audit, skills and `AGENTS.md` conventions, and the agent environment are in [`../HARNESS_CONTRACT.md`](../HARNESS_CONTRACT.md) §6–§11. Block 10 builds the MCP projection of that contract; Blocks 3, 5, and 9 build the runner, corrector, and ledger it relies on.
 
 ---
 
@@ -294,7 +208,7 @@ Settled: project name Entanglix; command `entanglix`; runner in Python (`uv`), s
 
 ## Appendix B — amicode touchpoints (read-only references)
 
-- `packages/extension/CONTRACT.md` — run-dir shape and exit codes adopted in §1.3.
+- `packages/extension/CONTRACT.md` — run-dir shape and exit codes adopted in contract §3.
 - `packages/schema/schemas/problemspec.oss.schema.json` — the control spec adopted in Block 7.
 - `packages/amico-run/src/local_executor.ts`, `remote_executor.ts`, `types.ts` — reference for the executor interface and mirroring lifecycle.
 - `packages/extension/julia/verify_rollout.jl` — their re-rollout corrector; ours differs by using a different engine and solver.
