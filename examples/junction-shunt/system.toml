@@ -1,0 +1,41 @@
+format_version = 1
+id = "junction_with_shunt"
+
+[units]
+energy = "GHz"
+time = "ns"
+
+[parameters.EJ]
+value = 15.0
+unit = "GHz"
+
+[parameters.ECJ]
+value = 2.0
+unit = "GHz"
+
+[parameters.Csh]
+value = 60.0
+unit = "fF"
+
+[model]
+kind = "circuit"
+nodes = [0, 1]
+ground = 0
+offset_charges = { "1" = 0.23 }
+
+[[model.branches]]
+id = "junction"
+kind = "JJ"
+nodes = [0, 1]
+josephson_energy = { parameter = "EJ" }
+charging_energy = { parameter = "ECJ" }
+
+[[model.branches]]
+id = "shunt"
+kind = "C"
+nodes = [0, 1]
+capacitance = { parameter = "Csh" }
+
+[truncation]
+cutoffs = { theta1 = 30 }
+retained_levels = 6

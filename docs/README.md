@@ -27,7 +27,7 @@ This index supports project planning and implementation. Operational entry point
 - [../README.md](../README.md) — User entry point, available commands, and compatibility.
 - [research-agent.md](research-agent.md) — Draft research conduct for user agents; instruction delivery is decided before Block 6b. It avoids an auto-load filename and is not repository development guidance.
 - [../HARNESS_CONTRACT.md](../HARNESS_CONTRACT.md) — Shared interfaces, permissions, evidence requirements, and execution guarantees.
-- Runtime skills will be introduced in the root `skills/` directory with agent integration. Implemented system syntax and modeling conventions will live in `docs/operations/system-spec.md` as M1 capabilities arrive; other usage guides may live under `docs/operations/` when needed.
+- [operations/system-spec.md](operations/system-spec.md) — Implemented system syntax, units, operators, and CPU reference use. Other usage guides may be added under `operations/` as capabilities arrive. Runtime skills will be introduced in the root `skills/` directory with agent integration.
 - [environment.md](environment.md) — Observed GPU compatibility, tested package versions, limitations, and reproduction commands.
 
 ## Decision records

@@ -1,0 +1,399 @@
+{
+  "$defs": {
+    "Branch": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "JJ",
+            "C"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "nodes": {
+          "items": {
+            "type": "integer"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Nodes",
+          "type": "array"
+        },
+        "josephson_energy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParameterRef"
+            },
+            {
+              "$ref": "#/$defs/Quantity"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Josephson Energy"
+        },
+        "charging_energy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParameterRef"
+            },
+            {
+              "$ref": "#/$defs/Quantity"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Charging Energy"
+        },
+        "capacitance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParameterRef"
+            },
+            {
+              "$ref": "#/$defs/Quantity"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Capacitance"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "nodes"
+      ],
+      "title": "Branch",
+      "type": "object"
+    },
+    "CircuitSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "circuit",
+          "title": "Kind",
+          "type": "string"
+        },
+        "nodes": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Nodes",
+          "type": "array"
+        },
+        "ground": {
+          "title": "Ground",
+          "type": "integer"
+        },
+        "offset_charges": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "title": "Offset Charges",
+          "type": "object"
+        },
+        "branches": {
+          "items": {
+            "$ref": "#/$defs/Branch"
+          },
+          "title": "Branches",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "nodes",
+        "ground",
+        "offset_charges",
+        "branches"
+      ],
+      "title": "CircuitSpec",
+      "type": "object"
+    },
+    "Dissipator": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "factors": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Factors",
+          "type": "array"
+        },
+        "rate": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParameterRef"
+            },
+            {
+              "$ref": "#/$defs/Quantity"
+            }
+          ],
+          "title": "Rate"
+        }
+      },
+      "required": [
+        "id",
+        "factors",
+        "rate"
+      ],
+      "title": "Dissipator",
+      "type": "object"
+    },
+    "OperatorsSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "operators",
+          "title": "Kind",
+          "type": "string"
+        },
+        "dimensions": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Dimensions",
+          "type": "array"
+        },
+        "basis": {
+          "title": "Basis",
+          "type": "string"
+        },
+        "array_file": {
+          "title": "Array File",
+          "type": "string"
+        },
+        "hamiltonian": {
+          "title": "Hamiltonian",
+          "type": "string"
+        },
+        "operators": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Operators",
+          "type": "object"
+        }
+      },
+      "required": [
+        "kind",
+        "dimensions",
+        "basis",
+        "array_file",
+        "hamiltonian",
+        "operators"
+      ],
+      "title": "OperatorsSpec",
+      "type": "object"
+    },
+    "Parameter": {
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "title": "Value",
+          "type": "number"
+        },
+        "unit": {
+          "enum": [
+            "GHz",
+            "ns",
+            "1/ns",
+            "fF",
+            "nH",
+            "Phi0",
+            "dimensionless"
+          ],
+          "title": "Unit",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source"
+        }
+      },
+      "required": [
+        "value",
+        "unit"
+      ],
+      "title": "Parameter",
+      "type": "object"
+    },
+    "ParameterRef": {
+      "additionalProperties": false,
+      "properties": {
+        "parameter": {
+          "title": "Parameter",
+          "type": "string"
+        }
+      },
+      "required": [
+        "parameter"
+      ],
+      "title": "ParameterRef",
+      "type": "object"
+    },
+    "Quantity": {
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "title": "Value",
+          "type": "number"
+        },
+        "unit": {
+          "enum": [
+            "GHz",
+            "ns",
+            "1/ns",
+            "fF",
+            "nH",
+            "Phi0",
+            "dimensionless"
+          ],
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "unit"
+      ],
+      "title": "Quantity",
+      "type": "object"
+    },
+    "Truncation": {
+      "additionalProperties": false,
+      "properties": {
+        "cutoffs": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Cutoffs",
+          "type": "object"
+        },
+        "retained_levels": {
+          "exclusiveMinimum": 0,
+          "title": "Retained Levels",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "cutoffs",
+        "retained_levels"
+      ],
+      "title": "Truncation",
+      "type": "object"
+    },
+    "Units": {
+      "additionalProperties": false,
+      "properties": {
+        "energy": {
+          "const": "GHz",
+          "title": "Energy",
+          "type": "string"
+        },
+        "time": {
+          "const": "ns",
+          "title": "Time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "energy",
+        "time"
+      ],
+      "title": "Units",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "format_version": {
+      "const": 1,
+      "title": "Format Version",
+      "type": "integer"
+    },
+    "id": {
+      "minLength": 1,
+      "title": "Id",
+      "type": "string"
+    },
+    "units": {
+      "$ref": "#/$defs/Units"
+    },
+    "parameters": {
+      "additionalProperties": {
+        "$ref": "#/$defs/Parameter"
+      },
+      "title": "Parameters",
+      "type": "object"
+    },
+    "model": {
+      "discriminator": {
+        "mapping": {
+          "circuit": "#/$defs/CircuitSpec",
+          "operators": "#/$defs/OperatorsSpec"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/CircuitSpec"
+        },
+        {
+          "$ref": "#/$defs/OperatorsSpec"
+        }
+      ],
+      "title": "Model"
+    },
+    "truncation": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Truncation"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "dissipators": {
+      "items": {
+        "$ref": "#/$defs/Dissipator"
+      },
+      "title": "Dissipators",
+      "type": "array"
+    }
+  },
+  "required": [
+    "format_version",
+    "id",
+    "units",
+    "model"
+  ],
+  "title": "SystemSpec",
+  "type": "object"
+}

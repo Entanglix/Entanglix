@@ -33,6 +33,7 @@ runs/
 *.zarr/
 
 # Small reviewed reference fixtures may be committed
+!examples/two-level/operators.npz
 !tests/fixtures/**/*.npy
 !tests/fixtures/**/*.npz
 !tests/fixtures/**/*.h5
