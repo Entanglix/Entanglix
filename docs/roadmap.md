@@ -16,7 +16,7 @@ Entanglix enables expert-guided quantum system research through composable model
 
 - Domain: superconducting-circuit device physics and quantum control. System modeling (circuit parameters → Hamiltonians), open-system simulation on GPU, and three optimization tasks: optimal control (pulse/gate synthesis), model calibration (fit Hamiltonian and noise parameters to data), and device design (optimize circuit parameters against simulated metrics).
 - Not in scope: gate-model algorithms (VQE, QAOA, annealing schedules), circuit compilation, hardware drivers.
-- Users: the author and close collaborators; expert users. No product, no UI, no VS Code extension. The agent runtime is a commodity (Codex CLI or equivalent) driven through `AGENTS.md`, skills, and an MCP server.
+- Users: the author and close collaborators; expert users. No product, no UI, no VS Code extension. The research-agent runtime is a commodity (Codex CLI or equivalent) integrated through MCP and skills; how research instructions reach it is decided before Block 6b. Repository `AGENTS.md` and `CLAUDE.md` guide development agents.
 
 ### Research workflow and autonomy
 
@@ -68,7 +68,7 @@ Solver plane     open GRAPE baseline │ Piccolo via amico-run │ private plugi
 Run plane        research_runs/<system_id>/<run_id>/ … FINISHED   (amicode run-dir shape)
 Verify plane     corrector: cross-engine, cross-solver, convergence, positivity, holdout   (versioned, outside candidate workspace)
 Evidence plane   run ledger (all attempts, lineage, trial counts) + human-promoted results catalog
-Harness plane    entanglix CLI  ⇄  MCP server  ⇄  skills + AGENTS.md  ⇄  Codex (or any runtime)
+Harness plane    entanglix CLI  ⇄  MCP server  ⇄  skills + research instructions  ⇄  Codex (or any runtime)
 Executors        local GPU │ Slurm │ Kubernetes   (artifacts mirrored back; large arrays stay on the cluster)
 ```
 
@@ -95,16 +95,16 @@ The core capability progression is **foundation → verified local sweep → bou
 ### Block 0 — Repo Foundation
 
 - **Depends on:** Decision 0.
-- Layout: `packages/entanglix` (library and the `entanglix` command), `packages/entanglix-mcp`, `schemas/`, `skills/`, `docs/`, `tests/`; `uv` project and dependency lockfile; environment manifest and hashing convention, with compatible GPU version pins completed during Block 2.
+- Layout: one installable project with `src/entanglix/` (library and the `entanglix` command), `docs/`, and `tests/`; root `pyproject.toml`, `uv.lock`, `.python-version`, and `.gitignore`. CLI help/version, CPU importability, and development checks establish the foundation. Schemas arrive in Block 1, GPU environment validation in Block 2, run environment identity in Block 3, and MCP/skills in Block 6b.
 - CI: unit tests on CPU (no GPU required), a `gpu` marker for GPU tests, an **import-boundary test** asserting no module outside `tests/` imports a private plugin or a scheduler client.
-- Foundation documentation: operational `README.md`, `HARNESS_CONTRACT.md`, short `AGENTS.md` research-agent instructions, and a `CLAUDE.md` one-line pointer; planning index `docs/README.md`; decision records in `docs/adr/`. Operational docs state capability availability and work without the plans ([documentation boundary](README.md#documentation-boundary)).
+- Foundation documentation: operational `README.md` and `HARNESS_CONTRACT.md`; repository `AGENTS.md` and `CLAUDE.md` are one-line pointers to internal `docs/development.md`; research conduct is a draft in `docs/research-agent.md` until Block 6b; planning index `docs/README.md`; decision records in `docs/adr/`. Operational docs state capability availability and work without the plans ([documentation boundary](README.md#documentation-boundary)).
 - The root README covers setup, available commands, and an initial versioning and compatibility policy; CI defines the development checks.
 - **Done when:** clone → `uv sync` → `pytest` green on a machine without a GPU.
 
 ### Block 1 — System Spec and Model Adapter
 
 - **Depends on:** Block 0.
-- `system.toml` JSON schema and pydantic model; scqubits adapter (circuit → truncated operators in a chosen basis); explicit-operator fallback; dissipators; drive operators; parameter values + priors; unit handling.
+- Introduce `schemas/` with the `system.toml` JSON schema and pydantic model; scqubits adapter (circuit → truncated operators in a chosen basis); explicit-operator fallback; dissipators; drive operators; parameter values + priors; unit handling.
 - Operator export to QuTiP `Qobj` and to arrays for JAX; storage-format selection for cuDensityMat operators (reuse the CSR-probe decision rule already prototyped in the scqubits GPU work).
 - `entanglix validate <system.toml>`.
 - Pin concrete representation details and representative fixtures/parameters against the accepted modeling mandate during this block.
@@ -116,13 +116,14 @@ The core capability progression is **foundation → verified local sweep → bou
 - QuTiP CPU reference engine; cuDensityMat engine via `qutip-cuquantum`; dynamiqs engine; each behind the `Integrator` protocol with `capabilities()`.
 - DLPack / CuPy zero-copy handoff for arrays between cuDensityMat and JAX where needed.
 - Cross-engine agreement tests at reference size (closed and open system, time-dependent drive).
-- Verify the target GPU environment; record GPU, driver, CUDA, cuQuantum, and package versions in the hashed environment manifest and `docs/environment.md`.
+- Verify the target GPU environment; pin compatible dependencies in `uv.lock` and record GPU, driver, CUDA, cuQuantum, Python, and engine-package observations in `docs/environment.md`. Run environment identity is introduced with the runner in Block 3.
 - **Done when:** the engine-selection table (contract §2) is a versioned file, and the agreement tests are green on GPU CI or a documented manual GPU run.
 
 ### Block 3 — Runner and Run Contract
 
 - **Depends on:** Blocks 0–2.
 - `entanglix` gate + launch: spec validation, static import scan of any authored script, environment check (driver, cuQuantum, memory), run-dir creation (`run.toml` first), job spawn in its own process group, `FINISHED` last, exit-code contract, `index` and `latest` at the runs root.
+- Capture and retain a minimal run environment record and `env_hash` from the lockfile digest, Python/platform, and observed GPU driver/CUDA/cuQuantum versions. Execute jobs in an exactly synced environment through `uv run --locked --exact`. Record code provenance separately, including the Git revision and dirty state plus frozen authored inputs or content digests for uncommitted code; a dirty flag alone cannot reproduce changes.
 - Local executor only in this block; distinct run directories and frozen inputs, a GPU lock with one active job by default, runner-owned history writes, per-run timeouts, and cancellation of the intended process group. Reconcile unknown process state before reusing the GPU; no custom scheduler is required.
 - `read_run` shows the live trace of running jobs so a stalled run can be aborted mid-way.
 - Basic append-only run ledger from the first execution: provenance, parent runs, resource use, and outcome for completed, failed, and aborted attempts. This history is available before catalog promotion or agent use.
@@ -148,7 +149,7 @@ The core capability progression is **foundation → verified local sweep → bou
 
 Define the first investigation's question, scope, assumptions, evidence requirements, progress checkpoints, and stop/review criteria. Record any user-specified ceilings or deadlines; ordinary investigations need no mandatory job-count or time allowance. M2 measurements inform cost reporting and experiment sizing without requiring an estimate of total research cost.
 
-Before Block 6a, record what the contract leaves open (how user decisions are recorded, progress-assessment fields, default checkpoint intervals, and resume behaviour) in a follow-up ADR (planned ADR-0002); usage recording and limits are fixed by contract §4. Ordinary investigation specifications remain research records. Before Block 6b, select the runtime integration, set its permission settings (human-action commands blocked, GPU hidden from the agent session), and validate the cooperative execution path.
+Before Block 6a, record what the contract leaves open (how user decisions are recorded, progress-assessment fields, default checkpoint intervals, and resume behaviour) in a follow-up ADR (planned ADR-0002); usage recording and limits are fixed by contract §4. Ordinary investigation specifications remain research records. Before Block 6b, select the runtime integration and how research-agent instructions are delivered (MCP instructions, skills, or a generated research-workspace instruction file), set its permission settings (human-action commands blocked, GPU hidden from the agent session), and validate the cooperative execution path.
 
 The evaluation protocol names a scripted experiment-selection policy, comparable resource allowances, evidence thresholds, and measures of scientific outcome, elapsed time, compute use, and human interventions. Fixed allowances support this comparison without becoming mandatory for ordinary investigations. Include a case assessing a supported early stop after insufficient progress. A scripted client alone is not a scientific baseline. For optimization tasks, compare best verified objective or time to a feasible candidate; for exploratory tasks, use the declared evidence requirements.
 
@@ -167,9 +168,9 @@ The evaluation protocol names a scripted experiment-selection policy, comparable
 
 - **Depends on:** Block 6a and the local runtime integration decision.
 - Support expert–agent formulation and bounded execution once the next investigation is defined. Broad ambitions are refined before expensive work.
-- MCP over stdio exposing available CLI capabilities; tool-call audit and per-session runtime/model/skill records; initial skills (`system-modeler`, `simulate`, `design-sweep`, `gpu-budget`); `AGENTS.md` links to these workflows. The resource skill covers measured usage and optional limits. Control and calibration tools and skills arrive with their capabilities.
+- Introduce `entanglix.mcp` behind an optional `mcp` dependency extra and add `skills/`; MCP over stdio exposing available CLI capabilities; tool-call audit and per-session runtime/model/skill records; initial skills (`system-modeler`, `simulate`, `design-sweep`, `gpu-budget`); refresh the research-agent draft and deliver its conduct and workflow entry points through the selected mechanism in the user's research workspace, independently of repository development instructions. The resource skill covers measured usage and optional limits. Control and calibration tools and skills arrive with their capabilities.
 - One coordinating agent uses the local runner: separate run directories, frozen inputs, controlled history writes, one GPU job at a time by default, and cancellation of owned jobs. Research tools stage model/catalog changes; human actions remain separate in the supported workflow. The runtime's permission settings block human-action commands for the agent, and the agent session sees no GPU. Document the cooperative trust assumption.
-- Tests reject agent-supplied approval claims, skipped verification, out-of-scope tool requests, and changes to configured ceilings through research tools. Pin the runtime in CI. OS-level escape resistance and device/credential isolation are deferred deployment work.
+- Verify research instructions reach the selected runtime in a research workspace without repository development guidance. Tests reject agent-supplied approval claims, skipped verification, out-of-scope tool requests, and changes to configured ceilings through research tools. Pin the runtime in CI. OS-level escape resistance and device/credential isolation are deferred deployment work.
 - **Done when:** the agent completes the declared sweep/search investigation through logged tools with evidence-driven refinement, recorded continuation decisions, and a supported final report or review handoff; the declared evidence/reporting criteria and independent usability pass. A stagnation case produces a supported early report with available results and next experiments. Execution protections and any configured limits hold through supported interfaces.
 - **M3 evaluation:** compare against the Block 6a baseline, including scientific outcome, cost, human intervention, and the evidence supporting continuation/stopping decisions. Report worse performance or inconclusive benefit. M3 requires correct execution, declared evidence, local execution reliability, independent usability, and completion of the comparison; outperforming the baseline is not required. Claims of acceleration require measured comparative benefit.
 
@@ -299,7 +300,7 @@ Settled: project name Entanglix; command `entanglix`; runner in Python (`uv`), s
 - **During Block 1:** concrete modeling schemas/APIs, supported representation details, and validation fixtures/parameters implementing the accepted mandate in ADR §3.1. Decision 0 is closed; the RTX 5090 target/environment policy, numerical conventions/convergence policy, and audience/license timing are accepted in ADR §3.2–§3.4.
 - **Before Block 5:** exact dynamics observable/metric, pulse if needed, parameter region, and evidence thresholds for the first GPU sweep.
 - **After M2, before Block 6a:** first investigation, progress/review/stop criteria, and evaluation protocol with scripted selection policy and comparable benchmark allowances; user-decision recording, default checkpoint intervals, and resume behaviour (ADR-0002). Usage recording and optional limits are fixed by contract §4; ordinary investigations do not require preallocated budgets.
-- **Before Block 6b:** runtime integration, user-input/approval event handling, progress reporting, runtime permission settings, and execution checks under the cooperative trust model.
+- **Before Block 6b:** runtime integration and research-agent instruction delivery (MCP instructions, skills, or a generated research-workspace instruction file); user-input/approval event handling, progress reporting, runtime permission settings, and execution checks under the cooperative trust model.
 - **Before Block 7:** ProblemSpec OSS verbatim vs. an additive `solver.options` table.
 - **Before Block 9:** scheduler target (Slurm or Kubernetes), remote environment, and site execution requirements when needed.
 - **When stronger deployment guarantees are needed:** threat model, authorization/identity mechanism, process/filesystem/network/device controls, and evidence of bypass resistance. This is not a Decision-0 or M3 prerequisite.

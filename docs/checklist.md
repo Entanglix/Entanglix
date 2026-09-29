@@ -14,7 +14,7 @@ Core capability progression; users may enter, iterate within, and stop at any su
 
 | Milestone | Blocks | Status |
 |---|---|---|
-| M0 — Mandate + foundation | Decision 0, Block 0 | **in review** |
+| M0 — Mandate + foundation | Decision 0, Block 0 | **complete** |
 | M1 — Model + engines | Blocks 1–2 | open |
 | M2 — Verified local sweep | Blocks 3–5 | open |
 | M3 — Bounded agent-assisted exploration | Blocks 6a–6b | open |
@@ -58,27 +58,22 @@ M3 demonstrates quality for a complete sweep/search workflow. The preferred sequ
 - [x] Foundation decisions recorded in the Accepted mandate ADR
 - **Unblocks:** Block 0.
 
-### [-] Block 0 — Repo Foundation
+### [x] Block 0 — Repo Foundation
 
-**Depends on:** Decision 0 (Accepted). **In review:** the scaffold and operational docs are stashed pending an overbuild review. Checked items and the evidence notes below describe that stashed version; recheck them after the review.
+**Depends on:** Decision 0 (Accepted). Reduced single-project foundation implemented and validated. GPU environment validation is deferred to Block 2, environment capture/hashing to Block 3, schemas to Block 1, and MCP/skills to Block 6b.
 
 - [x] `HARNESS_CONTRACT.md` at repo root, aligned with the pinned roadmap
-- [x] `docs/README.md` index with the sharing rule
+- [x] `docs/README.md` index with the documentation boundary and sharing rule
 - [x] `docs/roadmap.md` and `docs/checklist.md`, with aligned milestones and dependencies
-- [x] Layout: installable `packages/entanglix` and `packages/entanglix-mcp`, plus `schemas/`, reserved `skills/`, and `tests/`
-- [x] [`uv` workspace](../pyproject.toml) and [`uv.lock`](../uv.lock); [environment collection/hashing](../packages/entanglix/src/entanglix/environment.py) and [versioned schema](../schemas/environment.schema.json); GPU pins follow Block 2
+- [x] Single-package layout: `src/entanglix/`, `docs/`, and `tests/`
+- [x] Root [project configuration](../pyproject.toml), [`uv.lock`](../uv.lock), and [Python pin](../.python-version)
 - [x] [`.gitignore`](../.gitignore) covers runs, caches, `.env`, and generated numerical arrays, with exceptions for small reference fixtures
-- [x] [CPU CI workflow](../.github/workflows/ci.yml): locked installation, tests, lint/format checks, and package builds; [GPU marker policy](../tests/test_gpu_marker.py) skips unavailable devices and rejects empty/unavailable required-GPU runs
-- [x] [Import-boundary tests](../tests/test_import_boundary.py): reviewed public imports only outside `tests/`, including literal/aliased dynamic imports; private-implementation and scheduler-client cases rejected
-- [x] Short operational [AGENTS.md](../AGENTS.md) for research-agent instructions, navigation, and command availability; [CLAUDE.md](../CLAUDE.md) one-line pointer
-- [x] Operational [CLI usage](../README.md#capture-environment-identity) and [changes/compatibility policy](../README.md#changes-and-compatibility); [documentation boundary](README.md#documentation-boundary) documented
-- [x] Documented setup, CLI, tests, and builds verified against the implemented layout and locked CPU environment; README and agent instructions reflect available commands
-- [x] Applicable quality evidence: [installed CLI/package checks](../tests/test_cli.py), [manifest/schema/provenance checks](../tests/test_environment.py), import and marker regression coverage, clean installation, package builds, and local documentation/ignore-rule checks
-- [x] **Done:** a fresh source copy with a new CPU environment syncs from the lockfile and runs `pytest` successfully without GPU dependencies or device access
-
-**Acceptance evidence — 2026-09-28:** Python 3.13.12, uv 0.12.0, pytest 9.1.1. A fresh source copy ran `uv sync --locked --offline`, then activated its new environment and ran `pytest`: **32 passed**. Ruff 0.16.9 lint/format checks passed. `uv build --all-packages` produced source distributions and wheels for both packages; a separate environment containing only the two built runtime wheels imported both packages and ran CLI version/environment capture from outside the checkout. Local Markdown links/anchors, code fences, whitespace, and generated-file/fixture exclusions were checked. The GitHub CPU workflow is configured; hosted execution follows a push. GPU compatibility and scientific validation remain Block 2 work.
-
-**Documentation checks — 2026-09-28/29:** local Markdown links/anchors resolved (66 on 2026-09-29); the operational README's four `uv` commands passed in a fresh CPU environment without development dependencies; runtime wheels contain no internal Markdown; operational docs and ADRs contained no references to planning docs, and the private appendix was unchanged. On 2026-09-29 the boundary was simplified to three classes and `docs/development.md` was removed; its environment-hash rules are implemented in `environment.py`. Runtime delivery and context selection are validated with agent integration.
+- [x] [CPU CI workflow](../.github/workflows/ci.yml): locked installation, lint/format checks, and pytest; [GPU selection policy](../tests/conftest.py) skips unavailable devices and rejects empty/unavailable required-GPU runs
+- [x] [Import-boundary test](../tests/test_import_boundary.py): reviewed public imports only outside `tests/`, including literal/aliased dynamic imports; private-implementation and scheduler-client cases rejected
+- [x] Root [AGENTS.md](../AGENTS.md) and [CLAUDE.md](../CLAUDE.md) are one-line development pointers to [development.md](development.md); [research-agent.md](research-agent.md) preserves draft research conduct separately until Block 6b
+- [x] Operational [setup/CLI usage](../README.md#setup-and-cli) and [release notes](../README.md#changes-and-compatibility), independent of planning docs
+- [x] [Installed entry-point and CPU import checks](../tests/test_cli.py), import-boundary checks, lint/format, and documentation checks pass
+- [x] **Done:** a fresh source copy syncs from the lockfile and runs `pytest` successfully without GPU dependencies or device access
 
 ---
 
@@ -108,7 +103,7 @@ M3 demonstrates quality for a complete sweep/search workflow. The preferred sequ
 - [ ] dynamiqs engine
 - [ ] DLPack / CuPy zero-copy handoff where needed
 - [ ] Cross-engine agreement tests at reference size (closed, open, time-dependent drive)
-- [ ] Verified environment pins in the hashed manifest and `docs/environment.md`: GPU, driver, CUDA, cuQuantum, Python, and engine packages
+- [ ] Verified environment pins in `uv.lock` and observations in `docs/environment.md`: GPU, driver, CUDA, cuQuantum, Python, and engine packages; hashing follows with the runner
 - [ ] Versioned engine-selection table (contract §2); configured memory/size limits; declared fallbacks recorded without silently changing required capabilities
 - [ ] Applicable quality evidence recorded
 - [ ] **Done:** agreement tests green on GPU CI or a documented manual GPU run
@@ -123,7 +118,8 @@ M3 demonstrates quality for a complete sweep/search workflow. The preferred sequ
 
 - [ ] Gate: spec validation, static import scan, environment check (driver, cuQuantum, memory)
 - [ ] Run dir per contract §2: `run.toml` first, `spec/` frozen, `FINISHED` last, atomic `result.toml`
-- [ ] Reproduction inputs: authored code/data references, versions or digests, seeds, solver settings, and environment provenance
+- [ ] Minimal retained environment record and `env_hash`: lockfile digest, Python/platform, and observed GPU driver/CUDA/cuQuantum versions; exactly synced execution through `uv run --locked --exact`
+- [ ] Reproduction inputs: authored code/data references, versions or digests, seeds, solver settings, and code/environment provenance; Git revision and dirty state plus frozen inputs/digests for uncommitted code
 - [ ] Job spawn in its own process group; exit-code contract; per-run timeouts when configured
 - [ ] Separate run directories and assigned outputs prevent accidental interference; a GPU lock permits one active job by default across runner instances; a job may batch calculations
 - [ ] Cancellation targets the intended job and descendants; unknown process state blocks GPU reuse pending reconciliation
@@ -172,7 +168,7 @@ M3 demonstrates quality for a complete sweep/search workflow. The preferred sequ
 - [ ] Before Block 6a: first investigation question, scope, assumptions, evidence requirements, progress checkpoints, and stop/review criteria; any requested ceilings informed by measured M2 costs
 - [ ] Before Block 6a: what the contract leaves open (user-decision recording, progress-assessment fields, default checkpoint intervals, resume behaviour) in a follow-up ADR (planned ADR-0002)
 - [ ] Before Block 6a: evaluation protocol defines the scripted selection policy, comparable benchmark allowances, evidence thresholds, and outcome/time/compute/human-intervention measures; include supported early stopping after insufficient progress
-- [ ] Before Block 6b: runtime integration, user-input event handling, progress reporting, runtime permission settings, and execution checks under the cooperative trust model; no separate grant issuer or OS security boundary required
+- [ ] Before Block 6b: runtime integration and research-agent instruction delivery (MCP instructions, skills, or a generated research-workspace instruction file); user-input event handling, progress reporting, runtime permission settings, and execution checks under the cooperative trust model; no separate grant issuer or OS security boundary required
 
 ### [ ] Block 6a — Investigation Execution
 
@@ -201,9 +197,10 @@ M3 demonstrates quality for a complete sweep/search workflow. The preferred sequ
 
 - [ ] Formulation workflow refines broad ambitions into bounded next investigations; partial workflows and exploratory questions are supported
 - [ ] Agent assesses evidence, constraints, convergence, observed cost, and learning before continuing/refining/stopping; roles of numerical search and agent reasoning documented
-- [ ] MCP over stdio uses CLI backing operations, advertises available capabilities, and distinguishes research requests from runtime user-input events (contract §5)
+- [ ] `entanglix.mcp` behind an optional `mcp` extra, introduced with `skills/`; MCP over stdio uses CLI backing operations, advertises available capabilities, and distinguishes research requests from runtime user-input events (contract §5)
 - [ ] Tool-call audit log and per-session runtime/model/skill records (contract §6), including scope revisions and linked run IDs
-- [ ] Initial skills: `system-modeler`, `simulate`, `design-sweep`, `gpu-budget`; versioned metadata; resource guidance covers measured usage and optional limits; `AGENTS.md` links to workflows
+- [ ] Initial skills: `system-modeler`, `simulate`, `design-sweep`, `gpu-budget`; versioned metadata; resource guidance covers measured usage and optional limits; updated research-agent conduct and workflow entry points delivered through the selected mechanism
+- [ ] Instruction-delivery check in a research workspace: intended research guidance reaches the runtime without repository development instructions
 - [ ] One coordinating agent uses separate run directories, frozen inputs, runner-owned history, one active GPU job by default, and cancellation of owned jobs; model/catalog changes are staged
 - [ ] Runtime permission settings block human-action commands for the agent; the agent session sees no GPU; the cooperative trust assumption is documented; no claim of resistance to arbitrary shell/code bypass
 - [ ] Tests reject agent-authored approval claims, skipped verification, out-of-scope tool requests, and configured-limit changes through research tools; pinned runtime in CI

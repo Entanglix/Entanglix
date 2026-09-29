@@ -1,0 +1,34 @@
+[project]
+name = "entanglix"
+version = "0.1.0"
+description = "Expert-guided quantum system research harness"
+requires-python = ">=3.13,<3.14"
+dependencies = []
+
+[project.scripts]
+entanglix = "entanglix.cli:main"
+
+[build-system]
+requires = ["uv_build==0.12.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = ["pytest>=8.4,<10", "ruff>=0.12,<1"]
+
+[tool.uv]
+required-version = ">=0.12,<0.13"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-markers --strict-config"
+markers = ["gpu: requires an NVIDIA GPU visible to the test process"]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "UP"]
+
+[tool.entanglix.import-boundary]
+allowed-third-party = []

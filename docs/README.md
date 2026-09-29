@@ -1,31 +1,32 @@
 # Planning and documentation index
 
-This index supports project planning and implementation. Operational entry points are the root README, AGENTS.md, and harness contract.
+This index supports project planning and implementation. Operational entry points are the root README and harness contract; research-agent guidance is a draft until runtime integration. Root auto-load files guide repository development.
 
 ## Documentation boundary
 
 | Class | Examples | Lifecycle |
 |---|---|---|
-| Planning | Roadmap, checklist, phase guides | Written freely to guide high-quality implementation; removable afterward |
-| Operational harness | Root README, `AGENTS.md`, harness contract, skills | Retained and maintained for production users and agents |
+| Planning/development | Roadmap, checklist, phase guides, development instructions | Internal implementation guidance; plans are removable after building |
+| Operational harness | Root README, harness contract, research-agent guidance, skills | Retained and maintained for production users and agents; draft guidance awaits integration |
 | Decision records | ADRs | Retained public history; consulted when relevant, not automatically loaded into runtime context |
 
-- Operational docs stand alone: they never link to or depend on planning docs. Planning docs may link to anything.
+- Operational docs stand alone: they never link to or depend on planning/development docs. Planning docs may link to anything.
 - Before a planning doc is removed, move lasting decisions into an ADR and operating guidance into an operational doc.
+- Repository auto-load files are development entry points. Research work may use a separate workspace; MCP instructions, skills, or an Entanglix-generated workspace instruction file will deliver research guidance once that mechanism is selected and tested. Avoid `AGENTS.md` or `CLAUDE.md` filenames under `docs/`.
 
-## Planning
+## Planning and development
 
 - [roadmap.md](roadmap.md) — Research direction, scope, milestones, dependencies, quality criteria, and open choices.
 - [checklist.md](checklist.md) — Implementation status and acceptance evidence.
+- [development.md](development.md) — Maintainer and coding-agent instructions. Root [AGENTS.md](../AGENTS.md) and [CLAUDE.md](../CLAUDE.md) are one-line pointers here; they are excluded from research-runtime guidance.
 - Phase guides may be added as needed, including before code exists.
 
 ## Operational harness
 
 - [../README.md](../README.md) — User entry point, available commands, and compatibility.
-- [../AGENTS.md](../AGENTS.md) — Research-agent entry instructions and navigation; [../CLAUDE.md](../CLAUDE.md) points to it.
+- [research-agent.md](research-agent.md) — Draft research conduct for user agents; instruction delivery is decided before Block 6b. It avoids an auto-load filename and is not repository development guidance.
 - [../HARNESS_CONTRACT.md](../HARNESS_CONTRACT.md) — Shared interfaces, permissions, evidence requirements, and execution guarantees.
-- [../schemas/environment.schema.json](../schemas/environment.schema.json) — Machine-readable environment format reference.
-- Runtime skills belong in the root `skills/` directory; it currently contains no skills. Additional usage guides may live under `docs/operations/` when needed.
+- Runtime skills will be introduced in the root `skills/` directory with agent integration. Additional usage guides may live under `docs/operations/` when needed.
 - `environment.md` will document validated environment pins when GPU support is available; it should serve as a retained operational reference, independently of validation plans.
 
 ## Decision records

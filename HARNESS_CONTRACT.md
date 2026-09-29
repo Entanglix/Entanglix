@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-28 · **Status:** v0. Normative for each capability when available. Version 0.1.0 provides the CPU foundation only; research execution and MCP operations described below are not yet available. See [README.md](README.md) for current usage and availability.
 
-**Audience:** research users, agents, and integrators. This contract is a retained operational part of the harness: it defines shared interfaces and execution guarantees. [AGENTS.md](AGENTS.md) provides agent entry instructions; [ADRs](docs/adr/) retain decision history for optional consultation.
+**Audience:** research users, agents, and integrators. This contract is a retained operational part of the harness: it defines shared interfaces and execution guarantees. [Research-agent guidance](docs/research-agent.md) is a draft pending runtime integration; [ADRs](docs/adr/) retain decision history for optional consultation.
 
 This contract defines required interfaces and guarantees enforced through supported execution paths under the cooperative trust model (§7). Task-specific research procedures belong in operational skills when available. Required configuration must be explicit; draft recommendations do not supply defaults.
 
@@ -97,7 +97,7 @@ Usage is always recorded from executor reports (§7). Limits are optional, and t
 | `timeout_seconds` | Run | Executor-native timeout: a process timer on the workstation, the scheduler time limit on a cluster |
 | `deadline` | Investigation | Absolute calendar timestamp enforced by the executor, including queued jobs: no new dispatch or job start after it; cancel pending jobs and terminate active jobs at expiry. Cap each run's timeout at the time remaining when it starts |
 | `gpu_seconds` | Investigation | Allocated GPUs × allocation time, including verification, retries, and failed work |
-| `job_count` | Investigation | Executor launches, including retries and verification jobs |
+| `job_count` | Investigation | Admitted submissions, including queued jobs, retries, and verification jobs |
 
 Before dispatch, the runner compares recorded usage with any limits. When `gpu_seconds` is limited, every job needs a timeout. Admission includes the proposed job and all admitted but unsettled jobs, including queued and running jobs, at their maximum commitment (timeout × requested GPUs). The runner atomically checks allowances and records the commitment before submitting the job, using its existing records rather than a separate reservation service. Confirmed final usage replaces the commitment; usage the executor cannot confirm remains uncertain and never returns allowance. Lost contact never permits conflicting GPU dispatch.
 

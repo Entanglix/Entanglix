@@ -1,0 +1,41 @@
+# Python environments, caches, and builds
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.cache/
+.uv-cache/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Test reports
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Local credentials; a sanitized example may be tracked
+.env
+.env.*
+!.env.example
+
+# Generated research output
+research_runs/
+runs/
+*.npy
+*.npz
+*.h5
+*.hdf5
+*.zarr/
+
+# Small reviewed reference fixtures may be committed
+!tests/fixtures/**/*.npy
+!tests/fixtures/**/*.npz
+!tests/fixtures/**/*.h5
+!tests/fixtures/**/*.hdf5
+!tests/fixtures/**/*.zarr/
+!tests/fixtures/**/*.zarr/**
