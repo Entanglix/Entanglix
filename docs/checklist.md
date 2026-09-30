@@ -125,21 +125,22 @@ The [M1 guide](m1-guide.md) records the implementation approach. Supported conve
 
 ## M2 — Verified Local Sweep (Blocks 3–5)
 
+The [M2 guide](m2-guide.md) records the implementation approach; [ADR-0003](adr/0003-runs-verification-and-dispatch.md) records the run-record, verification, dispatch, and frame decisions. This checklist records completion and links to acceptance evidence.
+
 ### [ ] Block 3 — Runner and Run Contract
 
 **Depends on:** Blocks 0–2.
 
 - [ ] Gate: spec validation, static import scan, environment check (driver, cuQuantum, memory)
-- [ ] Run dir per contract §2: `run.toml` first, `spec/` frozen, `FINISHED` last, atomic `result.toml`
-- [ ] Minimal retained environment record and `env_hash`: lockfile digest, Python/platform, and observed GPU driver/CUDA/cuQuantum versions; exactly synced execution through `uv run --locked --exact`
-- [ ] Reproduction inputs: authored code/data references, versions or digests, seeds, solver settings, and code/environment provenance; Git revision and dirty state plus frozen inputs/digests for uncommitted code
+- [ ] Run dir per contract §2: `run.toml` first, `runner/started.toml` before the job computes, `spec/` frozen, `FINISHED` last, atomic `result.toml`; jobs write only `result.toml` and `artifacts/`
+- [ ] Minimal retained environment record and `env_hash`: lockfile digest, Python/platform, and observed GPU driver/CUDA/cuQuantum versions; exactly synced execution through `uv run --locked --exact` with the same declared extras for all jobs
+- [ ] Reproduction inputs: authored code/data references, versions or digests, seeds, solver settings, and code/environment provenance; Git revision and dirty state plus frozen inputs and a patch of uncommitted code
 - [ ] Job spawn in its own process group; exit-code contract; per-run timeouts when configured
 - [ ] Separate run directories and assigned outputs prevent accidental interference; a GPU lock permits one active job by default across runner instances; a job may batch calculations
-- [ ] Cancellation targets the intended job and descendants; unknown process state blocks GPU reuse pending reconciliation
-- [ ] `index` and `latest` at the runs root
+- [ ] Cancellation targets the intended job and descendants; unknown process state blocks GPU reuse pending reconciliation; the job holds the GPU lock, so runner loss while the job survives keeps the GPU blocked; reconciliation records uncertain usage and never writes `FINISHED`
 - [ ] Local executor, diagnostics, and documented interruption recovery/rerun path
-- [ ] Append-only ledger from first execution: parent run IDs, provenance, outcomes, resource use, and verification status when available; include failed, aborted, and incomplete attempts
-- [ ] Atomic ledger events retain concurrent attempts; reruns get new IDs and preserve lineage
+- [ ] Runner-owned run records form the history from first execution: parent run IDs, provenance, outcomes, resource use, and verification status from linked verification runs; include failed, aborted, and incomplete attempts
+- [ ] Per-run records retain concurrent attempts; reruns get new IDs and preserve lineage
 - [ ] `list_capabilities`, `list_runs`, `read_run`, and `abort_run` backing capabilities; `read_run` shows the live trace of running jobs
 - [ ] Execution outcome remains distinct from scientific verification
 - [ ] Applicable quality evidence recorded
@@ -150,11 +151,12 @@ The [M1 guide](m1-guide.md) records the implementation approach. Supported conve
 **Depends on:** Blocks 1–3.
 
 - [ ] Separate corrector package; code hashed at load; versioned thresholds outside the candidate workspace; research tools cannot replace policy or verdicts
-- [ ] Cross-engine, convergence, trace, hermiticity, and positivity checks for dynamics
+- [ ] Dynamics: trace, hermiticity, and positivity at every point; one independent CPU reference comparison at tightened tolerances and refined truncation at each evidence point; deterministic, bounded evidence-point selection; reference dimension limit validated by exact-Liouvillian regression for both CPU reference engines
+- [ ] Verification runs linked to their source runs; reports bound to source digests and policy version; evidence reuse; reads show the latest attempt without substituting an older verdict
 - [ ] Reference and truncation checks applicable to spectral studies
 - [ ] Corrector selects checks from trusted protocol/metric definitions and validated execution plans; unknown/inconsistent definitions cannot verify; agent-written labels cannot waive checks
 - [ ] Design-sweep seed/monotonicity checks add to applicable dynamics or spectral checks
-- [ ] Reports identify check scope, tolerances, residuals, reference size, and inapplicable checks with reasons (contract §3)
+- [ ] Reports identify check scope, tolerances, residuals, reference engine and dimension, each point's coverage, and inapplicable checks with reasons (contract §3)
 - [ ] `compare_reference` backing capability
 - [ ] Applicable quality evidence recorded
 - [ ] **Done:** a deliberately under-converged run is `UNVERIFIED`; a hash mismatch fails the run; label-spoof cases cannot evade checks; verification is available before Block 5 completion
@@ -163,12 +165,12 @@ The [M1 guide](m1-guide.md) records the implementation approach. Supported conve
 
 **Depends on:** Blocks 1–4.
 
-- [ ] Standalone simulation and grid sweep over scqubits parameters against declared observables or a simulated metric
-- [ ] Before implementation: choose the exact dynamics metric/observable, pulse if needed, parameter region, and evidence thresholds
-- [ ] Before automatic GPU sweep selection: review cuDensityMat open-system operator construction and solver usage; measure CPU/GPU crossover and peak memory for representative workloads, separating setup/compilation from repeated execution; update the versioned policy only from that evidence
+- [ ] Standalone simulation and static and dynamic grid sweeps over scqubits parameters against declared observables or a simulated metric
+- [ ] Before implementation: a CPU feasibility probe chooses the exact dynamics metric/observable, pulse if needed, parameter region, windows, grids, and evidence thresholds
+- [ ] Lab-frame carrier drives and rotating frames with an explicit rotating-wave approximation; carrier drives pass cross-engine and refinement acceptance; rotating-frame results agree with the lab frame within declared tolerances
+- [ ] A declared `device = "cuda"` routes non-gradient work to cuDensityMat in a versioned selection table, without a performance claim
 - [ ] First end-to-end sweep exercises open-system dynamics on the local GPU (metric class already fixed)
 - [ ] Spectral-only studies remain usable independently
-- [ ] Representative batched sweep agrees member-by-member with serial execution under declared tolerances before batching is advertised
 - [ ] Plots and `result.toml` summaries expose evidence needed to inspect and refine a sweep
 - [ ] Documented CLI examples for simulation and iterative sweep refinement
 - [ ] Applicable quality evidence recorded
@@ -322,7 +324,7 @@ The [M1 guide](m1-guide.md) records the implementation approach. Supported conve
 
 **Depends on:** Blocks 3 and 7; shared calibration schemas extend conformance when Block 10 is available.
 
-- [ ] A `control` run dir opens in amicode's Run Inspector
+- [ ] A `control` run dir opens in amicode's Run Inspector, including `index`, `latest`, and the Inspector's required fields
 - [ ] A ProblemSpec authored here solves under `amico-run` with no edits
 - [ ] Shared device / experiment-card schemas where they overlap; calibration conformance when Block 10 is available
 - [ ] Applicable quality evidence recorded
@@ -333,6 +335,6 @@ The [M1 guide](m1-guide.md) records the implementation approach. Supported conve
 
 ## Upgrade Path (no boxes until a milestone claims them)
 
-Multi-GPU cuDensityMat · cuTensorNet engine for lattice-scale systems · multistart and continuation for control · longer scheduled unattended campaigns after bounded workflows demonstrate reliability · hardware-in-the-loop behind the same run contract.
+cuDensityMat usage study (open-system usage review, CPU/GPU crossover and peak memory, member-by-member batch-versus-serial agreement, dispatch caps above 30, reduced reference problems), a prerequisite for automatic performance-based dispatch and advertised batching · Multi-GPU cuDensityMat · cuTensorNet engine for lattice-scale systems · multistart and continuation for control · longer scheduled unattended campaigns after bounded workflows demonstrate reliability · hardware-in-the-loop behind the same run contract.
 
 Stronger authorization and isolation are scoped when a deployment needs bypass resistance or containment of untrusted code. Record its threat model and required identity/process/filesystem/network/device controls before adding acceptance boxes; cooperative checks do not prove those guarantees.

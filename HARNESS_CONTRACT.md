@@ -36,33 +36,34 @@ Control uses amicode's ProblemSpec OSS schema; `solver.backend` records a string
 
 ## 2. Execution and artifacts
 
-The runner selects an engine from a versioned table using declared protocol needs and configured size/memory limits. Research agents cannot select an engine directly.
+The runner selects an engine from a versioned table using declared protocol needs (`gradients` and `device`) and configured size/memory limits. Research agents cannot select an engine directly. The table records needs, not performance; automatic performance-based dispatch requires measured CPU/GPU crossover and peak memory.
 
-| Gradients | Size | Engine |
+| Gradients | Declared device | Engine |
 |---|---|---|
-| No | Reference-sized | QuTiP CPU |
-| No | Large / batched | cuDensityMat through `qutip-cuquantum` |
-| Yes | Fits JAX memory budget | dynamiqs |
-| Yes | Does not fit | Refuse; use batched cuDensityMat only through a declared gradient-free fallback |
+| No | None | QuTiP CPU |
+| No | `cuda` | cuDensityMat through `qutip-cuquantum` |
+| Yes | Any | dynamiqs |
 
-Engine and solver fallbacks must satisfy the declared constraints and be recorded. Missing plugins or unsupported requirements produce actionable configuration errors unless a compatible fallback is declared. cuDensityMat and JAX exchange data through DLPack / CuPy; their gradients do not compose.
+Requests beyond the table's size cap or memory limits, and batched requests before batching is validated, are refused. A gradient request that does not fit may use cuDensityMat only through a declared gradient-free fallback. Engine and solver fallbacks must satisfy the declared constraints and be recorded. Missing plugins or unsupported requirements produce actionable configuration errors unless a compatible fallback is declared. cuDensityMat and JAX exchange data through DLPack / CuPy; their gradients do not compose.
 
 ```text
 research_runs/<system_id>/<run_id>/
-  run.toml           # runner writes first: run_id, spec hashes, code_version,
-                     # env_hash, engine, executor
-  spec/              # frozen system and protocol specs
-  run.log            # AMICODE_ITER iter=<n> f=<obj> …; diagnostics
-  iter_<N>.png       # plots where applicable
-  result.toml        # protocol writes atomically: metrics, solver.backend, verdict
-  artifacts/         # small arrays; large arrays referenced by path + digest
-  FINISHED           # runner writes last: status, exit_code
+  run.toml           # runner writes first: run_id, parent run IDs, spec digests,
+                     # code provenance, env_hash, engine, device, executor
+  runner/            # runner-owned, read-only: started.toml before the job computes
+                     # (start, GPU allocation, process group); reconciled.toml after runner loss
+  spec/              # frozen system and protocol specs, authored code and data
+  run.log            # job output and diagnostics
+  result.toml        # job writes atomically: metrics, actual engine/solver; no verdict
+  artifacts/         # small arrays and plots; large arrays referenced by path + digest
+  FINISHED           # runner writes last: status, exit_code, end time, usage
 ```
 
-- `FINISHED.status` is `completed`, `failed`, or `aborted`. Without a valid terminal marker, a run is incomplete and cannot substantiate a completed scientific result. Completed execution may still yield an `UNVERIFIED` result.
-- `result.toml` is published by temporary-file rename. Frozen inputs include authored code and data references with versions or content digests. Record seeds, solver settings, and `env_hash` covering pinned CUDA, cuQuantum, driver, and Python packages.
+- The runner writes each applicable record once; jobs write only `result.toml` and `artifacts/`. `FINISHED.status` is `completed`, `failed`, or `aborted`. Without a valid terminal marker, a run is incomplete and cannot substantiate a completed scientific result. After runner loss, reconciliation records the last observed state and uncertain usage in `runner/reconciled.toml` and never writes `FINISHED`. Completed execution may still yield an `UNVERIFIED` result.
+- `result.toml` is published by temporary-file rename. Frozen inputs include authored code and data references with versions or content digests, and a patch of uncommitted code. Record seeds, solver settings, and `env_hash` covering pinned CUDA, cuQuantum, driver, and Python packages. Jobs sharing an environment run exactly synced with the same declared extras.
+- A sweep is one run. Its points run inside the job, completed points remain in `artifacts/` after interruption, and a rerun is a new linked run.
 - Units and time-grid conventions are explicit; no implicit conversion. Every completed scientific result reports truncation and convergence. Reproduction uses determinism checks where supported and declared tolerances otherwise.
-- Exit codes follow amicode: `0` completed; `130` aborted; `64` usage/configuration/orchestrator fault; otherwise the job's return code. Run artifacts must satisfy the adopted amicode run-directory interface.
+- Exit codes follow amicode: `0` completed; `130` aborted; `64` usage/configuration/orchestrator fault; otherwise the job's return code. Run directories follow amicode's layout, terminal marker, atomic result, run-ID form, and exit codes; amicode's Julia- and control-specific fields and Run Inspector files (`index`, `latest`) are not yet provided.
 - Abrupt termination retains diagnostics and incomplete-attempt history. Recovery cannot fabricate success; a rerun receives a new ID linked to the prior attempt. Each executor provides a documented recovery/rerun path.
 - Local and cluster executors share these semantics. Large arrays remain on execution storage; mirrored artifacts are integrity-checked. Lost contact never implies completion. The ledger preserves uncertain outcomes and resource accounting until reconciled.
 
@@ -70,15 +71,19 @@ research_runs/<system_id>/<run_id>/
 
 The corrector is an independent, deterministic package, hashed at load, with versioned thresholds configured outside the candidate workspace. Research tools cannot replace the corrector, thresholds, or verdicts. A hash mismatch fails execution. It verifies every completed protocol; failed or interrupted attempts retain diagnostics without a successful verdict. Verification never depends on a private solver.
 
+Verification is a separate run linked to its source run. Its result holds the verdict, `VERIFIED` or `UNVERIFIED`, and a report bound to the source artifact digests and the verification policy version, the digest of the corrector code and thresholds; protocol results carry no verdict. Evidence is reused when plan digests and policy version match. Reads show the latest verification attempt and whether a verdict exists under the requested policy, by default the current one; earlier verdicts remain history and never substitute for a missing current verdict.
+
 | Protocol | Required checks |
 |---|---|
-| Dynamics `simulate` / `sweep` | Reference-size agreement across QuTiP CPU, cuDensityMat, and dynamiqs; step-size and truncation convergence; trace, hermiticity, positivity |
+| Dynamics `simulate` / `sweep` | Trace, hermiticity, and positivity of stored states at every point, with top retained-level population reported as a truncation warning; at each evidence point, one comparison with an independent CPU engine at tightened tolerances and refined truncation, using the lab frame for rotating-frame runs |
 | Spectral `simulate` / `sweep` | Reference spectra or analytic cases where available; truncation convergence; checks applicable to the declared observable |
 | `control` | Pulse rollout on a different engine; comparison on the same ProblemSpec with an open solver; independently calculated metric and constraint satisfaction for each candidate |
 | `calibrate` | Fitting receives training data only; corrector evaluates holdout data without refitting; identifiability report using covariance or profile likelihood |
 | Design `sweep` (additional checks) | Reproducibility across seeds; metric monotonicity where physics predicts it |
 
-The corrector derives applicability from trusted protocol/metric definitions and the validated execution plan, not agent-written labels or exemptions. Unknown or inconsistent definitions cannot receive a verified verdict. Design-sweep checks stack with applicable dynamics or spectral checks. Reports identify checks, tolerances, residuals, reference size, and reasons for inapplicability. Reference-size agreement does not certify the full production problem; numerical agreement does not establish device-model accuracy. Cross-solver comparisons report discrepancies; distinct pulses or local optima alone do not invalidate a candidate passing independent checks. Promotion eligibility follows §6.
+The corrector derives applicability from trusted protocol/metric definitions and the validated execution plan, not agent-written labels or exemptions. Unknown or inconsistent definitions cannot receive a verified verdict. Design-sweep checks stack with applicable dynamics or spectral checks. Reports identify checks, tolerances, residuals, reference engine and dimension, each point's coverage, and reasons for inapplicability.
+
+A single run is its own evidence point. A sweep's evidence points follow a deterministic rule with a maximum count set by the verification policy; when required evidence cannot be covered within that count, the verdict is `UNVERIFIED` with a refinement recommendation. `VERIFIED` means every output check and every evidence-point comparison passed; it certifies nothing about convergence at points with output checks only. Reference solves run on CPU engines within a validated reference dimension limit. Reference agreement does not certify the full production problem; numerical agreement does not establish device-model accuracy. Cross-solver comparisons report discrepancies; distinct pulses or local optima alone do not invalidate a candidate passing independent checks. Promotion eligibility follows §6.
 
 ## 4. Bounded investigations
 
@@ -132,7 +137,7 @@ Read-only operations do not mutate research state. Controlled jobs use the runne
 
 ## 6. History, audit, and promotion
 
-The runner is the single writer for history and publishes immutable events atomically, one file per event. Concurrent requests cannot overwrite or lose events. Every attempt retains lineage, including incomplete, failed, aborted, and unpromoted work. Trial counts include unsuccessful attempts within the declared investigation or hypothesis family; session changes do not reset them.
+The runner is the single writer for history and publishes immutable events atomically, one file per event. For runs, the ledger events are the runner-owned records in each run directory (§2), and verification status comes from linked verification runs (§3). Concurrent requests cannot overwrite or lose events. Every attempt retains lineage, including incomplete, failed, aborted, and unpromoted work. Trial counts include unsuccessful attempts within the declared investigation or hypothesis family; session changes do not reset them.
 
 | Record | Required content |
 |---|---|
@@ -183,8 +188,8 @@ Conformance evidence must cover the observable guarantees below. Implementations
 | Contract surface | Responsible component | Required evidence |
 |---|---|---|
 | Objects and interfaces (§1, §5) | Schemas, adapters, CLI/MCP | Validation, transport consistency, capability checks, open-only/plugin-boundary tests |
-| Execution (§2) | Runner and executors | Reproduction, atomic artifacts, cancellation/interruption recovery, amicode run-directory and ProblemSpec compatibility |
-| Verification (§3) | Corrector | Reference cases, convergence failures, trusted applicability and label-spoof rejection, additive sweep checks, independent constraint checks, training/holdout data separation, hash-mismatch rejection |
+| Execution (§2) | Runner and executors | Reproduction, atomic artifacts, cancellation/interruption recovery including runner loss while the job survives, amicode run-directory layout and ProblemSpec compatibility |
+| Verification (§3) | Corrector | Reference cases, convergence failures, trusted applicability and label-spoof rejection, additive sweep checks, bounded evidence-point coverage, verdict presentation after a failed newer attempt, independent constraint checks, training/holdout data separation, hash-mismatch rejection |
 | Investigations (§4) | Runner and tools | User-start/review event handling, rejection of tool-authored approvals, checkpoint gating including failed/aborted attempts, early-stop reports, no-limit and limit cases, atomic admission accounting for proposed/queued/running jobs, deadlines across queueing and execution, timeout resolution/grace and recorded overruns, rejection of unknown limits, retry/verification usage, cancellation and resume accounting |
 | History and promotion (§6) | Ledger, audit, catalog | Atomic concurrent events, failed-attempt lineage, verification eligibility and human-promotion boundaries |
 | Execution environments (§7) | Runner, executors, runtime adapter | Run/GPU ownership, conflicting-launch rejection, process cancellation, controlled history writes, blocked human-action commands, GPU-hidden agent session, and rejection of policy/verification bypass through supported tools; one executor test suite passes against the local executor and a stubbed scheduler; no OS-level containment claim |

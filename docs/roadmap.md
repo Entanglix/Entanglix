@@ -41,7 +41,7 @@ Every milestone must demonstrate these qualities for the capabilities it introdu
 ### Substrate decisions (fixed)
 
 - **Python-first, single substrate.** Modeling with `scqubits`; dynamics on cuQuantum's cuDensityMat through `qutip-cuquantum`; differentiable dynamics with `dynamiqs` (JAX); QuTiP CPU as the exact small-size reference.
-- **Two engines that do not compose through autodiff.** cuDensityMat is large-scale, batched, non-differentiable. JAX (dynamiqs) is differentiable and moderate-size. When a workflow needs direct cross-engine array exchange, use DLPack / CuPy with measured copy/zero-copy behavior; gradients do not cross. Build that boundary with its first consumer, potentially control or co-design. Engine selection is a declared property of a protocol run ("needs gradients?" × Hilbert-space size), never an agent's judgment call.
+- **Two engines that do not compose through autodiff.** cuDensityMat is large-scale, batched, non-differentiable. JAX (dynamiqs) is differentiable and moderate-size. When a workflow needs direct cross-engine array exchange, use DLPack / CuPy with measured copy/zero-copy behavior; gradients do not cross. Build that boundary with its first consumer, potentially control or co-design. Engine selection is a declared property of a protocol run ("needs gradients?" × declared device × Hilbert-space size), never an agent's judgment call.
 - **Solver-agnostic control spec.** amicode's ProblemSpec OSS schema (`system`, `goal`, `pulse`, `problem`, `integrator`, `solver.backend`) is adopted as the control problem file. `solver.backend` is a string; which solver ran is recorded, never assumed.
 - **Private solver plugins.** High-performance solvers may be proprietary. They attach through a `SolverBackend` / `Integrator` protocol via Python entry points and are never imported by this repo. The repo's tests run with open solvers only; an import-boundary test enforces it. Verification never depends on a private solver (contract §1, §3).
 - **amicode's role is contracts and a corrector, not substrate.** Run-dir shape and schemas are adopted for interoperability; Piccolo (via `amico-run`) is an open second-opinion control solver. Dynamics never route through Julia.
@@ -123,28 +123,30 @@ The [M1 guide](m1-guide.md) covers the joint implementation of Blocks 1–2. Its
 
 ### Block 3 — Runner and Run Contract
 
+The [M2 guide](m2-guide.md) covers the joint implementation of Blocks 3–5. [ADR-0003](adr/0003-runs-verification-and-dispatch.md) records the run-record, verification, dispatch, and frame decisions.
+
 - **Depends on:** Blocks 0–2.
-- `entanglix` gate + launch: spec validation, static import scan of any authored script, environment check (driver, cuQuantum, memory), run-dir creation (`run.toml` first), job spawn in its own process group, `FINISHED` last, exit-code contract, `index` and `latest` at the runs root.
-- Capture and retain a minimal run environment record and `env_hash` from the lockfile digest, Python/platform, and observed GPU driver/CUDA/cuQuantum versions. Execute jobs in an exactly synced environment through `uv run --locked --exact`. Record code provenance separately, including the Git revision and dirty state plus frozen authored inputs or content digests for uncommitted code; a dirty flag alone cannot reproduce changes.
-- Local executor only in this block; distinct run directories and frozen inputs, a GPU lock with one active job by default, runner-owned history writes, per-run timeouts, and cancellation of the intended process group. Reconcile unknown process state before reusing the GPU; no custom scheduler is required.
+- `entanglix` gate + launch: spec validation, static import scan of any authored script, environment check (driver, cuQuantum, memory), run-dir creation (`run.toml` first), job spawn in its own process group, `FINISHED` last, exit-code contract.
+- Capture and retain a minimal run environment record and `env_hash` from the lockfile digest, Python/platform, and observed GPU driver/CUDA/cuQuantum versions. Execute jobs in an exactly synced environment through `uv run --locked --exact`, with the same declared extras for all jobs sharing it. Record code provenance separately, including the Git revision and dirty state plus frozen authored inputs and a patch of uncommitted code; a dirty flag or digest alone cannot reproduce changes.
+- Local executor only in this block; distinct run directories and frozen inputs, a GPU lock with one active job by default, held by the job so runner loss cannot release it, runner-owned history writes, per-run timeouts, and cancellation of the intended process group. Reconcile unknown process state before reusing the GPU; no custom scheduler is required.
 - `read_run` shows the live trace of running jobs so a stalled run can be aborted mid-way.
-- Basic append-only run ledger from the first execution: provenance, parent runs, resource use, and outcome for completed, failed, and aborted attempts. This history is available before catalog promotion or agent use.
+- Run history from the first execution through runner-owned records in each run directory, without a separate ledger store: provenance, parent runs, resource use, and outcome for completed, failed, aborted, and interrupted attempts. This history is available before catalog promotion or agent use.
 - Diagnostics and a documented recovery or rerun path for interrupted work.
 - **Done when:** a killed job leaves no `FINISHED`; a completed job's `result.toml` validates; a run is reproducible from `spec/` + `code_version` + `env_hash`; attempts and their lineage remain queryable after interruption.
 
 ### Block 4 — Corrector v0
 
 - **Depends on:** Blocks 1–3.
-- Cross-engine, convergence, positivity checks as a separate package with hashed code and a versioned thresholds file; `compare_reference` verb.
+- Physicality checks at every point and, at a bounded set of evidence points, one comparison with an independent CPU engine at tightened tolerances and refined truncation, as a separate package with hashed code and a versioned thresholds file; `compare_reference` verb. Verification is a linked run whose report states each point's coverage.
 - The corrector derives applicable checks from trusted protocol/metric definitions and the validated execution plan. Agent-written labels cannot waive checks; design-sweep checks add to the applicable dynamics or spectral checks.
 - **Done when:** a deliberately under-converged run is flagged `UNVERIFIED`; a hash mismatch fails the run; mislabeled studies cannot evade required checks. Verification is available before completion of Block 5.
 
 ### Block 5 — Protocols `simulate` and `sweep` (first end-to-end)
 
 - **Depends on:** Blocks 1–4.
-- Standalone simulation and a grid sweep over scqubits parameters against declared observables or a simulated metric (for example dispersive shift, T1 limit from a noise model, gate error under a fixed pulse).
-- The first end-to-end example exercises open-system dynamics on the local GPU; this class of metric is settled. Choose the exact observable, fixed pulse if needed, parameter region, and evidence thresholds before implementation of this block. Spectral-only studies remain useful supported workflows.
-- Add representative batch-versus-serial sweep checks before advertising batching; every batch member must agree with its serial counterpart under the declared tolerances.
+- Standalone simulation and static and dynamic grid sweeps over scqubits parameters against declared observables or a simulated metric (for example dispersive shift, T1 limit from a noise model, gate error under a fixed pulse).
+- The first end-to-end example exercises open-system dynamics on the local GPU; this class of metric is settled. Choose the exact observable, fixed pulse if needed, parameter region, and evidence thresholds from a CPU feasibility probe before implementation of this block. Spectral-only studies remain useful supported workflows.
+- Lab-frame carrier drives and rotating frames with an explicit rotating-wave approximation, verified against the lab frame. A declared `device = "cuda"` runs non-gradient work on cuDensityMat without a performance claim.
 - Plots and `result.toml` summaries with enough evidence for a user to inspect results and choose a refined sweep.
 - **Done when:** a documented simulation and one agreed dynamics sweep run end to end through `entanglix`, the sweep exercises the local GPU, corrector checks pass, and a user can inspect and refine the sweep without control or calibration.
 
@@ -218,13 +220,15 @@ The evaluation protocol names a scripted experiment-selection policy, comparable
 ### Block 12 — Interoperability
 
 - **Depends on:** Blocks 3 and 7; shared calibration schemas extend conformance when Block 10 is available.
-- Conformance: run dirs readable by amicode's Run Inspector; ProblemSpec files accepted by `amico-run` unchanged; shared device / experiment-card schemas.
+- Conformance: run dirs readable by amicode's Run Inspector, including `index`, `latest`, and the Inspector's required fields; ProblemSpec files accepted by `amico-run` unchanged; shared device / experiment-card schemas.
 - Optional: package as an amicode Domain Pack if wanted by both sides.
 - **Done when:** a `control` run dir opens in the Run Inspector; a ProblemSpec authored here solves under `amico-run` with no edits.
 
 ### Upgrade path (not blocks)
 
 Multi-GPU cuDensityMat; cuTensorNet engine for lattice-scale systems; multistart and continuation for control; longer scheduled unattended campaigns after bounded workflows demonstrate reliability; hardware-in-the-loop via an external device bridge behind the same run contract.
+
+A cuDensityMat usage study reviews open-system operator construction and solver usage, measures CPU/GPU crossover and peak memory with setup separated from repeated execution, checks batch-versus-serial agreement member by member, and validates dispatch caps above 30 and reduced reference problems. It is a prerequisite for automatic performance-based dispatch and for advertising batching.
 
 Stronger authorization and isolation are conditional deployment work. Before a deployment requires containment of untrusted code, resistance to shell bypass, or stronger separation between users, define its threat model and reuse suitable runtime/OS controls. Grant issuers, isolated administrative credentials, restricted filesystem/network/device access, and adversarial escape tests belong to that scope; they do not gate M3. Parallel development or batching alone does not require that security model.
 
