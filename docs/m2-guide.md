@@ -36,8 +36,8 @@ Each step belongs to one block, and blocks complete in order. Step 5A needs only
 | Step | Work | Evidence before advancing |
 |---|---|---|
 | 3A — Run records | Fields of `run.toml`, the runner's start and reconciliation records, `result.toml`, and `FINISHED`; run IDs; `env_hash` inputs; code provenance including uncommitted changes; exit codes | Records and their meanings written in an operational run reference; contract wording agrees |
-| 3B — CPU runner | Gate (spec validation, import scan, environment check); launch of an authored script in its own process group; frozen `spec/`; `FINISHED` last; `list_capabilities`, `list_runs`, `read_run` | Completed, failed, and usage-error runs leave valid records; a completed run reproduces |
-| 3C — Lifecycle and GPU | Timeouts, `abort_run`, termination of the job or runner, a GPU lock across runner instances, reconciliation of unknown process state, live trace, rerun lineage, documented recovery | Abrupt termination never yields a completed `FINISHED`; a runner killed while its job survives leaves the GPU blocked until reconciliation; interrupted attempts remain queryable with start, allocation, and uncertain usage |
+| 3B — CPU runner | Gate (spec validation, import scan, environment check); launch of an authored script in its own process group; frozen `spec/`; `FINISHED` last; `list_capabilities`, `list_runs`, `read_run` | Completed and failed runs leave valid records; launches rejected before `run.toml` exists exit `64` with a diagnostic; a completed run reproduces |
+| 3C — Lifecycle and GPU | Timeouts, `abort_run`, termination of the job or runner, an attempt lock, a GPU lock across runner instances, reconciliation of unknown process state, live trace, rerun lineage, documented recovery | Abrupt termination never yields a completed `FINISHED`; an attempt whose runner or job is alive is never reconciled; a runner killed while its job survives leaves the GPU blocked until reconciliation; interrupted attempts, including those that never started, remain queryable with their records and uncertain usage |
 | 4A — Corrector and plans | `entanglix.corrector`, versioned thresholds including reference dimension and evidence-point limits, deterministic point selection, policy digest, check definitions per computation kind, execution-plan format and plan job, verification run records | Unknown or inconsistent definitions cannot verify; a hash mismatch fails verification; both CPU reference engines pass an exact-Liouvillian regression at the reference limit |
 | 4B — Checks and `compare_reference` | Output checks, combined reference solves at evidence points, spectral checks, sweep-level checks, coverage reports, evidence reuse | An under-converged run is `UNVERIFIED`; label-spoof cases cannot skip checks; reports show scope, tolerances, residuals, reference engine and dimension, coverage, and inapplicable checks with reasons |
 | 5A — Feasibility and metric | Disposable QuTiP probe of the first example; metric, region, windows, grids, drive-frequency policy, refined dimensions, and candidate thresholds | Choices recorded with measured durations and step counts before drive, frame, or protocol implementation |
@@ -66,7 +66,7 @@ research_runs/<system_id>/<run_id>/
 
 Run IDs use amicode's `r<UTC-timestamp>Z-<hex>` form, and the runner creates each directory exclusively. Exit codes follow contract §2: `0` completed, `130` aborted, `64` usage or orchestration fault, otherwise the job's code. Run Inspector conveniences and control-specific records (`index`, `latest`, `AMICODE_ITER` lines, `iter_<N>.png` names, amicode's `[julia]` table and `fidelity`/`iterations` fields) wait for Block 12 or the protocol that needs them.
 
-The runner's records are the attempt history; there is no separate ledger store. Jobs write only `result.toml` and `artifacts/`; runner records use separate, read-only paths. `list_runs` scans the runs root. An attempt without a valid `FINISHED` is incomplete: running while its process group is alive, otherwise interrupted. Reconciliation records an interrupted attempt in `runner/reconciled.toml` with its last observed state and usage from `started.toml` marked uncertain; it never writes `FINISHED`, and a result left by such an attempt cannot substantiate a completed result. Reruns get new IDs with the earlier attempt as a parent. Verification status comes from linked verification runs (§4).
+The runner's records are the attempt history; there is no separate ledger store. Jobs write only `result.toml` and `artifacts/`; runner records use separate, read-only paths. `list_runs` scans the runs root. An attempt without a valid `FINISHED` is incomplete: active while its attempt lock is held or its process group is alive, otherwise interrupted. Reconciliation records an interrupted attempt in `runner/reconciled.toml` with its last observed state, its start record if one was written, and usage marked uncertain; it never writes `FINISHED`, and a result left by such an attempt cannot substantiate a completed result. Reruns get new IDs with the earlier attempt as a parent. Verification status comes from linked verification runs (§4).
 
 ### Environment and provenance
 
@@ -78,9 +78,11 @@ Code provenance records the Git revision and dirty state. For uncommitted change
 
 The gate validates specs through `load_system` and the protocol loader, scans authored-script imports against the import-boundary allowlist, and, when the selected engine uses CUDA, checks the driver, cuQuantum, and free GPU memory against the selection estimate. There is no daemon or queue: the runner process supervises its job in a new process group, and separate CLI invocations read and abort through the run records. The job begins computing only after the runner has written `runner/started.toml`.
 
+The runner is outside its job's process group, so an empty group does not show that the runner is gone. Each attempt therefore has an attempt lock, a `flock` on its directory, taken before `run.toml` is published. The job inherits it, and the runner releases it and any GPU lock only after writing `FINISHED`.
+
 - Timeouts: the runner timer signals the job's process group and escalates after a documented grace period.
 - `abort_run` signals the recorded process group; the supervising runner writes `FINISHED` with `aborted` and exit code `130`.
-- If the runner dies, no process writes `FINISHED` and the job may still be running. The next runner reconciles from `runner/started.toml`: a live process group keeps the GPU blocked; a finished one yields `runner/reconciled.toml`.
+- If the runner dies, no process writes `FINISHED` and the job may still be running. Reconciliation acquires the attempt lock without waiting and writes its record while holding it, so it never acts on an attempt whose runner or inheriting job is alive and cannot race `FINISHED`. With the lock held, a live recorded process group keeps the GPU blocked; otherwise the attempt receives `runner/reconciled.toml`. An attempt without `started.toml` has no recorded group, and the lock alone decides. Test a runner paused between its job's exit and `FINISHED`: reconciliation must not run.
 - The GPU lock is per device and lives outside any runs root, so it excludes across runner instances. The job inherits the lock, which stays held while any inheriting process keeps it open ([`flock` semantics](https://man7.org/linux/man-pages/man2/flock.2.html)); the lock record also names the run and process group, and reconciliation checks that group before reuse. Test a runner killed with `SIGKILL` while its job survives: GPU dispatch is refused until the job exits and reconciliation is recorded.
 
 The lock is a file lock, so lifecycle tests use short CPU jobs and real signals and run in CPU CI.
@@ -176,7 +178,7 @@ The example states its assumptions: a weak-measurement regime chosen to fit the 
 
 ## 7. Dependencies, layout, and validation
 
-No new runtime dependency is expected beyond declaring matplotlib: the runner uses the standard library for processes, signals, and file locks.
+The runner uses the standard library for processes, signals, and file locks.
 
 Suggested locations, created as code arrives:
 
