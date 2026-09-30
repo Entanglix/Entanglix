@@ -217,7 +217,7 @@ Recorded in [ADR-0003](adr/0003-runs-verification-and-dispatch.md), with matchin
 6. Lab-frame carrier drives and rotating frames are M2 capabilities, using the pinned adaptive solvers and explicit numeric transformations.
 7. The first example is the qubit–resonator readout model in §6, with feasibility and metric choices made in 5A before implementation.
 
-Open, decided in the named step: run-record fields (3A); plan format, reference limit value, and evidence-point selection rule and bound (4A); metric, region, windows, grids, drive-frequency policy, refined dimensions, and evidence thresholds (5A); frame declaration and rotating-wave rules (5B); protocol spec syntax (5C); CLI command names.
+Run-record fields are documented in [the operational run reference](operations/runs.md). Open, decided in the named step: plan format, reference limit value, and evidence-point selection rule and bound (4A); metric, region, windows, grids, drive-frequency policy, refined dimensions, and evidence thresholds (5A); frame declaration and rotating-wave rules (5B); protocol spec syntax (5C); CLI command names.
 
 ## 9. Exit evidence and handoff
 

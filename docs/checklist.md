@@ -132,9 +132,9 @@ The [M2 guide](m2-guide.md) records the implementation approach; [ADR-0003](adr/
 **Depends on:** Blocks 0–2.
 
 - [ ] Gate: spec validation, static import scan, environment check (driver, cuQuantum, memory)
-- [ ] Run dir per contract §2: `run.toml` first, `runner/started.toml` before the job computes, `spec/` frozen, `FINISHED` last, atomic `result.toml`; jobs write only `result.toml` and `artifacts/`
-- [ ] Minimal retained environment record and `env_hash`: lockfile digest, Python/platform, and observed GPU driver/CUDA/cuQuantum versions; exactly synced execution through `uv run --locked --exact` with the same declared extras for all jobs
-- [ ] Reproduction inputs: authored code/data references, versions or digests, seeds, solver settings, and code/environment provenance; Git revision and dirty state plus frozen inputs and a patch of uncommitted code
+- [-] Run dir per contract §2: `run.toml` first, `runner/started.toml` before the job computes, `spec/` frozen, `FINISHED` last, atomic `result.toml`; jobs write only `result.toml` and `artifacts/` ([record API](../src/entanglix/runner.py), [record tests](../tests/test_run_records.py), [run reference](operations/runs.md))
+- [-] Minimal retained environment record and `env_hash`: lockfile digest, Python/platform, and observed GPU driver/CUDA/cuQuantum versions; exactly synced execution through `uv run --locked --exact` with the same declared extras for all jobs ([environment record](operations/runs.md#environment-and-code-provenance), [tests](../tests/test_run_records.py))
+- [-] Reproduction inputs: authored code/data references, versions or digests, seeds, solver settings, and code/environment provenance; Git revision and dirty state plus frozen inputs and a patch of uncommitted code ([frozen provenance](operations/runs.md#environment-and-code-provenance), [reconstruction test](../tests/test_run_records.py))
 - [ ] Job spawn in its own process group; exit-code contract; per-run timeouts when configured
 - [ ] Separate run directories and assigned outputs prevent accidental interference; a GPU lock permits one active job by default across runner instances; a job may batch calculations
 - [ ] Cancellation targets the intended job and descendants; unknown process state blocks GPU reuse pending reconciliation; the job holds the GPU lock, so runner loss while the job survives keeps the GPU blocked; reconciliation records uncertain usage and never writes `FINISHED`
