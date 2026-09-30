@@ -1,4 +1,4 @@
-"""QuTiP CPU reference evolution and the shared engine interface."""
+"""QuTiP CPU reference evolution."""
 
 from __future__ import annotations
 
@@ -10,9 +10,7 @@ import qutip as qt
 from entanglix.evolution import (
     EngineCapabilities,
     EvolutionInput,
-    EvolutionInputError,
     EvolutionResult,
-    Integrator,
     expectations_from_states,
     normalize_input,
 )
@@ -114,14 +112,3 @@ def evolve_cpu(
             max_steps,
         ),
     )
-
-
-__all__ = [
-    "EngineCapabilities",
-    "EvolutionInput",
-    "EvolutionInputError",
-    "EvolutionResult",
-    "Integrator",
-    "QuTiPIntegrator",
-    "evolve_cpu",
-]

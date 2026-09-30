@@ -6,15 +6,15 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from entanglix.engine_cuquantum import CuQuantumIntegrator
-from entanglix.engine_dynamiqs import DynamiqsIntegrator
-from entanglix.engine_selection import (
+from entanglix.engines import EvolutionInput, QuTiPIntegrator
+from entanglix.engines.cudensitymat import CuQuantumIntegrator
+from entanglix.engines.dynamiqs_jax import DynamiqsIntegrator
+from entanglix.engines.selection import (
     EngineLimits,
     EngineSelectionError,
     select_engine,
     selection_table,
 )
-from entanglix.engines import EvolutionInput, QuTiPIntegrator
 from entanglix.models import load_system
 
 ROOT = Path(__file__).resolve().parents[1] / "examples"

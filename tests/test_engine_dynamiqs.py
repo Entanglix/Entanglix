@@ -7,8 +7,8 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from entanglix.engine_dynamiqs import DynamiqsIntegrator
 from entanglix.engines import EvolutionInput, QuTiPIntegrator
+from entanglix.engines.dynamiqs_jax import DynamiqsIntegrator
 from entanglix.models import TensorTerm, load_system
 
 ROOT = Path(__file__).resolve().parents[1] / "examples"

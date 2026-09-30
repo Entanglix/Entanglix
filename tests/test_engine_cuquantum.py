@@ -7,8 +7,8 @@ import numpy as np
 import pytest
 from qutip.solver.integrator import IntegratorException
 
-from entanglix.engine_cuquantum import CuQuantumIntegrator
 from entanglix.engines import EvolutionInput, QuTiPIntegrator
+from entanglix.engines.cudensitymat import CuQuantumIntegrator
 from entanglix.models import ConstructedSystem, TensorTerm, load_system
 
 pytestmark = pytest.mark.gpu

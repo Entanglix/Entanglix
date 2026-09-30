@@ -6,8 +6,8 @@ import numpy as np
 import pytest
 from qutip.solver.integrator import IntegratorException
 
-from entanglix.engine_cuquantum import local_storage
 from entanglix.engines import EvolutionInput, EvolutionInputError, QuTiPIntegrator
+from entanglix.engines.cudensitymat import local_storage
 from entanglix.models import load_system
 
 TWO_LEVEL = Path(__file__).resolve().parents[1] / "examples/two-level/system.toml"

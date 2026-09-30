@@ -6,9 +6,9 @@ import numpy as np
 import pytest
 from engine_cases import physical_residuals
 
-from entanglix.engine_cuquantum import CuQuantumIntegrator
-from entanglix.engine_dynamiqs import DynamiqsIntegrator
 from entanglix.engines import QuTiPIntegrator
+from entanglix.engines.cudensitymat import CuQuantumIntegrator
+from entanglix.engines.dynamiqs_jax import DynamiqsIntegrator
 from entanglix.models import load_system
 
 

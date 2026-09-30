@@ -19,7 +19,7 @@ class EngineSelectionError(ValueError):
 
 
 def selection_table() -> dict:
-    return tomllib.loads(files("entanglix").joinpath("engine-selection.toml").read_text())
+    return tomllib.loads(files("entanglix.engines").joinpath("selection.toml").read_text())
 
 
 @dataclass(frozen=True)

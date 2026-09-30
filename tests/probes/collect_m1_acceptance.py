@@ -16,8 +16,8 @@ from pathlib import Path
 
 
 def source_snapshot(root):
-    paths = list((root / "src/entanglix").glob("*.py"))
-    paths += list((root / "src/entanglix").glob("*.toml"))
+    paths = list((root / "src/entanglix").rglob("*.py"))
+    paths += list((root / "src/entanglix").rglob("*.toml"))
     paths += list((root / "tests").glob("test_engine*.py"))
     paths += [root / "tests/engine_cases.py", root / "tests/conftest.py", Path(__file__).resolve()]
     paths += list((root / "examples").rglob("*.toml"))

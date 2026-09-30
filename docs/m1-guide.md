@@ -167,8 +167,9 @@ Preserve `import entanglix` and CPU tests without importing JAX, CuPy, scqubits,
 Suggested implementation locations, created as code arrives:
 
 ```text
-src/entanglix/models/       # spec parsing, validation, construction, operator exports
-src/entanglix/engines/      # common types, selection table, three adapters
+src/entanglix/models.py     # spec parsing, validation, construction, operator exports
+src/entanglix/engines/      # CPU entry points, selection table, three adapters
+src/entanglix/evolution.py # shared engine input/result types and conventions
 schemas/system.schema.json # generated from the authored-system model
 tests/fixtures/            # small reviewed system specs and numeric references
 tests/                     # model, export, engine, and regression checks

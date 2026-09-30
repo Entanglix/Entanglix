@@ -1,13 +1,13 @@
 {
   "code": {
     "dirty": true,
-    "git_revision": "252ad80ea730cfbc047aedbd443534bdcc7eefe3",
+    "git_revision": "962bf5a6b7eda33b371acccae69e21c75f5fc667",
     "sources_sha256": {
       ".github/workflows/ci.yml": "d9d0d2d4ca734bd00e4638161d71952a95defcac4437fcb40212fdabcf72eb9b",
       ".gitignore": "4cd2419087e36708c8de263c947feea16fa14aaaade0efe5e208fd13c3fef360",
       "examples/cpu_reference.py": "9083356125b4cbf18d985c7897027d0d89308d4ecee356c0bee49c3b6c7e6fd6",
-      "examples/differentiable_reference.py": "00481e033e66f7b178034d8d0b7b3e5822964cd06a08aacad263fe4614397b26",
-      "examples/dynamics_reference.py": "098e828775fc4d7a63ce2334b04a40d32fd9dae14f5b193b184d77d3c12b7c9a",
+      "examples/differentiable_reference.py": "83e818f4d05be6c549dc97f773e50700c766c4c6932009efe64c85cf25fcb75f",
+      "examples/dynamics_reference.py": "0777e41d9c7e0eefb74949d2ed46bc65adee9d4382386abb2e5e96db1f397269",
       "examples/fluxonium/system.toml": "b0cbe8d43003b3ee9bdb2978f36f111eaf6827f47ae340a7b946a1cad2d462a9",
       "examples/junction-shunt/system.toml": "d610d0ee4d2b93da493b2c79cbef9bc8f67908255538a0fc9fb6bc37684ee5b3",
       "examples/lc-circuit/system.toml": "2ff686dcdd4a99cc8bfc810dda920bdc9af2ade896ce81f9cee7e21b058eac8b",
@@ -22,21 +22,22 @@
       "src/entanglix/__init__.py": "d77804ece126364195813d429a120f0a8ddd7b98a83d3c9993c4eef566476fc8",
       "src/entanglix/__main__.py": "59d02666708d36aa051f55b0cae80c3afc6069bdaa07beac86785363d27e66bb",
       "src/entanglix/cli.py": "f4f16fbfe5d2be7e94978265e974d65cb3e11055904abfe04bb9f1d1cfca8662",
-      "src/entanglix/engine-selection.toml": "86da729088556f570bf9500ea69aa4f98aa02dbe25119cf8f970f80440b84dc0",
-      "src/entanglix/engine_cuquantum.py": "22e928e7ed7a20baeaa3c019eac0f2494d65d9928ee39432ee883570f81970f8",
-      "src/entanglix/engine_dynamiqs.py": "94876ce74939c217ec6d2022b5cd997d1dd0ca3e5fb8a42ff3aea419aaaf0216",
-      "src/entanglix/engine_selection.py": "d22a4c391ff32bdf3725d8645712ff84c0748dd6236eaee572d6a93db4f573da",
-      "src/entanglix/engines.py": "6c4c106afd05bbdd183dd3938a39adf6590d823061242716e197fad49696504c",
+      "src/entanglix/engines/__init__.py": "ca64b34fd79ad801c725c1826f77dc4420a20e7ad244c40712a7cb35e2a1fdf6",
+      "src/entanglix/engines/cudensitymat.py": "22e928e7ed7a20baeaa3c019eac0f2494d65d9928ee39432ee883570f81970f8",
+      "src/entanglix/engines/dynamiqs_jax.py": "94876ce74939c217ec6d2022b5cd997d1dd0ca3e5fb8a42ff3aea419aaaf0216",
+      "src/entanglix/engines/qutip_cpu.py": "8488bb770fa1622d2877c20f1a5d9e9199d5dc32fc7ea96b76bb1b25350a91e8",
+      "src/entanglix/engines/selection.py": "57e62c140b1da072f3393e01162291d3f08a65b64662c6222eff9b56823965fd",
+      "src/entanglix/engines/selection.toml": "86da729088556f570bf9500ea69aa4f98aa02dbe25119cf8f970f80440b84dc0",
       "src/entanglix/evolution.py": "f8d75e2885678ff4347793742b97cb9b4bd2f49817ca84f60cff1967bc805a12",
       "src/entanglix/models.py": "c67adcf1a53521ac742e63bb74051cf649a1a613dc55853a025710220b3a9b57",
       "tests/conftest.py": "bf386f1d4d0eb3e734178d5ee84a34ad7946536376be7c644e4bcd64a97a1d4f",
       "tests/engine_cases.py": "a1d5bbe744e333082f6f76f90cc300226375b0ddf27bf62b5fbebb493a125547",
-      "tests/probes/collect_m1_acceptance.py": "d650276c9ddccf014694048d710216e92a5dbe8452d7fadad60c5e17d932590b",
-      "tests/test_engine_acceptance.py": "3f67ae5ef13311762f28b69ca76dd025df4f3ced23fb2d97deb19b9afb48a3d3",
-      "tests/test_engine_cuquantum.py": "af176002a3cfb69be5e91568f675ec3964f1bda748d055967c0821032342baf3",
-      "tests/test_engine_dynamiqs.py": "93e14b10e35acea694836b57a41f80b27b80d4d02b51498dbda2055d52420c80",
-      "tests/test_engine_interface.py": "bc01d23b67f8721e51d6bd4cc0114072c2e46958a3f3f9ddfb39f4745c02599d",
-      "tests/test_engine_selection.py": "205aeec01ecc4c7204d433c9bf8907c6a367eb3c1a9546ea577fda70ab371853",
+      "tests/probes/collect_m1_acceptance.py": "0e497f2ad08c7cb2eea50c10d900aeddb8696351c4586baceb54cfa016a1d70c",
+      "tests/test_engine_acceptance.py": "12c4bc62db9dd5d1c4b36149ec137505f74202b709ab9dca2ea1115a8a09a57f",
+      "tests/test_engine_cuquantum.py": "9f458ba7ef582306b363b5cad4beee6a289f4c72cd3c700e31aa9520b8db77bd",
+      "tests/test_engine_dynamiqs.py": "6855db45ce3d85144534bd1a01f29f77e4227f7c357a4dbbe47a1c7e1167bd55",
+      "tests/test_engine_interface.py": "be8946910ba21b09cd35e5429154519f5fd530a137cfbe80ebc0b2d7bbb6c56e",
+      "tests/test_engine_selection.py": "1c8121234f2b0dc4192c8d7d539d8926d4eb741c5a7e0e16600651c73424e95a",
       "uv.lock": "842ae462791945b7960e3f73d383718e036bc63912c92367507dc9b8b30e1d95"
     }
   },
@@ -63,7 +64,7 @@
     "uv_lock_sha256": "842ae462791945b7960e3f73d383718e036bc63912c92367507dc9b8b30e1d95"
   },
   "format_version": 1,
-  "generated_at_utc": "2026-09-30T08:30:07.561122+00:00",
+  "generated_at_utc": "2026-09-30T08:46:29.762461+00:00",
   "interpretation": "Numerical acceptance for the included models and regimes. Cross-engine agreement is bounded via independent exponential references. Each run identifies its retained source snapshot; earlier measurements are not relabeled as new runs. Dimension caps are functional bounds. Non-gradient selection defaults to CPU; known array storage excludes solver workspace, allocator overhead, and autodiff storage.",
   "limits": {
     "cross_engine_frobenius": 1e-06,
@@ -81,20 +82,20 @@
   "measurements": {
     "tests.test_engine_acceptance::test_composite_dynamics_truncation[30-6-7]": {
       "refined_population_change": 1.6763912480399767e-10,
-      "source_run": "leftovers-default-cpu"
+      "source_run": "import-style-default-cpu"
     },
     "tests.test_engine_acceptance::test_composite_dynamics_truncation[30-8-5]": {
       "refined_population_change": 6.754735437652926e-09,
-      "source_run": "leftovers-default-cpu"
+      "source_run": "import-style-default-cpu"
     },
     "tests.test_engine_acceptance::test_composite_dynamics_truncation[40-6-5]": {
       "refined_population_change": 2.7533531010703882e-14,
-      "source_run": "leftovers-default-cpu"
+      "source_run": "import-style-default-cpu"
     },
     "tests.test_engine_acceptance::test_oscillator_dynamics_truncation": {
       "insufficient_population_change": 0.00018445156996171885,
       "refined_population_change": 1.2434497875801753e-14,
-      "source_run": "leftovers-default-cpu"
+      "source_run": "import-style-default-cpu"
     },
     "tests.test_engine_acceptance::test_reference_dynamics_and_refinement[cudensitymat-composite-drive]": {
       "device": "cuda:0",
@@ -231,7 +232,7 @@
       "minimum_eigenvalue": -7.048905785650789e-10,
       "reference_error": 3.673366462215749e-08,
       "refinement_error": 3.3857734574213176e-08,
-      "source_run": "review-cpu-jax",
+      "source_run": "layout-cpu-jax",
       "trace_error": 4.3298697960381105e-15
     },
     "tests.test_engine_acceptance::test_reference_dynamics_and_refinement[dynamiqs-cpu-composite-loss]": {
@@ -245,7 +246,7 @@
       "minimum_eigenvalue": -6.528646494192588e-10,
       "reference_error": 3.727963387050134e-08,
       "refinement_error": 3.4359734442597015e-08,
-      "source_run": "review-cpu-jax",
+      "source_run": "layout-cpu-jax",
       "trace_error": 4.440892098500626e-15
     },
     "tests.test_engine_acceptance::test_reference_dynamics_and_refinement[dynamiqs-cpu-oscillator-drive]": {
@@ -259,7 +260,7 @@
       "minimum_eigenvalue": -4.999228283268573e-10,
       "reference_error": 2.0595684849377393e-09,
       "refinement_error": 1.8377622062269323e-09,
-      "source_run": "review-cpu-jax",
+      "source_run": "layout-cpu-jax",
       "trace_error": 2.220446049250313e-15
     },
     "tests.test_engine_acceptance::test_reference_dynamics_and_refinement[dynamiqs-cpu-oscillator-loss]": {
@@ -273,7 +274,7 @@
       "minimum_eigenvalue": 0.0,
       "reference_error": 4.189671613924638e-10,
       "refinement_error": 3.8401034812614263e-10,
-      "source_run": "review-cpu-jax",
+      "source_run": "layout-cpu-jax",
       "trace_error": 2.220446049250313e-16
     },
     "tests.test_engine_acceptance::test_reference_dynamics_and_refinement[dynamiqs-cpu-two-level-coherence]": {
@@ -285,7 +286,7 @@
       "minimum_eigenvalue": -3.5299541067956852e-12,
       "reference_error": 2.174026935044179e-10,
       "refinement_error": 2.0002984785925098e-10,
-      "source_run": "review-cpu-jax",
+      "source_run": "layout-cpu-jax",
       "trace_error": 2.220446049250313e-16
     },
     "tests.test_engine_acceptance::test_reference_dynamics_and_refinement[dynamiqs-cpu-two-level-drive]": {
@@ -299,7 +300,7 @@
       "minimum_eigenvalue": 0.0,
       "reference_error": 4.71541287018063e-10,
       "refinement_error": 4.2706938586301367e-10,
-      "source_run": "review-cpu-jax",
+      "source_run": "layout-cpu-jax",
       "trace_error": 6.661338147750939e-16
     },
     "tests.test_engine_acceptance::test_reference_dynamics_and_refinement[dynamiqs-cpu-two-level-loss]": {
@@ -313,7 +314,7 @@
       "minimum_eigenvalue": 0.0,
       "reference_error": 1.7666739223598405e-10,
       "refinement_error": 1.7246810145043788e-10,
-      "source_run": "review-cpu-jax",
+      "source_run": "layout-cpu-jax",
       "trace_error": 2.220446049250313e-16
     },
     "tests.test_engine_acceptance::test_reference_dynamics_and_refinement[dynamiqs-oscillator-drive]": {
@@ -395,7 +396,7 @@
       "minimum_eigenvalue": -9.804344626252781e-11,
       "reference_error": 4.676858510402803e-09,
       "refinement_error": 4.239078382318895e-09,
-      "source_run": "leftovers-default-cpu",
+      "source_run": "import-style-default-cpu",
       "trace_error": 3.885780587569495e-15
     },
     "tests.test_engine_acceptance::test_reference_dynamics_and_refinement[qutip-cpu-composite-loss]": {
@@ -409,7 +410,7 @@
       "minimum_eigenvalue": -9.172439870961642e-11,
       "reference_error": 4.689225468818874e-09,
       "refinement_error": 4.250372614126719e-09,
-      "source_run": "leftovers-default-cpu",
+      "source_run": "import-style-default-cpu",
       "trace_error": 7.438494266807948e-15
     },
     "tests.test_engine_acceptance::test_reference_dynamics_and_refinement[qutip-cpu-oscillator-drive]": {
@@ -423,7 +424,7 @@
       "minimum_eigenvalue": -1.055927163742056e-10,
       "reference_error": 1.7401573051758124e-10,
       "refinement_error": 1.56984722516478e-10,
-      "source_run": "leftovers-default-cpu",
+      "source_run": "import-style-default-cpu",
       "trace_error": 4.440892098506921e-15
     },
     "tests.test_engine_acceptance::test_reference_dynamics_and_refinement[qutip-cpu-oscillator-loss]": {
@@ -437,7 +438,7 @@
       "minimum_eigenvalue": 0.0,
       "reference_error": 6.287435258640818e-12,
       "refinement_error": 6.018713927007434e-12,
-      "source_run": "leftovers-default-cpu",
+      "source_run": "import-style-default-cpu",
       "trace_error": 3.3306690738754696e-16
     },
     "tests.test_engine_acceptance::test_reference_dynamics_and_refinement[qutip-cpu-two-level-coherence]": {
@@ -449,7 +450,7 @@
       "minimum_eigenvalue": 0.0,
       "reference_error": 2.289443882959812e-11,
       "refinement_error": 2.087610209291705e-11,
-      "source_run": "leftovers-default-cpu",
+      "source_run": "import-style-default-cpu",
       "trace_error": 2.220446049250313e-16
     },
     "tests.test_engine_acceptance::test_reference_dynamics_and_refinement[qutip-cpu-two-level-drive]": {
@@ -463,7 +464,7 @@
       "minimum_eigenvalue": 0.0,
       "reference_error": 5.2029166579713735e-11,
       "refinement_error": 4.676102636571352e-11,
-      "source_run": "leftovers-default-cpu",
+      "source_run": "import-style-default-cpu",
       "trace_error": 7.771561172376096e-16
     },
     "tests.test_engine_acceptance::test_reference_dynamics_and_refinement[qutip-cpu-two-level-loss]": {
@@ -477,7 +478,7 @@
       "minimum_eigenvalue": 0.0,
       "reference_error": 9.435549138022326e-12,
       "refinement_error": 8.65701878944473e-12,
-      "source_run": "leftovers-default-cpu",
+      "source_run": "import-style-default-cpu",
       "trace_error": 4.440892098500626e-16
     },
     "tests.test_engine_dynamiqs::test_drive_gradient_through_evolution[cpu-False]": {
@@ -485,14 +486,14 @@
       "gradient_dtype": "float64",
       "gradient_fd_max_error": 0.00015727201729287543,
       "gradient_units": "expectation/GHz",
-      "source_run": "review-cpu-jax"
+      "source_run": "layout-cpu-jax"
     },
     "tests.test_engine_dynamiqs::test_drive_gradient_through_evolution[cpu-True]": {
       "device": "cpu",
       "gradient_dtype": "float64",
       "gradient_fd_max_error": 1.8129962119139975e-05,
       "gradient_units": "expectation/GHz",
-      "source_run": "review-cpu-jax"
+      "source_run": "layout-cpu-jax"
     },
     "tests.test_engine_dynamiqs::test_drive_gradient_through_evolution[gpu-False]": {
       "device": "cuda",
@@ -548,6 +549,48 @@
         "tests/test_engine_dynamiqs.py": "93e14b10e35acea694836b57a41f80b27b80d4d02b51498dbda2055d52420c80",
         "tests/test_engine_interface.py": "bc01d23b67f8721e51d6bd4cc0114072c2e46958a3f3f9ddfb39f4745c02599d",
         "tests/test_engine_selection.py": "9f1551000e015c23deed4c14642990b6b574534005e7245d02e27a3e5bd03031",
+        "uv.lock": "842ae462791945b7960e3f73d383718e036bc63912c92367507dc9b8b30e1d95"
+      }
+    },
+    "583c483ad13dcb03924dc59066366b833d8f04e6c961ab24f303d760f02125b4": {
+      "dirty": true,
+      "git_revision": "962bf5a6b7eda33b371acccae69e21c75f5fc667",
+      "sources_sha256": {
+        ".github/workflows/ci.yml": "d9d0d2d4ca734bd00e4638161d71952a95defcac4437fcb40212fdabcf72eb9b",
+        ".gitignore": "4cd2419087e36708c8de263c947feea16fa14aaaade0efe5e208fd13c3fef360",
+        "examples/cpu_reference.py": "9083356125b4cbf18d985c7897027d0d89308d4ecee356c0bee49c3b6c7e6fd6",
+        "examples/differentiable_reference.py": "83e818f4d05be6c549dc97f773e50700c766c4c6932009efe64c85cf25fcb75f",
+        "examples/dynamics_reference.py": "0777e41d9c7e0eefb74949d2ed46bc65adee9d4382386abb2e5e96db1f397269",
+        "examples/fluxonium/system.toml": "b0cbe8d43003b3ee9bdb2978f36f111eaf6827f47ae340a7b946a1cad2d462a9",
+        "examples/junction-shunt/system.toml": "d610d0ee4d2b93da493b2c79cbef9bc8f67908255538a0fc9fb6bc37684ee5b3",
+        "examples/lc-circuit/system.toml": "2ff686dcdd4a99cc8bfc810dda920bdc9af2ade896ce81f9cee7e21b058eac8b",
+        "examples/lossy-oscillator/operators.npz": "1f33b5668ed643847d2ce2254ccd5b26c9805319df9f58758e22c0f8c58ab291",
+        "examples/lossy-oscillator/system.toml": "ccdbd37344c3628a42f34b615666b64810bc18535dce3cec7824ba8c5ea2341c",
+        "examples/qubit-resonator/qubit.toml": "d610d0ee4d2b93da493b2c79cbef9bc8f67908255538a0fc9fb6bc37684ee5b3",
+        "examples/qubit-resonator/system.toml": "d11cf6281cd0d601276c0bb9e07aac898f911d3ad65a640e1877b2d0f81d49b7",
+        "examples/three-subsystem/system.toml": "8799f49e924bf7c8b795fdc00d2ef31444151059f941effa666f044f27dbc672",
+        "examples/two-level/operators.npz": "a96294008b1906b1cff303c807fbbcb9b6eee63b798f6bf2d387bbdff2d05e2d",
+        "examples/two-level/system.toml": "b18671724b034973deb6b18f9dad1ac40f6df9f83747806448f316e8ef724eba",
+        "examples/two-mode-circuit/system.toml": "609e64935482b65bb05ccf0eac8ed0309f4c038df441e25c523ad0f9a3a8a48f",
+        "src/entanglix/__init__.py": "d77804ece126364195813d429a120f0a8ddd7b98a83d3c9993c4eef566476fc8",
+        "src/entanglix/__main__.py": "59d02666708d36aa051f55b0cae80c3afc6069bdaa07beac86785363d27e66bb",
+        "src/entanglix/cli.py": "f4f16fbfe5d2be7e94978265e974d65cb3e11055904abfe04bb9f1d1cfca8662",
+        "src/entanglix/engines/__init__.py": "443a95efa0f4ef4806b61df8fe55d7d5e7369d29664328855d0f434c813f15bf",
+        "src/entanglix/engines/cudensitymat.py": "22e928e7ed7a20baeaa3c019eac0f2494d65d9928ee39432ee883570f81970f8",
+        "src/entanglix/engines/dynamiqs_jax.py": "94876ce74939c217ec6d2022b5cd997d1dd0ca3e5fb8a42ff3aea419aaaf0216",
+        "src/entanglix/engines/qutip_cpu.py": "8488bb770fa1622d2877c20f1a5d9e9199d5dc32fc7ea96b76bb1b25350a91e8",
+        "src/entanglix/engines/selection.py": "57e62c140b1da072f3393e01162291d3f08a65b64662c6222eff9b56823965fd",
+        "src/entanglix/engines/selection.toml": "86da729088556f570bf9500ea69aa4f98aa02dbe25119cf8f970f80440b84dc0",
+        "src/entanglix/evolution.py": "f8d75e2885678ff4347793742b97cb9b4bd2f49817ca84f60cff1967bc805a12",
+        "src/entanglix/models.py": "c67adcf1a53521ac742e63bb74051cf649a1a613dc55853a025710220b3a9b57",
+        "tests/conftest.py": "bf386f1d4d0eb3e734178d5ee84a34ad7946536376be7c644e4bcd64a97a1d4f",
+        "tests/engine_cases.py": "a1d5bbe744e333082f6f76f90cc300226375b0ddf27bf62b5fbebb493a125547",
+        "tests/probes/collect_m1_acceptance.py": "0e497f2ad08c7cb2eea50c10d900aeddb8696351c4586baceb54cfa016a1d70c",
+        "tests/test_engine_acceptance.py": "12c4bc62db9dd5d1c4b36149ec137505f74202b709ab9dca2ea1115a8a09a57f",
+        "tests/test_engine_cuquantum.py": "9f458ba7ef582306b363b5cad4beee6a289f4c72cd3c700e31aa9520b8db77bd",
+        "tests/test_engine_dynamiqs.py": "6855db45ce3d85144534bd1a01f29f77e4227f7c357a4dbbe47a1c7e1167bd55",
+        "tests/test_engine_interface.py": "be8946910ba21b09cd35e5429154519f5fd530a137cfbe80ebc0b2d7bbb6c56e",
+        "tests/test_engine_selection.py": "1c8121234f2b0dc4192c8d7d539d8926d4eb741c5a7e0e16600651c73424e95a",
         "uv.lock": "842ae462791945b7960e3f73d383718e036bc63912c92367507dc9b8b30e1d95"
       }
     },
@@ -626,6 +669,48 @@
         "tests/test_engine_dynamiqs.py": "93e14b10e35acea694836b57a41f80b27b80d4d02b51498dbda2055d52420c80",
         "tests/test_engine_interface.py": "bc01d23b67f8721e51d6bd4cc0114072c2e46958a3f3f9ddfb39f4745c02599d",
         "tests/test_engine_selection.py": "205aeec01ecc4c7204d433c9bf8907c6a367eb3c1a9546ea577fda70ab371853",
+        "uv.lock": "842ae462791945b7960e3f73d383718e036bc63912c92367507dc9b8b30e1d95"
+      }
+    },
+    "e25d78370b3797f3668e65d41a966ef3f46e0997f6fcf28ba44e11ceb7f9f0a4": {
+      "dirty": true,
+      "git_revision": "962bf5a6b7eda33b371acccae69e21c75f5fc667",
+      "sources_sha256": {
+        ".github/workflows/ci.yml": "d9d0d2d4ca734bd00e4638161d71952a95defcac4437fcb40212fdabcf72eb9b",
+        ".gitignore": "4cd2419087e36708c8de263c947feea16fa14aaaade0efe5e208fd13c3fef360",
+        "examples/cpu_reference.py": "9083356125b4cbf18d985c7897027d0d89308d4ecee356c0bee49c3b6c7e6fd6",
+        "examples/differentiable_reference.py": "83e818f4d05be6c549dc97f773e50700c766c4c6932009efe64c85cf25fcb75f",
+        "examples/dynamics_reference.py": "0777e41d9c7e0eefb74949d2ed46bc65adee9d4382386abb2e5e96db1f397269",
+        "examples/fluxonium/system.toml": "b0cbe8d43003b3ee9bdb2978f36f111eaf6827f47ae340a7b946a1cad2d462a9",
+        "examples/junction-shunt/system.toml": "d610d0ee4d2b93da493b2c79cbef9bc8f67908255538a0fc9fb6bc37684ee5b3",
+        "examples/lc-circuit/system.toml": "2ff686dcdd4a99cc8bfc810dda920bdc9af2ade896ce81f9cee7e21b058eac8b",
+        "examples/lossy-oscillator/operators.npz": "1f33b5668ed643847d2ce2254ccd5b26c9805319df9f58758e22c0f8c58ab291",
+        "examples/lossy-oscillator/system.toml": "ccdbd37344c3628a42f34b615666b64810bc18535dce3cec7824ba8c5ea2341c",
+        "examples/qubit-resonator/qubit.toml": "d610d0ee4d2b93da493b2c79cbef9bc8f67908255538a0fc9fb6bc37684ee5b3",
+        "examples/qubit-resonator/system.toml": "d11cf6281cd0d601276c0bb9e07aac898f911d3ad65a640e1877b2d0f81d49b7",
+        "examples/three-subsystem/system.toml": "8799f49e924bf7c8b795fdc00d2ef31444151059f941effa666f044f27dbc672",
+        "examples/two-level/operators.npz": "a96294008b1906b1cff303c807fbbcb9b6eee63b798f6bf2d387bbdff2d05e2d",
+        "examples/two-level/system.toml": "b18671724b034973deb6b18f9dad1ac40f6df9f83747806448f316e8ef724eba",
+        "examples/two-mode-circuit/system.toml": "609e64935482b65bb05ccf0eac8ed0309f4c038df441e25c523ad0f9a3a8a48f",
+        "src/entanglix/__init__.py": "d77804ece126364195813d429a120f0a8ddd7b98a83d3c9993c4eef566476fc8",
+        "src/entanglix/__main__.py": "59d02666708d36aa051f55b0cae80c3afc6069bdaa07beac86785363d27e66bb",
+        "src/entanglix/cli.py": "f4f16fbfe5d2be7e94978265e974d65cb3e11055904abfe04bb9f1d1cfca8662",
+        "src/entanglix/engines/__init__.py": "ca64b34fd79ad801c725c1826f77dc4420a20e7ad244c40712a7cb35e2a1fdf6",
+        "src/entanglix/engines/cudensitymat.py": "22e928e7ed7a20baeaa3c019eac0f2494d65d9928ee39432ee883570f81970f8",
+        "src/entanglix/engines/dynamiqs_jax.py": "94876ce74939c217ec6d2022b5cd997d1dd0ca3e5fb8a42ff3aea419aaaf0216",
+        "src/entanglix/engines/qutip_cpu.py": "8488bb770fa1622d2877c20f1a5d9e9199d5dc32fc7ea96b76bb1b25350a91e8",
+        "src/entanglix/engines/selection.py": "57e62c140b1da072f3393e01162291d3f08a65b64662c6222eff9b56823965fd",
+        "src/entanglix/engines/selection.toml": "86da729088556f570bf9500ea69aa4f98aa02dbe25119cf8f970f80440b84dc0",
+        "src/entanglix/evolution.py": "f8d75e2885678ff4347793742b97cb9b4bd2f49817ca84f60cff1967bc805a12",
+        "src/entanglix/models.py": "c67adcf1a53521ac742e63bb74051cf649a1a613dc55853a025710220b3a9b57",
+        "tests/conftest.py": "bf386f1d4d0eb3e734178d5ee84a34ad7946536376be7c644e4bcd64a97a1d4f",
+        "tests/engine_cases.py": "a1d5bbe744e333082f6f76f90cc300226375b0ddf27bf62b5fbebb493a125547",
+        "tests/probes/collect_m1_acceptance.py": "0e497f2ad08c7cb2eea50c10d900aeddb8696351c4586baceb54cfa016a1d70c",
+        "tests/test_engine_acceptance.py": "12c4bc62db9dd5d1c4b36149ec137505f74202b709ab9dca2ea1115a8a09a57f",
+        "tests/test_engine_cuquantum.py": "9f458ba7ef582306b363b5cad4beee6a289f4c72cd3c700e31aa9520b8db77bd",
+        "tests/test_engine_dynamiqs.py": "6855db45ce3d85144534bd1a01f29f77e4227f7c357a4dbbe47a1c7e1167bd55",
+        "tests/test_engine_interface.py": "be8946910ba21b09cd35e5429154519f5fd530a137cfbe80ebc0b2d7bbb6c56e",
+        "tests/test_engine_selection.py": "1c8121234f2b0dc4192c8d7d539d8926d4eb741c5a7e0e16600651c73424e95a",
         "uv.lock": "842ae462791945b7960e3f73d383718e036bc63912c92367507dc9b8b30e1d95"
       }
     }
@@ -787,6 +872,76 @@
       "tests": 121,
       "timestamps": [
         "2026-09-30T03:29:45.012754-05:00"
+      ]
+    },
+    {
+      "command": "UV_CACHE_DIR=/tmp/entanglix-uv-cache UV_PROJECT_ENVIRONMENT=/tmp/entanglix-m1-cpu-check MPLCONFIGDIR=/tmp/entanglix-mpl OPENBLAS_NUM_THREADS=1 uv run --locked --exact pytest -q -o junit_family=legacy --junitxml=/tmp/entanglix-m1-layout-cpu.xml",
+      "errors": 0,
+      "failures": 0,
+      "label": "layout-default-cpu",
+      "seconds": 22.625,
+      "skipped": 33,
+      "source_snapshot": "583c483ad13dcb03924dc59066366b833d8f04e6c961ab24f303d760f02125b4",
+      "source_snapshot_scope": "sources collected after this run",
+      "tests": 121,
+      "timestamps": [
+        "2026-09-30T03:36:49.250055-05:00"
+      ]
+    },
+    {
+      "command": "UV_CACHE_DIR=/tmp/entanglix-uv-cache UV_PROJECT_ENVIRONMENT=/tmp/entanglix-m1-cpu-check MPLCONFIGDIR=/tmp/entanglix-mpl OPENBLAS_NUM_THREADS=1 JAX_PLATFORMS=cpu XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact --extra differentiable pytest -q tests/test_engine_dynamiqs.py tests/test_engine_acceptance.py -m 'not gpu' -k 'dynamiqs or gradient' -o junit_family=legacy --junitxml=/tmp/entanglix-m1-layout-cpu-jax.xml",
+      "errors": 0,
+      "failures": 0,
+      "label": "layout-cpu-jax",
+      "seconds": 29.13,
+      "skipped": 0,
+      "source_snapshot": "583c483ad13dcb03924dc59066366b833d8f04e6c961ab24f303d760f02125b4",
+      "source_snapshot_scope": "sources collected after this run",
+      "tests": 11,
+      "timestamps": [
+        "2026-09-30T03:39:10.531379-05:00"
+      ]
+    },
+    {
+      "command": "UV_CACHE_DIR=/tmp/entanglix-uv-cache MPLCONFIGDIR=/tmp/entanglix-mpl OPENBLAS_NUM_THREADS=1 XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact --extra cuquantum --extra differentiable-cuda12 pytest -q tests/test_engine_cuquantum.py -k matches_cpu_for_open_piecewise_and_composite -m gpu --require-gpu -o junit_family=legacy --junitxml=/tmp/entanglix-m1-layout-cu.xml",
+      "errors": 0,
+      "failures": 0,
+      "label": "layout-cudensitymat-smoke",
+      "seconds": 1.765,
+      "skipped": 0,
+      "source_snapshot": "583c483ad13dcb03924dc59066366b833d8f04e6c961ab24f303d760f02125b4",
+      "source_snapshot_scope": "sources collected after this run",
+      "tests": 1,
+      "timestamps": [
+        "2026-09-30T03:37:54.414227-05:00"
+      ]
+    },
+    {
+      "command": "UV_CACHE_DIR=/tmp/entanglix-uv-cache MPLCONFIGDIR=/tmp/entanglix-mpl OPENBLAS_NUM_THREADS=1 XLA_PYTHON_CLIENT_PREALLOCATE=false JAX_PLATFORMS=cuda,cpu uv run --locked --exact --extra cuquantum --extra differentiable-cuda12 pytest -q tests/test_engine_dynamiqs.py -k matches_cpu_for_open_piecewise_and_composite -m gpu --require-gpu -o junit_family=legacy --junitxml=/tmp/entanglix-m1-layout-dq.xml",
+      "errors": 0,
+      "failures": 0,
+      "label": "layout-dynamiqs-smoke",
+      "seconds": 8.728,
+      "skipped": 0,
+      "source_snapshot": "583c483ad13dcb03924dc59066366b833d8f04e6c961ab24f303d760f02125b4",
+      "source_snapshot_scope": "sources collected after this run",
+      "tests": 1,
+      "timestamps": [
+        "2026-09-30T03:40:25.957120-05:00"
+      ]
+    },
+    {
+      "command": "UV_PROJECT_ENVIRONMENT=/tmp/claude-1000/-home-paimon-Projects-Entanglix/380ea22c-3662-4b2d-b342-3cdab7193cb3/scratchpad/env-cpu OPENBLAS_NUM_THREADS=1 uv run --locked --exact pytest -q -p no:cacheprovider -o junit_family=legacy --junitxml=/tmp/claude-1000/-home-paimon-Projects-Entanglix/380ea22c-3662-4b2d-b342-3cdab7193cb3/scratchpad/imports-cpu.xml",
+      "errors": 0,
+      "failures": 0,
+      "label": "import-style-default-cpu",
+      "seconds": 22.738,
+      "skipped": 33,
+      "source_snapshot": "e25d78370b3797f3668e65d41a966ef3f46e0997f6fcf28ba44e11ceb7f9f0a4",
+      "source_snapshot_scope": "sources collected after this run",
+      "tests": 121,
+      "timestamps": [
+        "2026-09-30T03:46:06.828343-05:00"
       ]
     }
   ]

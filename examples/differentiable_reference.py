@@ -6,8 +6,8 @@ from pathlib import Path
 import jax
 import numpy as np
 
-from entanglix.engine_dynamiqs import DynamiqsIntegrator
 from entanglix.engines import EvolutionInput, QuTiPIntegrator
+from entanglix.engines.dynamiqs_jax import DynamiqsIntegrator
 from entanglix.models import load_system
 
 parser = argparse.ArgumentParser(description=__doc__)
