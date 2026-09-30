@@ -108,15 +108,15 @@ The [M1 guide](m1-guide.md) develops both blocks as one implementation plan. Its
 
 **Depends on:** Block 1.
 
-- [ ] `Integrator` protocol with `capabilities()`
-- [ ] QuTiP CPU reference engine
-- [ ] cuDensityMat engine via `qutip-cuquantum`
-- [ ] dynamiqs engine
-- [ ] Wrap CPU factorized terms and select Dense/Dia storage in the cuDensityMat adapter; reimplement the unreleased scqubits selection rule and check the threshold on the RTX 5090
-- [ ] Cross-engine agreement tests at reference size (closed, open, time-dependent drive); dissipative fixtures populate affected states and show measurable loss, with `γT` around `0.1–1`
+- [x] `Integrator` protocol with `capabilities()` and shared evolution input/result ([interface](../src/entanglix/evolution.py), [CPU tests](../tests/test_engine_interface.py))
+- [x] QuTiP CPU reference engine ([implementation](../src/entanglix/engines.py), [analytic tests](../tests/test_composition.py), [exact Liouvillian regression](../tests/test_engine_interface.py))
+- [x] cuDensityMat engine via `qutip-cuquantum` ([adapter](../src/entanglix/engine_cuquantum.py), [GPU tests](../tests/test_engine_cuquantum.py))
+- [x] dynamiqs engine on CPU and GPU ([adapter](../src/entanglix/engine_dynamiqs.py), [CPU/GPU tests](../tests/test_engine_dynamiqs.py)); gradient support remains open below
+- [x] Wrap CPU factorized terms and select Dense/Dia storage in the cuDensityMat adapter; diagonal, narrow-band, dense, and factorized composite states agree with a CPU reference on the RTX 5090 ([GPU tests](../tests/test_engine_cuquantum.py), [storage evidence](environment.md#compatibility-result)); performance thresholds remain separate
+- [ ] Cross-engine agreement for the required two-level, driven/lossy oscillator, and populated qubit–resonator fixtures, including loss-disabled comparisons and closed/open/time-dependent evolution; dissipative cases have `γT` around `0.1–1` ([fixture matrix](m1-guide.md#6-scientific-fixture-and-acceptance-matrix), [cuDensityMat tests](../tests/test_engine_cuquantum.py), [dynamiqs tests](../tests/test_engine_dynamiqs.py))
 - [ ] Nonzero evolution gradient agrees with an analytic/finite-difference reference; integration refinement and trace/Hermiticity/positivity checks meet the pinned tolerances
-- [ ] Required-GPU acceptance identifies the actual engines and devices used
-- [ ] Verified environment pins in `uv.lock` and observations in `docs/environment.md`: GPU, driver, CUDA, cuQuantum, Python, and engine packages; hashing follows with the runner
+- [x] Required-GPU adapter tests identify the actual engines and RTX 5090 devices; skipped required-GPU tests fail ([test hook](../tests/conftest.py), [GPU tests](../tests/test_engine_cuquantum.py), [GPU/CPU dynamiqs tests](../tests/test_engine_dynamiqs.py))
+- [x] Verified optional engine pins in [`uv.lock`](../uv.lock) and [environment observations](environment.md): GPU, driver, CUDA, cuQuantum, Python, and engine packages; hashing follows with the runner
 - [ ] Versioned engine-selection table (contract §2); configured memory/size limits; declared fallbacks recorded without silently changing required capabilities; advertise only implemented/tested capabilities (`batched = false` until sweep batching is validated)
 - [ ] Applicable quality evidence recorded
 - [ ] **Done:** required agreement, gradient, storage, and refinement checks pass with retained commands/results and actual GPU evidence from CI or a documented manual run; all M1 acceptance items above are satisfied

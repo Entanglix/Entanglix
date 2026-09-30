@@ -28,6 +28,24 @@ def test_lc_component_conversion_matches_resonance_formula():
     assert {"charge", "phase"} <= model.operators.keys()
 
 
+def test_harmonic_cutoff_keeps_retained_levels_below_spurious_state(tmp_path):
+    expected_ghz = 1 / (2 * pi * np.sqrt(80e-15 * 12e-9)) / 1e9
+    with pytest.raises(SpecError, match="theta1 = 30 gives at most 15 usable levels"):
+        load_system(_variant(tmp_path, "lc-circuit", "retained_levels = 6", "retained_levels = 16"))
+    # At N = 2 × retained_levels, the spurious index N/2 is just outside the spectrum.
+    boundary = load_system(
+        _variant(
+            tmp_path,
+            "lc-circuit",
+            "theta1 = 30 }\nretained_levels = 6",
+            "theta1 = 32 }\nretained_levels = 16",
+        )
+    )
+    np.testing.assert_allclose(
+        np.diff(np.diag(boundary.hamiltonian_ghz).real), expected_ghz, rtol=1e-10
+    )
+
+
 def test_lc_operators_follow_node_orientation():
     model = load_system(ROOT / "lc-circuit/system.toml")
     ec = e**2 / (2 * h * 80e-15 * 1e9)

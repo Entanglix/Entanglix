@@ -474,6 +474,15 @@ def _construct_circuit(spec: SystemSpec):
                 setattr(circuit, f"cutoff_n_{index}", cutoff)
             else:
                 setattr(circuit, f"cutoff_ext_{index}", cutoff)
+        # scqubits' truncated harmonic construction adds a spurious state at index N/2.
+        for index in categories["extended"]:
+            cutoff = truncation.cutoffs[f"theta{index}"]
+            if truncation.retained_levels > cutoff // 2:
+                raise SpecError(
+                    f"truncation: harmonic cutoff theta{index} = {cutoff} gives at most "
+                    f"{cutoff // 2} usable levels; set theta{index} to at least "
+                    f"{2 * truncation.retained_levels}"
+                )
         basis_size = math.prod(
             2 * truncation.cutoffs[f"theta{index}"] + 1
             if index in categories["periodic"]

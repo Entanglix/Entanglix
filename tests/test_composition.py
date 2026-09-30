@@ -200,7 +200,7 @@ def test_transmon_constructor_keeps_conventional_ng(tmp_path):
     )
 
 
-def test_constant_drive_uses_ghz_once():
+def test_constant_and_piecewise_drives_use_ghz_once():
     model = load_system(TWO_LEVEL)
     model = replace(model, hamiltonian_ghz=np.zeros((2, 2)), dissipators={})
     initial = np.array([1, 0])
@@ -214,8 +214,17 @@ def test_constant_drive_uses_ghz_once():
         drive_amplitudes_ghz={"x_drive": 0.125},
     )
     np.testing.assert_allclose(constant.expectations["excited"].real, [0, 0.5, 1], atol=2e-8)
-    with pytest.raises(EvolutionInputError, match="finite scalar"):
-        evolve_cpu(model, initial, times, drive_amplitudes_ghz={"x_drive": [0.125, 0.0]})
+    piecewise = evolve_cpu(
+        model,
+        initial,
+        times,
+        observables={"excited": excited},
+        drive_amplitudes_ghz={"x_drive": np.array([0.125, 0.0])},
+    )
+    np.testing.assert_allclose(piecewise.expectations["excited"].real, [0, 0.5, 0.5], atol=2e-8)
+    assert piecewise.diagnostics["segments"] == 2
+    with pytest.raises(EvolutionInputError, match="one value per output interval"):
+        evolve_cpu(model, initial, times, drive_amplitudes_ghz={"x_drive": [0.125]})
 
 
 def test_nonhermitian_interaction_requires_conjugate(tmp_path):

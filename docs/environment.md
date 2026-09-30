@@ -1,6 +1,6 @@
 # GPU Environment
 
-Initial compatibility was demonstrated on 2026-09-29 with Python 3.13.12 and both GPU dynamics stacks. The supported Entanglix release still provides the CPU foundation; these observations establish a starting environment for engine integration, not full engine conformance.
+Initial compatibility was demonstrated on 2026-09-29 with Python 3.13.12 and both GPU dynamics stacks. The project now locks optional cuDensityMat and dynamiqs dependencies and tests the adapters on this workstation. These observations establish reference-size integration, not full engine conformance or a performance claim.
 
 ## Observed workstation and packages
 
@@ -19,7 +19,7 @@ Initial compatibility was demonstrated on 2026-09-29 with Python 3.13.12 and bot
 | JAX / jaxlib / CUDA plugin / CUDA PJRT | 0.6.2 |
 | NumPy / SciPy | 2.5.3 / 1.18.1 |
 
-The driver API value and loaded runtime identify different components. All Python dependencies were installed in a disposable environment, using `qutip-cuquantum[cuda12]` and `jax[cuda12]`; the full observed package snapshot is [m1_gpu.requirements.txt](../tests/probes/m1_gpu.requirements.txt). Project dependency integration follows when the corresponding capabilities are implemented.
+The driver API value and loaded runtime identify different components. The initial compatibility probe used a disposable environment with `qutip-cuquantum[cuda12]` and `jax[cuda12]`; its full package snapshot is [m1_gpu.requirements.txt](../tests/probes/m1_gpu.requirements.txt). The project extras `cuquantum`, `differentiable-cuda12`, and CPU-only `differentiable` are now resolved in `uv.lock`. An exact sync prevents stray installed packages from influencing a run.
 
 Dynamiqs 0.3.6 with JAX 0.11.2 and jaxtyping 0.3.11 failed at import with `TypeError: unsupported operand type(s) for |: 'types.UnionType' and 'str'` in its nested `QArrayLike` definition. JAX 0.6.2 resolved that failure and passed the GPU solve on the same Python version. This tested combination supports retaining Python 3.13.
 
@@ -32,7 +32,21 @@ The [probe](../tests/probes/m1_gpu.py) evolves an initially excited two-level sy
 | cuDensityMat through qutip-cuquantum / CuVern7 | `9.7244e-13` | `0` | `CuState` backed by a CuPy array on CUDA device 0; RTX 5090 identity queried |
 | dynamiqs / Tsit5 | `1.0738e-10` | `0` | Returned complex128 state arrays on `cuda:0`; RTX 5090 identity queried |
 
-[The retained JSON result](../tests/probes/m1_gpu_results.json) records all installed package versions, device identities, times, populations, solver settings, residuals, and execution timestamp. The engines ran sequentially in separate processes. This case establishes basic installation and GPU execution; driven cases, gradients, model refinement, storage thresholds, and engine-selection limits require their own validation.
+[The retained JSON result](../tests/probes/m1_gpu_results.json) records all installed package versions, device identities, times, populations, solver settings, residuals, and execution timestamp for the initial probe. The engines ran sequentially in separate processes.
+
+The [cuDensityMat](../tests/test_engine_cuquantum.py) and [dynamiqs](../tests/test_engine_dynamiqs.py) adapter suites passed on the RTX 5090 on 2026-09-30. Small closed, dissipative, and piecewise-driven density matrices agree with QuTiP at a `1e-6` Frobenius limit; complex initial coherences exercise state layout. All three adapters also pass a `1e-7` exact-Liouvillian comparison on the qubit–resonator over 0–10 ns with 1 ns output spacing and a seeded random complex initial state ([reference construction](../tests/conftest.py), [CPU test](../tests/test_engine_interface.py), [numerical rationale](operations/system-spec.md#numerical-checks-for-the-bundled-models)). This uses the default `rtol = 1e-10`, `atol = 1e-12`, and `max_steps = 100_000`; the resonator-loss rate gives `γT = 0.1`. The full cross-engine oscillator and populated-resonator/loss-disabled fixture matrix, gradient verification, integration refinement, and dispatch limits still need validation.
+
+cuDensityMat storage tests compare evolved states with QuTiP below `1e-7` for diagonal, narrow-band, and dense operators, and compare factorized composites with the CPU and exact references. Dense is selected at 16 levels, Dia becomes `MultidiagonalOperator` at 17 levels (diagonal and banded), and a wide 20-level operator becomes `DenseOperator`. These checks establish functional selection on this stack; they do not measure a performance crossover.
+
+Run the GPU adapter tests in separate processes after exact synchronization of both extras:
+
+```sh
+uv sync --locked --exact --extra cuquantum --extra differentiable-cuda12
+XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact --extra cuquantum --extra differentiable-cuda12 pytest -q tests/test_engine_cuquantum.py --require-gpu
+XLA_PYTHON_CLIENT_PREALLOCATE=false JAX_PLATFORMS=cuda,cpu uv run --locked --exact --extra cuquantum --extra differentiable-cuda12 pytest -q tests/test_engine_dynamiqs.py -m gpu --require-gpu
+```
+
+For the CPU-only dynamiqs check, use `JAX_PLATFORMS=cpu uv run --locked --exact --extra differentiable pytest -q tests/test_engine_dynamiqs.py::test_dynamiqs_cpu_matches_reference`. `--require-gpu` turns missing devices and skipped GPU tests into failures. The GPU suites assert the engine and actual device identity; this workstation reports an RTX 5090.
 
 ## Reproduce from a source checkout
 

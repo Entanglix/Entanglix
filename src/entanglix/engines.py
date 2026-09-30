@@ -1,25 +1,91 @@
-"""Reference-sized deterministic evolution through QuTiP on the CPU."""
+"""QuTiP CPU reference evolution and the shared engine interface."""
 
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass
 
 import numpy as np
 import qutip as qt
 
+from entanglix.evolution import (
+    EngineCapabilities,
+    EvolutionInput,
+    EvolutionInputError,
+    EvolutionResult,
+    Integrator,
+    expectations_from_states,
+    normalize_input,
+)
 from entanglix.models import ConstructedSystem
 
 
-class EvolutionInputError(ValueError):
-    """Invalid initial state, observable, time grid, or solver tolerance."""
+class QuTiPIntegrator:
+    def capabilities(self) -> EngineCapabilities:
+        return EngineCapabilities("qutip-cpu", "cpu", True, False)
 
+    def evolve(self, system: ConstructedSystem, request: EvolutionInput) -> EvolutionResult:
+        normalized = normalize_input(system, request)
+        dimensions = list(system.dimensions)
+        qdims = [dimensions, dimensions]
+        state = qt.Qobj(normalized.initial_density, dims=qdims)
+        collapse = [
+            qt.Qobj(math.sqrt(rate) * operator, dims=qdims)
+            for operator, rate in system.dissipators.values()
+            if rate > 0
+        ]
 
-@dataclass(frozen=True)
-class EvolutionResult:
-    times_ns: np.ndarray
-    states: tuple[np.ndarray, ...]
-    expectations: dict[str, np.ndarray]
+        def hamiltonian(amplitudes: dict[str, float]) -> qt.Qobj:
+            matrix = np.array(system.hamiltonian_ghz, dtype=np.complex128, copy=True)
+            for name, amplitude in amplitudes.items():
+                matrix += amplitude * system.drives[name]
+            return qt.Qobj(2 * np.pi * matrix, dims=qdims)
+
+        options = {
+            "method": "vern9",
+            "rtol": normalized.rtol,
+            "atol": normalized.atol,
+            "nsteps": normalized.max_steps,
+            "store_states": True,
+            "normalize_output": False,
+        }
+        if normalized.piecewise:
+            # Restart at each boundary; the value on [t_i, t_{i+1}) is index i.
+            states = [normalized.initial_density]
+            for index in range(len(normalized.times_ns) - 1):
+                segment = qt.mesolve(
+                    hamiltonian(normalized.amplitudes_for_interval(index)),
+                    state,
+                    normalized.times_ns[index : index + 2],
+                    c_ops=collapse,
+                    options=options,
+                )
+                state = segment.states[-1]
+                states.append(state.full())
+        else:
+            solved = qt.mesolve(
+                hamiltonian(normalized.amplitudes_for_interval(0)),
+                state,
+                normalized.times_ns,
+                c_ops=collapse,
+                options=options,
+            )
+            states = [item.full() for item in solved.states]
+        state_arrays = tuple(states)
+        return EvolutionResult(
+            times_ns=normalized.times_ns,
+            states=state_arrays,
+            expectations=expectations_from_states(state_arrays, normalized.observables),
+            dimensions=system.dimensions,
+            engine="qutip-cpu",
+            method="vern9",
+            dtype="complex128",
+            device="cpu",
+            diagnostics={
+                "segments": len(normalized.times_ns) - 1 if normalized.piecewise else 1,
+                "max_steps": normalized.max_steps,
+                "step_limit_scope": "per_output_interval",
+            },
+        )
 
 
 def evolve_cpu(
@@ -28,84 +94,32 @@ def evolve_cpu(
     times_ns: np.ndarray,
     *,
     observables: dict[str, np.ndarray] | None = None,
-    drive_amplitudes_ghz: dict[str, float] | None = None,
+    drive_amplitudes_ghz: dict[str, float | np.ndarray] | None = None,
     rtol: float = 1e-10,
     atol: float = 1e-12,
+    max_steps: int = 100_000,
 ) -> EvolutionResult:
-    """Evolve a small model with optional constant drive amplitudes."""
-    times = np.asarray(times_ns, dtype=float)
-    if (
-        times.ndim != 1
-        or len(times) < 2
-        or not np.all(np.isfinite(times))
-        or not np.all(np.diff(times) > 0)
-        or not np.allclose(np.diff(times), times[1] - times[0], rtol=1e-10, atol=1e-12)
-    ):
-        raise EvolutionInputError("times_ns must be a finite, increasing uniform grid")
-    if not (math.isfinite(rtol) and math.isfinite(atol) and rtol > 0 and atol > 0):
-        raise EvolutionInputError("solver tolerances must be positive and finite")
-    dimension = int(np.prod(system.dimensions))
-    initial = np.asarray(initial_state, dtype=np.complex128)
-    if not np.all(np.isfinite(initial)):
-        raise EvolutionInputError("initial state must contain finite values")
-    if initial.shape == (dimension,):
-        if not np.isclose(np.vdot(initial, initial), 1, rtol=0, atol=1e-10):
-            raise EvolutionInputError("initial ket must have unit norm")
-        initial = np.outer(initial, initial.conj())
-    elif initial.shape == (dimension, dimension):
-        if not np.allclose(initial, initial.conj().T, atol=1e-10):
-            raise EvolutionInputError("initial density matrix must be Hermitian")
-        if not np.isclose(np.trace(initial), 1, rtol=0, atol=1e-10):
-            raise EvolutionInputError("initial density matrix must have unit trace")
-        if np.linalg.eigvalsh(initial).min() < -1e-10:
-            raise EvolutionInputError("initial density matrix must be positive semidefinite")
-    else:
-        raise EvolutionInputError(
-            f"initial state must be a ket ({dimension},) or density matrix ({dimension}, {dimension})"
-        )
-    qdims = [list(system.dimensions), list(system.dimensions)]
-    q_observables = {}
-    for name, array in (observables or {}).items():
-        data = np.asarray(array, dtype=np.complex128)
-        if data.shape != (dimension, dimension) or not np.all(np.isfinite(data)):
-            raise EvolutionInputError(
-                f"observable {name!r} must be a finite ({dimension}, {dimension}) matrix"
-            )
-        q_observables[name] = qt.Qobj(data, dims=qdims)
-    hamiltonian = np.array(system.hamiltonian_ghz, dtype=np.complex128, copy=True)
-    for name, amplitude in (drive_amplitudes_ghz or {}).items():
-        if name not in system.drives:
-            raise EvolutionInputError(f"unknown drive {name!r}; available: {sorted(system.drives)}")
-        try:
-            values = np.asarray(amplitude, dtype=float)
-        except (TypeError, ValueError) as exc:
-            raise EvolutionInputError(
-                f"drive {name!r} amplitude must be a finite scalar GHz value"
-            ) from exc
-        if values.ndim != 0 or not np.isfinite(values):
-            raise EvolutionInputError(f"drive {name!r} amplitude must be a finite scalar GHz value")
-        hamiltonian += float(values) * system.drives[name]
-    collapse = [
-        qt.Qobj(math.sqrt(rate) * operator, dims=qdims)
-        for operator, rate in system.dissipators.values()
-        if rate > 0
-    ]
-    result = qt.mesolve(
-        qt.Qobj(2 * np.pi * hamiltonian, dims=qdims),
-        qt.Qobj(initial, dims=qdims),
-        times,
-        c_ops=collapse,
-        e_ops=q_observables,
-        options={
-            "method": "adams",
-            "rtol": rtol,
-            "atol": atol,
-            "store_states": True,
-            "normalize_output": False,
-        },
+    """Evolve a small model on the CPU with constant or interval-valued drives."""
+    return QuTiPIntegrator().evolve(
+        system,
+        EvolutionInput(
+            initial_state,
+            times_ns,
+            observables or {},
+            drive_amplitudes_ghz or {},
+            rtol,
+            atol,
+            max_steps,
+        ),
     )
-    return EvolutionResult(
-        times_ns=times,
-        states=tuple(state.full() for state in result.states),
-        expectations={name: np.asarray(value) for name, value in zip(q_observables, result.expect)},
-    )
+
+
+__all__ = [
+    "EngineCapabilities",
+    "EvolutionInput",
+    "EvolutionInputError",
+    "EvolutionResult",
+    "Integrator",
+    "QuTiPIntegrator",
+    "evolve_cpu",
+]

@@ -1,4 +1,4 @@
-name: CPU foundation
+name: CPU checks
 
 on:
   push:
@@ -18,7 +18,22 @@ jobs:
           version: "0.12.0"
           enable-cache: true
       - run: uv python install
-      - run: uv sync --locked
-      - run: uv run --locked ruff check .
-      - run: uv run --locked ruff format --check .
-      - run: uv run --locked pytest
+      - run: uv sync --locked --exact
+      - run: uv run --locked --exact ruff check .
+      - run: uv run --locked --exact ruff format --check .
+      - run: uv run --locked --exact pytest
+
+  dynamiqs-cpu:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      JAX_PLATFORMS: cpu
+      XLA_PYTHON_CLIENT_PREALLOCATE: "false"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.12.0"
+          enable-cache: true
+      - run: uv python install
+      - run: uv run --locked --exact --extra differentiable pytest -q tests/test_engine_dynamiqs.py::test_dynamiqs_cpu_matches_reference

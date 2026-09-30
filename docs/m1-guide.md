@@ -167,7 +167,7 @@ CPU/GPU agreement does not establish physical-device accuracy. State assumptions
 
 ## 7. Dependencies, layout, and validation execution
 
-Keep the single installable project. Add CPU modeling dependencies when the model adapter needs them, and GPU/differentiable dependencies through optional extras. Proposed extras are `differentiable` and `cuquantum`; exact package/version compatibility and whether CUDA support needs a separate extra are resolved by the GPU probe. qutip-cuquantum already declares `cuda12` and `cuda13` extras; depend on the one matching the observed stack rather than duplicating upstream CuPy/cuQuantum dependency declarations. [Upstream dependency metadata](https://github.com/qutip/qutip-cuquantum/blob/main/pyproject.toml)
+Keep the single installable project. CPU modeling dependencies live in the default install. The locked optional extras are `differentiable` for CPU JAX, `differentiable-cuda12` for GPU JAX, and `cuquantum` for qutip-cuquantum's CUDA 12 stack. [Upstream dependency metadata](https://github.com/qutip/qutip-cuquantum/blob/main/pyproject.toml)
 
 Preserve `import entanglix` and CPU tests without importing JAX, CuPy, scqubits, or QuTiP at the package root.
 
@@ -191,12 +191,13 @@ The RTX 5090 workstation is the accepted GPU target. Package compatibility, actu
 Proposed validation commands after the corresponding capabilities/extras exist:
 
 ```sh
-uv sync --locked
+uv sync --locked --exact
 uv run --locked --exact pytest -m "not gpu"
-uv run --locked ruff check .
-uv run --locked ruff format --check .
+uv run --locked --exact ruff check .
+uv run --locked --exact ruff format --check .
 uv run --locked --exact entanglix validate examples/qubit-resonator/system.toml
-uv run --locked --exact --extra differentiable --extra cuquantum pytest -m gpu --require-gpu
+XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact --extra differentiable-cuda12 --extra cuquantum pytest -q tests/test_engine_cuquantum.py --require-gpu
+XLA_PYTHON_CLIENT_PREALLOCATE=false JAX_PLATFORMS=cuda,cpu uv run --locked --exact --extra differentiable-cuda12 --extra cuquantum pytest -q tests/test_engine_dynamiqs.py -m gpu --require-gpu
 ```
 
 The GPU suite must assert the actual backend/device used. Missing required engines or initialization failures must fail required-GPU acceptance rather than become `importorskip` successes. Record executed cases and skips; the existing GPU marker alone does not prove all three engines ran. If JAX and cuQuantum initialization compete for memory or alter global settings, run the relevant test groups in separate processes and compare retained small references.
@@ -211,7 +212,7 @@ Record compilation/setup and steady-state costs separately if timing is reported
 | Evolution API details | Explicit initial state, observables, controls, output grid, solver settings, and typed result aligned with the Integrator contract | Before the first adapter; update the operational contract if its callable signature needs clarification |
 | Reference fixtures and numerical thresholds | Block 1 CPU limits are pinned in the operational model reference; settle the remaining §6 engine limits against independent CPU references | Before claiming cross-engine acceptance |
 | Dependency pins and device settings | One validated workstation stack; explicit double precision; lazy GPU loading and bounded memory use | First execution step before A; final GPU evidence completes Block 2 |
-| Storage and dispatch thresholds | Reimplement the unreleased Dense/Dia rule in the Block 2 adapter; retain CPU tensor factors; check thresholds on the target device | Block 2, before accepting GPU wrapping and the engine-selection table |
+| Storage and dispatch thresholds | Reimplement the unreleased Dense/Dia rule in the Block 2 adapter; retain CPU tensor factors; check thresholds on the target device. The step D cuDensityMat adapter is validated for correctness only; review its open-system operator construction and solver usage before setting thresholds | Block 2, before accepting GPU wrapping and the engine-selection table |
 
 These decisions implement the accepted mandate; they do not reopen Decision 0. Document supported conventions in `docs/operations/system-spec.md`; an ADR is useful when a consequential design choice needs retained rationale. Assign ADR numbers when records are created rather than reserving a number for later work.
 

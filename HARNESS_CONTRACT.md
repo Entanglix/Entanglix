@@ -1,6 +1,6 @@
 # Entanglix — Harness Contract
 
-**Date:** 2026-09-28 · **Status:** v0. Normative for each capability when available. Version 0.1.0 provides the CPU foundation only; research execution and MCP operations described below are not yet available. See [README.md](README.md) for current usage and availability.
+**Date:** 2026-09-28 · **Status:** v0. Normative for each capability when available. Current source provides CPU modeling and reference evolution plus optional GPU adapters; research execution and MCP operations described below are not yet available. See [README.md](README.md) for current usage and availability.
 
 **Audience:** research users, agents, and integrators. This contract is a retained operational part of the harness: it defines shared interfaces and execution guarantees. [Research-agent guidance](docs/research-agent.md) is a draft pending runtime integration; [ADRs](docs/adr/) retain decision history for optional consultation.
 
@@ -25,8 +25,9 @@ SolverBackend
   capabilities() -> {gradients: bool, constraints: [...], gpu: bool, problem_kinds: [...]}
   solve(problem_spec, system, budget) -> Solution{pulse, objective, certificate, trace}
 Integrator
-  capabilities() -> {differentiable: bool, open_system: bool, batched: bool}
-  evolve(system, controls, grid) -> trajectory
+  capabilities() -> {name: str, device_kind: "cpu" | "cuda",
+                     differentiable: bool, open_system: bool, batched: bool}
+  evolve(system, request: EvolutionInput) -> EvolutionResult
 ```
 
 Control uses amicode's ProblemSpec OSS schema; `solver.backend` records a string identifier. Entry-point groups are `entanglix.solvers` and `entanglix.integrators`. The repo ships open implementations: a GRAPE-style baseline and a Piccolo adapter through `amico-run`. Private implementations attach through discovery; repo code never imports them directly, and tests run with open implementations only.

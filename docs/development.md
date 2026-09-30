@@ -10,7 +10,7 @@ For maintainers and coding agents working on Entanglix. Root `AGENTS.md` and `CL
 
 ## Checks
 
-Run `uv sync --locked`, `uv run --locked pytest`, `uv run --locked ruff check .`, `uv run --locked ruff format --check .`, and `git diff --check` as appropriate to the change.
+Run `uv sync --locked --exact`, `uv run --locked --exact pytest`, `uv run --locked --exact ruff check .`, `uv run --locked --exact ruff format --check .`, and `git diff --check` as appropriate to the change. Add an optional extra only for checks that need it.
 
 ## Working rules
 
