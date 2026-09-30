@@ -1,6 +1,6 @@
 # M1 Guide — System Models and Numerical Engines
 
-**Status:** Draft implementation plan; no M1 capability or scientific result is claimed by this document. Concrete syntax, fixture values, numerical targets, and file names below are proposals for review.
+**Status:** Completed implementation guide. The [checklist](checklist.md#m1--model--engines-blocks-12) owns completion; the [operational reference](operations/system-spec.md) and [environment evidence](environment.md) own supported behavior and results. Fixture recommendations below record the implementation approach rather than a second acceptance authority.
 **Scope:** M1, covering Block 1 (System Spec and Model Adapter) and Block 2 (Engines v0).
 **Authority:** [roadmap](roadmap.md#block-1--system-spec-and-model-adapter), [accepted mandate](adr/0001-mandate.md#3-decision-0--foundation-choices), and [harness contract](../HARNESS_CONTRACT.md#1-objects-and-interfaces). [The checklist](checklist.md#m1--model--engines-blocks-12) owns completion status and acceptance evidence.
 **Audience:** the owner and implementation agents. This is a planning document; operational docs and production agents must work without it.
@@ -126,7 +126,7 @@ M1 sends shared CPU model inputs independently to each engine; it requires no cu
 
 Batch-versus-serial acceptance belongs with Block 5 sweeps. Until that capability is implemented and tested, the Entanglix adapter reports `batched = false`, and engine selection rejects requirements it cannot meet.
 
-The versioned engine-selection table follows contract §2. M1 tests may name each adapter to compare them; later research dispatch uses the table. Reference-size and memory thresholds need named units, conservative estimates, and fixture evidence before the table is accepted. Check density-matrix and workspace memory as well as Hamiltonian storage.
+The versioned engine-selection table follows contract §2. M1 tests name adapters to compare them; validated non-gradient selection defaults to CPU. The [operational policy](operations/system-spec.md#engine-selection-policy) defines size caps and known-array storage accounting. Solver workspace and peak memory require measurements alongside the cuDensityMat usage review before automatic GPU sweep selection; this work is tracked in Block 5.
 
 ## 6. Scientific fixture and acceptance matrix
 
@@ -150,16 +150,9 @@ For time-dependent tests, first define one constant and one piecewise-constant e
 
 For the differentiable lane, compare a nonzero derivative of a final expectation value with respect to a drive amplitude or a dissipative rate, using an analytic result when available and central finite differences at multiple step sizes. This demonstrates differentiation through evolution. Differentiation through scqubits quantization/eigendecomposition is outside the M1 claim. Dynamiqs provides examples of differentiating observables through evolution. [dynamiqs examples](https://www.dynamiqs.org/stable/documentation/getting_started/examples.html)
 
-### Proposed engine numerical targets
+### Pinned numerical targets
 
-The Block 1 CPU fixture thresholds and rationale are recorded in the [operational model reference](operations/system-spec.md#numerical-checks-for-the-bundled-models) and its linked tests. The remaining targets below are proposals for double-precision, reference-size engine fixtures. Pin their final values before accepting GPU comparisons. Failures require diagnosis of units, bases, dtype, solver settings, or truncation before changing a threshold.
-
-| Check | Proposed target or comparison |
-|---|---|
-| Cross-engine dynamics | Maximum density-matrix Frobenius difference ≤ `1e-6` at matching times/bases; dimensionless population/coherence differences ≤ `1e-6` |
-| State validity | Trace and Hermiticity residuals ≤ `1e-8`; minimum density-matrix eigenvalue ≥ `-1e-8`; check the supplied initial state as well |
-| Integration refinement | Tighten solver tolerances/internal-step limits and compare at the same output grid; target changes below one tenth of the cross-engine tolerance |
-| Gradient | Central-difference/analytic comparison at a nonzero derivative; proposed `rtol = 1e-4`, `atol = 1e-6` in the declared derivative units |
+Model and engine limits, refinement requirements, and their rationale are recorded in the [operational reference](operations/system-spec.md#numerical-checks-for-the-bundled-models). The [acceptance matrix](../tests/test_engine_acceptance.py), [gradient checks](../tests/test_engine_dynamiqs.py), and [retained results](../tests/probes/m1_acceptance_results.json) implement and verify them. Diagnose units, bases, dtype, solver settings, or truncation before changing a threshold.
 
 Compare physical observables or aligned subspaces when truncation changes dimensions. Eigenvector signs/phases and rotations within degenerate subspaces are not failures; use projectors or phase-invariant quantities. Include at least one deliberately insufficient cutoff and one malformed-unit/rate/dimension case so failure diagnostics are exercised.
 
@@ -204,24 +197,16 @@ The GPU suite must assert the actual backend/device used. Missing required engin
 
 Record compilation/setup and steady-state costs separately if timing is reported. Speedup is useful evidence, not a condition for M1 completion on small fixtures.
 
-## 8. Decisions to pin during M1
+## 8. Settled decisions and remaining limits
 
-| Decision | Recommendation to start from | When resolved |
-|---|---|---|
-| System representation, bases, biases, operator names, and numeric array input | Settled in ADR-0002 | Step A (settled) |
-| Evolution API details | Explicit initial state, observables, controls, output grid, solver settings, and typed result aligned with the Integrator contract | Before the first adapter; update the operational contract if its callable signature needs clarification |
-| Reference fixtures and numerical thresholds | Block 1 CPU limits are pinned in the operational model reference; settle the remaining §6 engine limits against independent CPU references | Before claiming cross-engine acceptance |
-| Dependency pins and device settings | One validated workstation stack; explicit double precision; lazy GPU loading and bounded memory use | First execution step before A; final GPU evidence completes Block 2 |
-| Storage and dispatch thresholds | Reimplement the unreleased Dense/Dia rule in the Block 2 adapter; retain CPU tensor factors; check thresholds on the target device. The step D cuDensityMat adapter is validated for correctness only; review its open-system operator construction and solver usage before setting thresholds | Block 2, before accepting GPU wrapping and the engine-selection table |
-
-These decisions implement the accepted mandate; they do not reopen Decision 0. Document supported conventions in `docs/operations/system-spec.md`; an ADR is useful when a consequential design choice needs retained rationale. Assign ADR numbers when records are created rather than reserving a number for later work.
+Representation decisions are retained in [ADR-0002](adr/0002-system-model-representation.md). Evolution, differentiable controls, numerical limits, and selection bounds are documented in the [operational reference](operations/system-spec.md); verified dependency pins and device observations are in [environment.md](environment.md). Dense/Dia thresholds are functionally validated, and selection caps apply to reference-size fixtures. Validated non-gradient requests default to CPU. The [Block 5 checklist](checklist.md) retains the cuDensityMat open-system usage review, comparative timings, and peak-memory measurements before automatic GPU selection. Batching is also future work.
 
 ## 9. Exit evidence and handoff
 
-[Checklist M1](checklist.md#m1--model--engines-blocks-12) is the sole implementation acceptance list. This guide supplies the test approach and proposed numerical targets; settling them updates the checklist before acceptance. Do not add separate completion gates here or mark unchecked/partial GPU work complete.
+[Checklist M1](checklist.md#m1--model--engines-blocks-12) is the sole implementation acceptance list. This guide supplies the implementation and test approach; supported conventions and pinned targets now live with the implementation. Do not add separate completion gates here or mark unchecked/partial GPU work complete.
 
 Retain fixture inputs, tolerance rationale, test commands/results, engine/device identities, and environment observations with the implementation and link them from the checklist. Publish implemented syntax and conventions in `docs/operations/system-spec.md`, environment setup in `docs/environment.md`, and available usage/compatibility in the root README. These operational documents stand alone without linking to planning docs. Routine convention documentation needs no ADR; significant design rationale may warrant one.
 
-The Block 3 handoff is a validated model loader, stable operator conventions, a common engine interface, tested capability/selection data, and observed environment information. The runner can then add dispatch, retained run provenance, environment hashing, and lifecycle management around these operations.
+The Block 3 handoff is a validated model loader, stable operator conventions, a common engine interface, tested capability/selection data, and observed environment information. The runner can then add dispatch, retained run provenance, environment hashing, and lifecycle management around these operations. Resolve engine identity and device together when dispatching: dynamiqs supports CPU and CUDA, while its selection-table row identifies CUDA.
 
 Before retiring this guide, retain consequential design rationale in ADRs and necessary conventions/instructions in operational docs. Preserve the scientific acceptance evidence with the implementation.

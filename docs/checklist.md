@@ -15,7 +15,7 @@ Core capability progression; users may enter, iterate within, and stop at any su
 | Milestone | Blocks | Status |
 |---|---|---|
 | M0 — Mandate + foundation | Decision 0, Block 0 | **complete** |
-| M1 — Model + engines | Blocks 1–2 | open |
+| M1 — Model + engines | Blocks 1–2 | **complete** |
 | M2 — Verified local sweep | Blocks 3–5 | open |
 | M3 — Bounded agent-assisted exploration | Blocks 6a–6b | open |
 | M4 — Control | Block 7 | open |
@@ -79,7 +79,7 @@ M3 demonstrates quality for a complete sweep/search workflow. The preferred sequ
 
 ## M1 — Model + Engines (Blocks 1–2)
 
-The [M1 guide](m1-guide.md) develops both blocks as one implementation plan. Its proposed schemas, fixtures, and numerical targets remain draft choices; this checklist records implemented and validated work.
+The [M1 guide](m1-guide.md) records the implementation approach. Supported conventions and pinned numerical limits live in the [operational reference](operations/system-spec.md); this checklist records completion and links to acceptance evidence.
 
 ### [x] M1 entry — GPU compatibility probe
 
@@ -104,22 +104,22 @@ The [M1 guide](m1-guide.md) develops both blocks as one implementation plan. Its
 - [x] Applicable quality evidence recorded ([model tests](../tests/test_models.py), [circuit tests](../tests/test_circuit_models.py), [composition tests](../tests/test_composition.py), [system interface and numerical checks](operations/system-spec.md), [worked CPU example](../examples/cpu_reference.py), [usage and changes](../README.md))
 - [x] **Done:** fixtures validate and export CPU objects/arrays/factorized terms with preserved units/bases; reference spectra/operators, model refinement, and input diagnostics pass without GPU dependencies
 
-### [ ] Block 2 — Engines v0
+### [x] Block 2 — Engines v0
 
 **Depends on:** Block 1.
 
 - [x] `Integrator` protocol with `capabilities()` and shared evolution input/result ([interface](../src/entanglix/evolution.py), [CPU tests](../tests/test_engine_interface.py))
 - [x] QuTiP CPU reference engine ([implementation](../src/entanglix/engines.py), [analytic tests](../tests/test_composition.py), [exact Liouvillian regression](../tests/test_engine_interface.py))
 - [x] cuDensityMat engine via `qutip-cuquantum` ([adapter](../src/entanglix/engine_cuquantum.py), [GPU tests](../tests/test_engine_cuquantum.py))
-- [x] dynamiqs engine on CPU and GPU ([adapter](../src/entanglix/engine_dynamiqs.py), [CPU/GPU tests](../tests/test_engine_dynamiqs.py)); gradient support remains open below
+- [x] dynamiqs engine on CPU and GPU, with JAX results preserving drive-amplitude derivatives ([adapter](../src/entanglix/engine_dynamiqs.py), [CPU/GPU tests](../tests/test_engine_dynamiqs.py))
 - [x] Wrap CPU factorized terms and select Dense/Dia storage in the cuDensityMat adapter; diagonal, narrow-band, dense, and factorized composite states agree with a CPU reference on the RTX 5090 ([GPU tests](../tests/test_engine_cuquantum.py), [storage evidence](environment.md#compatibility-result)); performance thresholds remain separate
-- [ ] Cross-engine agreement for the required two-level, driven/lossy oscillator, and populated qubit–resonator fixtures, including loss-disabled comparisons and closed/open/time-dependent evolution; dissipative cases have `γT` around `0.1–1` ([fixture matrix](m1-guide.md#6-scientific-fixture-and-acceptance-matrix), [cuDensityMat tests](../tests/test_engine_cuquantum.py), [dynamiqs tests](../tests/test_engine_dynamiqs.py))
-- [ ] Nonzero evolution gradient agrees with an analytic/finite-difference reference; integration refinement and trace/Hermiticity/positivity checks meet the pinned tolerances
+- [x] Cross-engine agreement for the required two-level, driven/lossy oscillator, and populated qubit–resonator fixtures, including loss-disabled comparisons and closed/open/time-dependent evolution; dissipative cases have `γT` around `0.1–1` ([fixture references](../tests/engine_cases.py), [acceptance matrix](../tests/test_engine_acceptance.py), [retained results](../tests/probes/m1_acceptance_results.json))
+- [x] Nonzero evolution gradient agrees with an analytic/finite-difference reference; integration refinement, separate dynamics truncation refinement, and trace/Hermiticity/positivity checks meet the [pinned tolerances](operations/system-spec.md#numerical-checks-for-the-bundled-models) ([gradient tests](../tests/test_engine_dynamiqs.py), [refinement tests](../tests/test_engine_acceptance.py), [retained results](../tests/probes/m1_acceptance_results.json))
 - [x] Required-GPU adapter tests identify the actual engines and RTX 5090 devices; skipped required-GPU tests fail ([test hook](../tests/conftest.py), [GPU tests](../tests/test_engine_cuquantum.py), [GPU/CPU dynamiqs tests](../tests/test_engine_dynamiqs.py))
 - [x] Verified optional engine pins in [`uv.lock`](../uv.lock) and [environment observations](environment.md): GPU, driver, CUDA, cuQuantum, Python, and engine packages; hashing follows with the runner
-- [ ] Versioned engine-selection table (contract §2); configured memory/size limits; declared fallbacks recorded without silently changing required capabilities; advertise only implemented/tested capabilities (`batched = false` until sweep batching is validated)
-- [ ] Applicable quality evidence recorded
-- [ ] **Done:** required agreement, gradient, storage, and refinement checks pass with retained commands/results and actual GPU evidence from CI or a documented manual run; all M1 acceptance items above are satisfied
+- [x] Versioned engine-selection table (contract §2); validated size cap and configured known-array storage limits; non-gradient requests default to CPU, with explicit compatible fallbacks recorded; advertise only implemented/tested capabilities (`batched = false` until sweep batching is validated) ([table](../src/entanglix/engine-selection.toml), [selection tests](../tests/test_engine_selection.py), [policy and accounting limits](operations/system-spec.md#engine-selection-policy))
+- [x] Applicable quality evidence recorded ([acceptance results and commands](../tests/probes/m1_acceptance_results.json), [environment](environment.md), [interface and numerical reference](operations/system-spec.md), [loss example](../examples/dynamics_reference.py), [gradient example](../examples/differentiable_reference.py), [usage and changes](../README.md), [CPU CI](../.github/workflows/ci.yml))
+- [x] **Done:** required agreement, gradient, storage, and refinement checks pass with retained commands/results and actual GPU evidence from CI or a documented manual run; all M1 acceptance items above are satisfied
 
 ---
 
@@ -165,6 +165,7 @@ The [M1 guide](m1-guide.md) develops both blocks as one implementation plan. Its
 
 - [ ] Standalone simulation and grid sweep over scqubits parameters against declared observables or a simulated metric
 - [ ] Before implementation: choose the exact dynamics metric/observable, pulse if needed, parameter region, and evidence thresholds
+- [ ] Before automatic GPU sweep selection: review cuDensityMat open-system operator construction and solver usage; measure CPU/GPU crossover and peak memory for representative workloads, separating setup/compilation from repeated execution; update the versioned policy only from that evidence
 - [ ] First end-to-end sweep exercises open-system dynamics on the local GPU (metric class already fixed)
 - [ ] Spectral-only studies remain usable independently
 - [ ] Representative batched sweep agrees member-by-member with serial execution under declared tolerances before batching is advertised

@@ -28,8 +28,9 @@ class QuTiPIntegrator:
         dimensions = list(system.dimensions)
         qdims = [dimensions, dimensions]
         state = qt.Qobj(normalized.initial_density, dims=qdims)
+        # Sparse operators keep reference-size CPU solves practical without changing vern9.
         collapse = [
-            qt.Qobj(math.sqrt(rate) * operator, dims=qdims)
+            qt.Qobj(math.sqrt(rate) * operator, dims=qdims, dtype="CSR")
             for operator, rate in system.dissipators.values()
             if rate > 0
         ]
@@ -38,7 +39,7 @@ class QuTiPIntegrator:
             matrix = np.array(system.hamiltonian_ghz, dtype=np.complex128, copy=True)
             for name, amplitude in amplitudes.items():
                 matrix += amplitude * system.drives[name]
-            return qt.Qobj(2 * np.pi * matrix, dims=qdims)
+            return qt.Qobj(2 * np.pi * matrix, dims=qdims, dtype="CSR")
 
         options = {
             "method": "vern9",
@@ -84,6 +85,7 @@ class QuTiPIntegrator:
                 "segments": len(normalized.times_ns) - 1 if normalized.piecewise else 1,
                 "max_steps": normalized.max_steps,
                 "step_limit_scope": "per_output_interval",
+                "operator_storage": "CSR",
             },
         )
 

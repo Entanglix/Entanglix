@@ -1,0 +1,24 @@
+format_version = 1
+id = "lossy_oscillator"
+
+[units]
+energy = "GHz"
+time = "ns"
+
+[model]
+kind = "operators"
+dimensions = [6]
+basis = "fock"
+array_file = "operators.npz"
+# H0 = 5.136703700512499 GHz * number, matching the 80 fF / 12 nH LC example.
+hamiltonian = "H0"
+operators = { number = "number", position = "position", lower = "lowering" }
+
+[[drives]]
+id = "position_drive"
+factors = ["position"]
+
+[[dissipators]]
+id = "photon_loss"
+factors = ["lower"]
+rate = { value = 0.01, unit = "1/ns" }

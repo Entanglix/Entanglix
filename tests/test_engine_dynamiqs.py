@@ -9,9 +9,84 @@ import pytest
 
 from entanglix.engine_dynamiqs import DynamiqsIntegrator
 from entanglix.engines import EvolutionInput, QuTiPIntegrator
-from entanglix.models import load_system
+from entanglix.models import TensorTerm, load_system
 
 ROOT = Path(__file__).resolve().parents[1] / "examples"
+
+
+@pytest.mark.parametrize("piecewise", [False, True])
+@pytest.mark.parametrize("device", ["cpu", pytest.param("gpu", marks=pytest.mark.gpu)])
+def test_drive_gradient_through_evolution(device, piecewise, record_property):
+    jax = pytest.importorskip("jax")
+    jnp = pytest.importorskip("jax.numpy")
+    jax.config.update("jax_enable_x64", True)
+    system = load_system(ROOT / "two-level/system.toml")
+    zero = np.zeros((2, 2), dtype=complex)
+    system = replace(
+        system,
+        hamiltonian_ghz=zero,
+        hamiltonian_terms=(TensorTerm(1, (zero,)),),
+        dissipators={"relaxation": (system.operators["lower"], 0.3)} if piecewise else {},
+        dissipator_factors=system.dissipator_factors if piecewise else {},
+    )
+    request = EvolutionInput(np.array([1, 0]), np.linspace(0, 1, 3), {"excited": np.diag([0, 1])})
+    engine = DynamiqsIntegrator(device_kind=device)
+
+    def objective(amplitude):
+        return (
+            engine.evolve_jax(system, request, drive_amplitudes_ghz={"x_drive": amplitude})
+            .expectations["excited"][-1]
+            .real
+        )
+
+    amplitude = jnp.array([0.08, 0.13]) if piecewise else jnp.array(0.1)
+    value, derivative = jax.value_and_grad(objective)(amplitude)
+    derivative = np.asarray(derivative)
+    assert np.all(np.abs(derivative) > 1e-3)
+    errors = []
+    for epsilon in (1e-3, 1e-4):
+        finite = []
+        for index in range(amplitude.size):
+            displacement = np.zeros(amplitude.shape)
+            displacement.flat[index] = epsilon
+            values = []
+            for control in (
+                np.asarray(amplitude) + displacement,
+                np.asarray(amplitude) - displacement,
+            ):
+                result = QuTiPIntegrator().evolve(
+                    system, replace(request, drive_amplitudes_ghz={"x_drive": control})
+                )
+                values.append(result.expectations["excited"][-1].real)
+            finite.append((values[0] - values[1]) / (2 * epsilon))
+        finite = np.asarray(finite).reshape(amplitude.shape)
+        np.testing.assert_allclose(derivative, finite, rtol=1e-4, atol=1e-6)
+        errors.append(float(np.max(np.abs(derivative - finite))))
+    if not piecewise:
+        analytic = 2 * np.pi * np.sin(4 * np.pi * float(amplitude))
+        np.testing.assert_allclose(derivative, analytic, rtol=1e-4, atol=1e-6)
+        np.testing.assert_allclose(value, np.sin(2 * np.pi * float(amplitude)) ** 2, atol=1e-8)
+    assert engine.capabilities().differentiable
+    record_property("gradient_fd_max_error", max(errors))
+    record_property("gradient_units", "expectation/GHz")
+    record_property("device", "cuda" if device == "gpu" else "cpu")
+    record_property("gradient_dtype", str(derivative.dtype))
+
+
+def test_differentiable_controls_validate_names_shapes_and_values():
+    pytest.importorskip("dynamiqs")
+    from entanglix.evolution import EvolutionInputError
+
+    system = load_system(ROOT / "two-level/system.toml")
+    request = EvolutionInput(np.array([1, 0]), np.array([0.0, 1.0, 2.0]))
+    engine = DynamiqsIntegrator(device_kind="cpu")
+    for controls, message in (
+        ({"unknown": 0.1}, "unknown drive"),
+        ({"x_drive": np.ones(3)}, "scalar or one value per output interval"),
+        ({"x_drive": np.nan}, "finite"),
+    ):
+        with pytest.raises(EvolutionInputError, match=message):
+            engine.evolve_jax(system, request, drive_amplitudes_ghz=controls)
 
 
 def test_dynamiqs_cpu_matches_reference():

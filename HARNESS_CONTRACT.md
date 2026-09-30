@@ -30,6 +30,8 @@ Integrator
   evolve(system, request: EvolutionInput) -> EvolutionResult
 ```
 
+`differentiable` means evolution exposes results preserving derivatives through supported continuous controls with a fixed constructed system and basis.
+
 Control uses amicode's ProblemSpec OSS schema; `solver.backend` records a string identifier. Entry-point groups are `entanglix.solvers` and `entanglix.integrators`. The repo ships open implementations: a GRAPE-style baseline and a Piccolo adapter through `amico-run`. Private implementations attach through discovery; repo code never imports them directly, and tests run with open implementations only.
 
 ## 2. Execution and artifacts
