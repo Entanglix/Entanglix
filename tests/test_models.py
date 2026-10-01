@@ -20,6 +20,10 @@ TWO_LEVEL = ROOT / "examples/two-level/system.toml"
 JUNCTION = ROOT / "examples/junction-shunt/system.toml"
 
 
+def test_readout_example_validates():
+    assert load_system(ROOT / "examples/readout/system.toml").dimensions == (5, 6)
+
+
 def test_explicit_model_decay_and_closed_coherence():
     model = load_system(TWO_LEVEL)
     np.testing.assert_allclose(model.hamiltonian_ghz, np.diag([0, 0.2]))

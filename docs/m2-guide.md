@@ -132,12 +132,7 @@ Required Block 4 cases: a truncation that is too small and a tolerance that is t
 
 ### Feasibility and metric
 
-Step 5A probes the first example (§6) with disposable QuTiP scripts, as step P did for M1, and records the choices the later steps implement:
-
-- The exact dynamics metric, such as the reduced qubit `|ρ01|` at the end of the readout window or a fitted dephasing rate.
-- Drive-amplitude range, window durations, output-grid and sweep-grid sizes, and whether the readout drive follows the dressed resonator frequency at each point or stays fixed with its detuning reported.
-- Purcell parameters with feasible windows: the §6 starting ranges imply `γ_P = κ(g/Δ)²` of about `1.5e-5` to `1.2e-4/ns`, so `γT = 0.1–1` spans roughly 0.85–68 μs.
-- Refined dimensions within the reference limit, and candidate evidence thresholds from a convergence study, including measured durations and step counts in both frames. Record production and full-window refined CPU-reference costs separately, including their combined cost for standalone simulation.
+Step 5A's CPU measurements are retained in the [feasibility probe](../tests/probes/m2_feasibility.py) and [results](../tests/probes/m2_feasibility_results.json). The [readout example](../examples/readout/README.md) records the selected model, metric, windows, grids, drive-frequency policy, refinement, costs, and candidate frame bounds, separating endpoint metric resolution from full-trajectory diagnostics. Its low-drive resolution limits and thin lab-frame refinement margin qualify the selected fixture. The probe's carrier and frame calculations remain local until 5B supplies the shared implementation. Independent-engine acceptance of the candidate RWA bounds belongs to 5B; the current corrector numerical thresholds are unchanged.
 
 ### Drives and frames
 
@@ -147,7 +142,7 @@ Today a drive amplitude is constant or constant within each output interval, eng
 - **Rotating frames:** declared in the evolution input as frame frequencies applied to excitation-number operators in each subsystem's retained eigenbasis; explicit-operator models must declare theirs. The transformation is an explicit numeric operation on the constructed operators through the common engine interface, not a general symbolic framework. A declared rotating-wave approximation removes counter-rotating terms, and provenance records the frame and the removed terms. Comparisons across frames use frame-invariant observables or states transformed back to the lab frame.
 - **Frame comparison:** for rotating-frame runs, the combined reference solve uses the lab frame, so the same solve also bounds the rotating-wave approximation.
 
-The pinned adaptive solvers stay; there are no stiff or specialized integrators. The rotating frame is the cost lever, and the lab-frame reference bounds its approximation. Carrier fixtures need M1-style acceptance against independent references on all three engines. Differentiable controls extend to carrier envelopes only where gradient tests cover them; otherwise `evolve_jax` rejects them.
+The pinned adaptive solvers stay; there are no stiff or specialized integrators. The rotating frame is the cost lever, and the lab-frame reference bounds its approximation. Carrier fixtures need M1-style acceptance against independent references on all three engines. Before 5C relies on the lab-frame 5 × 6 readout/Purcell fixture, 5B must compare its full-window observables against CPU dynamiqs at tightened tolerances and 6 × 8 levels. Differentiable controls extend to carrier envelopes only where gradient tests cover them; otherwise `evolve_jax` rejects them.
 
 ### `simulate`
 
@@ -163,18 +158,7 @@ Summaries and plots show the metric over the grid, per-point top-level populatio
 
 ## 6. First example
 
-One qubit–resonator model serves the documented simulation, the agreed dynamics sweep, and a static companion sweep. Values are starting inputs to the 5A probe. Production stays within the dispatch cap at 3 retained transmon levels × 10 resonator levels = 30; refinement to about 4 × 12 = 48 runs under the reference limit.
-
-| Item | Proposal |
-|---|---|
-| Model | Transmon with `EC = 0.25 GHz` and `EJ = 11–16 GHz` (qubit frequency about 4.4–5.4 GHz); 7 GHz resonator; charge–position coupling chosen for `g ≈ 0.1 GHz`; resonator loss `κ ≈ 0.01–0.03/ns` |
-| Documented simulation | Purcell decay: qubit excited, resonator empty, no drive. Excited population over a feasible 5A window, compared with the `κ(g/Δ)²` trend, in both frames |
-| Agreed dynamics sweep | Measurement-induced dephasing: qubit in `(|0⟩ + |1⟩)/√2`, resonator empty, constant resonator drive at the readout frequency; the 5A coherence metric over the readout window. Axes `EJ` × drive amplitude; production in a common rotating frame at the drive frequency on the GPU, with lab-frame reference solves at evidence points |
-| Region | Dispersive regime with mean photon number below about 1, far below the critical photon number `(Δ/2g)²` |
-| Static companion | Dispersive shift `χ` over the same `EJ` values, from the spectrum |
-| Expected trends | Dephasing grows with drive amplitude squared in the dispersive limit, and `χ` from the static sweep predicts the dynamic trend. These are scientific cross-checks in the example; the corrector checks only the monotonicity the metric definition declares |
-
-The example states its assumptions: a weak-measurement regime chosen to fit the dispatch cap, not typical readout photon numbers. Reference agreement does not establish device accuracy.
+One qubit–resonator model serves the Purcell simulation, measurement-induced-dephasing sweep, and static dispersive-shift companion. The settled CPU feasibility choices and their limits are in the [readout example](../examples/readout/README.md), with a [validated model](../examples/readout/system.toml) and [retained measurements](../tests/probes/m2_feasibility_results.json). Production uses 5 × 6 = 30 retained levels; refinement uses 6 × 8 = 48. Public protocol specs and GPU execution follow in 5C–5D.
 
 ## 7. Dependencies, layout, and validation
 
@@ -215,9 +199,9 @@ Recorded in [ADR-0003](adr/0003-runs-verification-and-dispatch.md), with matchin
 4. Corrector reference solves have their own dimension limit, validated like the M1 exact-Liouvillian regression; the dispatch cap stays at 30.
 5. A declared `device` need routes non-gradient requests to cuDensityMat. Engine efficiency and the corresponding Block 5 checklist items move to a cuDensityMat usage study, tracked as a prerequisite for automatic performance-based dispatch.
 6. Lab-frame carrier drives and rotating frames are M2 capabilities, using the pinned adaptive solvers and explicit numeric transformations.
-7. The first example is the qubit–resonator readout model in §6, with feasibility and metric choices made in 5A before implementation.
+7. The first example is the qubit–resonator readout model in §6; 5A settled the metric and feasibility choices recorded in the readout example.
 
-Run records, implemented plans, reference limits, and evidence-point selection are documented in [the operational run reference](operations/runs.md). Open, decided in the named step: metric, region, windows, grids, drive-frequency policy, refined dimensions, and evidence thresholds (5A); frame declaration and rotating-wave rules (5B); protocol spec syntax and workstation-local runner-extras configuration that supports both GPU stacks without imposing CUDA dependencies on CPU installations or CI (5C); remaining CLI command names. The extras choice must preserve one declared set for jobs sharing an environment and run the GPU probe in the actual job environment.
+Run records, implemented plans, reference limits, and evidence-point selection are documented in [the operational run reference](operations/runs.md). The readout example records the settled 5A choices and candidate frame bounds. Open, decided in the named step: frame declaration, rotating-wave rules, and independent-engine acceptance of the candidate bounds (5B); protocol spec syntax and workstation-local runner-extras configuration that supports both GPU stacks without imposing CUDA dependencies on CPU installations or CI (5C); remaining CLI command names. The extras choice must preserve one declared set for jobs sharing an environment and run the GPU probe in the actual job environment.
 
 ## 9. Exit evidence and handoff
 

@@ -167,8 +167,9 @@ The [M2 guide](m2-guide.md) records the implementation approach; [ADR-0003](adr/
 **Depends on:** Blocks 1–4.
 
 - [ ] Standalone simulation and static and dynamic grid sweeps over scqubits parameters against declared observables or a simulated metric
-- [ ] Before implementation: a CPU feasibility probe chooses the exact dynamics metric/observable, pulse if needed, parameter region, windows, grids, and evidence thresholds
-- [ ] Lab-frame carrier drives and rotating frames with an explicit rotating-wave approximation; carrier drives pass cross-engine and refinement acceptance; rotating-frame results agree with the lab frame within declared tolerances
+- [x] CPU feasibility probe settles the dynamics metric, parameter region, windows, grids, frequency policy, refined dimensions, and candidate evidence thresholds (5A) ([probe](../tests/probes/m2_feasibility.py), [measurements](../tests/probes/m2_feasibility_results.json), [choices and limits](../examples/readout/README.md)); independent-engine acceptance of candidate frame bounds belongs to 5B
+- [ ] Lab-frame carrier drives and rotating frames with an explicit rotating-wave approximation; carrier drives pass cross-engine and refinement acceptance; rotating-frame results agree with the lab frame within declared metric tolerances, including endpoint resolution limits
+- [ ] Before 5C relies on the lab-frame readout/Purcell fixture at 5 × 6 levels, its full-window observables pass an independent CPU dynamiqs comparison at tightened tolerances and 6 × 8 levels (5B)
 - [ ] A declared `device = "cuda"` routes non-gradient work to cuDensityMat in a versioned selection table, without a performance claim
 - [ ] `simulate` connects selected-device environment/memory checks, pre-launch reference evidence, inherited GPU allocation and attempt locks, usage accounting, cancellation, and reconciliation; completed and interrupted GPU runs pass runner integration checks (5C)
 - [ ] `simulate` and `sweep` freeze protocol/plan specs and data, record seeds and solver settings, retain code/environment provenance, and reproduce from retained inputs under new linked IDs; all attempt states remain queryable (5C–5D)
