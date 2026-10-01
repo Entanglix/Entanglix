@@ -9,10 +9,12 @@ import platform
 import re
 import secrets
 import shutil
+import signal
 import subprocess
 import tempfile
 import time
 import tomllib
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from importlib.metadata import distributions, version
@@ -20,6 +22,8 @@ from pathlib import Path
 from typing import Literal
 
 import tomli_w
+
+TERMINATION_GRACE_SECONDS = 2.0
 
 
 def _digest(content: bytes) -> str:
@@ -185,6 +189,7 @@ def create_run(
     needs: dict,
     runs_root: Path = Path("research_runs"),
     parent_run_ids: tuple[str, ...] = (),
+    launch: dict | None = None,
 ) -> RunHandle:
     """Create an admitted attempt with its manifest first and its inputs frozen."""
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", system_id):
@@ -229,6 +234,8 @@ def create_run(
         "env_hash": environment["env_hash"],
         "environment": environment,
     }
+    if launch is not None:
+        record["launch"] = launch
     # Serialization and input errors must happen before the attempt directory exists.
     tomli_w.dumps(record).encode("utf-8")
     parent = runs_root / system_id
@@ -306,8 +313,8 @@ def record_finish(
     owner.fileno()
     run = owner.path
     if not (run / "runner" / "started.toml").exists():
-        if status != "failed" or exit_code != 64 or wall_seconds != 0 or gpu_seconds != 0:
-            raise ValueError("without a start record only failed/64 with zero usage is valid")
+        if status != "failed" or exit_code != 64 or wall_seconds != 0:
+            raise ValueError("without a start record only failed/64 with zero wall time is valid")
     publish_toml(
         run / "FINISHED",
         {
@@ -429,6 +436,222 @@ def _load_record(path: Path) -> dict:
         return tomllib.load(stream)
 
 
+def _group_alive(group: int) -> bool:
+    try:
+        os.killpg(group, 0)
+    except ProcessLookupError:
+        return False
+    return True  # Permission errors leave ownership uncertain and propagate.
+
+
+@dataclass
+class GpuLease:
+    """A device lock inherited by the job; a lost owner leaves its allocation record."""
+
+    device: str
+    run: Path
+    descriptor: int | None
+    record_path: Path
+    allocated_at: float
+
+    def fileno(self) -> int:
+        if self.descriptor is None:
+            raise ValueError("GPU lease is closed")
+        return self.descriptor
+
+    def bind_process(self, group: int) -> None:
+        self.fileno()
+        if group <= 0:
+            raise ValueError("process_group must be positive")
+        publish_toml(
+            self.record_path,
+            {"device": self.device, "run": str(self.run), "process_group": group},
+            replace=True,
+        )
+
+    def close(self) -> None:
+        # Never unlink the lock file or explicitly unlock an inherited descriptor.
+        if self.descriptor is not None:
+            try:
+                if (self.run / "FINISHED").exists():
+                    self.record_path.unlink(missing_ok=True)
+            finally:
+                os.close(self.descriptor)
+                self.descriptor = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_):
+        self.close()
+
+
+def acquire_gpu(device: str, owner: RunHandle) -> GpuLease:
+    """Acquire a canonical device UUID outside all runs roots, without waiting."""
+    if not re.fullmatch(r"GPU-[A-Za-z0-9-]+", device):
+        raise ValueError("GPU lock requires a canonical GPU-... device identifier")
+    owner.fileno()
+    run = owner.path.resolve()
+    state = Path(os.environ.get("XDG_STATE_HOME", str(Path.home() / ".local/state")))
+    root = state / "entanglix/gpu"
+    root.mkdir(parents=True, exist_ok=True)
+    descriptor = os.open(root / f"{device}.lock", os.O_CREAT | os.O_RDWR, 0o600)
+    record_path = root / f"{device}.toml"
+    try:
+        try:
+            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as exc:
+            raise ValueError(f"GPU {device} is still owned by a runner or inheriting job") from exc
+        if record_path.exists():
+            previous = _load_record(record_path)
+            previous_run = Path(previous["run"])
+            if previous.get("process_group") and _group_alive(previous["process_group"]):
+                raise ValueError(f"GPU {device} has a live recorded process group")
+            if not any(
+                (previous_run / name).exists() for name in ("FINISHED", "runner/reconciled.toml")
+            ):
+                raise ValueError(f"GPU {device} requires reconciliation of {previous_run}")
+        publish_toml(record_path, {"device": device, "run": str(run)}, replace=True)
+        return GpuLease(device, run, descriptor, record_path, time.monotonic())
+    except BaseException:
+        os.close(descriptor)
+        raise
+
+
+def _signal_group(group: int, sig: int) -> None:
+    try:
+        os.killpg(group, sig)
+    except ProcessLookupError:
+        pass
+
+
+def _terminate_group(group: int, alive: Callable[[], bool]) -> None:
+    """Stop the group, allowing a fixed grace before forced termination."""
+    _signal_group(group, signal.SIGTERM)
+    deadline = time.monotonic() + TERMINATION_GRACE_SECONDS
+    while alive() and time.monotonic() < deadline:
+        time.sleep(0.01)
+    if alive():
+        _signal_group(group, signal.SIGKILL)
+
+
+def abort_run(run: Path) -> dict:
+    """Request abort and signal this attempt's group, including orphaned jobs."""
+    record = read_run(run)
+    if record["status"] != "active" or "start" not in record:
+        raise ValueError("only an active, started attempt can be aborted")
+    run = Path(record["path"])
+    group = record["start"]["process_group"]
+    if not _group_alive(group):
+        raise ValueError("recorded job group has already exited")
+    try:
+        publish_toml(run / "runner/abort.toml", {"requested_at": datetime.now(UTC)})
+    except FileExistsError:
+        pass  # Repeated requests do not replace the first event.
+    _terminate_group(group, lambda: _group_alive(group))
+    return {"path": str(run), "abort_requested": True}
+
+
+def _execute_script(
+    owner: RunHandle,
+    command: list[str],
+    environment: dict[str, str],
+    *,
+    timeout_seconds: float | None,
+    gpu: GpuLease | None = None,
+) -> dict:
+    """Supervise the local job and its process group while retaining allocation ownership."""
+    run = owner.path
+    try:
+        log_stream = (run / "run.log").open("w")
+    except OSError:
+        record_finish(
+            owner,
+            status="failed",
+            exit_code=64,
+            wall_seconds=0,
+            gpu_seconds=time.monotonic() - gpu.allocated_at if gpu else 0,
+        )
+        raise
+    with log_stream as log:
+        child = None
+        clock = None
+        stopped = None
+        try:
+            descriptors = (owner.fileno(),) + ((gpu.fileno(),) if gpu is not None else ())
+            child = subprocess.Popen(
+                [*command, "run", str(run / "spec/script.py"), str(owner.fileno())],
+                cwd=run / "artifacts",
+                env=environment,
+                stdin=subprocess.PIPE,
+                stdout=log,
+                stderr=subprocess.STDOUT,
+                start_new_session=True,
+                pass_fds=descriptors,
+            )
+            record_start(owner, process_group=child.pid, gpu_devices=(gpu.device,) if gpu else ())
+            clock = time.monotonic()
+            if gpu is not None:
+                gpu.bind_process(child.pid)
+            child.stdin.write(b"1")
+            child.stdin.close()
+            while child.poll() is None or _group_alive(child.pid):
+                if (run / "runner/abort.toml").exists():
+                    stopped = "abort"
+                elif timeout_seconds is not None and time.monotonic() - clock >= timeout_seconds:
+                    stopped = "timeout"
+                if stopped:
+                    log.write(f"entanglix: {stopped}; terminating job process group\n")
+                    log.flush()
+                    _terminate_group(
+                        child.pid, lambda: child.poll() is None or _group_alive(child.pid)
+                    )
+                    break
+                time.sleep(0.01)
+            code = child.wait()
+            code = 128 - code if code < 0 else code
+            if (run / "runner/abort.toml").exists():
+                stopped = "abort"
+        except KeyboardInterrupt:
+            stopped = "abort" if (run / "runner/started.toml").exists() else None
+            if child is not None:
+                log.write("entanglix: interrupt; terminating job process group\n")
+                log.flush()
+                _terminate_group(child.pid, lambda: child.poll() is None or _group_alive(child.pid))
+                child.wait()
+            code = 130 if stopped else 64
+        except Exception as exc:
+            log.write(f"entanglix: execution failed: {exc}\n")
+            log.flush()
+            if child is not None:
+                if not child.stdin.closed:
+                    child.stdin.close()
+                _signal_group(child.pid, signal.SIGKILL)
+                child.wait()
+            code = 64
+        if child is not None:
+            while _group_alive(child.pid):
+                time.sleep(0.01)
+        elapsed = time.monotonic() - clock if clock is not None else 0
+        if stopped:
+            code = 130
+        if code == 0:
+            try:
+                _script_result(run)
+            except Exception as exc:
+                log.write(f"entanglix: execution failed: {exc}\n")
+                code = 64
+        status = "completed" if code == 0 else "aborted" if code == 130 else "failed"
+        record_finish(
+            owner,
+            status=status,
+            exit_code=code,
+            wall_seconds=elapsed,
+            gpu_seconds=time.monotonic() - gpu.allocated_at if gpu else 0,
+        )
+    return {"path": str(run), "exit_code": code, "status": status}
+
+
 def _script_result(run: Path) -> dict:
     result = _load_record(run / "result.toml")
     if "verdict" in result:
@@ -456,9 +679,12 @@ def run_script(
     runs_root: Path = Path("research_runs"),
     repository: Path | None = None,
     parent_run_ids: tuple[str, ...] = (),
+    timeout_seconds: float | None = None,
 ) -> dict:
     """Validate and synchronously execute one standalone CPU script."""
     repository = (repository or Path(__file__).resolve().parents[2]).resolve()
+    if timeout_seconds is not None and (not math.isfinite(timeout_seconds) or timeout_seconds <= 0):
+        raise ValueError("timeout_seconds must be finite and positive")
     config = _load_record(repository / "pyproject.toml")
     extras = config["tool"]["entanglix"].get("runner", {}).get("extras", [])
     if not isinstance(extras, list) or any(not isinstance(extra, str) for extra in extras):
@@ -509,70 +735,57 @@ def run_script(
         needs={"gradients": False, "device": "cpu"},
         runs_root=runs_root.resolve(),
         parent_run_ids=parent_run_ids,
+        launch={
+            "input_names": sorted(inputs or {}),
+            **({"timeout_seconds": timeout_seconds} if timeout_seconds is not None else {}),
+        },
     ) as owner:
         run = owner.path
-        try:
-            log_stream = (run / "run.log").open("w")
-        except OSError:
+        if _load_record(run / "run.toml")["spec_sha256"] != gate["spec_sha256"]:
+            (run / "run.log").write_text("entanglix: inputs changed after launch validation\n")
             record_finish(owner, status="failed", exit_code=64, wall_seconds=0, gpu_seconds=0)
-            raise
-        with log_stream as log:
-            child = None
-            clock = None
-            elapsed = 0
-            try:
-                if _load_record(run / "run.toml")["spec_sha256"] != gate["spec_sha256"]:
-                    raise ValueError("inputs changed between validation and freezing")
-                environment.update(
-                    ENTANGLIX_RUN_DIR=str(run), ENTANGLIX_SYSTEM_SPEC=str(run / "spec/system.toml")
-                )
-                child = subprocess.Popen(
-                    [*command, "run", str(run / "spec/script.py"), str(owner.fileno())],
-                    cwd=run / "artifacts",
-                    env=environment,
-                    stdin=subprocess.PIPE,
-                    stdout=log,
-                    stderr=subprocess.STDOUT,
-                    start_new_session=True,
-                    pass_fds=(owner.fileno(),),
-                )
-                record_start(owner, process_group=child.pid)
-                clock = time.monotonic()
-                child.stdin.write(b"1")
-                child.stdin.close()
-                code = child.wait()
-                code = 128 - code if code < 0 else code
-            except Exception as exc:
-                log.write(f"entanglix: execution failed: {exc}\n")
-                log.flush()
-                if child is not None:
-                    if not child.stdin.closed:
-                        child.stdin.close()
-                    child.wait()
-                code = 64
-            if child is not None:
-                while True:
-                    try:
-                        os.killpg(child.pid, 0)
-                    except ProcessLookupError:
-                        break
-                    time.sleep(0.01)
-            elapsed = time.monotonic() - clock if clock is not None else 0
-            if code == 0:
-                try:
-                    _script_result(run)
-                except Exception as exc:
-                    log.write(f"entanglix: execution failed: {exc}\n")
-                    code = 64
-            status = "completed" if code == 0 else "aborted" if code == 130 else "failed"
-            record_finish(
-                owner,
-                status=status,
-                exit_code=code,
-                wall_seconds=elapsed,
-                gpu_seconds=0,
-            )
-    return {"path": str(run), "exit_code": code, "status": status}
+            return {"path": str(run), "exit_code": 64, "status": "failed"}
+        environment.update(
+            ENTANGLIX_RUN_DIR=str(run), ENTANGLIX_SYSTEM_SPEC=str(run / "spec/system.toml")
+        )
+        return _execute_script(
+            owner,
+            command,
+            environment,
+            timeout_seconds=timeout_seconds,
+        )
+
+
+def rerun_script(
+    run: Path,
+    *,
+    runs_root: Path | None = None,
+    repository: Path | None = None,
+    timeout_seconds: float | None = None,
+) -> dict:
+    """Replay a retained script and its recorded inputs under a new linked ID."""
+    record = read_run(run)
+    if record["status"] in {"active", "unknown"}:
+        raise ValueError("cannot rerun an active or uncertain attempt")
+    manifest = record["manifest"]
+    if manifest["protocol"] != "script" or "launch" not in manifest:
+        raise ValueError("attempt has no recorded script launch; replay its frozen inputs manually")
+    run = Path(record["path"])
+    for name, digest in manifest["spec_sha256"].items():
+        if _digest((run / "spec" / _relative_file(name)).read_bytes()) != digest:
+            raise ValueError(f"frozen input digest mismatch: {name}")
+    launch = manifest["launch"]
+    return run_script(
+        run / "spec/system.toml",
+        run / "spec/script.py",
+        inputs={name: run / "spec" / name for name in launch["input_names"]},
+        runs_root=runs_root if runs_root is not None else run.parent.parent,
+        repository=repository,
+        parent_run_ids=(manifest["run_id"],),
+        timeout_seconds=timeout_seconds
+        if timeout_seconds is not None
+        else launch.get("timeout_seconds"),
+    )
 
 
 def list_capabilities(repository: Path | None = None) -> dict:
@@ -591,6 +804,9 @@ def list_capabilities(repository: Path | None = None) -> dict:
             "list_capabilities",
             "list_runs",
             "read_run",
+            "abort_run",
+            "reconcile_run",
+            "rerun_script",
         ],
         "protocols": [],
         "runner_devices": ["cpu"],
@@ -619,6 +835,7 @@ def read_run(run: Path) -> dict:
             ("start", "runner/started.toml"),
             ("finished", "FINISHED"),
             ("reconciliation", "runner/reconciled.toml"),
+            ("abort_request", "runner/abort.toml"),
             ("result", "result.toml"),
         ):
             if (run / name).exists():

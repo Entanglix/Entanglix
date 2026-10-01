@@ -124,10 +124,12 @@ CLI and MCP share backing operations and expose available capabilities. Research
 | `list_catalog` / `read_entry` | Read-only | Inspect promoted entries and provenance |
 | `simulate` / `sweep` / `control` / `calibrate` | Controlled job | Execute through the runner, enforcing any configured limits |
 | `run_script` | Controlled job | Execute an authored script through the runner, enforcing any configured limits |
+| `rerun_script` | Controlled job | Replay frozen script inputs as a new attempt linked to the prior run |
 | `compare_reference` | Controlled job | Execute corrector checks |
 | `abort_run` / `stop_investigation` | Controlled job | Cancel work; investigation stop also closes admission and records its reason |
 | `create_investigation` / `revise_investigation` | Controlled write | Draft a new investigation or publish in-scope revisions; broader changes remain proposals until a user decision |
 | `record_finding` | Controlled write | Append interpretation and evidence references |
+| `reconcile_run` | Controlled write | Record an interrupted attempt's uncertain state only after ownership and process-group checks permit it |
 | `register_result` | Controlled write | Stage a candidate for human promotion |
 | `propose_device_update` | Controlled write | Write a calibration proposal |
 | Investigation start/resume, scope/limit changes, review release; `promote`; device-model apply | Human action | Record user decisions, release named reviews, promote verified results, or apply proposals |

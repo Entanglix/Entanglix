@@ -1,6 +1,6 @@
 # Run records
 
-`entanglix.runner` launches authored CPU scripts, freezes inputs and code provenance, publishes records atomically, and lists or inspects retained attempts. GPU dispatch, timeouts, cancellation, built-in scientific protocols, and independent verification are not available yet. The lower-level record API accepts observations from its owner; reconciliation checks ownership and recorded process-group liveness itself.
+`entanglix.runner` launches authored CPU scripts with optional timeouts, cancellation, inspection, recovery, and linked reruns. It freezes inputs and code provenance and publishes records atomically. GPU allocation locks are available to local executor code; scientific GPU dispatch, built-in protocols, and independent verification are not available yet. Reconciliation checks ownership and recorded process-group liveness itself.
 
 ## Authored CPU jobs
 
@@ -9,6 +9,8 @@ uv run --locked --exact entanglix run-script examples/recorded_decay.py --system
 uv run --locked --exact entanglix capabilities
 uv run --locked --exact entanglix list-runs
 uv run --locked --exact entanglix read-run research_runs/<system_id>/<run_id>
+uv run --locked --exact entanglix abort-run research_runs/<system_id>/<run_id>
+uv run --locked --exact entanglix rerun-script research_runs/<system_id>/<run_id>
 ```
 
 Commands print JSON. `run-script` waits for the job and returns its exit code. Use `--runs-root PATH` to choose the output root, repeated `--input NAME=PATH` to freeze additional files under `spec/`, and repeated `--parent-run ID` to record lineage. The corresponding Python operations are `run_script(system, script, ...)`, `list_capabilities()`, `list_runs(root)`, and `read_run(path)`. Capabilities inspect package metadata in the runner environment without creating or synchronizing it; before its first installation, no installed engines are reported. Engine names match the adapters, with `device` reported separately.
@@ -23,9 +25,28 @@ Publish `<ENTANGLIX_RUN_DIR>/result.toml` atomically with `publish_toml(path, re
 
 An arbitrary script has no structured evolution request for engine selection. Its manifest uses `engine = "authored-script"`; the result names the engine actually used. Scripts have no trusted verification definition and cannot produce verified evidence. Structured engine dispatch accompanies built-in computation plans when available.
 
-Inspection is read-only. `read_run` includes records and the last 8 KiB of `run.log`; it does not determine scientific verification. Malformed results appear as `result_error`; listing retains malformed runner records with a diagnostic. Without `FINISHED`, ownership or a live recorded group means `active`, absence of both means `interrupted`, and indeterminate group liveness means `unknown`. After the main process exits, the supervisor retains ownership and waits for the whole process group to disappear before validating the result and writing `FINISHED`. A group that never empties keeps the command waiting; timeouts and cancellation are not yet supported.
+Inspection is read-only. `read_run` includes records and the last 8 KiB of `run.log`; it does not determine scientific verification. Malformed results appear as `result_error`; listing retains malformed runner records with a diagnostic. Without `FINISHED`, ownership or a live recorded group means `active`, absence of both means `interrupted`, and indeterminate group liveness means `unknown`. After the main process exits, the supervisor retains ownership and waits for the whole process group to disappear before validating the result and writing `FINISHED`.
 
-To replay inputs, launch the frozen `spec/script.py` with `--system <earlier-run>/spec/system.toml`, point additional `--input` files at their frozen copies, and supply the earlier ID through `--parent-run`. Reconstruct the recorded code and environment separately as described below; replaying inputs alone does not restore an earlier implementation.
+## Limits, interruption, and recovery
+
+`run-script --timeout SECONDS` limits execution from publication of the start record, including lingering processes after the main job exits. The default has no timeout; preparation is outside this timer. The timeout must be finite and positive. Termination has a fixed two-second grace period. The supervisor polls at 10 ms intervals; scheduling can delay observation. At expiry it sends `SIGTERM` to the job group and, after the grace interval, `SIGKILL` if needed. It waits for the group to disappear, then records `aborted/130`, actual wall time including termination, and the reason in `run.log`.
+
+`abort-run PATH` (Python: `abort_run(path)`) publishes `runner/abort.toml`, signals only that attempt's recorded process group, and uses the same grace before escalation. Repeated requests retain the first event. The supervisor writes the terminal record; the abort command reports a request, not confirmed completion. Inspect the run to confirm its outcome. Ctrl-C (`SIGINT`), `SIGTERM`, or `SIGHUP` sent to the supervising CLI command also stops the job group and records `aborted/130`. The supervisor watches the abort request so it can finish cancellation if the requesting command is interrupted. Abrupt runner death, such as `SIGKILL`, leaves no terminal record and may leave the job running.
+
+For an interrupted attempt:
+
+1. Inspect it with `read-run`; retained records and the log tail show what was observed.
+2. If its orphaned job group is still active, use `abort-run` and inspect again. Do not reconcile a live or unknown group. A paused live supervisor also retains ownership.
+3. Once the owner and group are gone, run `entanglix reconcile-run PATH --state "last observed state and recovery action"`. This calls `record_reconciliation`, retains uncertain usage, and never creates `FINISHED`.
+4. Use `rerun-script PATH` to launch the frozen script, system, referenced assets, and additional inputs under a new ID linked to the earlier attempt. Every frozen input digest is checked before launch. The old attempt is preserved; partial outputs are not resumed.
+
+Reruns retain the earlier timeout; `--timeout SECONDS` overrides the timeout and `--runs-root PATH` changes the destination. Python callers use `rerun_script(path, ...)`. Rerunning an active or unknown attempt is refused. Reconstruct the recorded code and environment separately as described below: reruns use the current checkout and configuration and record their actual provenance. Attempts without recorded `[launch]` metadata require manual replay of `spec/script.py`, `spec/system.toml`, and additional `--input` files with `--parent-run ID`.
+
+### Local GPU ownership
+
+`acquire_gpu(device_uuid, owner)` returns a `GpuLease` for a canonical `GPU-...` identifier. It takes a nonblocking file lock under `$XDG_STATE_HOME/entanglix/gpu/` (default `~/.local/state/entanglix/gpu/`), shared by runner instances using that OS account and state directory, independent of their runs roots. The stable `<UUID>.lock` file is never unlinked; `<UUID>.toml` records the allocation's absolute run path and, after `bind_process(group)`, process group.
+
+The local executor passes both the attempt and GPU descriptors to its job, retains them through `FINISHED`, and closes them without explicit unlocking. A surviving inheriting job therefore blocks reuse after runner death. Once the lock becomes free, a live or indeterminate recorded group still blocks reuse. An allocation without `FINISHED` requires explicit reconciliation even after the group disappears; missing history also blocks reuse. Completed allocation metadata is removed when the lease closes; reconciled metadata can be replaced by a subsequent owner. Lock files remain. This is cooperative ownership, not device containment or a scheduler.
 
 ## Location and identity
 
@@ -35,6 +56,7 @@ The default runs root is `research_runs/` relative to the caller's working direc
 <runs_root>/<system_id>/<run_id>/
   run.toml
   runner/started.toml
+  runner/abort.toml
   runner/reconciled.toml
   spec/
     system.toml
@@ -56,8 +78,9 @@ Runner records are published once and made read-only. Jobs own `result.toml` and
 
 | Record | Fields and meaning |
 |---|---|
-| `run.toml` | `record_version = 1`; `run_id`, `system_id`, `protocol`, UTC `created_at`, `parent_run_ids`, declared `needs`, selected `engine`, `device` (`cpu` or `cuda`), `executor = "local"`, `spec_sha256`, `code`, `env_hash`, and `environment` |
+| `run.toml` | `record_version = 1`; `run_id`, `system_id`, `protocol`, UTC `created_at`, `parent_run_ids`, declared `needs`, selected `engine`, `device` (`cpu` or `cuda`), `executor = "local"`, `spec_sha256`, `code`, `env_hash`, and `environment`. Script `[launch]` records explicit additional `input_names` and optional `timeout_seconds`; absence means no timeout |
 | `runner/started.toml` | `record_version`, UTC `started_at`, positive `process_group`, and `gpu_devices` (device identifiers; empty for CPU). Published before computation starts |
+| `runner/abort.toml` | UTC `requested_at`, published once by the abort operation; a request, not a terminal outcome |
 | `FINISHED` | `record_version`, `status`, `exit_code`, UTC `ended_at`, and `usage`: nonnegative finite `wall_seconds`, `gpu_seconds`, and `uncertain = false` |
 | `runner/reconciled.toml` | `record_version`, UTC `observed_at`, `last_observed_state`, and `usage.uncertain = true`. When a start record exists, includes its `started_at`, `process_group`, and `gpu_devices`; otherwise these fields are absent. Unknown usage is not replaced with zero |
 | `result.toml` | A protocol-specific TOML table containing metrics, actual engine/solver information, and artifact references with digests. Protocol results carry no verification verdict; independent verification results may carry one when verification is available |
@@ -89,8 +112,8 @@ To reconstruct code, check out the recorded revision in a separate checkout, app
 The record API and CPU launcher distinguish pre-start failure, observed job outcomes, and reconciliation:
 
 - The launcher returns `64` with a diagnostic for invalid arguments or a failed pre-launch gate before `run.toml` exists, without creating a run. The Python API raises exceptions for invalid inputs.
-- After creation, a supervising caller records known failures rather than deleting the attempt. Before a start record exists, only `failed/64` with zero job usage is valid. Job outcomes require a start record.
-- Observed successful execution uses `completed` and code `0`; a job exiting `130` is `aborted`. Runner-triggered cancellation is not yet supported. Other job failures preserve exit codes in `0–255`. For signal death, the launcher converts Python's negative subprocess return code to `128 + signal` (for example, `SIGKILL` becomes `137`); `record_finish` requires the normalized code and rejects inconsistent status/code pairs.
+- After creation, a supervising caller records known failures rather than deleting the attempt. Before a start record exists, only `failed/64` with zero job wall time is valid; any GPU allocation time is still charged, including a failed spawn. Job outcomes require a start record.
+- Observed successful execution uses `completed` and code `0`; a job exiting `130`, a timeout, or runner-triggered cancellation is `aborted/130`. Other job failures preserve exit codes in `0–255`. For signal death outside a requested cancellation, the launcher converts Python's negative subprocess return code to `128 + signal` (for example, `SIGKILL` becomes `137`); `record_finish` requires the normalized code and rejects inconsistent status/code pairs.
 - `wall_seconds` is elapsed job time from publication of the start record until the supervisor observes the whole process group's termination, measured once with a monotonic clock. Input preparation and result validation are excluded; a known pre-start preparation failure records zero. Allocated `gpu_seconds` means allocated devices multiplied by allocation duration, including failed work; CPU jobs record zero. The caller supplies these observations; the record API does not measure them.
 - Runner loss leaves no `FINISHED`, and a surviving job may still own the attempt and GPU. Reconciliation, described above, records uncertainty without fabricating completion.
 

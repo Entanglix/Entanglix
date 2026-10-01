@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import signal
 import sys
 from pathlib import Path
 
@@ -80,6 +81,26 @@ def main(argv: list[str] | None = None) -> int:
     script.add_argument(
         "--parent-run", action="append", default=[], help="parent run ID for lineage"
     )
+    script.add_argument(
+        "--timeout", type=float, help="job time limit in seconds; default: unlimited"
+    )
+    abort = subcommands.add_parser("abort-run", help="stop an attempt's job process group")
+    abort.add_argument("run", type=Path, help="attempt directory")
+    reconcile = subcommands.add_parser(
+        "reconcile-run", help="record an interrupted attempt's uncertainty"
+    )
+    reconcile.add_argument("run", type=Path, help="attempt directory")
+    reconcile.add_argument(
+        "--state", required=True, help="last observed state or recovery diagnostic"
+    )
+    rerun = subcommands.add_parser(
+        "rerun-script", help="replay frozen inputs under a new linked run ID"
+    )
+    rerun.add_argument("run", type=Path, help="earlier attempt directory")
+    rerun.add_argument(
+        "--runs-root", type=Path, help="output root; default: the earlier attempt's root"
+    )
+    rerun.add_argument("--timeout", type=float, help="override the recorded time limit in seconds")
     subcommands.add_parser(
         "capabilities", help="list available runner operations and installed CPU engines"
     )
@@ -107,9 +128,29 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  {name}: {_operator_meaning(name, system.provenance)}")
         _print_circuit_diagnostics(system.provenance, "circuit")
         return 0
-    if args.command in {"run-script", "capabilities", "list-runs", "read-run"}:
-        from entanglix.runner import list_capabilities, list_runs, read_run, run_script
+    if args.command in {
+        "run-script",
+        "capabilities",
+        "list-runs",
+        "read-run",
+        "abort-run",
+        "reconcile-run",
+        "rerun-script",
+    }:
+        from entanglix.runner import (
+            abort_run,
+            list_capabilities,
+            list_runs,
+            read_run,
+            record_reconciliation,
+            rerun_script,
+            run_script,
+        )
 
+        if args.command in {"run-script", "rerun-script"}:
+            # A supervising command stops its job on termination or hangup, as on Ctrl-C.
+            signal.signal(signal.SIGTERM, signal.default_int_handler)
+            signal.signal(signal.SIGHUP, signal.default_int_handler)
         try:
             if args.command == "run-script":
                 inputs = {}
@@ -124,6 +165,16 @@ def main(argv: list[str] | None = None) -> int:
                     inputs=inputs,
                     runs_root=args.runs_root,
                     parent_run_ids=tuple(args.parent_run),
+                    timeout_seconds=args.timeout,
+                )
+            elif args.command == "abort-run":
+                result = abort_run(args.run)
+            elif args.command == "reconcile-run":
+                record_reconciliation(args.run, last_observed_state=args.state)
+                result = read_run(args.run)
+            elif args.command == "rerun-script":
+                result = rerun_script(
+                    args.run, runs_root=args.runs_root, timeout_seconds=args.timeout
                 )
             elif args.command == "capabilities":
                 result = list_capabilities()
@@ -135,6 +186,6 @@ def main(argv: list[str] | None = None) -> int:
             print(f"entanglix: {exc}", file=sys.stderr)
             return 64
         print(json.dumps(result, default=str, indent=2))
-        return result["exit_code"] if args.command == "run-script" else 0
+        return result["exit_code"] if args.command in {"run-script", "rerun-script"} else 0
     parser.print_help()
     return 0
