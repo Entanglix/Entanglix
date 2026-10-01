@@ -4,12 +4,16 @@ format_version = 1
 trace_atol = 1e-8
 hermiticity_atol = 1e-8
 minimum_eigenvalue = -1e-8
+top_level_population_warning = 1e-6
 
 [reference]
 max_dimension = 48
 observable_atol = 1e-6
+spectral_atol_ghz = 2e-8
+excitation_convergence_atol_ghz = 1e-5
 rtol = 1e-11
 atol = 1e-13
+tolerance_factor = 0.1
 min_retained_levels_step = 1
 min_cutoff_step = 2
 

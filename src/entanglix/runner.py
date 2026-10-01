@@ -617,7 +617,7 @@ def _terminate_group(group: int, alive: Callable[[], bool]) -> None:
 
 def abort_run(run: Path) -> dict:
     """Request abort and signal this attempt's group, including orphaned jobs."""
-    record = read_run(run)
+    record = _read_attempt(run)
     if record["status"] != "active" or "start" not in record:
         raise ValueError("only an active, started attempt can be aborted")
     run = Path(record["path"])
@@ -640,6 +640,8 @@ def _execute_job(
     timeout_seconds: float | None,
     gpu: GpuLease | None = None,
     job_input: str = "script.py",
+    validate_result: Callable[[Path], dict] | None = None,
+    cleanup: Callable[[], None] | None = None,
 ) -> dict:
     """Supervise the local job and its process group while retaining allocation ownership."""
     run = owner.path
@@ -710,6 +712,12 @@ def _execute_job(
                 _signal_group(child.pid, signal.SIGKILL)
                 child.wait()
             code = 64
+        if cleanup is not None:
+            try:
+                cleanup()
+            except Exception as exc:
+                log.write(f"entanglix: nested job cleanup failed: {exc}\n")
+                code = 64
         if child is not None:
             while _group_alive(child.pid):
                 time.sleep(0.01)
@@ -718,7 +726,7 @@ def _execute_job(
             code = 130
         if code == 0:
             try:
-                _script_result(run)
+                (validate_result or _script_result)(run)
             except Exception as exc:
                 log.write(f"entanglix: execution failed: {exc}\n")
                 code = 64
@@ -954,6 +962,7 @@ def list_capabilities(repository: Path | None = None) -> dict:
             "abort_run",
             "reconcile_run",
             "rerun_script",
+            "compare_reference",
         ],
         "protocols": [],
         "runner_devices": ["cpu"],
@@ -965,7 +974,7 @@ def list_capabilities(repository: Path | None = None) -> dict:
     }
 
 
-def read_run(run: Path) -> dict:
+def _read_attempt(run: Path) -> dict:
     """Read one attempt without modifying its records or reconciling it."""
     run = run.resolve()
     descriptor = os.open(run, os.O_RDONLY | os.O_DIRECTORY)
@@ -1013,19 +1022,31 @@ def read_run(run: Path) -> dict:
         with log_path.open("rb") as stream:
             stream.seek(max(0, log_path.stat().st_size - 8192))
             log = stream.read(8192).decode("utf-8", errors="replace")
-    return {
+    record = {
         "path": str(run),
         "status": status,
         **records,
         "log_tail": log,
     }
+    return record
+
+
+def read_run(run: Path, *, policy_version: str | None = None) -> dict:
+    """Inspect an attempt and its policy-bound scientific verification history."""
+    run = run.resolve()
+    record = _read_attempt(run)
+    if record["manifest"]["protocol"] in {"plan", "reference"}:
+        from entanglix.corrector.verification import verification_history
+
+        record["verification"] = verification_history(run, policy_version=policy_version)
+    return record
 
 
 def list_runs(runs_root: Path = Path("research_runs")) -> list[dict]:
     attempts = []
     for manifest in sorted(runs_root.glob("*/*/run.toml")):
         try:
-            run = read_run(manifest.parent)
+            run = _read_attempt(manifest.parent)
             attempts.append(
                 {
                     "path": run["path"],

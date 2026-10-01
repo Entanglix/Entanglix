@@ -141,13 +141,3 @@ def dynamics_cases():
             analytic,
         )
     return cases
-
-
-def physical_residuals(states):
-    return {
-        "trace_error": float(max(abs(np.trace(state) - 1) for state in states)),
-        "hermiticity_error": float(max(np.linalg.norm(state - state.conj().T) for state in states)),
-        "minimum_eigenvalue": float(
-            min(np.linalg.eigvalsh((state + state.conj().T) / 2).min() for state in states)
-        ),
-    }

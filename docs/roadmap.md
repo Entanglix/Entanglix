@@ -139,7 +139,8 @@ The [M2 guide](m2-guide.md) covers the joint implementation of Blocks 3–5. [AD
 
 - **Depends on:** Blocks 1–3.
 - Physicality checks at every point and, at a bounded set of evidence points, one comparison with an independent CPU engine at tightened tolerances and refined truncation, as a separate package with hashed code and a versioned thresholds file; `compare_reference` verb. Verification is a linked run whose report states each point's coverage.
-- The corrector derives applicable checks from trusted protocol/metric definitions and the validated execution plan. Agent-written labels cannot waive checks; design-sweep checks add to the applicable dynamics or spectral checks.
+- Block 4 owns trusted computation definitions and shared check functions; Block 5 protocols supply metric definitions and sweep application.
+- The corrector derives applicable checks from trusted computation definitions and the validated execution plan. Agent-written labels cannot waive checks; design-sweep checks add to the applicable dynamics or spectral checks.
 - CPU plan jobs use the runner's existing gate, records, and lifecycle; linked verification runs integrate with history and `read_run` before this block closes.
 - **Done when:** a deliberately under-converged run is flagged `UNVERIFIED`; a hash mismatch fails the run; mislabeled studies cannot evade required checks. Verification is available before completion of Block 5.
 
@@ -150,6 +151,7 @@ The [M2 guide](m2-guide.md) covers the joint implementation of Blocks 3–5. [AD
 - The first end-to-end example exercises open-system dynamics on the local GPU; this class of metric is settled. Choose the exact observable, fixed pulse if needed, parameter region, and evidence thresholds from a CPU feasibility probe before implementation of this block. Spectral-only studies remain useful supported workflows.
 - Lab-frame carrier drives and rotating frames with an explicit rotating-wave approximation, verified against the lab frame. A declared `device = "cuda"` runs non-gradient work on cuDensityMat without a performance claim.
 - Built-in protocols integrate the runner's gate, environment identity, GPU ownership, usage, and recovery facilities. Freeze protocol/plan inputs, record seeds and solver settings, and validate reproduction and interrupted-attempt history on CPU and GPU.
+- Protocols supply trusted metric definitions to the corrector; sweep verification applies bounded evidence selection and monotonicity checks to actual grids.
 - Plots and `result.toml` summaries with enough evidence for a user to inspect results and choose a refined sweep.
 - **Done when:** a documented simulation and one agreed dynamics sweep run end to end through `entanglix`, the sweep exercises the local GPU, corrector checks pass, and a user can inspect and refine the sweep without control or calibration.
 

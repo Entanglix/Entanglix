@@ -38,6 +38,7 @@ class ExecutionPlan(StrictModel):
     kind: Literal["lindblad", "spectrum"]
     engine: Literal["qutip-cpu", "dynamiqs"] = "qutip-cpu"
     purpose: Literal["computation", "reference"] = "computation"
+    levels: int | None = Field(default=None, strict=True, gt=0)
     evolution: EvolutionSpec | None = None
     refinement: dict[str, Refinement] = Field(default_factory=dict)
 
@@ -45,6 +46,8 @@ class ExecutionPlan(StrictModel):
     def check_kind(self):
         if (self.kind == "lindblad") != (self.evolution is not None):
             raise ValueError("lindblad requires evolution; spectrum must not contain evolution")
+        if (self.kind == "spectrum") != (self.levels is not None):
+            raise ValueError("spectrum requires levels; lindblad must not contain levels")
         if self.kind == "spectrum" and self.engine != "qutip-cpu":
             raise ValueError("spectrum uses the qutip-cpu eigensolver")
         return self
@@ -82,6 +85,8 @@ def load_plan(
     )
     if math.prod(system.dimensions) > limit:
         raise ValueError(f"plan dimension exceeds validated {plan.purpose} limit {limit}")
+    if plan.levels is not None and plan.levels > math.prod(system.dimensions):
+        raise ValueError("spectrum levels exceed the model dimension")
     request = None
     if plan.evolution is not None:
         spec = plan.evolution

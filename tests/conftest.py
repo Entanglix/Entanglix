@@ -1,9 +1,52 @@
 """GPU test selection stays usable on CPU; required GPU runs cannot silently skip."""
 
+import shutil
 import subprocess
+import tomllib
 from pathlib import Path
 
 import pytest
+import tomli_w
+
+
+def _runner_repository(tmp_path, extras):
+    """Configure a separate exact CPU runner environment without changing the checkout."""
+    root = Path(__file__).resolve().parents[1]
+    repository = tmp_path / "checkout"
+    repository.mkdir()
+    shutil.copytree(root / "src", repository / "src", ignore=shutil.ignore_patterns("__pycache__"))
+    for name in ("uv.lock", ".gitignore"):
+        shutil.copyfile(root / name, repository / name)
+    config = tomllib.loads((root / "pyproject.toml").read_text())
+    config["tool"]["entanglix"]["runner"] = {"extras": extras}
+    (repository / "pyproject.toml").write_text(tomli_w.dumps(config))
+    for arguments in (
+        ["init", "-q"],
+        ["add", "."],
+        [
+            "-c",
+            "user.name=Test",
+            "-c",
+            "user.email=test@example.invalid",
+            "commit",
+            "-qm",
+            "fixture",
+        ],
+    ):
+        subprocess.run(["git", "-C", str(repository), *arguments], check=True, capture_output=True)
+    return repository
+
+
+@pytest.fixture
+def runner_repository(tmp_path):
+    """A runner checkout with no extras, independent of developer configuration."""
+    return _runner_repository(tmp_path, [])
+
+
+@pytest.fixture
+def differentiable_repository(tmp_path):
+    pytest.importorskip("dynamiqs")
+    return _runner_repository(tmp_path, ["differentiable"])
 
 
 @pytest.fixture(scope="session")

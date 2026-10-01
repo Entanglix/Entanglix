@@ -3,6 +3,7 @@
 import hashlib
 import itertools
 import math
+import os
 import tomllib
 from dataclasses import dataclass
 from pathlib import Path
@@ -80,7 +81,7 @@ def required_checks(kind: str, *, point_kind: str | None = None) -> tuple[str, .
     if kind == "lindblad":
         return ("trace", "hermiticity", "positivity", "cpu_reference")
     if kind == "spectrum":
-        return ("spectral_reference", "truncation_convergence")
+        return ("spectral_consistency", "spectral_reference", "truncation_convergence")
     if kind == "parameter_series" and point_kind in {"lindblad", "spectrum"}:
         return (*required_checks(point_kind), "seed_reproducibility", "declared_monotonicity")
     raise ValueError(f"unknown or inconsistent computation definition: {kind!r}, {point_kind!r}")
@@ -149,13 +150,17 @@ def select_evidence(
     )
 
 
-def create_verification_run(source: Path, *, environment: dict, code, runs_root: Path):
+def create_verification_run(
+    source: Path, *, environment: dict, code, runs_root: Path, timeout_seconds: float | None = None
+):
     """Admit linked verification records; the caller owns their execution and finish."""
     from entanglix.protocols.plans import load_plan
-    from entanglix.runner import _digest, _relative_file, _script_result, create_run, read_run
+    from entanglix.runner import _digest, _read_attempt, _relative_file, _script_result, create_run
 
     source = source.resolve()
-    record = read_run(source)
+    if timeout_seconds is not None and (not math.isfinite(timeout_seconds) or timeout_seconds <= 0):
+        raise ValueError("timeout_seconds must be finite and positive")
+    record = _read_attempt(source)
     if record["status"] != "completed" or record["manifest"]["protocol"] not in {
         "plan",
         "reference",
@@ -173,16 +178,20 @@ def create_verification_run(source: Path, *, environment: dict, code, runs_root:
         or result.get("kind") != loaded.definition.kind
         or manifest["launch"]["kind"] != loaded.definition.kind
         or result.get("engine") != loaded.definition.engine
+        or manifest["engine"] != loaded.definition.engine
+        or result.get("dimensions") != list(loaded.system.dimensions)
+        or result["metrics"]  # Plans have no trusted metric definitions yet.
     ):
         raise ValueError("source result is inconsistent with its trusted execution plan")
     output = result["artifacts"]["output"]
     binding = {
         "source_run_id": manifest["run_id"],
-        "source_path": str(source),
+        "source_path": os.path.relpath(source, runs_root.resolve() / loaded.system.id),
         "source_result_sha256": _digest((source / "result.toml").read_bytes()),
         "source_artifact_sha256": output["sha256"],
         "plan_sha256": loaded.digest,
         "policy_version": loaded.version,
+        **({"timeout_seconds": timeout_seconds} if timeout_seconds is not None else {}),
     }
     owner = create_run(
         system_id=loaded.system.id,
@@ -198,7 +207,7 @@ def create_verification_run(source: Path, *, environment: dict, code, runs_root:
         launch=binding,
     )
     # Bind the frozen copy to the validated source, including edits during preparation.
-    frozen = read_run(owner.path)["manifest"]["spec_sha256"]
+    frozen = _read_attempt(owner.path)["manifest"]["spec_sha256"]
     if frozen != loaded.input_digests:
         from entanglix.runner import record_finish
 
@@ -213,7 +222,13 @@ def create_verification_run(source: Path, *, environment: dict, code, runs_root:
 def load_verification(run: Path):
     """Load a linked verification and recheck its retained source under the pinned policy."""
     from entanglix.protocols.plans import load_plan
-    from entanglix.runner import _digest, _load_record, _relative_file, _script_result, read_run
+    from entanglix.runner import (
+        _digest,
+        _load_record,
+        _read_attempt,
+        _relative_file,
+        _script_result,
+    )
 
     manifest = _load_record(run / "run.toml")
     if manifest["protocol"] != "verification":
@@ -230,8 +245,8 @@ def load_verification(run: Path):
         binding["source_run_id"]
     ]:
         raise ValueError("verification source binding is inconsistent")
-    source = Path(binding["source_path"])
-    record = read_run(source)
+    source = (run.parent / binding["source_path"]).resolve()
+    record = _read_attempt(source)
     if record["status"] != "completed" or record["manifest"]["run_id"] != binding["source_run_id"]:
         raise ValueError("verification source is not the completed recorded parent")
     result = _script_result(source)

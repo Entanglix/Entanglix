@@ -42,7 +42,11 @@ def execute(plan: Path) -> None:
     if loaded.digest != launch["plan_sha256"]:
         raise ValueError("frozen execution plan digest changed")
     if loaded.definition.kind == "spectrum":
-        arrays = {"energies_ghz": loaded.system.qutip_hamiltonian().eigenenergies()}
+        arrays = {
+            "energies_ghz": loaded.system.qutip_hamiltonian().eigenenergies()[
+                : loaded.definition.levels
+            ]
+        }
         engine, method, diagnostics = "qutip-cpu", "eigenenergies", {}
     else:
         if loaded.definition.engine == "dynamiqs":

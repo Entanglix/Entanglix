@@ -146,21 +146,21 @@ The [M2 guide](m2-guide.md) records the implementation approach; [ADR-0003](adr/
 - [x] Applicable quality evidence ([reference example](../examples/recorded_decay.py), [run interface and recovery](operations/runs.md), [automated runner tests](../tests/test_runner.py), [lifecycle tests](../tests/test_lifecycle.py), [GPU environment evidence](environment.md#runner-gpu-environment-check), [release notes](../README.md#changes-and-compatibility))
 - [x] **Done:** runner loss leaves no fabricated completion; observed job failure has a terminal record; completed CPU-script results validate and reproduce; interrupted attempts retain diagnostics and lineage ([record tests](../tests/test_run_records.py), [launch tests](../tests/test_runner.py), [lifecycle tests](../tests/test_lifecycle.py))
 
-### [ ] Block 4 — Corrector v0
+### [x] Block 4 — Corrector v0
 
-**Depends on:** Blocks 1–3.
+**Depends on:** Blocks 1–3. This block owns trusted computation definitions and shared check functions; protocol metrics and actual sweep integration belong to 5C–5D.
 
 - [x] CPU plan jobs use the existing runner gate, frozen records, lifecycle, and provenance facilities (4A) ([plan tests](../tests/test_plans.py), [retained plan records](operations/runs.md#computation-and-reference-records))
-- [-] Separate corrector package; code hashed at load; versioned thresholds outside the candidate workspace; research tools cannot replace policy or verdicts ([policy implementation](../src/entanglix/corrector/__init__.py), [policy tests](../tests/test_corrector.py)); verdict production/enforcement awaits 4B
-- [-] Dynamics: trace, hermiticity, and positivity at every point; one independent CPU reference comparison at tightened tolerances and refined truncation at each evidence point; deterministic, bounded evidence-point selection; reference dimension limit validated by exact-Liouvillian regression for both CPU reference engines ([selection and limit tests](../tests/test_corrector.py), [policy and reference limit](operations/runs.md#corrector-policy-and-verification-records)); scientific checks/reference comparisons await 4B
-- [-] Verification runs linked to their source runs; reports bound to source digests and policy version; evidence reuse; `read_run` shows the latest verification attempt and policy-bound verdict without substituting an older verdict (4A–4B) ([admission/binding tests](../tests/test_plans.py), [verification records](operations/runs.md#corrector-policy-and-verification-records)); execution, reports, reuse, and verdict inspection await 4B
-- [ ] Reference and truncation checks applicable to spectral studies
-- [-] Corrector selects checks from trusted protocol/metric definitions and validated execution plans; unknown/inconsistent definitions cannot verify; agent-written labels cannot waive checks ([definition tests](../tests/test_corrector.py), [plan rejection tests](../tests/test_plans.py)); metric definitions and scientific checking await 4B–5D
-- [ ] Design-sweep seed/monotonicity checks add to applicable dynamics or spectral checks
-- [ ] Reports identify check scope, tolerances, residuals, reference engine and dimension, each point's coverage, and inapplicable checks with reasons (contract §3)
-- [ ] `compare_reference` backing capability
-- [ ] Applicable quality evidence recorded
-- [ ] **Done:** a deliberately under-converged run is `UNVERIFIED`; a hash mismatch fails the run; label-spoof cases cannot evade checks; verification is available before Block 5 completion
+- [x] Separate corrector package; code hashed at load; versioned thresholds outside the candidate workspace; research tools cannot replace policy or verdicts ([policy implementation](../src/entanglix/corrector/__init__.py), [policy tests](../tests/test_corrector.py), [verification execution tests](../tests/test_verification.py))
+- [x] Dynamics: trace, hermiticity, and positivity at every point; one independent CPU reference comparison at tightened tolerances and refined truncation at each evidence point; deterministic, bounded evidence-point selection; reference dimension limit validated by exact-Liouvillian regression for both CPU reference engines ([selection and limit tests](../tests/test_corrector.py), [combined-reference tests](../tests/test_verification.py), [policy and reference limit](operations/runs.md#corrector-policy-and-verification-records))
+- [x] Verification runs linked to their source runs; reports bound to source digests and policy version; evidence reuse; `read_run` shows the latest verification attempt and policy-bound verdict without substituting an older verdict ([admission/binding tests](../tests/test_plans.py), [reuse and inspection tests](../tests/test_verification.py), [verification records](operations/runs.md#corrector-policy-and-verification-records))
+- [x] Reference and truncation checks applicable to spectral studies ([spectral checks](../src/entanglix/corrector/checks.py), [spectral verification tests](../tests/test_verification.py))
+- [x] Corrector selects checks from trusted computation definitions and validated execution plans; unknown/inconsistent definitions cannot verify; agent-written labels cannot waive checks ([definition tests](../tests/test_corrector.py), [plan rejection tests](../tests/test_plans.py), [label-spoof tests](../tests/test_verification.py))
+- [x] Shared series checks report seed reproducibility as inapplicable to deterministic solves and add trusted monotonicity checks to applicable dynamics or spectral checks ([shared checks](../src/entanglix/corrector/checks.py), [stacking and bounded-coverage tests](../tests/test_verification.py))
+- [x] Reports identify check scope, tolerances, residuals, reference engine and dimension, each point's coverage, and inapplicable checks with reasons (contract §3) ([verification tests](../tests/test_verification.py), [report semantics](operations/runs.md#corrector-policy-and-verification-records))
+- [x] `compare_reference` backing capability ([implementation](../src/entanglix/corrector/verification.py), [execution tests](../tests/test_verification.py))
+- [x] Applicable quality evidence recorded ([verification checks and limits](operations/runs.md#corrector-policy-and-verification-records), [scientific and lifecycle tests](../tests/test_verification.py), [CPU reference regression](../tests/test_corrector.py), [CPU CI](../.github/workflows/ci.yml))
+- [x] **Done:** a deliberately under-converged run is `UNVERIFIED`; a hash mismatch fails the run; label-spoof cases cannot evade checks; verification is available before Block 5 completion ([acceptance tests](../tests/test_verification.py))
 
 ### [ ] Block 5 — Protocols `simulate` and `sweep`
 
@@ -172,6 +172,7 @@ The [M2 guide](m2-guide.md) records the implementation approach; [ADR-0003](adr/
 - [ ] A declared `device = "cuda"` routes non-gradient work to cuDensityMat in a versioned selection table, without a performance claim
 - [ ] `simulate` connects selected-device environment/memory checks, pre-launch reference evidence, inherited GPU allocation and attempt locks, usage accounting, cancellation, and reconciliation; completed and interrupted GPU runs pass runner integration checks (5C)
 - [ ] `simulate` and `sweep` freeze protocol/plan specs and data, record seeds and solver settings, retain code/environment provenance, and reproduce from retained inputs under new linked IDs; all attempt states remain queryable (5C–5D)
+- [ ] `simulate`/`sweep` supply trusted metric definitions; sweep verification applies bounded selection and monotonicity to actual grids (5C–5D)
 - [ ] First end-to-end sweep exercises open-system dynamics on the local GPU (metric class already fixed)
 - [ ] Spectral-only studies remain usable independently
 - [ ] Plots and `result.toml` summaries expose evidence needed to inspect and refine a sweep

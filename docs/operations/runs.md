@@ -1,6 +1,6 @@
 # Run records
 
-`entanglix.runner` launches authored CPU scripts with optional timeouts, cancellation, live inspection, recovery, and linked reruns. It freezes inputs and code provenance and publishes records atomically. GPU allocation locks are available to local executor code; scientific GPU dispatch, public simulation/sweep protocols, and independent verdicts are not available yet. Reconciliation checks ownership and recorded process-group liveness itself.
+`entanglix.runner` launches authored CPU scripts with optional timeouts, cancellation, live inspection, recovery, and linked reruns. It freezes inputs and code provenance and publishes records atomically. Retained built-in CPU computations can receive independent, linked verification. GPU allocation locks are available to local executor code; scientific GPU dispatch and public simulation/sweep protocols are not available yet. Reconciliation checks ownership and recorded process-group liveness itself.
 
 ## Authored CPU jobs
 
@@ -41,7 +41,24 @@ The corrector ships with [versioned thresholds](../../src/entanglix/corrector/th
 
 Evidence selection is deterministic and capped at 8 points: distinct grid corners, the first global minimum and maximum, the first endpoint in grid order of the steepest adjacent edge, then truncation warnings ranked by severity. Ties use grid order; duplicate points merge reasons. Grids exceeding the corner bound are rejected. Uncovered candidates are reported without expanding the bound. Top retained-level population is a warning, not a required pass check.
 
-Verification attempts identify their source as a parent and retain its location, result/artifact digests, and policy version in the manifest. They freeze the plan and model inputs, while the original result and outputs remain in the source run. Missing or changed source evidence fails loading. Scientific checks, verdicts, evidence reuse, and latest-verification inspection are not available yet.
+Verification attempts identify their source as a parent and retain its relative location, result/artifact digests, and policy version in the manifest. They freeze the plan and model inputs, while the original result and outputs remain in the source run. Missing or changed source evidence fails verification.
+
+```sh
+uv run --locked --exact entanglix compare-reference research_runs/<system_id>/<run_id>
+uv run --locked --exact entanglix read-run research_runs/<system_id>/<run_id>
+```
+
+`compare-reference` verifies completed built-in computation records; authored scripts cannot verify. It creates a new verification attempt and returns its execution code. Code `0` means the checks ran successfully; the scientific verdict in that attempt's result may still be `UNVERIFIED`. `--timeout SECONDS` covers verification execution, including reference preparation and solves. Cancellation stops nested reference jobs too. A failed or interrupted verification supplies no usable verdict.
+
+Dynamics checks cover trace, Hermiticity and minimum eigenvalue at every stored time, and consistency of reported expectations with stored states. One independent CPU solve covers the full window at tightened integration tolerances and combined cutoff/retained-level refinement. Reference tolerances are the smaller of one tenth of the source tolerance and the policy's `rtol = 1e-11` / `atol = 1e-13`; the step ceiling is retained and reported. QuTiP sources use CPU dynamiqs references; dynamiqs sources use QuTiP. Initial states occupy the same ordered low-level subspace of the refined tensor product, aligning independently constructed eigenstate phases through local operators. Comparisons use each reported observable in its declared units, rather than density matrices of different dimensions. No reported observables or a refinement exceeding dimension 48 yields `UNVERIFIED` with a recommendation; a missing engine fails verification without a verdict. Top-level population above `1e-6` is a warning and never a pass requirement.
+
+Spectral records contain the declared number of lowest energies. `spectral_consistency` checks those energies against a NumPy eigensolver of the same declared Hamiltonian; it establishes output/model consistency. Single-mode junction circuits also use independent transmon or fluxonium constructors where that topology applies. The supported one-capacitor/one-inductor circuit has an analytic excitation reference from its supplied component values; `spectral_reference` uses these constructor or analytic comparisons and is marked inapplicable when neither is available. Combined refinement compares every reported excitation energy with the refined spectrum at `1e-5 GHz`; finite explicit matrices have no truncation check. The consistency/constructor/analytic comparisons use `2e-8 GHz`, following the bundled model representation limits. These checks establish numerical agreement for the declared model, not device-model accuracy.
+
+Reports give check scopes, tolerances, residuals, warnings, reference engine/dimensions/settings, coverage and inapplicable reasons. A single computation is its own evidence point. Matching reference plan digests and policy versions allow reuse only after checking completion and retained input/output integrity; the report identifies reused evidence. No successful verification changes its source records.
+
+Verification history is found within the source system directory by parent run ID; reference reports identify evidence by run ID in that directory. Moving the runs tree preserves these links.
+
+`read-run` includes the latest linked verification attempt and history with policy/source digests. Its `current` entry is the newest attempt for the requested policy (default: the installed policy); failed or incomplete attempts expose diagnostics without substituting an earlier verdict. `--policy-version DIGEST` requests historical policy evidence. Missing or changed source/reference artifacts make a verdict unavailable. Automatic protocol verification and sweep integration follow with the public protocols.
 
 ## Limits, interruption, and recovery
 
@@ -99,7 +116,7 @@ Runner records are published once and made read-only. Jobs own `result.toml` and
 | `runner/abort.toml` | UTC `requested_at`, published once by the abort operation; a request, not a terminal outcome |
 | `FINISHED` | `record_version`, `status`, `exit_code`, UTC `ended_at`, and `usage`: nonnegative finite `wall_seconds`, `gpu_seconds`, and `uncertain = false` |
 | `runner/reconciled.toml` | `record_version`, UTC `observed_at`, `last_observed_state`, and `usage.uncertain = true`. When a start record exists, includes its `started_at`, `process_group`, and `gpu_devices`; otherwise these fields are absent. Unknown usage is not replaced with zero |
-| `result.toml` | A protocol-specific TOML table containing metrics, actual engine/solver information, and artifact references with digests. Protocol results carry no verification verdict; independent verification results may carry one when verification is available |
+| `result.toml` | A protocol-specific TOML table containing metrics, actual engine/solver information, and artifact references with digests. Protocol results carry no verification verdict; independent verification results carry the bound verdict and report |
 
 `run.toml` is the first published file. Inputs are then frozen before the caller may start computation. UTF-8 serialization, missing-input errors, normalized-path duplicates, and file/directory conflicts are checked before creating the attempt directory. On a handled failure before manifest publication, the exclusively created attempt directory is removed because no run was admitted. If preparation fails after publication, `create_run` publishes `FINISHED` with `failed/64` and zero job usage while holding ownership, then raises `RunCreationError` carrying the attempt path in `.run`. If storage prevents that terminal write, the original error retains the path and an explanatory note; the attempt remains incomplete and can be reconciled without a start record. Creation failures close the owner handle before raising.
 

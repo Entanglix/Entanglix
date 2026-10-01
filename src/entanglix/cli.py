@@ -113,6 +113,12 @@ def main(argv: list[str] | None = None) -> int:
     )
     reading = subcommands.add_parser("read-run", help="read an attempt's records and log tail")
     reading.add_argument("run", type=Path, help="attempt directory")
+    reading.add_argument("--policy-version", help="verification policy digest; default: current")
+    comparison = subcommands.add_parser(
+        "compare-reference", help="verify a completed computation independently"
+    )
+    comparison.add_argument("run", type=Path, help="source attempt directory")
+    comparison.add_argument("--timeout", type=float, help="verification time limit in seconds")
     args = parser.parse_args(argv)
     if args.command == "validate":
         from entanglix.models import SpecError, load_system
@@ -136,6 +142,7 @@ def main(argv: list[str] | None = None) -> int:
         "abort-run",
         "reconcile-run",
         "rerun-script",
+        "compare-reference",
     }:
         from entanglix.runner import (
             abort_run,
@@ -147,7 +154,7 @@ def main(argv: list[str] | None = None) -> int:
             run_script,
         )
 
-        if args.command in {"run-script", "rerun-script"}:
+        if args.command in {"run-script", "rerun-script", "compare-reference"}:
             # A supervising command stops its job on termination or hangup, as on Ctrl-C.
             signal.signal(signal.SIGTERM, signal.default_int_handler)
             signal.signal(signal.SIGHUP, signal.default_int_handler)
@@ -178,14 +185,22 @@ def main(argv: list[str] | None = None) -> int:
                 )
             elif args.command == "capabilities":
                 result = list_capabilities()
+            elif args.command == "compare-reference":
+                from entanglix.corrector.verification import compare_reference
+
+                result = compare_reference(args.run, timeout_seconds=args.timeout)
             elif args.command == "list-runs":
                 result = list_runs(args.runs_root)
             else:
-                result = read_run(args.run)
+                result = read_run(args.run, policy_version=args.policy_version)
         except (OSError, ValueError, RuntimeError, KeyError) as exc:
             print(f"entanglix: {exc}", file=sys.stderr)
             return 64
         print(json.dumps(result, default=str, indent=2))
-        return result["exit_code"] if args.command in {"run-script", "rerun-script"} else 0
+        return (
+            result["exit_code"]
+            if args.command in {"run-script", "rerun-script", "compare-reference"}
+            else 0
+        )
     parser.print_help()
     return 0

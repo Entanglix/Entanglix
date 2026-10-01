@@ -31,7 +31,7 @@ Block 4: corrector and plans --> checks and compare_reference
 Block 5: feasibility --> drives and frames --> simulate --> sweep + M2 acceptance
 ```
 
-Each step belongs to one block, and blocks complete in order. Block 3 accepts runner facilities through authored CPU jobs, CPU process/lock tests, and a workstation GPU environment check. Plan-job integration belongs to 4A, linked verification and inspection to 4A–4B, and built-in protocol records, reproduction, and scientific GPU dispatch integration to 5C–5D. Those integration checks remain required for the later blocks. Step 5A needs only M1 and QuTiP, so it can run before Blocks 3 and 4 finish.
+Each step belongs to one block, and blocks complete in order. Block 3 accepts runner facilities through authored CPU jobs, CPU process/lock tests, and a workstation GPU environment check. Plan-job integration belongs to 4A, linked verification and inspection to 4A–4B, and built-in protocol records, reproduction, and scientific GPU dispatch integration to 5C–5D. Block 4 owns trusted computation definitions, shared series-check functions, and spoofing tests; 5C–5D supply protocol-specific metric definitions and apply bounded evidence selection and monotonicity checks to actual sweep grids. Those integration checks remain required for the later blocks. Step 5A needs only M1 and QuTiP, so it can run before Blocks 3 and 4 finish.
 
 | Step | Work | Evidence before advancing |
 |---|---|---|
@@ -217,7 +217,7 @@ Recorded in [ADR-0003](adr/0003-runs-verification-and-dispatch.md), with matchin
 6. Lab-frame carrier drives and rotating frames are M2 capabilities, using the pinned adaptive solvers and explicit numeric transformations.
 7. The first example is the qubit–resonator readout model in §6, with feasibility and metric choices made in 5A before implementation.
 
-Run records, implemented plans, reference limits, and evidence-point selection are documented in [the operational run reference](operations/runs.md). Open, decided in the named step: metric, region, windows, grids, drive-frequency policy, refined dimensions, and evidence thresholds (5A); frame declaration and rotating-wave rules (5B); protocol spec syntax and workstation-local runner-extras configuration that supports both GPU stacks without imposing CUDA dependencies on CPU installations or CI (5C); CLI command names. The extras choice must preserve one declared set for jobs sharing an environment and run the GPU probe in the actual job environment.
+Run records, implemented plans, reference limits, and evidence-point selection are documented in [the operational run reference](operations/runs.md). Open, decided in the named step: metric, region, windows, grids, drive-frequency policy, refined dimensions, and evidence thresholds (5A); frame declaration and rotating-wave rules (5B); protocol spec syntax and workstation-local runner-extras configuration that supports both GPU stacks without imposing CUDA dependencies on CPU installations or CI (5C); remaining CLI command names. The extras choice must preserve one declared set for jobs sharing an environment and run the GPU probe in the actual job environment.
 
 ## 9. Exit evidence and handoff
 

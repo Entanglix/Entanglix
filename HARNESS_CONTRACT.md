@@ -1,6 +1,6 @@
 # Entanglix — Harness Contract
 
-**Date:** 2026-09-28 · **Status:** v0. Normative for each capability when available. Current source provides modeling, reference evolution, optional GPU adapters, and authored CPU jobs with retained records and inspection. Built-in protocol execution, GPU runner dispatch, and MCP operations are not yet available. See [README.md](README.md) for current usage and availability.
+**Date:** 2026-09-28 · **Status:** v0. Normative for each capability when available. See [README.md](README.md) for current usage and availability.
 
 **Audience:** research users, agents, and integrators. This contract is a retained operational part of the harness: it defines shared interfaces and execution guarantees. [Research-agent guidance](docs/research-agent.md) is a draft pending runtime integration; [ADRs](docs/adr/) retain decision history for optional consultation.
 

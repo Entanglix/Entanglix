@@ -3,7 +3,6 @@
 import hashlib
 import os
 import shutil
-import subprocess
 import sys
 from pathlib import Path
 
@@ -95,7 +94,8 @@ def test_verification_admission_binds_source_and_leaves_source_unchanged(plan_fi
             binding["source_result_sha256"]
             == hashlib.sha256(before[source / "result.toml"]).hexdigest()
         )
-        assert binding["source_path"] == str(source)
+        assert not Path(binding["source_path"]).is_absolute()
+        assert (owner.path.parent / binding["source_path"]).resolve() == source
         assert (
             binding["source_artifact_sha256"]
             == hashlib.sha256((source / "artifacts/output.npz").read_bytes()).hexdigest()
@@ -292,6 +292,7 @@ def test_reference_plan_limit_is_separate_and_refinement_cannot_be_waived(tmp_pa
     definition = {
         "format_version": 1,
         "kind": "spectrum",
+        "levels": 4,
         "purpose": "reference",
         "refinement": {"r": {"retained_levels_step": 1}, "q": {"retained_levels_step": 1}},
     }
@@ -323,6 +324,7 @@ def test_cutoff_refinement_must_meet_the_corrector_minimum(tmp_path):
     definition = {
         "format_version": 1,
         "kind": "spectrum",
+        "levels": 4,
         "refinement": {
             "q": {"retained_levels_step": 1, "cutoff_steps": {"theta1": 1}},
             "r": {"retained_levels_step": 1},
@@ -350,32 +352,11 @@ def test_plan_timeout_uses_runner_lifecycle(plan_files):
     assert "timeout" in record["log_tail"]
 
 
-def test_dynamiqs_plan_runs_in_configured_exact_cpu_environment(plan_files, tmp_path):
-    pytest.importorskip("dynamiqs")
+def test_dynamiqs_plan_runs_in_configured_exact_cpu_environment(
+    plan_files, differentiable_repository
+):
     root, definition = plan_files
-    repository = tmp_path / "checkout"
-    repository.mkdir()
-    shutil.copytree(ROOT / "src", repository / "src", ignore=shutil.ignore_patterns("__pycache__"))
-    for name in ("uv.lock", ".gitignore"):
-        shutil.copyfile(ROOT / name, repository / name)
-    (repository / "pyproject.toml").write_text(
-        (ROOT / "pyproject.toml").read_text()
-        + '\n[tool.entanglix.runner]\nextras = ["differentiable"]\n'
-    )
-    for arguments in (
-        ["init", "-q"],
-        ["add", "."],
-        [
-            "-c",
-            "user.name=Test",
-            "-c",
-            "user.email=test@example.invalid",
-            "commit",
-            "-qm",
-            "fixture",
-        ],
-    ):
-        subprocess.run(["git", "-C", str(repository), *arguments], check=True, capture_output=True)
+    repository = differentiable_repository
     definition["engine"] = "dynamiqs"
     (root / "plan.toml").write_text(tomli_w.dumps(definition))
     job = run_plan(
@@ -394,3 +375,22 @@ def test_dynamiqs_plan_runs_in_configured_exact_cpu_environment(plan_files, tmp_
         np.testing.assert_allclose(
             output["states"], np.asarray(comparison.states), atol=1e-7, rtol=0
         )
+
+
+@pytest.mark.parametrize("levels", [None, 0, True, 3])
+def test_spectrum_requires_valid_reported_levels(plan_files, levels):
+    root, _ = plan_files
+    plan = {"format_version": 1, "kind": "spectrum"}
+    if levels is not None:
+        plan["levels"] = levels
+    (root / "plan.toml").write_text(tomli_w.dumps(plan))
+    with pytest.raises(ValueError, match="levels"):
+        load_plan(root / "system.toml", root / "plan.toml")
+
+
+def test_dynamics_rejects_spectral_levels(plan_files):
+    root, plan = plan_files
+    plan["levels"] = 2
+    (root / "plan.toml").write_text(tomli_w.dumps(plan))
+    with pytest.raises(ValueError, match="lindblad must not contain levels"):
+        load_plan(root / "system.toml", root / "plan.toml")
