@@ -132,13 +132,15 @@ The [M2 guide](m2-guide.md) covers the joint implementation of Blocks 3–5. [AD
 - `read_run` shows the live trace of running jobs so a stalled run can be aborted mid-way.
 - Run history from the first execution through runner-owned records in each run directory, without a separate ledger store: provenance, parent runs, resource use, and outcome for completed, failed, aborted, and interrupted attempts. This history is available before catalog promotion or agent use.
 - Diagnostics and a documented recovery or rerun path for interrupted work.
-- **Done when:** a killed job leaves no `FINISHED`; a completed job's `result.toml` validates; a run is reproducible from `spec/` + `code_version` + `env_hash`; attempts and their lineage remain queryable after interruption.
+- This block accepts runner facilities through authored CPU jobs, real process/lock tests, and a GPU environment check on the workstation. CPU plan jobs use them in Block 4; linked verification inspection belongs to Block 4, and built-in protocol records, reproduction, and scientific GPU dispatch integration belong to Block 5, with their acceptance evidence required there.
+- **Done when:** runner loss leaves the attempt without `FINISHED`; observed job failures receive failed terminal records; a completed CPU job's `result.toml` validates; it reproduces from frozen inputs, recorded code, and matching `env_hash`; the GPU environment gate passes on the workstation; attempts and lineage remain queryable after interruption.
 
 ### Block 4 — Corrector v0
 
 - **Depends on:** Blocks 1–3.
 - Physicality checks at every point and, at a bounded set of evidence points, one comparison with an independent CPU engine at tightened tolerances and refined truncation, as a separate package with hashed code and a versioned thresholds file; `compare_reference` verb. Verification is a linked run whose report states each point's coverage.
 - The corrector derives applicable checks from trusted protocol/metric definitions and the validated execution plan. Agent-written labels cannot waive checks; design-sweep checks add to the applicable dynamics or spectral checks.
+- CPU plan jobs use the runner's existing gate, records, and lifecycle; linked verification runs integrate with history and `read_run` before this block closes.
 - **Done when:** a deliberately under-converged run is flagged `UNVERIFIED`; a hash mismatch fails the run; mislabeled studies cannot evade required checks. Verification is available before completion of Block 5.
 
 ### Block 5 — Protocols `simulate` and `sweep` (first end-to-end)
@@ -147,6 +149,7 @@ The [M2 guide](m2-guide.md) covers the joint implementation of Blocks 3–5. [AD
 - Standalone simulation and static and dynamic grid sweeps over scqubits parameters against declared observables or a simulated metric (for example dispersive shift, T1 limit from a noise model, gate error under a fixed pulse).
 - The first end-to-end example exercises open-system dynamics on the local GPU; this class of metric is settled. Choose the exact observable, fixed pulse if needed, parameter region, and evidence thresholds from a CPU feasibility probe before implementation of this block. Spectral-only studies remain useful supported workflows.
 - Lab-frame carrier drives and rotating frames with an explicit rotating-wave approximation, verified against the lab frame. A declared `device = "cuda"` runs non-gradient work on cuDensityMat without a performance claim.
+- Built-in protocols integrate the runner's gate, environment identity, GPU ownership, usage, and recovery facilities. Freeze protocol/plan inputs, record seeds and solver settings, and validate reproduction and interrupted-attempt history on CPU and GPU.
 - Plots and `result.toml` summaries with enough evidence for a user to inspect results and choose a refined sweep.
 - **Done when:** a documented simulation and one agreed dynamics sweep run end to end through `entanglix`, the sweep exercises the local GPU, corrector checks pass, and a user can inspect and refine the sweep without control or calibration.
 

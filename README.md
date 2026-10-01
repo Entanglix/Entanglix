@@ -2,7 +2,7 @@
 
 Entanglix is a quantum system research harness for superconducting circuits.
 
-**Available in this checkout:** system validation and CPU construction, reference-size evolution with optional GPU adapters and differentiable drives, an engine-selection policy through the Python API, and authored CPU jobs with frozen inputs, retained records, live inspection, timeouts, cancellation, recovery, and linked reruns. Built-in simulation/sweep protocols, scientific GPU runner dispatch, and independent run verification follow separately.
+**Available in this checkout:** system validation and CPU construction, reference-size evolution with optional GPU adapters and differentiable drives, an engine-selection policy and selected-GPU environment checks through the Python API, and authored CPU jobs with frozen inputs, retained records, live inspection, timeouts, cancellation, recovery, and linked reruns. Built-in simulation/sweep protocols, scientific GPU runner dispatch, and independent run verification follow separately.
 
 Shared execution guarantees are in [HARNESS_CONTRACT.md](HARNESS_CONTRACT.md); [research-agent guidance](docs/research-agent.md) is a draft pending runtime integration. [ADRs](docs/adr/) retain decisions and rationale for readers who need that history.
 
@@ -31,7 +31,7 @@ For GPU adapter use on a supported NVIDIA workstation, install the relevant extr
 
 ## Changes and compatibility
 
-Unreleased: add system models for component circuits and composites, validation with transformation, offset, oriented-loop, and operator-meaning diagnostics, CPU exports including factorized drive and dissipator operators, verified driven/dissipative evolution across QuTiP and optional cuDensityMat/dynamiqs adapters, JAX drive gradients, a versioned selection policy, and worked examples. Add locked CPU script execution with frozen inputs and code provenance, atomic attempt records, failure diagnostics, listing, inspection, and a recorded decay example. Add process-group timeouts and cancellation, inherited per-device GPU allocation locks, interrupted-attempt reconciliation, and frozen-input reruns with lineage.
+Unreleased: add system models for component circuits and composites, validation with transformation, offset, oriented-loop, and operator-meaning diagnostics, CPU exports including factorized drive and dissipator operators, verified driven/dissipative evolution across QuTiP and optional cuDensityMat/dynamiqs adapters, JAX drive gradients, a versioned selection policy, and worked examples. Add locked CPU script execution with frozen inputs and code provenance, atomic attempt records, failure diagnostics, listing, inspection, and a recorded decay example. Add process-group timeouts and cancellation, inherited per-device GPU allocation locks, interrupted-attempt reconciliation, and frozen-input reruns with lineage. Add selected-GPU environment checks and retained native runtime observations.
 
 Version 0.1.0 established the installable package and CLI foundation.
 

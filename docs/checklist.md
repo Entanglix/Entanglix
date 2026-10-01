@@ -127,32 +127,33 @@ The [M1 guide](m1-guide.md) records the implementation approach. Supported conve
 
 The [M2 guide](m2-guide.md) records the implementation approach; [ADR-0003](adr/0003-runs-verification-and-dispatch.md) records the run-record, verification, dispatch, and frame decisions. This checklist records completion and links to acceptance evidence.
 
-### [ ] Block 3 — Runner and Run Contract
+### [x] Block 3 — Runner and Run Contract
 
-**Depends on:** Blocks 0–2.
+**Depends on:** Blocks 0–2. Acceptance covers the runner facilities and authored CPU jobs. Plan-job integration belongs to 4A, linked verification to 4A–4B, and built-in protocol/GPU dispatch integration to 5C–5D; their acceptance checks remain below.
 
-- [-] Gate: spec validation, static import scan, environment check (driver, cuQuantum, memory); CPU gate implemented, GPU checks pending ([launch tests](../tests/test_runner.py), [import policy](../src/entanglix/imports.py))
-- [-] Run dir per contract §2: `run.toml` first, `runner/started.toml` before the job computes, `spec/` frozen, `FINISHED` last, atomic `result.toml`; jobs write only `result.toml` and `artifacts/`; CPU scripts implemented, built-in protocols pending ([record API](../src/entanglix/runner.py), [record tests](../tests/test_run_records.py), [launch tests](../tests/test_runner.py), [run reference](operations/runs.md))
-- [-] Minimal retained environment record and `env_hash`: lockfile digest, Python/platform, and observed GPU driver/CUDA/cuQuantum versions; exactly synced execution through `uv run --locked --exact` with the same declared extras for all jobs; CPU launch implemented, GPU observations pending ([environment record](operations/runs.md#environment-and-code-provenance), [record tests](../tests/test_run_records.py), [launch tests](../tests/test_runner.py))
-- [-] Reproduction inputs: authored code/data references, versions or digests, seeds, solver settings, and code/environment provenance; Git revision and dirty state plus frozen inputs and a patch of uncommitted code; CPU script replay implemented, protocol records pending ([frozen provenance](operations/runs.md#environment-and-code-provenance), [reconstruction test](../tests/test_run_records.py), [replay test](../tests/test_runner.py))
+- [x] Gate facilities: system validation, static import scan, and selected-device environment check (driver access, loaded CUDA/cuDensityMat, free memory against the selection estimate) ([launch tests](../tests/test_runner.py), [import policy](../src/entanglix/imports.py), [GPU gate tests](../tests/test_gpu_environment.py), [workstation evidence](environment.md#runner-gpu-environment-check))
+- [x] Run dir per contract §2: `run.toml` first, `runner/started.toml` before computation, frozen `spec/`, `FINISHED` last, atomic `result.toml`, and assigned job outputs ([record API](../src/entanglix/runner.py), [record tests](../tests/test_run_records.py), [launch tests](../tests/test_runner.py), [run reference](operations/runs.md))
+- [x] Minimal retained environment record and `env_hash`: lockfile digest, Python/platform, observed GPU driver/CUDA/cuDensityMat versions, and declared extras; exactly synced execution with the same extras for jobs sharing an environment ([environment identity](operations/runs.md#environment-and-code-provenance), [GPU gate tests](../tests/test_gpu_environment.py), [workstation evidence](environment.md#runner-gpu-environment-check))
+- [x] Frozen authored code/data with digests; Git revision and dirty state, patch of uncommitted code and retained untracked sources; reconstruction and replay ([frozen provenance](operations/runs.md#environment-and-code-provenance), [reconstruction tests](../tests/test_run_records.py), [replay tests](../tests/test_runner.py), [lifecycle tests](../tests/test_lifecycle.py))
 - [x] Job spawn in its own process group; exit-code contract; configured timeouts ([launch tests](../tests/test_runner.py), [lifecycle tests](../tests/test_lifecycle.py), [limit reference](operations/runs.md#limits-interruption-and-recovery))
-- [-] Separate run directories and assigned outputs prevent accidental interference; an inherited GPU lock permits one active job by default across runner instances and runs roots; a job may batch calculations; scientific GPU dispatch integration pending ([record tests](../tests/test_run_records.py), [launch tests](../tests/test_runner.py), [lifecycle tests](../tests/test_lifecycle.py), [GPU ownership](operations/runs.md#local-gpu-ownership))
-- [x] Cancellation targets the intended job and descendants; unknown process state blocks GPU reuse pending reconciliation; the job inherits the GPU lock, so runner loss while the job survives keeps the GPU blocked; reconciliation records uncertain usage and never writes `FINISHED` ([CPU process and lock tests](../tests/test_lifecycle.py), [ownership tests](../tests/test_run_records.py), [recovery reference](operations/runs.md#limits-interruption-and-recovery))
+- [x] Separate run directories and assigned outputs; an inherited GPU lock excludes across runner instances and runs roots ([record tests](../tests/test_run_records.py), [launch tests](../tests/test_runner.py), [lifecycle tests](../tests/test_lifecycle.py), [GPU ownership](operations/runs.md#local-gpu-ownership))
+- [x] Cancellation targets the intended job and descendants; unknown process state blocks GPU reuse; inherited ownership survives runner loss; reconciliation records uncertain usage and never writes `FINISHED` ([CPU process and lock tests](../tests/test_lifecycle.py), [ownership tests](../tests/test_run_records.py), [recovery reference](operations/runs.md#limits-interruption-and-recovery))
 - [x] Local executor, diagnostics, and documented interruption recovery/rerun path ([run reference](operations/runs.md), [launch tests](../tests/test_runner.py), [lifecycle tests](../tests/test_lifecycle.py))
-- [-] Runner-owned run records form the history from first execution: parent run IDs, provenance, outcomes, resource use, and verification status from linked verification runs; CPU history and abort implemented; linked verification pending ([record tests](../tests/test_run_records.py), [launch tests](../tests/test_runner.py))
+- [x] Runner-owned attempt history retains parent runs, provenance, outcomes, and observed or uncertain resource use ([record tests](../tests/test_run_records.py), [launch tests](../tests/test_runner.py), [lifecycle tests](../tests/test_lifecycle.py))
 - [x] Per-run records retain concurrent attempts; frozen-input reruns receive new IDs and preserve parent lineage ([record tests](../tests/test_run_records.py), [replay tests](../tests/test_runner.py), [lifecycle tests](../tests/test_lifecycle.py))
 - [x] `list_capabilities`, `list_runs`, `read_run`, and `abort_run` backing capabilities ([launch tests](../tests/test_runner.py), [lifecycle tests](../tests/test_lifecycle.py), [run reference](operations/runs.md#authored-cpu-jobs))
-- [ ] Execution outcome remains distinct from scientific verification
-- [ ] Applicable quality evidence recorded
-- [ ] **Done:** abrupt termination leaves no fabricated completion; completed results validate and reproduce; interrupted attempts remain queryable with diagnostics and lineage
+- [x] Execution outcome remains distinct from scientific verification; authored verdicts are rejected ([result tests](../tests/test_runner.py), [execution outcomes](operations/runs.md#execution-outcomes))
+- [x] Applicable quality evidence ([reference example](../examples/recorded_decay.py), [run interface and recovery](operations/runs.md), [automated runner tests](../tests/test_runner.py), [lifecycle tests](../tests/test_lifecycle.py), [GPU environment evidence](environment.md#runner-gpu-environment-check), [release notes](../README.md#changes-and-compatibility))
+- [x] **Done:** runner loss leaves no fabricated completion; observed job failure has a terminal record; completed CPU-script results validate and reproduce; interrupted attempts retain diagnostics and lineage ([record tests](../tests/test_run_records.py), [launch tests](../tests/test_runner.py), [lifecycle tests](../tests/test_lifecycle.py))
 
 ### [ ] Block 4 — Corrector v0
 
 **Depends on:** Blocks 1–3.
 
+- [ ] CPU plan jobs use the existing runner gate, frozen records, lifecycle, and provenance facilities (4A)
 - [ ] Separate corrector package; code hashed at load; versioned thresholds outside the candidate workspace; research tools cannot replace policy or verdicts
 - [ ] Dynamics: trace, hermiticity, and positivity at every point; one independent CPU reference comparison at tightened tolerances and refined truncation at each evidence point; deterministic, bounded evidence-point selection; reference dimension limit validated by exact-Liouvillian regression for both CPU reference engines
-- [ ] Verification runs linked to their source runs; reports bound to source digests and policy version; evidence reuse; reads show the latest attempt without substituting an older verdict
+- [ ] Verification runs linked to their source runs; reports bound to source digests and policy version; evidence reuse; `read_run` shows the latest verification attempt and policy-bound verdict without substituting an older verdict (4A–4B)
 - [ ] Reference and truncation checks applicable to spectral studies
 - [ ] Corrector selects checks from trusted protocol/metric definitions and validated execution plans; unknown/inconsistent definitions cannot verify; agent-written labels cannot waive checks
 - [ ] Design-sweep seed/monotonicity checks add to applicable dynamics or spectral checks
@@ -169,6 +170,8 @@ The [M2 guide](m2-guide.md) records the implementation approach; [ADR-0003](adr/
 - [ ] Before implementation: a CPU feasibility probe chooses the exact dynamics metric/observable, pulse if needed, parameter region, windows, grids, and evidence thresholds
 - [ ] Lab-frame carrier drives and rotating frames with an explicit rotating-wave approximation; carrier drives pass cross-engine and refinement acceptance; rotating-frame results agree with the lab frame within declared tolerances
 - [ ] A declared `device = "cuda"` routes non-gradient work to cuDensityMat in a versioned selection table, without a performance claim
+- [ ] `simulate` connects selected-device environment/memory checks, pre-launch reference evidence, inherited GPU allocation and attempt locks, usage accounting, cancellation, and reconciliation; completed and interrupted GPU runs pass runner integration checks (5C)
+- [ ] `simulate` and `sweep` freeze protocol/plan specs and data, record seeds and solver settings, retain code/environment provenance, and reproduce from retained inputs under new linked IDs; all attempt states remain queryable (5C–5D)
 - [ ] First end-to-end sweep exercises open-system dynamics on the local GPU (metric class already fixed)
 - [ ] Spectral-only studies remain usable independently
 - [ ] Plots and `result.toml` summaries expose evidence needed to inspect and refine a sweep

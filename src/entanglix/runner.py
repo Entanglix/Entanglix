@@ -14,14 +14,18 @@ import subprocess
 import tempfile
 import time
 import tomllib
+import uuid
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from importlib.metadata import distributions, version
 from pathlib import Path
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 import tomli_w
+
+if TYPE_CHECKING:
+    from entanglix.engines.selection import EngineSelection
 
 TERMINATION_GRACE_SECONDS = 2.0
 
@@ -51,6 +55,73 @@ def capture_environment(
     }
     record["env_hash"] = _digest(json.dumps(record, sort_keys=True, separators=(",", ":")).encode())
     return record
+
+
+def check_gpu_environment(device_uuid: str, selection: "EngineSelection") -> dict:
+    """Check a selected device in the caller's exact job environment before dispatch."""
+    try:
+        import ctypes
+
+        import cupy as cp
+        from cuquantum.densitymat import WorkStream
+
+        query = subprocess.run(
+            [
+                "nvidia-smi",
+                f"--id={device_uuid}",
+                "--query-gpu=uuid,driver_version",
+                "--format=csv,noheader",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        observed_uuid, driver = (value.strip() for value in query.stdout.strip().split(","))
+        if observed_uuid != device_uuid:
+            raise ValueError("NVIDIA-SMI returned a different device UUID")
+        for device_id in range(cp.cuda.runtime.getDeviceCount()):
+            properties = cp.cuda.runtime.getDeviceProperties(device_id)
+            if f"GPU-{uuid.UUID(bytes=properties['uuid'])}" == device_uuid:
+                break
+        else:
+            raise ValueError(f"selected device {device_uuid} is not visible to CUDA")
+        with cp.cuda.Device(device_id):
+            cuda = cp.cuda.runtime.runtimeGetVersion()
+            # Creating a handle checks that the native library initializes on this device.
+            work = WorkStream(device_id=device_id)
+            # The 26.9 binding misreads GetVersion's size_t result as a status; use the
+            # already loaded library's C API instead of substituting a package version.
+            native = ctypes.CDLL("libcudensitymat.so.0")
+            native.cudensitymatGetVersion.restype = ctypes.c_size_t
+            native.cudensitymatGetVersion.argtypes = []
+            library_version = native.cudensitymatGetVersion()
+            free, _ = cp.cuda.runtime.memGetInfo()
+            del work
+        if free < selection.estimated_device_bytes:
+            raise ValueError(
+                f"GPU free memory {free} bytes is below selection estimate "
+                f"{selection.estimated_device_bytes} bytes"
+            )
+        return {
+            "device_uuid": device_uuid,
+            "device_id": device_id,
+            "free_memory_bytes": free,
+            "required_memory_bytes": selection.estimated_device_bytes,
+            "gpu": {
+                "driver": driver,
+                "cuda": f"{cuda // 1000}.{cuda % 1000 // 10}.{cuda % 10}",
+                "cuquantum": (
+                    f"{library_version // 10000}.{library_version % 10000 // 100}."
+                    f"{library_version % 100}"
+                ),
+            },
+        }
+    except Exception as exc:
+        raise ValueError(
+            f"GPU environment rejected for {device_uuid}: {exc}; "
+            "check device visibility, driver access, the cuquantum extra, and free memory"
+        ) from exc
 
 
 @dataclass(frozen=True)

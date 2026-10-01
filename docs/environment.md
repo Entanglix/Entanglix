@@ -52,6 +52,18 @@ XLA_PYTHON_CLIENT_PREALLOCATE=false JAX_PLATFORMS=cuda,cpu uv run --locked --exa
 
 For CPU acceptance, use `uv run --locked --exact pytest -q`. The CPU-only optional lane uses `JAX_PLATFORMS=cpu uv run --locked --exact --extra differentiable pytest -q tests/test_engine_dynamiqs.py tests/test_engine_acceptance.py -m 'not gpu' -k 'dynamiqs or gradient'`. These exact runs keep GPU extras out of the CPU environment. `--require-gpu` turns missing devices and skipped GPU tests into failures. The GPU suites assert the engine and actual device identity; this workstation reports an RTX 5090. [Loss comparisons](../examples/dynamics_reference.py) and [differentiable evolution](../examples/differentiable_reference.py) provide runnable examples.
 
+## Runner GPU environment check
+
+On 2026-10-01 the [runner environment test](../tests/test_gpu_environment.py) passed on the RTX 5090 using a separate exact test environment with both GPU extras. It matched device UUID `GPU-f2a6e8aa-b32b-ae8e-6dc6-03612dd6b829`, observed driver `595.91.07`, loaded CUDA `12.9.0` and native cuDensityMat `0.7.0`, compared available memory against the existing selection estimate for the two-level fixture, and rejected an oversized request. [The retained JUnit report](../tests/probes/block3_gpu_environment.xml) contains the device/memory observations and environment hash. This validates pre-dispatch environment facilities; scientific GPU dispatch is still unavailable.
+
+Reproduce this check in a separate exact environment without reshaping the development or CPU runner environment:
+
+```sh
+UV_PROJECT_ENVIRONMENT=/tmp/entanglix-block3-gpu uv run --locked --exact --extra cuquantum --extra differentiable-cuda12 pytest -q tests/test_gpu_environment.py -m gpu --require-gpu -o junit_family=legacy --junitxml=tests/probes/block3_gpu_environment.xml
+```
+
+The CPU cases in the same test file exercise missing dependencies, driver/library failures, invisible devices, memory rejection, and memory-independent environment identity. The [run reference](operations/runs.md#environment-and-code-provenance) defines the API and recorded fields.
+
 ## Reproduce from a source checkout
 
 Run where the NVIDIA driver and GPU device are accessible.
