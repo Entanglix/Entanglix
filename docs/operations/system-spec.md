@@ -42,6 +42,44 @@ Pass the same input to `QuTiPIntegrator().evolve(system, request)`, `CuQuantumIn
 
 QuTiP uses `vern9`, cuDensityMat uses `CuVern7`, and dynamiqs uses `Tsit5`. `EvolutionInput.max_steps` (also accepted by `evolve_cpu`) is a positive integer, defaulting to `100_000`. It maps to QuTiP/cuDensityMat's `nsteps` limit per output interval and dynamiqs' limit per solver call. For constant controls dynamiqs counts the entire grid as one solve; for interval-valued controls each restarted segment gets a fresh limit. This is an integration-step ceiling; it does not bound elapsed time. Diagnostics record `max_steps` and `step_limit_scope`. Capabilities use `device_kind = "cpu"` or `"cuda"`; dynamiqs translates its constructor's `"gpu"` selector to the public `"cuda"` value. Set `XLA_PYTHON_CLIENT_PREALLOCATE=false` in the launch environment before JAX initializes when sharing GPU memory with another stack; the adapter does not change the process environment.
 
+### Carriers and rotating frames
+
+`EvolutionInput.carriers` maps drive IDs to `Carrier(frequency_ghz, phase_rad=0)`.
+The amplitude remains the scalar or interval-valued envelope in `drive_amplitudes_ghz`;
+the lab-frame coefficient is `A(t) cos(2π f t + φ)`, evaluated continuously at the
+solver's internal times. Carrier phase uses absolute time, including across envelope
+boundaries and when the output grid starts after zero. Unlisted drives remain constant
+within each interval. Carrier frequencies must be finite and positive; phases finite.
+
+`EvolutionInput.frame = RotatingFrame(frequencies_ghz, rwa=True, excitation_numbers=...)`
+declares a rotating-wave approximation. Frequencies map subsystem IDs to nonnegative
+GHz values; omitted subsystems have zero frame frequency. A single-system model uses
+its system ID. Constructed circuits and constructors use excitation numbers
+`0, 1, ..., retained_levels-1` in their isolated eigenbasis. Explicit-operator
+subsystems with nonzero frame frequency must supply one nonnegative integer excitation
+number per basis state in
+the `excitation_numbers` mapping. This declaration makes the diagonal generator
+explicit; exact rotating-frame evolution without an RWA is not provided.
+
+With `F = Σ f_s N_s`, the implementation uses `ρrot = exp(+i2πFt) ρlab exp(-i2πFt)`.
+It retains static Hamiltonian matrix elements with zero `F` difference and subtracts
+`F` from the Hamiltonian in GHz. For a cosine carrier, it retains drive transitions
+with `F` differences `+f` and `-f`, multiplying them by `exp(-iφ)/2` and
+`exp(+iφ)/2`, respectively. Unmodulated drives retain only zero-difference elements.
+Frequency matching uses an absolute `1e-10 GHz` tolerance, a numerical equality
+threshold rather than a physical near-resonance window. Local tensor factors remain
+available to cuDensityMat. Dissipators must have one definite excitation-frequency
+shift so their rotating phase cancels in the Lindblad term; operators mixing shifts
+are rejected rather than silently secularized.
+
+Initial states are specified in the lab basis at the first output time. All engines
+transform rotating outputs back to that basis before returning states and expectations.
+Diagnostics record frequencies, excitation numbers, removed Hamiltonian/drive frequency
+sectors, and norms of the removed operators (Hamiltonian in GHz; drives dimensionless).
+`evolve_cpu` accepts `carriers` and `frame` as keyword arguments. These conventions
+are shared across all three adapters; scalar and interval-valued carrier-envelope
+gradients are supported by dynamiqs with a fixed frame.
+
 ### Differentiable drives
 
 `DynamiqsIntegrator.evolve_jax(system, request, drive_amplitudes_ghz=...)` returns JAX state arrays and named JAX expectation arrays on the requested device. Put model construction and the `EvolutionInput` outside the differentiated objective, then pass scalar or interval-valued JAX drive amplitudes through the override argument. These controls replace matching request amplitudes and may supply drives omitted from the request; the effective controls must be scalar or have one value per output interval. Configure `jax_enable_x64` before constructing JAX parameters, and use real, finite amplitudes. The [gradient example](../../examples/differentiable_reference.py) compares `jax.value_and_grad` with an independent QuTiP finite difference. Taking `.real` from a Hermitian expectation supplies the real scalar objective JAX requires. The derivative is in expectation/GHz. This differentiates evolution with a fixed constructed Hamiltonian/basis; it does not differentiate scqubits construction, priors, or discrete truncation choices.
@@ -62,6 +100,16 @@ The dimension caps are functional validation bounds, not measured performance cr
 The `estimated_host_bytes`/`estimated_device_bytes` fields account for model arrays and local factors, normalized inputs and controls, sampled complex128 density matrices (`16 × dimension²` bytes each), and complex128 expectation arrays; CUDA decisions also budget these payloads on the device. This is known array storage, excluding solver workspace, allocator overhead, and autodiff storage, so it cannot guarantee total execution memory or enforce an allocation quota.
 
 ## Numerical checks for the bundled models
+
+The [carrier/frame tests](../../tests/test_carriers_frames.py) compare analytic
+carrier integrals, an independent lossy-oscillator ODE, phase-sensitive RWA evolution,
+and a tensor-projected composite on CPU and CUDA. Their state and integration-refinement
+limits are `1e-7` in Frobenius norm, with the existing `1e-8` physicality limits.
+Carrier-gradient comparisons use QuTiP finite differences at `1e-3` and `1e-4 GHz`,
+with relative limits `1e-3` and `1e-4`, respectively, and absolute `1e-6`. The
+[readout example](../../examples/readout/README.md) owns full-window frame bounds
+and their metric-resolution limits. These limits are specific to that fixture;
+the corrector's numerical `1e-6` threshold is unchanged.
 
 The CPU fixture tests compare constructed circuits with independently configured scqubits or analytic references. For the LC circuit at a fixed basis and shared eigenvector gauge, projected operator matrices use a relative Frobenius residual limit of `1e-12`, with an absolute floor of `1e-12` in the operator's units. Across separately constructed models, phase-invariant operator diagonals or magnitudes use absolute limits of `1e-8` for the junction, two-mode circuit, and transmon offset checks; the direct fluxonium constructor phase check uses `2e-8`. The fluxonium circuit/constructor signed `phase` and `sin_phase` checks use `1e-7`, above observed residuals of about `3.6e-8` and `2.2e-8`. Excitation energies compared with a direct reference use an absolute limit of `2e-8 GHz`; the fluxonium fixture's observed residual is about `1.55e-8 GHz` between separate circuit and constructor calculations. These limits check representation agreement at the same cutoff, not physical convergence.
 

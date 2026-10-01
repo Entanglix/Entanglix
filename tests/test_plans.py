@@ -72,6 +72,70 @@ def test_plan_job_records_and_replays_frozen_complex_inputs(plan_files):
         assert abs(output["states"][0, 0, 1].imag) > 0.4
 
 
+def test_carrier_frame_plan_freezes_settings_and_reference_uses_lab_frame(plan_files):
+    from entanglix.corrector.reference import prepare_reference
+    from entanglix.engines import QuTiPIntegrator
+    from entanglix.models import load_system
+
+    root, definition = plan_files
+    system_id = load_system(root / "system.toml").id
+    definition["evolution"].update(
+        times_ns=[0.23, 0.73, 1.23],
+        drive_amplitudes_ghz={"x_drive": [0.02, -0.01]},
+        carriers={"x_drive": {"frequency_ghz": 0.2, "phase_rad": 0.37}},
+        frame={
+            "frequencies_ghz": {system_id: 0.2},
+            "rwa": True,
+            "excitation_numbers": {system_id: [0, 1]},
+        },
+    )
+    (root / "plan.toml").write_text(tomli_w.dumps(definition))
+    loaded = load_plan(root / "system.toml", root / "plan.toml")
+    expected = QuTiPIntegrator().evolve(loaded.system, loaded.request)
+    run = Path(run_plan(root / "system.toml", root / "plan.toml", runs_root=root / "runs")["path"])
+    with np.load(run / "artifacts/output.npz") as output:
+        np.testing.assert_allclose(output["states"], expected.states, rtol=0, atol=1e-12)
+    assert read_run(run)["result"]["diagnostics"]["frame"]["rwa"]
+    target = root / "reference"
+    target.mkdir()
+    reference = prepare_reference(loaded, target, load_policy())
+    assert reference.request.frame is None
+    assert reference.request.carriers == loaded.request.carriers
+    np.testing.assert_array_equal(reference.request.times_ns, loaded.request.times_ns)
+
+
+@pytest.mark.parametrize("engine", ["qutip-cpu", "dynamiqs"])
+@pytest.mark.parametrize("controls", [{}, {"x_drive": 0.02}, {"x_drive": [0.02, 0.01]}])
+def test_reference_step_allowance_matches_solver_scope(plan_files, engine, controls):
+    from entanglix.corrector.reference import prepare_reference
+    from entanglix.models import load_system
+
+    root, definition = plan_files
+    system_id = load_system(root / "system.toml").id
+    definition["engine"] = engine
+    definition["evolution"]["drive_amplitudes_ghz"] = controls
+    definition["evolution"].update(
+        carriers={"x_drive": {"frequency_ghz": 0.2}},
+        frame={
+            "frequencies_ghz": {system_id: 0.2},
+            "rwa": True,
+            "excitation_numbers": {system_id: [0, 1]},
+        },
+    )
+    (root / "plan.toml").write_text(tomli_w.dumps(definition))
+    source = load_plan(root / "system.toml", root / "plan.toml")
+    target = root / "reference"
+    target.mkdir()
+    reference = prepare_reference(source, target, load_policy())
+    multiplier = (
+        len(source.request.times_ns) - 1
+        if engine == "qutip-cpu" and not any(np.ndim(value) for value in controls.values())
+        else 1
+    )
+    assert reference.request.max_steps == source.request.max_steps * multiplier
+    assert reference.request.frame is None
+
+
 def test_verification_admission_binds_source_and_leaves_source_unchanged(plan_files):
     root, _ = plan_files
     source = Path(

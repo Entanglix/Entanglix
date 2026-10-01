@@ -12,14 +12,26 @@ import numpy as np
 from pydantic import Field, model_validator
 
 from entanglix.corrector import load_policy, validate_refinement
+from entanglix.engines.frames import prepare_dynamics
 from entanglix.engines.selection import selection_table
-from entanglix.evolution import EvolutionInput, normalize_input
+from entanglix.evolution import Carrier, EvolutionInput, RotatingFrame, normalize_input
 from entanglix.models import ConstructedSystem, StrictModel, load_system
 
 
 class Refinement(StrictModel):
     retained_levels_step: int = Field(strict=True, gt=0)
     cutoff_steps: dict[str, int] = Field(default_factory=dict)
+
+
+class CarrierSpec(StrictModel):
+    frequency_ghz: float
+    phase_rad: float = 0.0
+
+
+class FrameSpec(StrictModel):
+    frequencies_ghz: dict[str, float]
+    rwa: Literal[True]
+    excitation_numbers: dict[str, list[int]] = Field(default_factory=dict)
 
 
 class EvolutionSpec(StrictModel):
@@ -31,6 +43,8 @@ class EvolutionSpec(StrictModel):
     rtol: float = 1e-10
     atol: float = 1e-12
     max_steps: int = Field(strict=True, gt=0, default=100_000)
+    carriers: dict[str, CarrierSpec] = Field(default_factory=dict)
+    frame: FrameSpec | None = None
 
 
 class ExecutionPlan(StrictModel):
@@ -117,8 +131,10 @@ def load_plan(
             spec.rtol,
             spec.atol,
             spec.max_steps,
+            {name: Carrier(**value.model_dump()) for name, value in spec.carriers.items()},
+            RotatingFrame(**spec.frame.model_dump()) if spec.frame is not None else None,
         )
-        normalize_input(system, request)
+        prepare_dynamics(system, normalize_input(system, request))
         paths[spec.array_file] = path.resolve()
         hashes[spec.array_file] = hashlib.sha256(data).hexdigest()
     identity = {

@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-import math
-
 import numpy as np
 
+from entanglix.engines.frames import prepare_dynamics
 from entanglix.evolution import (
     EngineCapabilities,
     EvolutionInput,
@@ -35,6 +34,7 @@ class CuQuantumIntegrator:
 
     def evolve(self, system: ConstructedSystem, request: EvolutionInput) -> EvolutionResult:
         normalized = normalize_input(system, request)
+        prepared = prepare_dynamics(system, normalized)
         if not system.hamiltonian_terms:
             raise EvolutionInputError("cuDensityMat requires factorized Hamiltonian terms")
         try:
@@ -72,29 +72,34 @@ class CuQuantumIntegrator:
                     locals_.append(local)
                 return qt.tensor(*locals_)
 
-            h_terms = [
-                term.coefficient_ghz * tensor_operator(term.factors)
-                for term in system.hamiltonian_terms
-            ]
-            base_hamiltonian = sum(h_terms[1:], h_terms[0])
-            drives = {
-                name: tensor_operator(factors) for name, factors in system.drive_factors.items()
-            }
-            collapse = [
-                math.sqrt(rate) * tensor_operator(system.dissipator_factors[name])
-                for name, (_, rate) in system.dissipators.items()
-                if rate > 0
-            ]
+            def terms_operator(terms):
+                values = [term.coefficient_ghz * tensor_operator(term.factors) for term in terms]
+                return sum(values[1:], values[0])
+
+            base_hamiltonian = terms_operator(prepared.hamiltonian)
+            drives = {name: terms_operator(terms) for name, terms in prepared.drives.items()}
+            collapse = [terms_operator(terms) for terms in prepared.collapse]
 
             def hamiltonian(amplitudes: dict[str, float]):
-                total = base_hamiltonian
+                timed = [2 * np.pi * base_hamiltonian]
                 for name, amplitude in amplitudes.items():
-                    total = total + amplitude * drives[name]
-                return 2 * np.pi * total
+                    carrier = normalized.carriers.get(name) if normalized.frame is None else None
+                    if carrier is None:
+                        timed[0] += 2 * np.pi * amplitude * drives[name]
+                    else:
+
+                        def coefficient(t, amplitude=amplitude, carrier=carrier):
+                            return amplitude * np.cos(
+                                2 * np.pi * carrier.frequency_ghz * t + carrier.phase_rad
+                            )
+
+                        timed.append([2 * np.pi * drives[name], coefficient])
+                return qt.QobjEvo(timed)
 
             initial = qt.Qobj(
                 qcu.CuState(
-                    cp.asarray(normalized.initial_density), hilbert_dims=tuple(system.dimensions)
+                    cp.asarray(prepared.initial_density(normalized)),
+                    hilbert_dims=tuple(system.dimensions),
                 ),
                 dims=qdims,
             )
@@ -118,7 +123,7 @@ class CuQuantumIntegrator:
 
             if normalized.piecewise:
                 state = initial
-                states = [normalized.initial_density]
+                states = [prepared.initial_density(normalized)]
                 for index in range(len(normalized.times_ns) - 1):
                     solved = qt.mesolve(
                         hamiltonian(normalized.amplitudes_for_interval(index)),
@@ -139,7 +144,7 @@ class CuQuantumIntegrator:
                 )
                 states = [to_host(item) for item in solved.states]
             cp.cuda.get_current_stream().synchronize()
-            state_arrays = tuple(states)
+            state_arrays = tuple(prepared.lab_states(states, normalized.times_ns))
             return EvolutionResult(
                 times_ns=normalized.times_ns,
                 states=state_arrays,
@@ -157,5 +162,6 @@ class CuQuantumIntegrator:
                     "state_storage": "CuState",
                     "gpu_name": properties["name"].decode(),
                     "compute_capability": f"{properties['major']}.{properties['minor']}",
+                    **prepared.diagnostics,
                 },
             )

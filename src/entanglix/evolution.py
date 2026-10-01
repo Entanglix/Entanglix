@@ -17,6 +17,19 @@ class EvolutionInputError(ValueError):
 
 
 @dataclass(frozen=True)
+class Carrier:
+    frequency_ghz: float
+    phase_rad: float = 0.0
+
+
+@dataclass(frozen=True)
+class RotatingFrame:
+    frequencies_ghz: dict[str, float]
+    rwa: bool = False
+    excitation_numbers: dict[str, list[int]] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
 class EvolutionInput:
     initial_state: np.ndarray
     times_ns: np.ndarray
@@ -25,6 +38,8 @@ class EvolutionInput:
     rtol: float = 1e-10
     atol: float = 1e-12
     max_steps: int = 100_000
+    carriers: dict[str, Carrier] = field(default_factory=dict)
+    frame: RotatingFrame | None = None
 
 
 @dataclass(frozen=True)
@@ -64,6 +79,8 @@ class NormalizedInput:
     rtol: float
     atol: float
     max_steps: int
+    carriers: dict[str, Carrier]
+    frame: RotatingFrame | None
 
     @property
     def piecewise(self) -> bool:
@@ -155,8 +172,25 @@ def normalize_input(system: ConstructedSystem, request: EvolutionInput) -> Norma
             raise EvolutionInputError(
                 f"drive {name!r} amplitude must be a finite scalar or one value per output interval"
             )
+    for name, carrier in request.carriers.items():
+        if name not in system.drives:
+            raise EvolutionInputError(f"unknown carrier drive {name!r}")
+        if not (
+            math.isfinite(carrier.frequency_ghz)
+            and carrier.frequency_ghz > 0
+            and math.isfinite(carrier.phase_rad)
+        ):
+            raise EvolutionInputError("carrier frequency must be positive and phase finite")
     return NormalizedInput(
-        initial, times, observables, amplitudes, request.rtol, request.atol, int(request.max_steps)
+        initial,
+        times,
+        observables,
+        amplitudes,
+        request.rtol,
+        request.atol,
+        int(request.max_steps),
+        request.carriers,
+        request.frame,
     )
 
 

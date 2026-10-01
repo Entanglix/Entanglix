@@ -52,6 +52,31 @@ XLA_PYTHON_CLIENT_PREALLOCATE=false JAX_PLATFORMS=cuda,cpu uv run --locked --exa
 
 For CPU acceptance, use `uv run --locked --exact pytest -q`. The CPU-only optional lane uses `JAX_PLATFORMS=cpu uv run --locked --exact --extra differentiable pytest -q tests/test_engine_dynamiqs.py tests/test_engine_acceptance.py -m 'not gpu' -k 'dynamiqs or gradient'`. These exact runs keep GPU extras out of the CPU environment. `--require-gpu` turns missing devices and skipped GPU tests into failures. The GPU suites assert the engine and actual device identity; this workstation reports an RTX 5090. [Loss comparisons](../examples/dynamics_reference.py) and [differentiable evolution](../examples/differentiable_reference.py) provide runnable examples.
 
+## Carrier and frame acceptance
+
+The [carrier/frame suite](../tests/test_carriers_frames.py) exercises continuous
+cosines at nonzero initial time and phase, scalar and interval envelopes,
+phase-sensitive rotating-wave evolution, lab-basis state reconstruction, and
+factorized composites. All three engines pass the analytic and independent ODE
+references and physicality limits described in the
+[numerical interface](operations/system-spec.md#carriers-and-rotating-frames).
+CPU and GPU dynamiqs also pass carrier-envelope gradient comparisons.
+Retained GPU reports cover [cuDensityMat](../tests/probes/m2_carriers_cu.xml) and
+[GPU dynamiqs](../tests/probes/m2_carriers_dq.xml) on the RTX 5090.
+
+Run the stacks separately, using an exact environment with the appropriate extras:
+
+```sh
+JAX_PLATFORMS=cpu XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact --extra differentiable pytest -q tests/test_carriers_frames.py -m 'not gpu'
+XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact --extra cuquantum pytest -q tests/test_carriers_frames.py -k cudensitymat -m gpu --require-gpu -o junit_family=legacy --junitxml=tests/probes/m2_carriers_cu.xml
+JAX_PLATFORMS=cuda,cpu XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact --extra differentiable-cuda12 pytest -q tests/test_carriers_frames.py -k dynamiqs -m gpu --require-gpu -o junit_family=legacy --junitxml=tests/probes/m2_carriers_dq.xml
+```
+
+The [readout example](../examples/readout/README.md#independent-engine-frame-acceptance)
+records the full-window CPU dynamiqs refinement, approximation bounds, resolution
+limits, truncation warning, and measured reference costs. GPU scientific runner
+dispatch and metric-specific protocol verification remain unavailable.
+
 ## Runner GPU environment check
 
 On 2026-10-01 the [runner environment test](../tests/test_gpu_environment.py) passed on the RTX 5090 using a separate exact test environment with both GPU extras. It matched device UUID `GPU-f2a6e8aa-b32b-ae8e-6dc6-03612dd6b829`, observed driver `595.91.07`, loaded CUDA `12.9.0` and native cuDensityMat `0.7.0`, compared available memory against the existing selection estimate for the two-level fixture, and rejected an oversized request. [The retained JUnit report](../tests/probes/block3_gpu_environment.xml) contains the device/memory observations and environment hash. This validates pre-dispatch environment facilities; scientific GPU dispatch is still unavailable.

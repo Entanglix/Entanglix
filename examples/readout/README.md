@@ -1,8 +1,10 @@
 # Weak-readout example
 
-[system.toml](system.toml) is a validated transmon–resonator model. Carrier drives,
-rotating frames, and public simulation/sweep commands are not yet available through
-the harness. The [CPU feasibility probe](../../tests/probes/m2_feasibility.py) evaluates
+[system.toml](system.toml) is a validated transmon–resonator model. Carrier drives
+and explicit rotating-wave frames are available through the
+[Python evolution interface](../../docs/operations/system-spec.md#carriers-and-rotating-frames).
+Public simulation/sweep commands are not yet available. The
+[CPU feasibility probe](../../tests/probes/m2_feasibility.py) evaluates
 these cases directly in QuTiP; its [retained measurements](../../tests/probes/m2_feasibility_results.json)
 include solver times, accepted steps, physicality, spectra, and convergence comparisons.
 
@@ -75,9 +77,9 @@ Tightening
 readout integration from `rtol/atol = 1e-10/1e-12` to `1e-11/1e-13` changes normalized
 coherence by less than `9e-9`. Halving output spacing agrees at common timestamps.
 These are same-engine QuTiP refinement checks at the sampled evidence points, not
-independent-engine acceptance of the grid or arbitrary models and windows. Before
-public protocols rely on the lab-frame 5 × 6 fixture, including the Purcell window,
-it must pass comparison with an independent CPU dynamiqs reference at tightened
+independent-engine acceptance of the grid or arbitrary models and windows. The
+[independent-engine study below](#independent-engine-frame-acceptance) passes the
+lab-frame 5 × 6 fixture, including Purcell, against CPU dynamiqs at tightened
 tolerances and 6 × 8 levels. Lab-frame references remain required.
 
 The RWA is a separate model approximation. Maximum combined rotating-production
@@ -85,10 +87,12 @@ versus refined-lab residuals are approximately `0.00193` in normalized coherence
 `0.00390` in excited population, and `0.00551` in photon number. Candidate absolute
 trajectory diagnostic bounds are respectively `0.003`, `0.005`, and `0.008`.
 For the reported readout metric `C(100 ns)`, use a separate candidate absolute bound
-of `5e-4`: the largest sampled endpoint error is `3.96e-4`. These candidates require
-independent-engine acceptance before becoming protocol verification rules. The
-`0.001 GHz` amplitude points have no lab-frame reference, so this is not an accepted
-bound across the whole grid. The current corrector's `1e-6` numerical comparison
+of `5e-4`: the largest sampled endpoint error is `3.96e-4`. The
+[independent-engine study below](#independent-engine-frame-acceptance) accepts these
+bounds at its sampled points; their use in protocol verification remains pending.
+It additionally covers `EJ = 12, A = 0.001 GHz`; the other intermediate-drive
+points remain unreferenced, so this is not an accepted bound across the whole grid.
+The current corrector's `1e-6` numerical comparison
 limit remains unchanged; these RWA cases would not pass that limit as frame comparisons.
 
 Two endpoints with absolute error bound `5e-4` give a conservative `1e-3` uncertainty
@@ -120,3 +124,33 @@ instrumentation and exclude model construction, environment setup, and runner ov
 These are CPU feasibility measurements;
 they make no GPU performance claim. Reference cost dominates and must be included
 in later run estimates and reused when matching retained evidence is available.
+
+## Independent-engine frame acceptance
+
+The [shared-interface study](../../tests/probes/m2_frames.py) and
+[retained results](../../tests/probes/m2_frames_results.json) compare QuTiP at
+5 × 6 levels with CPU dynamiqs at 6 × 8, `rtol/atol = 1e-11/1e-13`, and the same
+lab-frame carrier frequency, initial-state embedding, and complete output window.
+It covers the four readout corners, `EJ = 13.5` at maximum drive, the unresolved
+`EJ = 12` intermediate-drive point, and the 1600 ns Purcell case. Every sampled
+lab-production observable agrees within `1e-6`; the largest residual is about
+`9.63e-7` in Purcell photon number. Physicality also passes. The truncation warning
+and narrow numerical margin above remain applicable.
+
+The shared RWA implementation passes the trajectory diagnostic bounds and the
+`5e-4` endpoint-coherence bound against these independent lab references. Maximum
+readout endpoint error remains about `3.96e-4`; at the additional `EJ = 12` low-drive
+point it is `8.89e-5`. This acceptance covers those sampled points and windows,
+preserving the unresolved-increment qualification above. Metric-specific protocol
+verification follows separately; no corrector threshold has been relaxed.
+
+On this run, independent dynamiqs readout references took about 45–77 s, including
+JAX compilation and device synchronization; the Purcell reference took about 385 s.
+These costs replace the earlier QuTiP refinement timings when estimating independent
+verification, and depend on host load and compilation reuse. The study uses a
+`2_000_000` integration-step ceiling so dynamiqs can cover the full lab-frame solve;
+its ceiling counts per solve, unlike QuTiP's per-output-interval limit.
+
+```sh
+JAX_PLATFORMS=cpu XLA_PYTHON_CLIENT_PREALLOCATE=false MPLCONFIGDIR=/tmp/entanglix-m2-matplotlib uv run --locked --exact --extra differentiable python tests/probes/m2_frames.py --output tests/probes/m2_frames_results.json
+```

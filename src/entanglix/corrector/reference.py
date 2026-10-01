@@ -112,6 +112,13 @@ def prepare_reference(loaded, directory: Path, policy):
     if loaded.request is not None:
         plan["engine"] = "dynamiqs" if plan["engine"] == "qutip-cpu" else "qutip-cpu"
         evolution = plan["evolution"]
+        # Reference states and source outputs are both expressed in the lab basis.
+        evolution.pop("frame", None)
+        # Preserve QuTiP's per-interval allowance in a whole-window dynamiqs solve.
+        if plan["engine"] == "dynamiqs" and not any(
+            np.ndim(value) for value in loaded.request.drive_amplitudes_ghz.values()
+        ):
+            evolution["max_steps"] *= len(loaded.request.times_ns) - 1
         factor = policy.thresholds["reference"]["tolerance_factor"]
         evolution["rtol"] = min(evolution["rtol"] * factor, policy.thresholds["reference"]["rtol"])
         evolution["atol"] = min(evolution["atol"] * factor, policy.thresholds["reference"]["atol"])

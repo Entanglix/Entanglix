@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass
 from typing import Any, Literal
 
 import numpy as np
 
+from entanglix.engines.frames import matrix, prepare_dynamics
 from entanglix.evolution import (
     EngineCapabilities,
     EvolutionInput,
@@ -65,6 +65,7 @@ class DynamiqsIntegrator:
     ) -> JaxEvolutionResult:
         """Evolve with JAX controls; model construction and request validation stay outside autodiff."""
         normalized = normalize_input(system, request)
+        prepared = prepare_dynamics(system, normalized)
         try:
             import jax
             import jax.numpy as jnp
@@ -106,20 +107,36 @@ class DynamiqsIntegrator:
                     raise EvolutionInputError(f"drive {name!r} amplitude must be finite")
                 controls[name] = value.astype(jnp.float64)
             piecewise = any(value.ndim == 1 for value in controls.values())
-            state = dq.asqarray(normalized.initial_density, dims=system.dimensions)
+            state = dq.asqarray(prepared.initial_density(normalized), dims=system.dimensions)
             collapse = [
-                dq.asqarray(math.sqrt(rate) * operator, dims=system.dimensions)
-                for operator, rate in system.dissipators.values()
-                if rate > 0
+                dq.asqarray(matrix(terms), dims=system.dimensions) for terms in prepared.collapse
             ]
+            base = (
+                system.hamiltonian_ghz if normalized.frame is None else matrix(prepared.hamiltonian)
+            )
+            base_hamiltonian = dq.asqarray(2 * np.pi * base, dims=system.dimensions)
+            drives = {
+                name: dq.asqarray(2 * np.pi * matrix(terms), dims=system.dimensions)
+                for name, terms in prepared.drives.items()
+            }
 
             def hamiltonian(index: int):
-                matrix = jnp.asarray(system.hamiltonian_ghz, dtype=jnp.complex128)
+                total = base_hamiltonian
                 for name, amplitude in controls.items():
-                    matrix = matrix + (
-                        amplitude[index] if amplitude.ndim else amplitude
-                    ) * jnp.asarray(system.drives[name])
-                return dq.asqarray(2 * np.pi * matrix, dims=system.dimensions)
+                    value = amplitude[index] if amplitude.ndim else amplitude
+                    operator = drives[name]
+                    carrier = normalized.carriers.get(name) if normalized.frame is None else None
+                    if carrier is None:
+                        total = total + value * operator
+                    else:
+
+                        def coefficient(t, value=value, carrier=carrier):
+                            return value * jnp.cos(
+                                2 * jnp.pi * carrier.frequency_ghz * t + carrier.phase_rad
+                            )
+
+                        total = total + dq.modulated(coefficient, operator)
+                return total
 
             method = dq.method.Tsit5(
                 atol=normalized.atol, rtol=normalized.rtol, max_steps=normalized.max_steps
@@ -154,6 +171,7 @@ class DynamiqsIntegrator:
                 raw.block_until_ready()
                 if any(item != device for item in raw.devices()):
                     raise RuntimeError("dynamiqs returned states on the wrong device")
+            raw = prepared.lab_states(raw, normalized.times_ns, xp=jnp)
             expectations = {
                 name: jnp.einsum("ij,tji->t", jnp.asarray(operator), raw)
                 for name, operator in normalized.observables.items()
@@ -169,5 +187,6 @@ class DynamiqsIntegrator:
                 "max_steps": normalized.max_steps,
                 "step_limit_scope": "per_solve",
                 "device_kind": device.device_kind,
+                **prepared.diagnostics,
             },
         )
