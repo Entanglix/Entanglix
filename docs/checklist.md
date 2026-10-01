@@ -150,12 +150,12 @@ The [M2 guide](m2-guide.md) records the implementation approach; [ADR-0003](adr/
 
 **Depends on:** Blocks 1–3.
 
-- [ ] CPU plan jobs use the existing runner gate, frozen records, lifecycle, and provenance facilities (4A)
-- [ ] Separate corrector package; code hashed at load; versioned thresholds outside the candidate workspace; research tools cannot replace policy or verdicts
-- [ ] Dynamics: trace, hermiticity, and positivity at every point; one independent CPU reference comparison at tightened tolerances and refined truncation at each evidence point; deterministic, bounded evidence-point selection; reference dimension limit validated by exact-Liouvillian regression for both CPU reference engines
-- [ ] Verification runs linked to their source runs; reports bound to source digests and policy version; evidence reuse; `read_run` shows the latest verification attempt and policy-bound verdict without substituting an older verdict (4A–4B)
+- [x] CPU plan jobs use the existing runner gate, frozen records, lifecycle, and provenance facilities (4A) ([plan tests](../tests/test_plans.py), [retained plan records](operations/runs.md#computation-and-reference-records))
+- [-] Separate corrector package; code hashed at load; versioned thresholds outside the candidate workspace; research tools cannot replace policy or verdicts ([policy implementation](../src/entanglix/corrector/__init__.py), [policy tests](../tests/test_corrector.py)); verdict production/enforcement awaits 4B
+- [-] Dynamics: trace, hermiticity, and positivity at every point; one independent CPU reference comparison at tightened tolerances and refined truncation at each evidence point; deterministic, bounded evidence-point selection; reference dimension limit validated by exact-Liouvillian regression for both CPU reference engines ([selection and limit tests](../tests/test_corrector.py), [policy and reference limit](operations/runs.md#corrector-policy-and-verification-records)); scientific checks/reference comparisons await 4B
+- [-] Verification runs linked to their source runs; reports bound to source digests and policy version; evidence reuse; `read_run` shows the latest verification attempt and policy-bound verdict without substituting an older verdict (4A–4B) ([admission/binding tests](../tests/test_plans.py), [verification records](operations/runs.md#corrector-policy-and-verification-records)); execution, reports, reuse, and verdict inspection await 4B
 - [ ] Reference and truncation checks applicable to spectral studies
-- [ ] Corrector selects checks from trusted protocol/metric definitions and validated execution plans; unknown/inconsistent definitions cannot verify; agent-written labels cannot waive checks
+- [-] Corrector selects checks from trusted protocol/metric definitions and validated execution plans; unknown/inconsistent definitions cannot verify; agent-written labels cannot waive checks ([definition tests](../tests/test_corrector.py), [plan rejection tests](../tests/test_plans.py)); metric definitions and scientific checking await 4B–5D
 - [ ] Design-sweep seed/monotonicity checks add to applicable dynamics or spectral checks
 - [ ] Reports identify check scope, tolerances, residuals, reference engine and dimension, each point's coverage, and inapplicable checks with reasons (contract §3)
 - [ ] `compare_reference` backing capability

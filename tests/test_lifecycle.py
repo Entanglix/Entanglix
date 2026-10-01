@@ -13,7 +13,7 @@ import pytest
 
 from entanglix.runner import (
     CodeSnapshot,
-    _execute_script,
+    _execute_job,
     abort_run,
     acquire_gpu,
     capture_environment,
@@ -277,11 +277,11 @@ def test_gpu_lock_survives_runner_death_until_reconciled(allocation, tmp_path):
     # A real supervisor uses the local executor. No CUDA packages/device are needed.
     source = """import json, os
 from pathlib import Path
-from entanglix.runner import RunHandle, _execute_script, acquire_gpu
+from entanglix.runner import RunHandle, _execute_job, acquire_gpu
 run = Path(os.environ['TEST_RUN'])
 owner = RunHandle(run, int(os.environ['TEST_OWNER_FD']))
 with acquire_gpu('GPU-test-device', owner) as gpu:
-    _execute_script(owner, [os.environ['TEST_PYTHON'], '-m', 'entanglix._script_job'], os.environ.copy(), timeout_seconds=None, gpu=gpu)
+    _execute_job(owner, [os.environ['TEST_PYTHON'], '-m', 'entanglix._script_job'], os.environ.copy(), timeout_seconds=None, gpu=gpu)
 """
     supervisor = subprocess.Popen(
         [sys.executable, "-c", source],
@@ -353,7 +353,7 @@ from entanglix.runner import publish_toml
 publish_toml(Path(os.environ['ENTANGLIX_RUN_DIR']) / 'result.toml', {'engine': 'fixture', 'metrics': {'value': 1}}, replace=True)
 """)
     with owner, acquire_gpu(DEVICE, owner) as gpu:
-        result = _execute_script(
+        result = _execute_job(
             owner,
             [sys.executable, "-m", "entanglix._script_job"],
             os.environ | {"ENTANGLIX_RUN_DIR": str(owner.path)},
@@ -368,7 +368,7 @@ publish_toml(Path(os.environ['ENTANGLIX_RUN_DIR']) / 'result.toml', {'engine': '
 
 def test_failed_spawn_records_allocated_gpu_time_without_job_start(allocation, tmp_path):
     with allocation(tmp_path / "one") as owner, acquire_gpu(DEVICE, owner) as gpu:
-        result = _execute_script(
+        result = _execute_job(
             owner,
             [str(tmp_path / "missing-python")],
             os.environ.copy(),

@@ -1,6 +1,6 @@
 # Run records
 
-`entanglix.runner` launches authored CPU scripts with optional timeouts, cancellation, inspection, recovery, and linked reruns. It freezes inputs and code provenance and publishes records atomically. GPU allocation locks are available to local executor code; scientific GPU dispatch, built-in protocols, and independent verification are not available yet. Reconciliation checks ownership and recorded process-group liveness itself.
+`entanglix.runner` launches authored CPU scripts with optional timeouts, cancellation, live inspection, recovery, and linked reruns. It freezes inputs and code provenance and publishes records atomically. GPU allocation locks are available to local executor code; scientific GPU dispatch, public simulation/sweep protocols, and independent verdicts are not available yet. Reconciliation checks ownership and recorded process-group liveness itself.
 
 ## Authored CPU jobs
 
@@ -26,6 +26,22 @@ Publish `<ENTANGLIX_RUN_DIR>/result.toml` atomically with `publish_toml(path, re
 An arbitrary script has no structured evolution request for engine selection. Its manifest uses `engine = "authored-script"`; the result names the engine actually used. Scripts have no trusted verification definition and cannot produce verified evidence. Structured engine dispatch accompanies built-in computation plans when available.
 
 Inspection is read-only. `read_run` includes records and the last 8 KiB of `run.log`; it does not determine scientific verification. Malformed results appear as `result_error`; listing retains malformed runner records with a diagnostic. Without `FINISHED`, ownership or a live recorded group means `active`, absence of both means `interrupted`, and indeterminate group liveness means `unknown`. After the main process exits, the supervisor retains ownership and waits for the whole process group to disappear before validating the result and writing `FINISHED`.
+
+## Computation and reference records
+
+Internal computation jobs appear as `protocol = "plan"` or `"reference"`. Their `spec/` contains `system.toml`, `plan.toml`, referenced model files, and numeric inputs. The manifest records the computation kind, plan digest, policy version, named CPU engine, environment, and code provenance. The plan digest covers normalized content and model/numeric input digests; separate `spec_sha256` entries preserve raw-file integrity. The plan format is internal and is not a public authoring interface.
+
+The result records the actual engine, method, dimensions, device, and solver diagnostics. `artifacts/output.npz` holds `states`, `times_ns`, and `observable.<name>` arrays for dynamics, or `energies_ghz` for spectra; its digest is checked before completion. A completed reference job supplies numerical evidence, not a verification verdict.
+
+CPU dynamiqs references require `extras = ["differentiable"]` in `[tool.entanglix.runner]` in `pyproject.toml`. Installing an extra only in the development environment does not configure the job environment. Keep one extras set for all jobs sharing `.venv-runner/`; no CUDA extra is needed for CPU references.
+
+## Corrector policy and verification records
+
+The corrector ships with [versioned thresholds](../../src/entanglix/corrector/thresholds.toml). The policy version hashes the corrector code and thresholds; a change between launch and load fails execution without a verdict. The CPU reference limit is 48, validated on both engines by the [reference regression](../../tests/test_corrector.py).
+
+Evidence selection is deterministic and capped at 8 points: distinct grid corners, the first global minimum and maximum, the first endpoint in grid order of the steepest adjacent edge, then truncation warnings ranked by severity. Ties use grid order; duplicate points merge reasons. Grids exceeding the corner bound are rejected. Uncovered candidates are reported without expanding the bound. Top retained-level population is a warning, not a required pass check.
+
+Verification attempts identify their source as a parent and retain its location, result/artifact digests, and policy version in the manifest. They freeze the plan and model inputs, while the original result and outputs remain in the source run. Missing or changed source evidence fails loading. Scientific checks, verdicts, evidence reuse, and latest-verification inspection are not available yet.
 
 ## Limits, interruption, and recovery
 

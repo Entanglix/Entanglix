@@ -443,16 +443,9 @@ def record_reconciliation(run: Path, *, last_observed_state: str) -> None:
         os.close(descriptor)
 
 
-def _script_gate(
-    system: str, script: str, inputs: dict[str, str], repository: str, extras: list[str]
-) -> dict:
-    """Called inside uv's exact environment before an attempt is admitted."""
-    from entanglix.imports import forbidden_imports
-    from entanglix.models import load_system
-
-    source = Path(system).resolve()
-    constructed = load_system(source)
-    paths = {"system.toml": source, "script.py": Path(script).resolve()}
+def _system_inputs(source: Path, constructed, *, reserved: set[str]) -> tuple[dict, dict]:
+    """Collect the files and loader digests of an already validated CPU model."""
+    paths = {"system.toml": source}
     # Reuse the loader's digests so freezing checks the bytes actually validated.
     hashes = {"system.toml": constructed.provenance["system_sha256"]}
     document = tomllib.loads(source.read_text())
@@ -460,7 +453,7 @@ def _script_gate(
     for subsystem in document["model"].get("subsystems", []):
         if "source" in subsystem:
             name = subsystem["source"]
-            if name in {"system.toml", "script.py"}:
+            if name in {"system.toml", *reserved}:
                 raise ValueError(f"subsystem source conflicts with reserved input: {name}")
             if name in paths:
                 continue
@@ -471,8 +464,24 @@ def _script_gate(
     for document, provenance in documents:
         if "array_file" in document["model"]:
             name = document["model"]["array_file"]
+            if name in {"system.toml", *reserved}:
+                raise ValueError(f"array file conflicts with reserved input: {name}")
             paths[name] = source.parent / name
             hashes[name] = provenance["asset_sha256"]
+    return paths, hashes
+
+
+def _script_gate(
+    system: str, script: str, inputs: dict[str, str], repository: str, extras: list[str]
+) -> dict:
+    """Called inside uv's exact environment before an attempt is admitted."""
+    from entanglix.imports import forbidden_imports
+    from entanglix.models import load_system
+
+    source = Path(system).resolve()
+    constructed = load_system(source)
+    paths, hashes = _system_inputs(source, constructed, reserved={"script.py"})
+    paths["script.py"] = Path(script).resolve()
     for name, path in inputs.items():
         _relative_file(name)
         if name in paths or Path(name).parts[0] == "code":
@@ -623,13 +632,14 @@ def abort_run(run: Path) -> dict:
     return {"path": str(run), "abort_requested": True}
 
 
-def _execute_script(
+def _execute_job(
     owner: RunHandle,
     command: list[str],
     environment: dict[str, str],
     *,
     timeout_seconds: float | None,
     gpu: GpuLease | None = None,
+    job_input: str = "script.py",
 ) -> dict:
     """Supervise the local job and its process group while retaining allocation ownership."""
     run = owner.path
@@ -651,7 +661,7 @@ def _execute_script(
         try:
             descriptors = (owner.fileno(),) + ((gpu.fileno(),) if gpu is not None else ())
             child = subprocess.Popen(
-                [*command, "run", str(run / "spec/script.py"), str(owner.fileno())],
+                [*command, "run", str(run / "spec" / job_input), str(owner.fileno())],
                 cwd=run / "artifacts",
                 env=environment,
                 stdin=subprocess.PIPE,
@@ -742,6 +752,33 @@ def _script_result(run: Path) -> dict:
     return result
 
 
+def _cpu_job_context(repository: Path, module: str) -> tuple[list[str], dict, list[str]]:
+    """Use one configured extras set in the shared exact runner environment."""
+    config = _load_record(repository / "pyproject.toml")
+    extras = config["tool"]["entanglix"].get("runner", {}).get("extras", [])
+    if not isinstance(extras, list) or any(not isinstance(extra, str) for extra in extras):
+        raise ValueError("tool.entanglix.runner.extras must be a list of extra names")
+    uv = shutil.which("uv")
+    if uv is None:
+        raise ValueError("uv is required for locked, exactly synced job execution")
+    command = [uv, "run", "--locked", "--exact", "--no-env-file", "--project", str(repository)]
+    for extra in sorted(set(extras)):
+        command.extend(("--extra", extra))
+    command.extend(("python", "-m", module))
+    environment = os.environ.copy()
+    environment.update(
+        CUDA_VISIBLE_DEVICES="",
+        JAX_PLATFORMS="cpu",
+        PYTHONUNBUFFERED="1",
+        UV_PROJECT_ENVIRONMENT=str(repository / ".venv-runner"),
+    )
+    environment.pop("VIRTUAL_ENV", None)
+    environment.pop("PYTHONPATH", None)
+    environment.pop("UV_NO_SYNC", None)
+    environment.pop("UV_FROZEN", None)
+    return command, environment, extras
+
+
 def run_script(
     system: Path,
     script: Path,
@@ -756,28 +793,7 @@ def run_script(
     repository = (repository or Path(__file__).resolve().parents[2]).resolve()
     if timeout_seconds is not None and (not math.isfinite(timeout_seconds) or timeout_seconds <= 0):
         raise ValueError("timeout_seconds must be finite and positive")
-    config = _load_record(repository / "pyproject.toml")
-    extras = config["tool"]["entanglix"].get("runner", {}).get("extras", [])
-    if not isinstance(extras, list) or any(not isinstance(extra, str) for extra in extras):
-        raise ValueError("tool.entanglix.runner.extras must be a list of extra names")
-    uv = shutil.which("uv")
-    if uv is None:
-        raise ValueError("uv is required for locked, exactly synced job execution")
-    command = [uv, "run", "--locked", "--exact", "--no-env-file", "--project", str(repository)]
-    for extra in sorted(set(extras)):
-        command.extend(("--extra", extra))
-    command.extend(("python", "-m", "entanglix._script_job"))
-    environment = os.environ.copy()
-    environment.update(
-        CUDA_VISIBLE_DEVICES="",
-        JAX_PLATFORMS="cpu",
-        PYTHONUNBUFFERED="1",
-        UV_PROJECT_ENVIRONMENT=str(repository / ".venv-runner"),
-    )
-    environment.pop("VIRTUAL_ENV", None)
-    environment.pop("PYTHONPATH", None)
-    environment.pop("UV_NO_SYNC", None)
-    environment.pop("UV_FROZEN", None)
+    command, environment, extras = _cpu_job_context(repository, "entanglix._script_job")
     request = {
         "system": str(system.resolve()),
         "script": str(script.resolve()),
@@ -819,7 +835,7 @@ def run_script(
         environment.update(
             ENTANGLIX_RUN_DIR=str(run), ENTANGLIX_SYSTEM_SPEC=str(run / "spec/system.toml")
         )
-        return _execute_script(
+        return _execute_job(
             owner,
             command,
             environment,
@@ -857,6 +873,66 @@ def rerun_script(
         if timeout_seconds is not None
         else launch.get("timeout_seconds"),
     )
+
+
+def run_plan(
+    system: Path,
+    plan: Path,
+    *,
+    runs_root: Path = Path("research_runs"),
+    repository: Path | None = None,
+    parent_run_ids: tuple[str, ...] = (),
+    timeout_seconds: float | None = None,
+) -> dict:
+    """Execute a validated built-in computation or named CPU reference plan."""
+    repository = (repository or Path(__file__).resolve().parents[2]).resolve()
+    if timeout_seconds is not None and (not math.isfinite(timeout_seconds) or timeout_seconds <= 0):
+        raise ValueError("timeout_seconds must be finite and positive")
+    command, environment, extras = _cpu_job_context(repository, "entanglix.protocols._plan_job")
+    check = subprocess.run(
+        [*command, "check"],
+        input=json.dumps(
+            {
+                "system": str(system.resolve()),
+                "plan": str(plan.resolve()),
+                "repository": str(repository),
+                "extras": extras,
+            }
+        ),
+        text=True,
+        capture_output=True,
+        env=environment,
+    )
+    if check.returncode:
+        raise ValueError(check.stderr.strip() or "locked-environment plan validation failed")
+    gate = json.loads(check.stdout)
+    with create_run(
+        system_id=gate["system_id"],
+        protocol="reference" if gate["purpose"] == "reference" else "plan",
+        inputs={name: Path(path) for name, path in gate["inputs"].items()},
+        environment=gate["environment"],
+        code=capture_code(repository),
+        engine=gate["engine"],
+        device="cpu",
+        needs={"gradients": False, "device": "cpu"},
+        runs_root=runs_root.resolve(),
+        parent_run_ids=parent_run_ids,
+        launch={
+            "kind": gate["kind"],
+            "plan_sha256": gate["plan_sha256"],
+            "policy_version": gate["policy_version"],
+            **({"timeout_seconds": timeout_seconds} if timeout_seconds is not None else {}),
+        },
+    ) as owner:
+        run = owner.path
+        if _load_record(run / "run.toml")["spec_sha256"] != gate["spec_sha256"]:
+            (run / "run.log").write_text("entanglix: inputs changed after plan validation\n")
+            record_finish(owner, status="failed", exit_code=64, wall_seconds=0, gpu_seconds=0)
+            return {"path": str(run), "exit_code": 64, "status": "failed"}
+        environment.update(ENTANGLIX_RUN_DIR=str(run))
+        return _execute_job(
+            owner, command, environment, timeout_seconds=timeout_seconds, job_input="plan.toml"
+        )
 
 
 def list_capabilities(repository: Path | None = None) -> dict:
