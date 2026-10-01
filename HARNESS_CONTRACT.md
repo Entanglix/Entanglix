@@ -1,6 +1,6 @@
 # Entanglix — Harness Contract
 
-**Date:** 2026-09-28 · **Status:** v0. Normative for each capability when available. Current source provides CPU modeling and reference evolution plus optional GPU adapters; research execution and MCP operations described below are not yet available. See [README.md](README.md) for current usage and availability.
+**Date:** 2026-09-28 · **Status:** v0. Normative for each capability when available. Current source provides modeling, reference evolution, optional GPU adapters, and authored CPU jobs with retained records and inspection. Built-in protocol execution, GPU runner dispatch, and MCP operations are not yet available. See [README.md](README.md) for current usage and availability.
 
 **Audience:** research users, agents, and integrators. This contract is a retained operational part of the harness: it defines shared interfaces and execution guarantees. [Research-agent guidance](docs/research-agent.md) is a draft pending runtime integration; [ADRs](docs/adr/) retain decision history for optional consultation.
 
@@ -123,6 +123,7 @@ CLI and MCP share backing operations and expose available capabilities. Research
 | `list_investigations` / `read_investigation` | Read-only | Inspect revisions, findings, history, measured usage, remaining configured allowances, and review/stop state |
 | `list_catalog` / `read_entry` | Read-only | Inspect promoted entries and provenance |
 | `simulate` / `sweep` / `control` / `calibrate` | Controlled job | Execute through the runner, enforcing any configured limits |
+| `run_script` | Controlled job | Execute an authored script through the runner, enforcing any configured limits |
 | `compare_reference` | Controlled job | Execute corrector checks |
 | `abort_run` / `stop_investigation` | Controlled job | Cancel work; investigation stop also closes admission and records its reason |
 | `create_investigation` / `revise_investigation` | Controlled write | Draft a new investigation or publish in-scope revisions; broader changes remain proposals until a user decision |

@@ -1,4 +1,4 @@
-"""Run records and frozen provenance; process supervision is supplied separately."""
+"""Owned run records, CPU authored jobs, and inspection of retained attempts."""
 
 import fcntl
 import hashlib
@@ -8,11 +8,14 @@ import os
 import platform
 import re
 import secrets
+import shutil
 import subprocess
 import tempfile
+import time
 import tomllib
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from importlib.metadata import distributions, version
 from pathlib import Path
 from typing import Literal
 
@@ -360,3 +363,319 @@ def record_reconciliation(run: Path, *, last_observed_state: str) -> None:
         )
     finally:
         os.close(descriptor)
+
+
+def _script_gate(
+    system: str, script: str, inputs: dict[str, str], repository: str, extras: list[str]
+) -> dict:
+    """Called inside uv's exact environment before an attempt is admitted."""
+    from entanglix.imports import forbidden_imports
+    from entanglix.models import load_system
+
+    source = Path(system).resolve()
+    constructed = load_system(source)
+    paths = {"system.toml": source, "script.py": Path(script).resolve()}
+    # Reuse the loader's digests so freezing checks the bytes actually validated.
+    hashes = {"system.toml": constructed.provenance["system_sha256"]}
+    document = tomllib.loads(source.read_text())
+    documents = [(document, constructed.provenance)]
+    for subsystem in document["model"].get("subsystems", []):
+        if "source" in subsystem:
+            name = subsystem["source"]
+            if name in {"system.toml", "script.py"}:
+                raise ValueError(f"subsystem source conflicts with reserved input: {name}")
+            if name in paths:
+                continue
+            paths[name] = source.parent / name
+            provenance = constructed.provenance["subsystems"][subsystem["id"]]
+            hashes[name] = provenance["system_sha256"]
+            documents.append((tomllib.loads(paths[name].read_text()), provenance))
+    for document, provenance in documents:
+        if "array_file" in document["model"]:
+            name = document["model"]["array_file"]
+            paths[name] = source.parent / name
+            hashes[name] = provenance["asset_sha256"]
+    for name, path in inputs.items():
+        _relative_file(name)
+        if name in paths or Path(name).parts[0] == "code":
+            raise ValueError(f"additional input conflicts with a reserved or system input: {name}")
+        paths[name] = Path(path).resolve()
+    allowed = set(
+        tomllib.loads((Path(repository) / "pyproject.toml").read_text())["tool"]["entanglix"][
+            "import-boundary"
+        ]["allowed-third-party"]
+    )
+    for name, path in paths.items():
+        if name in hashes:
+            continue
+        content = path.read_bytes()
+        hashes[name] = _digest(content)
+        if name == "script.py" or path.suffix == ".py":
+            source_text = content.decode("utf-8")
+            compile(source_text, str(path), "exec")
+            forbidden = forbidden_imports(source_text, allowed, standalone=True)
+            if forbidden:
+                raise ValueError(f"{name}: imports outside the allowlist: {forbidden}")
+    return {
+        "system_id": constructed.id,
+        "inputs": {name: str(path) for name, path in paths.items()},
+        "spec_sha256": hashes,
+        "environment": capture_environment(Path(repository) / "uv.lock", extras=tuple(extras)),
+    }
+
+
+def _load_record(path: Path) -> dict:
+    with path.open("rb") as stream:
+        return tomllib.load(stream)
+
+
+def _script_result(run: Path) -> dict:
+    result = _load_record(run / "result.toml")
+    if "verdict" in result:
+        raise ValueError("authored scripts cannot publish verification verdicts")
+    if not isinstance(result.get("engine"), str) or not result["engine"]:
+        raise ValueError("script result must name its actual engine")
+    if not isinstance(result.get("metrics"), dict):
+        raise ValueError("script result must contain a metrics table")
+    if not isinstance(result.get("artifacts", {}), dict):
+        raise ValueError("result artifacts must be a table")
+    for name, artifact in result.get("artifacts", {}).items():
+        path = (run / artifact["path"]).resolve()
+        if not path.is_relative_to((run / "artifacts").resolve()):
+            raise ValueError(f"artifact {name}: path must stay inside artifacts/")
+        if _digest(path.read_bytes()) != artifact["sha256"]:
+            raise ValueError(f"artifact {name}: digest mismatch")
+    return result
+
+
+def run_script(
+    system: Path,
+    script: Path,
+    *,
+    inputs: dict[str, Path] | None = None,
+    runs_root: Path = Path("research_runs"),
+    repository: Path | None = None,
+    parent_run_ids: tuple[str, ...] = (),
+) -> dict:
+    """Validate and synchronously execute one standalone CPU script."""
+    repository = (repository or Path(__file__).resolve().parents[2]).resolve()
+    config = _load_record(repository / "pyproject.toml")
+    extras = config["tool"]["entanglix"].get("runner", {}).get("extras", [])
+    if not isinstance(extras, list) or any(not isinstance(extra, str) for extra in extras):
+        raise ValueError("tool.entanglix.runner.extras must be a list of extra names")
+    uv = shutil.which("uv")
+    if uv is None:
+        raise ValueError("uv is required for locked, exactly synced job execution")
+    command = [uv, "run", "--locked", "--exact", "--no-env-file", "--project", str(repository)]
+    for extra in sorted(set(extras)):
+        command.extend(("--extra", extra))
+    command.extend(("python", "-m", "entanglix._script_job"))
+    environment = os.environ.copy()
+    environment.update(
+        CUDA_VISIBLE_DEVICES="",
+        JAX_PLATFORMS="cpu",
+        PYTHONUNBUFFERED="1",
+        UV_PROJECT_ENVIRONMENT=str(repository / ".venv-runner"),
+    )
+    environment.pop("VIRTUAL_ENV", None)
+    environment.pop("PYTHONPATH", None)
+    environment.pop("UV_NO_SYNC", None)
+    environment.pop("UV_FROZEN", None)
+    request = {
+        "system": str(system.resolve()),
+        "script": str(script.resolve()),
+        "inputs": {name: str(path.resolve()) for name, path in (inputs or {}).items()},
+        "repository": str(repository),
+        "extras": extras,
+    }
+    check = subprocess.run(
+        [*command, "check"],
+        input=json.dumps(request),
+        text=True,
+        capture_output=True,
+        env=environment,
+    )
+    if check.returncode:
+        raise ValueError(check.stderr.strip() or "locked-environment launch validation failed")
+    gate = json.loads(check.stdout)
+    with create_run(
+        system_id=gate["system_id"],
+        protocol="script",
+        inputs={name: Path(path) for name, path in gate["inputs"].items()},
+        environment=gate["environment"],
+        code=capture_code(repository),
+        engine="authored-script",
+        device="cpu",
+        needs={"gradients": False, "device": "cpu"},
+        runs_root=runs_root.resolve(),
+        parent_run_ids=parent_run_ids,
+    ) as owner:
+        run = owner.path
+        try:
+            log_stream = (run / "run.log").open("w")
+        except OSError:
+            record_finish(owner, status="failed", exit_code=64, wall_seconds=0, gpu_seconds=0)
+            raise
+        with log_stream as log:
+            child = None
+            clock = None
+            elapsed = 0
+            try:
+                if _load_record(run / "run.toml")["spec_sha256"] != gate["spec_sha256"]:
+                    raise ValueError("inputs changed between validation and freezing")
+                environment.update(
+                    ENTANGLIX_RUN_DIR=str(run), ENTANGLIX_SYSTEM_SPEC=str(run / "spec/system.toml")
+                )
+                child = subprocess.Popen(
+                    [*command, "run", str(run / "spec/script.py"), str(owner.fileno())],
+                    cwd=run / "artifacts",
+                    env=environment,
+                    stdin=subprocess.PIPE,
+                    stdout=log,
+                    stderr=subprocess.STDOUT,
+                    start_new_session=True,
+                    pass_fds=(owner.fileno(),),
+                )
+                record_start(owner, process_group=child.pid)
+                clock = time.monotonic()
+                child.stdin.write(b"1")
+                child.stdin.close()
+                code = child.wait()
+                code = 128 - code if code < 0 else code
+            except Exception as exc:
+                log.write(f"entanglix: execution failed: {exc}\n")
+                log.flush()
+                if child is not None:
+                    if not child.stdin.closed:
+                        child.stdin.close()
+                    child.wait()
+                code = 64
+            if child is not None:
+                while True:
+                    try:
+                        os.killpg(child.pid, 0)
+                    except ProcessLookupError:
+                        break
+                    time.sleep(0.01)
+            elapsed = time.monotonic() - clock if clock is not None else 0
+            if code == 0:
+                try:
+                    _script_result(run)
+                except Exception as exc:
+                    log.write(f"entanglix: execution failed: {exc}\n")
+                    code = 64
+            status = "completed" if code == 0 else "aborted" if code == 130 else "failed"
+            record_finish(
+                owner,
+                status=status,
+                exit_code=code,
+                wall_seconds=elapsed,
+                gpu_seconds=0,
+            )
+    return {"path": str(run), "exit_code": code, "status": status}
+
+
+def list_capabilities(repository: Path | None = None) -> dict:
+    """Inspect the runner environment without creating or synchronizing it."""
+    repository = (repository or Path(__file__).resolve().parents[2]).resolve()
+    paths = [str(path) for path in (repository / ".venv-runner/lib").glob("python*/site-packages")]
+    found = {
+        package.metadata["Name"].lower(): package.version for package in distributions(path=paths)
+    }
+    return {
+        "version": version("entanglix"),
+        "run_record_version": 1,
+        "operations": [
+            "validate_system",
+            "run_script",
+            "list_capabilities",
+            "list_runs",
+            "read_run",
+        ],
+        "protocols": [],
+        "runner_devices": ["cpu"],
+        "engines": {
+            engine: {"version": found[package], "device": "cpu"}
+            for engine, package in (("qutip-cpu", "qutip"), ("dynamiqs", "dynamiqs"))
+            if package in found
+        },
+    }
+
+
+def read_run(run: Path) -> dict:
+    """Read one attempt without modifying its records or reconciling it."""
+    run = run.resolve()
+    descriptor = os.open(run, os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        active = False
+        try:
+            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            active = True
+        else:
+            fcntl.flock(descriptor, fcntl.LOCK_UN)
+        records = {"manifest": _load_record(run / "run.toml")}
+        for label, name in (
+            ("start", "runner/started.toml"),
+            ("finished", "FINISHED"),
+            ("reconciliation", "runner/reconciled.toml"),
+            ("result", "result.toml"),
+        ):
+            if (run / name).exists():
+                try:
+                    records[label] = _load_record(run / name)
+                except (OSError, ValueError) as exc:
+                    if label != "result":
+                        raise
+                    records["result_error"] = str(exc)
+        if "finished" in records:
+            status = records["finished"]["status"]
+        else:
+            status = "active" if active else "interrupted"
+            if not active and "start" in records:
+                try:
+                    os.killpg(records["start"]["process_group"], 0)
+                except ProcessLookupError:
+                    pass
+                except PermissionError:
+                    status = "unknown"
+                else:
+                    status = "active"
+    finally:
+        os.close(descriptor)
+    log_path = run / "run.log"
+    log = ""
+    if log_path.exists():
+        with log_path.open("rb") as stream:
+            stream.seek(max(0, log_path.stat().st_size - 8192))
+            log = stream.read(8192).decode("utf-8", errors="replace")
+    return {
+        "path": str(run),
+        "status": status,
+        **records,
+        "log_tail": log,
+    }
+
+
+def list_runs(runs_root: Path = Path("research_runs")) -> list[dict]:
+    attempts = []
+    for manifest in sorted(runs_root.glob("*/*/run.toml")):
+        try:
+            run = read_run(manifest.parent)
+            attempts.append(
+                {
+                    "path": run["path"],
+                    "run_id": run["manifest"]["run_id"],
+                    "system_id": run["manifest"]["system_id"],
+                    "status": run["status"],
+                }
+            )
+        except (OSError, ValueError, KeyError) as exc:
+            attempts.append(
+                {
+                    "path": str(manifest.parent.resolve()),
+                    "status": "invalid",
+                    "diagnostic": str(exc),
+                }
+            )
+    return attempts

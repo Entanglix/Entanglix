@@ -1,58 +1,33 @@
 """Repository import policy: reviewed public dependencies and entry-point plugins."""
 
-import ast
-import sys
+import subprocess
 import tomllib
 from pathlib import Path
 
 import pytest
 
+from entanglix.imports import forbidden_imports as scan_imports
+
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG = tomllib.loads((ROOT / "pyproject.toml").read_text())
-ALLOWED = (
-    sys.stdlib_module_names
-    | {"entanglix"}
-    | set(CONFIG["tool"]["entanglix"]["import-boundary"]["allowed-third-party"])
-)
+ALLOWED = set(CONFIG["tool"]["entanglix"]["import-boundary"]["allowed-third-party"])
 
 
 def forbidden_imports(source: str) -> list[str]:
-    tree = ast.parse(source)
-    imports = []
-    dynamic_calls = {"__import__", "importlib.import_module"}
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Import):
-            imports.extend(alias.name for alias in node.names)
-            for alias in node.names:
-                if alias.name == "importlib":
-                    dynamic_calls.add(f"{alias.asname or alias.name}.import_module")
-        elif isinstance(node, ast.ImportFrom):
-            if not node.level and node.module:
-                imports.append(node.module)
-            if node.module == "importlib":
-                dynamic_calls.update(
-                    alias.asname or alias.name
-                    for alias in node.names
-                    if alias.name == "import_module"
-                )
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Call) and ast.unparse(node.func) in dynamic_calls:
-            if (
-                not node.args
-                or not isinstance(node.args[0], ast.Constant)
-                or not isinstance(node.args[0].value, str)
-            ):
-                imports.append("<unreviewed dynamic import>")
-            else:
-                imports.append(node.args[0].value)
-    return [name for name in imports if name.split(".")[0] not in ALLOWED]
+    return scan_imports(source, ALLOWED)
 
 
 def test_repository_import_boundary():
     failures = []
-    for path in ROOT.rglob("*.py"):
-        relative = path.relative_to(ROOT)
-        if relative.parts[0] in {"tests", ".venv", ".git", ".uv-cache", "dist", "build"}:
+    names = subprocess.check_output(
+        ["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z", "--", "*.py"],
+        cwd=ROOT,
+        text=True,
+    ).split("\0")
+    for name in filter(None, names):
+        relative = Path(name)
+        path = ROOT / relative
+        if relative.parts[0] == "tests" or not path.is_file():
             continue
         forbidden = forbidden_imports(path.read_text())
         if forbidden:
