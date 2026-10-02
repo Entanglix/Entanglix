@@ -102,7 +102,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     rerun.add_argument("--timeout", type=float, help="override the recorded time limit in seconds")
     subcommands.add_parser(
-        "capabilities", help="list available runner operations and installed CPU engines"
+        "capabilities", help="list runner operations and installed engine/device support"
     )
     listing = subcommands.add_parser("list-runs", help="list all retained attempts")
     listing.add_argument(
@@ -119,6 +119,15 @@ def main(argv: list[str] | None = None) -> int:
     )
     comparison.add_argument("run", type=Path, help="source attempt directory")
     comparison.add_argument("--timeout", type=float, help="verification time limit in seconds")
+    simulation = subcommands.add_parser("simulate", help="run and verify one simulation protocol")
+    simulation.add_argument("protocol", type=Path, help="path to simulate.toml")
+    simulation.add_argument("--runs-root", type=Path, default=Path("research_runs"))
+    simulation.add_argument("--parent-run", action="append", default=[])
+    replay = subcommands.add_parser(
+        "rerun-simulation", help="replay a frozen simulation with linked lineage"
+    )
+    replay.add_argument("run", type=Path, help="earlier simulation attempt")
+    replay.add_argument("--runs-root", type=Path)
     args = parser.parse_args(argv)
     if args.command == "validate":
         from entanglix.models import SpecError, load_system
@@ -143,6 +152,8 @@ def main(argv: list[str] | None = None) -> int:
         "reconcile-run",
         "rerun-script",
         "compare-reference",
+        "simulate",
+        "rerun-simulation",
     }:
         from entanglix.runner import (
             abort_run,
@@ -154,7 +165,13 @@ def main(argv: list[str] | None = None) -> int:
             run_script,
         )
 
-        if args.command in {"run-script", "rerun-script", "compare-reference"}:
+        if args.command in {
+            "run-script",
+            "rerun-script",
+            "compare-reference",
+            "simulate",
+            "rerun-simulation",
+        }:
             # A supervising command stops its job on termination or hangup, as on Ctrl-C.
             signal.signal(signal.SIGTERM, signal.default_int_handler)
             signal.signal(signal.SIGHUP, signal.default_int_handler)
@@ -189,6 +206,18 @@ def main(argv: list[str] | None = None) -> int:
                 from entanglix.corrector.verification import compare_reference
 
                 result = compare_reference(args.run, timeout_seconds=args.timeout)
+            elif args.command in {"simulate", "rerun-simulation"}:
+                from entanglix.protocols.simulate import rerun_simulation, simulate
+
+                result = (
+                    simulate(
+                        args.protocol,
+                        runs_root=args.runs_root,
+                        parent_run_ids=tuple(args.parent_run),
+                    )
+                    if args.command == "simulate"
+                    else rerun_simulation(args.run, runs_root=args.runs_root)
+                )
             elif args.command == "list-runs":
                 result = list_runs(args.runs_root)
             else:
@@ -199,7 +228,8 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(result, default=str, indent=2))
         return (
             result["exit_code"]
-            if args.command in {"run-script", "rerun-script", "compare-reference"}
+            if args.command
+            in {"run-script", "rerun-script", "compare-reference", "simulate", "rerun-simulation"}
             else 0
         )
     parser.print_help()

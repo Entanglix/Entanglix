@@ -111,6 +111,10 @@ def prepare_reference(loaded, directory: Path, policy):
     plan["purpose"] = "reference"
     if loaded.request is not None:
         plan["engine"] = "dynamiqs" if plan["engine"] == "qutip-cpu" else "qutip-cpu"
+        plan["device"] = "cpu"
+        plan.pop("rwa_bounds", None)
+        for metric in plan["metrics"].values():
+            metric.pop("rwa_bound", None)
         evolution = plan["evolution"]
         # Reference states and source outputs are both expressed in the lab basis.
         evolution.pop("frame", None)

@@ -42,7 +42,7 @@ def wait_for(predicate, timeout=15):
 
 
 @pytest.fixture
-def cpu_job(tmp_path):
+def cpu_job(tmp_path, runner_repository):
     script = tmp_path / "job.py"
     runs = tmp_path / "runs"
     children = []
@@ -60,6 +60,7 @@ def cpu_job(tmp_path):
                 str(runs),
                 *options,
             ],
+            env=os.environ | {"PYTHONPATH": str(runner_repository / "src")},
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
@@ -209,7 +210,7 @@ def test_runner_loss_keeps_job_active_until_abort_and_reconciliation(cpu_job):
     assert not (run / "FINISHED").exists()
 
 
-def test_rerun_uses_frozen_inputs_and_checks_digests(tmp_path):
+def test_rerun_uses_frozen_inputs_and_checks_digests(tmp_path, runner_repository):
     script = tmp_path / "job.py"
     data = tmp_path / "input.txt"
     data.write_text("retained")
@@ -224,12 +225,17 @@ publish_toml(run / 'result.toml', {'engine': 'numpy', 'metrics': {'value': (run 
         script,
         inputs={"input.txt": data},
         runs_root=tmp_path / "runs",
+        repository=runner_repository,
     )
     run = Path(first["path"])
     script.write_text("raise RuntimeError('changed original')")
     data.write_text("changed")
     response = subprocess.run(
-        ["entanglix", "rerun-script", str(run)], capture_output=True, text=True, timeout=15
+        ["entanglix", "rerun-script", str(run)],
+        capture_output=True,
+        text=True,
+        timeout=15,
+        env=os.environ | {"PYTHONPATH": str(runner_repository / "src")},
     )
     assert response.returncode == 0, response.stderr
     replay = json.loads(response.stdout)
@@ -241,7 +247,7 @@ publish_toml(run / 'result.toml', {'engine': 'numpy', 'metrics': {'value': (run 
     frozen.chmod(0o644)
     frozen.write_text("corrupted")
     with pytest.raises(ValueError, match="digest mismatch"):
-        rerun_script(run)
+        rerun_script(run, repository=runner_repository)
 
 
 @pytest.fixture

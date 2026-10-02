@@ -250,6 +250,7 @@ name = "entanglix"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "matplotlib" },
     { name = "numpy" },
     { name = "pydantic" },
     { name = "qutip" },
@@ -283,6 +284,7 @@ requires-dist = [
     { name = "dynamiqs", marker = "extra == 'differentiable-cuda12'", specifier = "==0.3.6" },
     { name = "jax", marker = "extra == 'differentiable'", specifier = "==0.6.2" },
     { name = "jax", extras = ["cuda12"], marker = "extra == 'differentiable-cuda12'", specifier = "==0.6.2" },
+    { name = "matplotlib", specifier = ">=3.10,<4" },
     { name = "numpy", specifier = ">=2.3,<3" },
     { name = "pydantic", specifier = ">=2.12,<3" },
     { name = "qutip", specifier = ">=5.2,<6" },

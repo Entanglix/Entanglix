@@ -3,7 +3,7 @@
 [system.toml](system.toml) is a validated transmon–resonator model. Carrier drives
 and explicit rotating-wave frames are available through the
 [Python evolution interface](../../docs/operations/system-spec.md#carriers-and-rotating-frames).
-Public simulation/sweep commands are not yet available. The
+Public simulation is available; grid sweeps follow separately. The
 [CPU feasibility probe](../../tests/probes/m2_feasibility.py) evaluates
 these cases directly in QuTiP; its [retained measurements](../../tests/probes/m2_feasibility_results.json)
 include solver times, accepted steps, physicality, spectra, and convergence comparisons.
@@ -63,6 +63,37 @@ and a 1600 ns window with 1 ns spacing. Its final excited population is about 0.
 in the lab frame and 0.892 with the RWA. The leading dispersive estimate
 `γP = κ(g01/Δ)²` gives `γP T ≈ 0.11`; `exp(−γP T) ≈ 0.896` is a trend comparison,
 not an exact reference or a `1e-6` acceptance condition.
+
+The [CPU Purcell protocol](purcell.toml) uses the lab frame. The
+[CUDA protocol](purcell-cuda.toml) declares cuDensityMat and the RWA studied below,
+with additional full-trajectory approximation bounds of `0.005` in excited population
+and `0.008` in photon number. These qualify the combined lab-reference comparison;
+they do not change physicality or output-consistency checks. Its endpoint population
+metric explicitly declares its own `rwa_bound = 0.005`. The common frame frequency
+`7.002760675881172 GHz` is the dressed readout midpoint at `EJ = 15 GHz` from the
+frame study. With no drive present, the RWA depends on excitation conservation,
+rather than this particular frequency. CPU and CUDA protocols use the same model,
+initial state, 1600 ns window, and refinement to 6 × 8 retained levels.
+
+```sh
+export ENTANGLIX_RUNNER_EXTRAS=cuquantum,differentiable-cuda12
+uv run --locked --exact entanglix simulate examples/readout/purcell.toml
+uv run --locked --exact entanglix simulate examples/readout/purcell-cuda.toml
+```
+
+See the [protocol reference](../../docs/operations/protocols.md) for results, plots,
+verification semantics, cancellation, and replay. CUDA execution makes no performance
+claim; the engine's crossover and workspace costs remain unmeasured.
+
+The [retained CPU simulation/replay](../../tests/probes/m2_simulation_cpu.json)
+and [CUDA simulation/replay](../../tests/probes/m2_simulation_cuda.json) are
+`VERIFIED` over the complete window, with identical stored numerical outputs on
+replay. Their final excited populations are approximately `0.888246` (lab CPU) and
+`0.892140` (RWA CUDA). The CUDA population/reference difference is about `0.003894`,
+within its declared approximation bound; this is scoped RWA acceptance, not numerical
+agreement at `1e-6` between the two models. Both replays reuse reference solves.
+The [acceptance command](../../docs/environment.md#simulation-acceptance) regenerates
+the records and summaries.
 
 ## Numerical evidence and candidate frame bounds
 

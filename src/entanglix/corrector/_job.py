@@ -32,6 +32,9 @@ def main():
             execute_verification(
                 Path(os.environ["ENTANGLIX_RUN_DIR"]), Path(os.environ["ENTANGLIX_REPOSITORY"])
             )
+    except KeyboardInterrupt:
+        print("verification aborted", file=sys.stderr)
+        return 130
     except Exception as exc:
         print(f"verification failed: {exc}", file=sys.stderr)
         return 64

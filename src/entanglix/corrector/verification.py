@@ -23,6 +23,7 @@ from entanglix.corrector.checks import (
     output_checks,
     spectral_checks,
 )
+from entanglix.corrector.metrics import metric_values
 from entanglix.corrector.reference import prepare_reference
 from entanglix.protocols.plans import load_plan
 from entanglix.runner import (
@@ -61,7 +62,7 @@ def _records(root):
             yield path.parent, {"manifest": manifest, "status": "invalid", "log_tail": str(exc)}
 
 
-def _reference(expected, verification, repository):
+def _reference(expected, verification, repository, *, timeout_seconds=None):
     root = verification.parent.parent
     # Check completion, raw input integrity, semantic identity, policy and output
     # integrity before reusing a solve. A result left by a lost runner is not evidence.
@@ -103,8 +104,11 @@ def _reference(expected, verification, repository):
         runs_root=root,
         repository=repository,
         parent_run_ids=(verification.name,),
+        timeout_seconds=timeout_seconds,
     )
     reference = Path(job["path"])
+    if job["exit_code"] == 130:
+        raise KeyboardInterrupt(f"reference solve aborted: {reference}")
     if job["exit_code"]:
         raise ValueError(
             f"reference solve failed: {reference}; {_read_attempt(reference)['log_tail']}"
@@ -215,6 +219,20 @@ def execute_verification(run: Path, repository: Path):
             if loaded.request
             else "not applicable to spectra",
         }
+        original_metrics = metric_values(loaded.definition.metrics, arrays)
+        target_metrics = metric_values(loaded.definition.metrics, refined)
+        for name, definition in loaded.definition.metrics.items():
+            checks.append(
+                check(
+                    "metric_reference",
+                    abs(original_metrics[name] - target_metrics[name]),
+                    policy.thresholds["reference"]["observable_atol"] + definition.rwa_bound,
+                    scope="reported endpoint metric",
+                    metric=name,
+                    formula=definition.kind,
+                    declared_rwa_bound=definition.rwa_bound,
+                )
+            )
         if loaded.request is not None:
             report["reference"].update(
                 rtol=expected.definition.evolution.rtol,
@@ -237,11 +255,13 @@ def execute_verification(run: Path, repository: Path):
                     check(
                         reference_check,
                         float(np.max(abs(original - target))),
-                        policy.thresholds["reference"]["observable_atol"],
+                        policy.thresholds["reference"]["observable_atol"]
+                        + loaded.definition.rwa_bounds.get(name, 0),
                         scope=scope,
                         observable=name,
                         reference_engine=expected.definition.engine,
                         reference_dimension=math.prod(expected.system.dimensions),
+                        declared_rwa_bound=loaded.definition.rwa_bounds.get(name, 0),
                     )
                 )
         elif loaded.definition.refinement:

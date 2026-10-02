@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Expert-guided quantum system research harness"
 requires-python = ">=3.13,<3.14"
 dependencies = [
+    "matplotlib>=3.10,<4",
     "numpy>=2.3,<3",
     "pydantic>=2.12,<3",
     "qutip>=5.2,<6",
@@ -44,4 +45,4 @@ line-length = 100
 select = ["E4", "E7", "E9", "F", "I", "UP"]
 
 [tool.entanglix.import-boundary]
-allowed-third-party = ["cupy", "cuquantum", "dynamiqs", "jax", "numpy", "pydantic", "qutip", "qutip_cuquantum", "scipy", "scqubits", "tomli_w"]
+allowed-third-party = ["cupy", "cuquantum", "dynamiqs", "jax", "matplotlib", "numpy", "pydantic", "qutip", "qutip_cuquantum", "scipy", "scqubits", "tomli_w"]

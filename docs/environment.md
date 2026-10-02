@@ -89,7 +89,44 @@ UV_PROJECT_ENVIRONMENT=/tmp/entanglix-block3-gpu uv run --locked --exact --extra
 
 The CPU cases in the same test file exercise missing dependencies, driver/library failures, invisible devices, memory rejection, and memory-independent environment identity. The [run reference](operations/runs.md#environment-and-code-provenance) defines the API and recorded fields.
 
-## Reproduce from a source checkout
+## Simulation acceptance
+
+The [simulation integration tests](../tests/test_simulate.py) cover CLI spectra,
+CPU dynamics, trusted endpoint metrics, declared RWA bounds, frozen-input replay,
+and rejected inputs. The [GPU report](../tests/probes/m2_simulation_gpu.xml) covers
+actual cuDensityMat dispatch, pre-launch reference reuse, reference failure and cancellation before GPU start,
+timeout/cancellation, runner loss with a surviving job, exclusion until reconciliation,
+and linked replay. Core CPU tests need no CUDA dependencies; optional dynamics tests
+need `differentiable`.
+
+With CUDA extras installed and GPU visibility disabled for a CPU reference, JAX's
+plugin discovery may log `CUDA_ERROR_NO_DEVICE` before selecting CPU. The retained
+execution outcome and reported reference device identify whether the solve succeeded.
+
+The [full-window acceptance probe](../tests/probes/m2_simulation.py) runs the
+[CPU and CUDA Purcell protocols](../examples/readout/README.md), checks their linked
+verification, and replays frozen inputs with an output residual limit of `1e-7`.
+Its [CPU record summary](../tests/probes/m2_simulation_cpu.json) and
+[CUDA record summary](../tests/probes/m2_simulation_cuda.json) retain run IDs,
+provenance, metrics, usage, and corrector reports. Both source/replay pairs use matching
+code and environment provenance. Full attempt directories remain
+under `research_runs/` on the workstation; generated arrays and plots are not shipped.
+CUDA acceptance uses the declared RWA bounds, while CPU acceptance uses the lab-frame
+numerical limit. Neither is a performance measurement or a blanket model-accuracy claim.
+
+```sh
+export ENTANGLIX_RUNNER_EXTRAS=cuquantum,differentiable-cuda12
+JAX_PLATFORMS=cpu XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact --extra differentiable python tests/probes/m2_simulation.py --device cpu --output /tmp/m2_simulation_cpu.json
+JAX_PLATFORMS=cpu XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact --extra differentiable python tests/probes/m2_simulation.py --device cuda --output /tmp/m2_simulation_cuda.json
+UV_PROJECT_ENVIRONMENT=/tmp/entanglix-simulation-tests uv run --locked --exact --extra cuquantum --extra differentiable-cuda12 pytest -q tests/test_simulate.py -m gpu --require-gpu --junitxml=tests/probes/m2_simulation_gpu.xml
+```
+
+Keep code, documentation, and the runner profile unchanged through both studies.
+Write reports outside the checkout, as above, and copy them into `tests/probes/`
+only after both studies finish. The retained provenance describes the tree before
+the generated reports are replaced.
+
+## Reproduce GPU compatibility from a source checkout
 
 Run where the NVIDIA driver and GPU device are accessible.
 

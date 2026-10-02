@@ -1,0 +1,433 @@
+{
+  "complete": true,
+  "pass": true,
+  "device": "cpu",
+  "records": [
+    {
+      "run_id": "r20261002T050830862385Z-e449207e",
+      "path": "/home/paimon/Projects/Entanglix/research_runs/readout/r20261002T050830862385Z-e449207e",
+      "parent_run_ids": [],
+      "engine": "qutip-cpu",
+      "device": "cpu",
+      "env_hash": "293787ba24fdcde06809255e21895ae686c77cae28ac0829c0a6555d53da96f6",
+      "environment": {
+        "lock_sha256": "86cb0cc828fae097fad65a23e77e905d97ee8f4038728f4b1818d53690c91a1e",
+        "python": "3.13.12",
+        "extras": [
+          "cuquantum",
+          "differentiable-cuda12"
+        ],
+        "env_hash": "293787ba24fdcde06809255e21895ae686c77cae28ac0829c0a6555d53da96f6",
+        "platform": {
+          "system": "Linux",
+          "machine": "x86_64",
+          "libc": [
+            "glibc",
+            "2.43"
+          ]
+        },
+        "gpu": {
+          "driver": "unobserved",
+          "cuda": "unobserved",
+          "cuquantum": "unobserved"
+        }
+      },
+      "code": {
+        "revision": "03dc4c546eeea6d07da15afe58602f811d415fad",
+        "dirty": true,
+        "patch_sha256": "93aa815fcc17b6ef4242d05c0e4b0878e71389e9ab40c29c751e828554a7d6fc",
+        "untracked_sha256": {}
+      },
+      "plan_sha256": "9ea5b6d4dc6f26f9a1ac6c8ce62bf0391f90d4986d432b0eb0af6c36beb417b6",
+      "metrics": {
+        "excited_population": 0.8882458734127346
+      },
+      "usage": {
+        "wall_seconds": 31.140705645957496,
+        "gpu_seconds": 0,
+        "uncertain": false
+      },
+      "verdict": "VERIFIED",
+      "verification_run_id": "r20261002T050902304272Z-91fe0597",
+      "report": {
+        "kind": "lindblad",
+        "required_checks": [
+          "trace",
+          "hermiticity",
+          "positivity",
+          "cpu_reference"
+        ],
+        "recommendations": [],
+        "coverage": {
+          "point_count": 1,
+          "evidence_points": [
+            0
+          ],
+          "output_checked_points": [],
+          "uncovered_points": [],
+          "complete": true,
+          "selection_reasons": {
+            "0": [
+              "corner"
+            ]
+          }
+        },
+        "checks": [
+          {
+            "name": "trace",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 1.0613732119559262e-13,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "hermiticity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 1.8875935237911737e-15,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "positivity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": -3.372344797517687e-13,
+            "tolerance": -1e-08
+          },
+          {
+            "name": "observable_consistency",
+            "scope": "single evidence point; entire reported time window",
+            "outcome": "pass",
+            "residual": 5.684707117064679e-17,
+            "tolerance": 1e-06,
+            "observable": "photons"
+          },
+          {
+            "name": "observable_consistency",
+            "scope": "single evidence point; entire reported time window",
+            "outcome": "pass",
+            "residual": 1.2085687304975894e-16,
+            "tolerance": 1e-06,
+            "observable": "excited"
+          },
+          {
+            "name": "metric_reference",
+            "scope": "reported endpoint metric",
+            "outcome": "pass",
+            "residual": 3.5809286091925685e-08,
+            "tolerance": 1e-06,
+            "metric": "excited_population",
+            "formula": "endpoint_real",
+            "declared_rwa_bound": 0.0
+          },
+          {
+            "name": "reference_trace",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 2.1538326677728037e-14,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "reference_hermiticity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 0.0,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "reference_positivity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": -1.3202098900825893e-13,
+            "tolerance": -1e-08
+          },
+          {
+            "name": "cpu_reference",
+            "scope": "single evidence point; entire reported time window",
+            "outcome": "pass",
+            "residual": 9.632330782820275e-07,
+            "tolerance": 1e-06,
+            "observable": "photons",
+            "reference_engine": "dynamiqs",
+            "reference_dimension": 48,
+            "declared_rwa_bound": 0
+          },
+          {
+            "name": "cpu_reference",
+            "scope": "single evidence point; entire reported time window",
+            "outcome": "pass",
+            "residual": 9.46591247497075e-07,
+            "tolerance": 1e-06,
+            "observable": "excited",
+            "reference_engine": "dynamiqs",
+            "reference_dimension": 48,
+            "declared_rwa_bound": 0
+          },
+          {
+            "name": "seed_reproducibility",
+            "scope": "single evidence point; entire reported time window",
+            "outcome": "inapplicable",
+            "reason": "deterministic computation has no random seed"
+          },
+          {
+            "name": "declared_monotonicity",
+            "scope": "single evidence point; entire reported time window",
+            "outcome": "inapplicable",
+            "reason": "single computation has no parameter-series metric"
+          }
+        ],
+        "warnings": [
+          {
+            "name": "top_level_population",
+            "subsystem_index": 0,
+            "scope": "every stored state at every output time",
+            "population": 3.7237686239897745e-06,
+            "threshold": 1e-06,
+            "triggered": true
+          },
+          {
+            "name": "top_level_population",
+            "subsystem_index": 1,
+            "scope": "every stored state at every output time",
+            "population": 1.1880152284491107e-14,
+            "threshold": 1e-06,
+            "triggered": false
+          }
+        ],
+        "reference": {
+          "run_id": "r20261002T050903760783Z-4e4c0e49",
+          "reused": false,
+          "engine": "dynamiqs",
+          "dimensions": [
+            6,
+            8
+          ],
+          "plan_sha256": "4839ba1aa6573d3ebb8fff59e27d2e9e62a4d718adac48db99197f6d265e5f96",
+          "result_sha256": "c8fe07b7e1e496cf1b2f051b73485c1100a120485bf3d978b72cc5814823ab54",
+          "artifact_sha256": "0018b6f688a34afb53d03b89656df96d19d8b7da1cea8992cb27a0ee0fd0b02f",
+          "initial_state_mapping": "ordered low-level subspace, with local operator gauge alignment",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "max_steps": 160000000
+        }
+      }
+    },
+    {
+      "run_id": "r20261002T051533032814Z-a0c8bd6d",
+      "path": "/home/paimon/Projects/Entanglix/research_runs/readout/r20261002T051533032814Z-a0c8bd6d",
+      "parent_run_ids": [
+        "r20261002T050830862385Z-e449207e"
+      ],
+      "engine": "qutip-cpu",
+      "device": "cpu",
+      "env_hash": "293787ba24fdcde06809255e21895ae686c77cae28ac0829c0a6555d53da96f6",
+      "environment": {
+        "lock_sha256": "86cb0cc828fae097fad65a23e77e905d97ee8f4038728f4b1818d53690c91a1e",
+        "python": "3.13.12",
+        "extras": [
+          "cuquantum",
+          "differentiable-cuda12"
+        ],
+        "env_hash": "293787ba24fdcde06809255e21895ae686c77cae28ac0829c0a6555d53da96f6",
+        "platform": {
+          "system": "Linux",
+          "machine": "x86_64",
+          "libc": [
+            "glibc",
+            "2.43"
+          ]
+        },
+        "gpu": {
+          "driver": "unobserved",
+          "cuda": "unobserved",
+          "cuquantum": "unobserved"
+        }
+      },
+      "code": {
+        "revision": "03dc4c546eeea6d07da15afe58602f811d415fad",
+        "dirty": true,
+        "patch_sha256": "93aa815fcc17b6ef4242d05c0e4b0878e71389e9ab40c29c751e828554a7d6fc",
+        "untracked_sha256": {}
+      },
+      "plan_sha256": "9ea5b6d4dc6f26f9a1ac6c8ce62bf0391f90d4986d432b0eb0af6c36beb417b6",
+      "metrics": {
+        "excited_population": 0.8882458734127346
+      },
+      "usage": {
+        "wall_seconds": 30.338538637035526,
+        "gpu_seconds": 0,
+        "uncertain": false
+      },
+      "verdict": "VERIFIED",
+      "verification_run_id": "r20261002T051603538534Z-74a7bcf9",
+      "report": {
+        "kind": "lindblad",
+        "required_checks": [
+          "trace",
+          "hermiticity",
+          "positivity",
+          "cpu_reference"
+        ],
+        "recommendations": [],
+        "coverage": {
+          "point_count": 1,
+          "evidence_points": [
+            0
+          ],
+          "output_checked_points": [],
+          "uncovered_points": [],
+          "complete": true,
+          "selection_reasons": {
+            "0": [
+              "corner"
+            ]
+          }
+        },
+        "checks": [
+          {
+            "name": "trace",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 1.0613732119559262e-13,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "hermiticity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 1.8875935237911737e-15,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "positivity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": -3.372344797517687e-13,
+            "tolerance": -1e-08
+          },
+          {
+            "name": "observable_consistency",
+            "scope": "single evidence point; entire reported time window",
+            "outcome": "pass",
+            "residual": 5.684707117064679e-17,
+            "tolerance": 1e-06,
+            "observable": "photons"
+          },
+          {
+            "name": "observable_consistency",
+            "scope": "single evidence point; entire reported time window",
+            "outcome": "pass",
+            "residual": 1.2085687304975894e-16,
+            "tolerance": 1e-06,
+            "observable": "excited"
+          },
+          {
+            "name": "metric_reference",
+            "scope": "reported endpoint metric",
+            "outcome": "pass",
+            "residual": 3.5809286091925685e-08,
+            "tolerance": 1e-06,
+            "metric": "excited_population",
+            "formula": "endpoint_real",
+            "declared_rwa_bound": 0.0
+          },
+          {
+            "name": "reference_trace",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 2.1538326677728037e-14,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "reference_hermiticity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 0.0,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "reference_positivity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": -1.3202098900825893e-13,
+            "tolerance": -1e-08
+          },
+          {
+            "name": "cpu_reference",
+            "scope": "single evidence point; entire reported time window",
+            "outcome": "pass",
+            "residual": 9.632330782820275e-07,
+            "tolerance": 1e-06,
+            "observable": "photons",
+            "reference_engine": "dynamiqs",
+            "reference_dimension": 48,
+            "declared_rwa_bound": 0
+          },
+          {
+            "name": "cpu_reference",
+            "scope": "single evidence point; entire reported time window",
+            "outcome": "pass",
+            "residual": 9.46591247497075e-07,
+            "tolerance": 1e-06,
+            "observable": "excited",
+            "reference_engine": "dynamiqs",
+            "reference_dimension": 48,
+            "declared_rwa_bound": 0
+          },
+          {
+            "name": "seed_reproducibility",
+            "scope": "single evidence point; entire reported time window",
+            "outcome": "inapplicable",
+            "reason": "deterministic computation has no random seed"
+          },
+          {
+            "name": "declared_monotonicity",
+            "scope": "single evidence point; entire reported time window",
+            "outcome": "inapplicable",
+            "reason": "single computation has no parameter-series metric"
+          }
+        ],
+        "warnings": [
+          {
+            "name": "top_level_population",
+            "subsystem_index": 0,
+            "scope": "every stored state at every output time",
+            "population": 3.7237686239897745e-06,
+            "threshold": 1e-06,
+            "triggered": true
+          },
+          {
+            "name": "top_level_population",
+            "subsystem_index": 1,
+            "scope": "every stored state at every output time",
+            "population": 1.1880152284491107e-14,
+            "threshold": 1e-06,
+            "triggered": false
+          }
+        ],
+        "reference": {
+          "run_id": "r20261002T050903760783Z-4e4c0e49",
+          "reused": true,
+          "engine": "dynamiqs",
+          "dimensions": [
+            6,
+            8
+          ],
+          "plan_sha256": "4839ba1aa6573d3ebb8fff59e27d2e9e62a4d718adac48db99197f6d265e5f96",
+          "result_sha256": "c8fe07b7e1e496cf1b2f051b73485c1100a120485bf3d978b72cc5814823ab54",
+          "artifact_sha256": "0018b6f688a34afb53d03b89656df96d19d8b7da1cea8992cb27a0ee0fd0b02f",
+          "initial_state_mapping": "ordered low-level subspace, with local operator gauge alignment",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "max_steps": 160000000
+        }
+      }
+    }
+  ],
+  "replay_maximum_residual": 0.0,
+  "replay_atol": 1e-07,
+  "replay_provenance": {
+    "code_matches": true,
+    "environment_matches": true
+  }
+}

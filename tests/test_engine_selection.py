@@ -56,7 +56,7 @@ def test_selection_follows_declared_needs(system_name, gradients, selected):
         available_engines={"qutip-cpu", "cudensitymat", "dynamiqs"},
         needs_gradients=gradients,
     )
-    assert result.engine == selected and result.table_id == "reference-engines-v1"
+    assert result.engine == selected and result.table_id == "declared-device-engines-v2"
     assert result.fallback_from is None
     assert 0 < result.estimated_host_bytes <= LIMITS.host_memory_bytes
     assert result.estimated_device_bytes <= LIMITS.device_memory_bytes
@@ -84,6 +84,29 @@ def test_missing_cpu_requires_explicit_compatible_gpu_fallback():
             needs_gradients=True,
             fallbacks=("qutip-cpu",),
         )
+
+
+@pytest.mark.parametrize(
+    "device, gradients, engine",
+    [
+        ("cpu", False, "qutip-cpu"),
+        ("cuda", False, "cudensitymat"),
+        ("cpu", True, "dynamiqs"),
+        ("cuda", True, "dynamiqs"),
+    ],
+)
+def test_explicit_device_dispatch_and_storage(device, gradients, engine):
+    system, request = inputs("two-level")
+    selection = select_engine(
+        system,
+        request,
+        limits=LIMITS,
+        available_engines={"qutip-cpu", "dynamiqs", "cudensitymat"},
+        device=device,
+        needs_gradients=gradients,
+    )
+    assert selection.engine == engine
+    assert (selection.estimated_device_bytes > 0) == (device == "cuda")
 
 
 def test_size_memory_and_batch_requirements_cannot_be_waived():

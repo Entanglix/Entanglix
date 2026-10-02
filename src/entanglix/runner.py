@@ -384,8 +384,10 @@ def record_finish(
     owner.fileno()
     run = owner.path
     if not (run / "runner" / "started.toml").exists():
-        if status != "failed" or exit_code != 64 or wall_seconds != 0:
-            raise ValueError("without a start record only failed/64 with zero wall time is valid")
+        if (status, exit_code) not in {("failed", 64), ("aborted", 130)} or wall_seconds != 0:
+            raise ValueError(
+                "without a start record only failed/64 or aborted/130 with zero wall time is valid"
+            )
     publish_toml(
         run / "FINISHED",
         {
@@ -760,17 +762,46 @@ def _script_result(run: Path) -> dict:
     return result
 
 
+def _claim_runner_extras(repository: Path, extras: list[str]) -> None:
+    """Pin the shared environment's profile before any uv synchronization."""
+    profile = repository / ".venv-runner-extras.toml"
+    if (repository / ".venv-runner/pyvenv.cfg").exists() and not profile.exists():
+        raise ValueError(
+            "existing .venv-runner has no extras profile; stop its jobs and confirm "
+            "its extras before recording .venv-runner-extras.toml or recreating it"
+        )
+    try:
+        publish_toml(profile, {"extras": extras})
+    except FileExistsError:
+        pass  # Another launcher claimed it first; compare its complete record.
+    pinned = _load_record(profile)["extras"]
+    if pinned != extras:
+        raise ValueError(
+            f"runner extras mismatch: .venv-runner is pinned to {pinned}, requested {extras}; "
+            "use the pinned extras or a separate checkout; recreate the environment/profile "
+            "only after all its jobs have stopped"
+        )
+
+
 def _cpu_job_context(repository: Path, module: str) -> tuple[list[str], dict, list[str]]:
     """Use one configured extras set in the shared exact runner environment."""
     config = _load_record(repository / "pyproject.toml")
     extras = config["tool"]["entanglix"].get("runner", {}).get("extras", [])
+    if "ENTANGLIX_RUNNER_EXTRAS" in os.environ:
+        extras = [
+            value.strip()
+            for value in os.environ["ENTANGLIX_RUNNER_EXTRAS"].split(",")
+            if value.strip()
+        ]
     if not isinstance(extras, list) or any(not isinstance(extra, str) for extra in extras):
         raise ValueError("tool.entanglix.runner.extras must be a list of extra names")
     uv = shutil.which("uv")
     if uv is None:
         raise ValueError("uv is required for locked, exactly synced job execution")
+    extras = sorted(set(extras))
+    _claim_runner_extras(repository, extras)
     command = [uv, "run", "--locked", "--exact", "--no-env-file", "--project", str(repository)]
-    for extra in sorted(set(extras)):
+    for extra in extras:
         command.extend(("--extra", extra))
     command.extend(("python", "-m", module))
     environment = os.environ.copy()
@@ -963,12 +994,22 @@ def list_capabilities(repository: Path | None = None) -> dict:
             "reconcile_run",
             "rerun_script",
             "compare_reference",
+            "simulate",
+            "rerun_simulation",
         ],
-        "protocols": [],
-        "runner_devices": ["cpu"],
+        "protocols": ["simulate"],
+        "runner_devices": ["cpu", "cuda"],
         "engines": {
-            engine: {"version": found[package], "device": "cpu"}
-            for engine, package in (("qutip-cpu", "qutip"), ("dynamiqs", "dynamiqs"))
+            engine: {"version": found[package], "devices": devices}
+            for engine, package, devices in (
+                ("qutip-cpu", "qutip", ["cpu"]),
+                ("cudensitymat", "qutip-cuquantum", ["cuda"]),
+                (
+                    "dynamiqs",
+                    "dynamiqs",
+                    ["cpu", "cuda"] if "jax-cuda12-plugin" in found else ["cpu"],
+                ),
+            )
             if package in found
         },
     }
@@ -1035,7 +1076,7 @@ def read_run(run: Path, *, policy_version: str | None = None) -> dict:
     """Inspect an attempt and its policy-bound scientific verification history."""
     run = run.resolve()
     record = _read_attempt(run)
-    if record["manifest"]["protocol"] in {"plan", "reference"}:
+    if record["manifest"]["protocol"] in {"plan", "reference", "simulate"}:
         from entanglix.corrector.verification import verification_history
 
         record["verification"] = verification_history(run, policy_version=policy_version)

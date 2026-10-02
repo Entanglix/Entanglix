@@ -1,5 +1,6 @@
 """Scoped scientific verdicts, independent refinement, reuse, and visible failures."""
 
+import os
 import shutil
 import subprocess
 import sys
@@ -50,7 +51,7 @@ def files(directory, *, kind="lindblad"):
     return plan
 
 
-def source_run(directory, repository=None):
+def source_run(directory, repository):
     job = run_plan(
         directory / "system.toml",
         directory / "plan.toml",
@@ -61,7 +62,7 @@ def source_run(directory, repository=None):
     return Path(job["path"])
 
 
-def verified(source, repository=None):
+def verified(source, repository):
     job = compare_reference(source, repository=repository)
     record = read_run(Path(job["path"]))
     assert job["exit_code"] == 0, record["log_tail"]
@@ -125,13 +126,14 @@ def test_series_checks_add_to_trusted_point_definitions():
         series_checks("spectral-label", [0, 1])
 
 
-def test_spectral_verification_and_cli_inspection(tmp_path):
+def test_spectral_verification_and_cli_inspection(tmp_path, runner_repository):
     files(tmp_path, kind="spectrum")
-    source = source_run(tmp_path)
+    source = source_run(tmp_path, repository=runner_repository)
     launched = subprocess.run(
         [sys.executable, "-m", "entanglix", "compare-reference", str(source)],
         capture_output=True,
         text=True,
+        env=os.environ | {"PYTHONPATH": str(runner_repository / "src")},
     )
     assert launched.returncode == 0, launched.stderr
     current = read_run(source)["verification"]["current"]
@@ -155,6 +157,7 @@ def test_spectral_verification_and_cli_inspection(tmp_path):
         ],
         capture_output=True,
         text=True,
+        env=os.environ | {"PYTHONPATH": str(runner_repository / "src")},
     )
     assert command.returncode == 0, command.stderr
     assert '"verdict_available": true' in command.stdout
@@ -271,7 +274,7 @@ def test_dynamiqs_underconverged_run_is_unverified(tmp_path, differentiable_repo
     assert record["result"]["report"]["recommendations"]
 
 
-def test_spectral_refinement_detects_small_cutoff(tmp_path):
+def test_spectral_refinement_detects_small_cutoff(tmp_path, runner_repository):
     files(tmp_path, kind="spectrum")
     shutil.copyfile(ROOT / "examples/fluxonium/system.toml", tmp_path / "system.toml")
     text = (tmp_path / "system.toml").read_text().replace("theta1 = 60", "theta1 = 20")
@@ -285,12 +288,14 @@ def test_spectral_refinement_detects_small_cutoff(tmp_path):
         },
     }
     (tmp_path / "plan.toml").write_text(tomli_w.dumps(plan))
-    record = verified(source_run(tmp_path))
+    record = verified(
+        source_run(tmp_path, repository=runner_repository), repository=runner_repository
+    )
     assert record["result"]["verdict"] == "UNVERIFIED"
     assert record["result"]["report"]["reference"]["dimensions"] == [7]
 
 
-def test_lc_spectrum_has_analytic_and_refinement_evidence(tmp_path):
+def test_lc_spectrum_has_analytic_and_refinement_evidence(tmp_path, runner_repository):
     files(tmp_path, kind="spectrum")
     shutil.copyfile(ROOT / "examples/lc-circuit/system.toml", tmp_path / "system.toml")
     plan = {
@@ -300,7 +305,9 @@ def test_lc_spectrum_has_analytic_and_refinement_evidence(tmp_path):
         "refinement": {"lc_circuit": {"retained_levels_step": 1, "cutoff_steps": {"theta1": 2}}},
     }
     (tmp_path / "plan.toml").write_text(tomli_w.dumps(plan))
-    record = verified(source_run(tmp_path))
+    record = verified(
+        source_run(tmp_path, repository=runner_repository), repository=runner_repository
+    )
     assert record["result"]["verdict"] == "VERIFIED"
     checks = record["result"]["report"]["checks"]
     assert any(
@@ -311,11 +318,13 @@ def test_lc_spectrum_has_analytic_and_refinement_evidence(tmp_path):
     )
 
 
-def test_policy_mismatch_fails_real_verifier_without_verdict(tmp_path, monkeypatch):
+def test_policy_mismatch_fails_real_verifier_without_verdict(
+    tmp_path, monkeypatch, runner_repository
+):
     from entanglix.corrector import verification
 
     files(tmp_path, kind="spectrum")
-    source = source_run(tmp_path)
+    source = source_run(tmp_path, repository=runner_repository)
     execute = verification._execute_job
 
     def mismatch(owner, *args, **kwargs):
@@ -325,7 +334,7 @@ def test_policy_mismatch_fails_real_verifier_without_verdict(tmp_path, monkeypat
         return execute(owner, *args, **kwargs)
 
     monkeypatch.setattr(verification, "_execute_job", mismatch)
-    job = compare_reference(source)
+    job = compare_reference(source, repository=runner_repository)
     record = read_run(Path(job["path"]))
     assert job["exit_code"] == 64
     assert "policy changed" in record["log_tail"]
@@ -333,10 +342,10 @@ def test_policy_mismatch_fails_real_verifier_without_verdict(tmp_path, monkeypat
     assert read_run(source)["verification"]["latest"]["status"] == "failed"
 
 
-def test_verification_timeout_is_retained_and_produces_no_verdict(tmp_path):
+def test_verification_timeout_is_retained_and_produces_no_verdict(tmp_path, runner_repository):
     files(tmp_path, kind="spectrum")
-    source = source_run(tmp_path)
-    job = compare_reference(source, timeout_seconds=0.0001)
+    source = source_run(tmp_path, repository=runner_repository)
+    job = compare_reference(source, timeout_seconds=0.0001, repository=runner_repository)
     record = read_run(Path(job["path"]))
     assert job["exit_code"] == 130
     assert record["manifest"]["launch"]["timeout_seconds"] == 0.0001
@@ -344,8 +353,9 @@ def test_verification_timeout_is_retained_and_produces_no_verdict(tmp_path):
     assert "timeout" in record["log_tail"]
 
 
+@pytest.mark.parametrize("target", ["verification", "reference"])
 def test_dynamiqs_cancelling_verification_stops_nested_reference(
-    tmp_path, differentiable_repository
+    tmp_path, differentiable_repository, target
 ):
     files(tmp_path)
     source = source_run(tmp_path, differentiable_repository)
@@ -375,11 +385,14 @@ def test_dynamiqs_cancelling_verification_stops_nested_reference(
         try:
             assert reference is not None, "reference did not start"
             active = read_run(source)["verification"]["latest"]
-            abort_run(Path(active["path"]))
+            abort_run(Path(reference["path"] if target == "reference" else active["path"]))
             job = future.result(timeout=10)
             assert job["exit_code"] == 130
             assert not _group_alive(reference["start"]["process_group"])
-            assert not read_run(Path(job["path"])).get("result", {}).get("verdict")
+            record = read_run(Path(job["path"]))
+            assert record["status"] == "aborted"
+            assert "Traceback" not in record["log_tail"]
+            assert not record.get("result", {}).get("verdict")
         finally:
             if not future.done():
                 active = read_run(source)["verification"]["latest"]
@@ -507,7 +520,7 @@ def test_dynamiqs_composite_complex_state_has_combined_reference(
     assert record["result"]["report"]["reference"]["dimensions"] == [7, 6]
 
 
-def test_refinement_above_reference_cap_does_not_launch_a_solve(tmp_path):
+def test_refinement_above_reference_cap_does_not_launch_a_solve(tmp_path, runner_repository):
     for name in ("system.toml", "qubit.toml"):
         shutil.copyfile(ROOT / "examples/qubit-resonator" / name, tmp_path / name)
     plan = {
@@ -520,7 +533,9 @@ def test_refinement_above_reference_cap_does_not_launch_a_solve(tmp_path):
         },
     }
     (tmp_path / "plan.toml").write_text(tomli_w.dumps(plan))
-    record = verified(source_run(tmp_path))
+    record = verified(
+        source_run(tmp_path, repository=runner_repository), repository=runner_repository
+    )
     assert record["result"]["verdict"] == "UNVERIFIED"
     assert "reference" not in record["result"]["report"]
     assert any(item.get("dimension_limit") == 48 for item in record["result"]["report"]["checks"])
@@ -531,10 +546,12 @@ def test_refinement_above_reference_cap_does_not_launch_a_solve(tmp_path):
 
 
 @pytest.mark.parametrize("spoof", ["kind", "metrics"])
-def test_changed_source_invalidates_inspected_verdict_and_cannot_spoof_kind(tmp_path, spoof):
+def test_changed_source_invalidates_inspected_verdict_and_cannot_spoof_kind(
+    tmp_path, spoof, runner_repository
+):
     files(tmp_path, kind="spectrum")
-    source = source_run(tmp_path)
-    verified(source)
+    source = source_run(tmp_path, repository=runner_repository)
+    verified(source, repository=runner_repository)
     result = read_run(source)["result"]
     if spoof == "kind":
         result["kind"] = "lindblad"
@@ -543,12 +560,12 @@ def test_changed_source_invalidates_inspected_verdict_and_cannot_spoof_kind(tmp_
     publish_toml(source / "result.toml", result, replace=True)
     assert not read_run(source)["verification"]["current"]["verdict_available"]
     with pytest.raises(ValueError, match="inconsistent"):
-        compare_reference(source)
+        compare_reference(source, repository=runner_repository)
 
 
-def test_output_label_cannot_waive_physical_checks(tmp_path):
+def test_output_label_cannot_waive_physical_checks(tmp_path, runner_repository):
     files(tmp_path, kind="spectrum")
-    source = source_run(tmp_path)
+    source = source_run(tmp_path, repository=runner_repository)
     result = read_run(source)["result"]
     result["checks"] = []
     result["exemptions"] = ["spectral_reference"]
@@ -556,12 +573,14 @@ def test_output_label_cannot_waive_physical_checks(tmp_path):
     np.savez(output, energies_ghz=[0, 1])
     result["artifacts"]["output"]["sha256"] = _digest(output.read_bytes())
     publish_toml(source / "result.toml", result, replace=True)
-    record = verified(source)
+    record = verified(source, repository=runner_repository)
     assert record["result"]["verdict"] == "UNVERIFIED"
     assert record["result"]["report"]["checks"][0]["outcome"] == "fail"
 
 
-def test_composite_low_spectrum_and_evidence_survive_relocation(tmp_path, monkeypatch):
+def test_composite_low_spectrum_and_evidence_survive_relocation(
+    tmp_path, monkeypatch, runner_repository
+):
     from entanglix.corrector import load_verification, verification
 
     for name in ("system.toml", "qubit.toml"):
@@ -576,8 +595,8 @@ def test_composite_low_spectrum_and_evidence_survive_relocation(tmp_path, monkey
         },
     }
     (tmp_path / "plan.toml").write_text(tomli_w.dumps(plan))
-    source = source_run(tmp_path)
-    first = verified(source)
+    source = source_run(tmp_path, repository=runner_repository)
+    first = verified(source, repository=runner_repository)
     assert first["result"]["verdict"] == "VERIFIED", first["result"]["report"]
     with np.load(source / "artifacts/output.npz") as arrays:
         assert arrays["energies_ghz"].shape == (4,)
@@ -595,7 +614,7 @@ def test_composite_low_spectrum_and_evidence_survive_relocation(tmp_path, monkey
     first_path = source.parent / Path(first["path"]).name
     load_verification(first_path)
     assert read_run(source)["verification"]["current"]["verdict_available"]
-    second = verified(source)
+    second = verified(source, repository=runner_repository)
     assert second["result"]["report"]["reference"]["reused"]
     assert second["result"]["report"]["reference"]["run_id"] == reference["run_id"]
 

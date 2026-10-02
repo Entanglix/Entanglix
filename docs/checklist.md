@@ -162,23 +162,23 @@ The [M2 guide](m2-guide.md) records the implementation approach; [ADR-0003](adr/
 - [x] Applicable quality evidence recorded ([verification checks and limits](operations/runs.md#corrector-policy-and-verification-records), [scientific and lifecycle tests](../tests/test_verification.py), [CPU reference regression](../tests/test_corrector.py), [CPU CI](../.github/workflows/ci.yml))
 - [x] **Done:** a deliberately under-converged run is `UNVERIFIED`; a hash mismatch fails the run; label-spoof cases cannot evade checks; verification is available before Block 5 completion ([acceptance tests](../tests/test_verification.py))
 
-### [ ] Block 5 — Protocols `simulate` and `sweep`
+### [-] Block 5 — Protocols `simulate` and `sweep`
 
 **Depends on:** Blocks 1–4.
 
-- [ ] Standalone simulation and static and dynamic grid sweeps over scqubits parameters against declared observables or a simulated metric
+- [-] Standalone simulation and static and dynamic grid sweeps over scqubits parameters against declared observables or a simulated metric ([simulation protocol](operations/protocols.md), [simulation tests](../tests/test_simulate.py)); grid sweeps belong to 5D
 - [x] CPU feasibility probe settles the dynamics metric, parameter region, windows, grids, frequency policy, refined dimensions, and candidate evidence thresholds (5A) ([probe](../tests/probes/m2_feasibility.py), [measurements](../tests/probes/m2_feasibility_results.json), [choices and limits](../examples/readout/README.md)); independent-engine acceptance of candidate frame bounds belongs to 5B
 - [x] Lab-frame carrier drives and rotating frames with an explicit rotating-wave approximation; carrier drives pass cross-engine and refinement acceptance; rotating-frame results agree with the lab frame within declared metric tolerances, including endpoint resolution limits ([interface and numerical limits](operations/system-spec.md#carriers-and-rotating-frames), [CPU/CUDA tests](../tests/test_carriers_frames.py), [acceptance evidence](environment.md#carrier-and-frame-acceptance))
 - [x] Before 5C relies on the lab-frame readout/Purcell fixture at 5 × 6 levels, its full-window observables pass an independent CPU dynamiqs comparison at tightened tolerances and 6 × 8 levels (5B) ([independent-engine evidence and limits](../examples/readout/README.md#independent-engine-frame-acceptance), [measurements](../tests/probes/m2_frames_results.json))
-- [ ] A declared `device = "cuda"` routes non-gradient work to cuDensityMat in a versioned selection table, without a performance claim
-- [ ] `simulate` connects selected-device environment/memory checks, pre-launch reference evidence, inherited GPU allocation and attempt locks, usage accounting, cancellation, and reconciliation; completed and interrupted GPU runs pass runner integration checks (5C)
-- [ ] `simulate` and `sweep` freeze protocol/plan specs and data, record seeds and solver settings, retain code/environment provenance, and reproduce from retained inputs under new linked IDs; all attempt states remain queryable (5C–5D)
-- [ ] `simulate`/`sweep` supply trusted metric definitions and declared rotating-frame bounds; sweep verification applies bounded selection and monotonicity to actual grids (5C–5D)
+- [x] A declared `device = "cuda"` routes non-gradient work to cuDensityMat in a versioned selection table, without a performance claim ([table](../src/entanglix/engines/selection.toml), [selection tests](../tests/test_engine_selection.py))
+- [x] `simulate` connects selected-device environment/memory checks, pre-launch reference evidence, inherited GPU allocation and attempt locks, usage accounting, cancellation before and after GPU start, and reconciliation; completed and interrupted GPU runs pass runner integration checks (5C) ([tests](../tests/test_simulate.py), [GPU acceptance](../tests/probes/m2_simulation_gpu.xml), [operating rules](operations/protocols.md#gpu-configuration-and-verification))
+- [-] `simulate` and `sweep` freeze protocol/plan specs and data, record seeds and solver settings, retain code/environment provenance, and reproduce from retained inputs under new linked IDs; all attempt states remain queryable (5C–5D) ([simulation replay tests](../tests/test_simulate.py), [CPU acceptance](../tests/probes/m2_simulation_cpu.json), [CUDA acceptance](../tests/probes/m2_simulation_cuda.json), [replay rules](operations/protocols.md#replay)); sweep integration belongs to 5D
+- [-] `simulate`/`sweep` supply trusted metric definitions and declared rotating-frame bounds; sweep verification applies bounded selection and monotonicity to actual grids (5C–5D) ([simulation formulas](../src/entanglix/corrector/metrics.py), [metric and bound checks](../tests/test_simulate.py)); grid application belongs to 5D
 - [ ] First end-to-end sweep exercises open-system dynamics on the local GPU (metric class already fixed)
-- [ ] Spectral-only studies remain usable independently
+- [x] Spectral-only studies remain usable independently ([CPU spectral simulation and replay test](../tests/test_simulate.py))
 - [ ] Plots and `result.toml` summaries expose evidence needed to inspect and refine a sweep
-- [ ] Documented CLI examples for simulation and iterative sweep refinement
-- [ ] Applicable quality evidence recorded
+- [-] Documented CLI examples for simulation and iterative sweep refinement ([Purcell protocols](../examples/readout/README.md)); sweep refinement belongs to 5D
+- [-] Applicable quality evidence recorded ([protocol reference](operations/protocols.md), [CPU CI](../.github/workflows/ci.yml), [GPU integration](../tests/probes/m2_simulation_gpu.xml), [full-window CPU/CUDA simulation and replay](environment.md#simulation-acceptance)); sweep acceptance belongs to 5D
 - [ ] **Done:** a documented simulation and agreed dynamics sweep run through `entanglix`, GPU execution and corrector checks pass, and a user can inspect/refine the sweep without control or calibration
 
 ---

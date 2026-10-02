@@ -317,11 +317,18 @@ def test_invalid_terminal_fields_leave_no_terminal(run_kwargs, values):
     assert not (run / "FINISHED").exists()
 
 
-@pytest.mark.parametrize("status,code", [("completed", 0), ("failed", 137), ("aborted", 130)])
+@pytest.mark.parametrize("status,code", [("completed", 0), ("failed", 137)])
 def test_job_outcomes_need_start_record(run_kwargs, status, code):
     owner = create_run(**run_kwargs)
     with pytest.raises(ValueError, match="start record"):
         record_finish(owner, status=status, exit_code=code, wall_seconds=0, gpu_seconds=0)
+
+
+def test_pre_start_cancellation_records_zero_job_usage(run_kwargs):
+    with create_run(**run_kwargs) as owner:
+        record_finish(owner, status="aborted", exit_code=130, wall_seconds=0, gpu_seconds=0)
+        assert not (owner.path / "runner/started.toml").exists()
+        assert read(owner.path / "FINISHED")["status"] == "aborted"
 
 
 def test_signal_failure_records_shell_exit_code(run_kwargs):

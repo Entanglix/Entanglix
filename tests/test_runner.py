@@ -3,22 +3,33 @@
 import hashlib
 import json
 import math
+import os
 import shutil
 import subprocess
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from threading import Barrier
 
 import pytest
 
-from entanglix.runner import _script_gate, list_capabilities, list_runs, read_run, run_script
+from entanglix.runner import (
+    _claim_runner_extras,
+    _cpu_job_context,
+    _load_record,
+    _script_gate,
+    list_capabilities,
+    list_runs,
+    read_run,
+    run_script,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.fixture
-def launch(tmp_path):
+def launch(tmp_path, runner_repository):
     system = tmp_path / "system.toml"
     shutil.copyfile(ROOT / "examples/two-level/system.toml", system)
     shutil.copyfile(ROOT / "examples/two-level/operators.npz", tmp_path / "operators.npz")
@@ -27,12 +38,12 @@ def launch(tmp_path):
 
     def execute(source, **kwargs):
         script.write_text(source)
-        return run_script(system, script, runs_root=runs, repository=ROOT, **kwargs)
+        return run_script(system, script, runs_root=runs, repository=runner_repository, **kwargs)
 
     return execute, system, script, runs
 
 
-def test_completed_decay_replays_frozen_inputs(launch, tmp_path):
+def test_completed_decay_replays_frozen_inputs(launch, tmp_path, runner_repository):
     execute, system, script, runs = launch
     data = tmp_path / "gain.txt"
     data.write_text("2")
@@ -59,7 +70,7 @@ def test_completed_decay_replays_frozen_inputs(launch, tmp_path):
         frozen / "script.py",
         inputs={"gain.txt": frozen / "gain.txt"},
         runs_root=runs,
-        repository=ROOT,
+        repository=runner_repository,
         parent_run_ids=(record["manifest"]["run_id"],),
     )
     repeated = read_run(Path(replay["path"]))
@@ -171,7 +182,7 @@ def test_gate_retains_digests_of_validated_model_inputs(launch, monkeypatch):
         )
 
 
-def test_job_environment_and_capabilities_are_separate(launch, monkeypatch):
+def test_job_environment_and_capabilities_are_separate(launch, monkeypatch, runner_repository):
     from importlib.metadata import version
 
     execute, _, _, _ = launch
@@ -186,7 +197,7 @@ def test_job_environment_and_capabilities_are_separate(launch, monkeypatch):
         "'metrics': {'python_prefix': sys.prefix, 'qutip_version': version('qutip')}}, replace=True)\n"
     )
     result = read_run(Path(job["path"]))["result"]
-    assert Path(result["metrics"]["python_prefix"]) == ROOT / ".venv-runner"
+    assert Path(result["metrics"]["python_prefix"]) == runner_repository / ".venv-runner"
     assert Path(result["metrics"]["python_prefix"]) != development
     assert (development / "pyvenv.cfg").read_bytes() == before
 
@@ -196,7 +207,7 @@ def test_job_environment_and_capabilities_are_separate(launch, monkeypatch):
         return version(name)
 
     monkeypatch.setattr("entanglix.runner.version", no_host_engine_metadata)
-    capabilities = list_capabilities()
+    capabilities = list_capabilities(repository=runner_repository)
     assert capabilities["engines"]["qutip-cpu"]["version"] == result["metrics"]["qutip_version"]
 
 
@@ -375,9 +386,9 @@ publish_toml(Path(os.environ['ENTANGLIX_RUN_DIR']) / 'result.toml', {'engine': '
         assert future.result(timeout=10)["exit_code"] == 0
 
 
-def test_capabilities_and_usage_error_cli(launch, tmp_path):
+def test_capabilities_and_usage_error_cli(launch, tmp_path, runner_repository):
     _, system, _, runs = launch
-    capabilities = list_capabilities()
+    capabilities = list_capabilities(repository=runner_repository)
     assert "run_script" in capabilities["operations"]
     source = tmp_path / "script.txt"
     source.write_text("import unapproved_example_package")
@@ -385,6 +396,7 @@ def test_capabilities_and_usage_error_cli(launch, tmp_path):
         ["entanglix", "run-script", str(source), "--system", str(system), "--runs-root", str(runs)],
         capture_output=True,
         text=True,
+        env=os.environ | {"PYTHONPATH": str(runner_repository / "src")},
     )
     assert job.returncode == 64
     assert "allowlist" in job.stderr
@@ -393,3 +405,72 @@ def test_capabilities_and_usage_error_cli(launch, tmp_path):
         ["entanglix", "list-runs", "--runs-root", str(runs)], capture_output=True, text=True
     )
     assert json.loads(listed.stdout) == []
+
+
+def test_extras_mismatch_cannot_resync_a_running_job(launch, runner_repository, monkeypatch):
+    execute, system, script, runs = launch
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        future = pool.submit(
+            execute,
+            """import os, time
+from pathlib import Path
+from entanglix.runner import publish_toml
+Path('ready').touch()
+while not Path('release').exists():
+    time.sleep(0.01)
+publish_toml(Path(os.environ['ENTANGLIX_RUN_DIR']) / 'result.toml',
+             {'engine': 'qutip-cpu', 'metrics': {}}, replace=True)
+""",
+        )
+        run = None
+        try:
+            deadline = time.monotonic() + 30
+            while time.monotonic() < deadline:
+                run = next((p.parent.parent for p in runs.glob("*/*/artifacts/ready")), None)
+                if run:
+                    break
+                if future.done():
+                    pytest.fail(f"job stopped before ready: {future.result()}")
+                time.sleep(0.01)
+            assert run is not None, "job did not start"
+            profile = runner_repository / ".venv-runner-extras.toml"
+            before = profile.read_bytes()
+            with monkeypatch.context() as patch:
+                patch.setenv("ENTANGLIX_RUNNER_EXTRAS", "differentiable")
+                with pytest.raises(ValueError, match="runner extras mismatch"):
+                    run_script(system, script, runs_root=runs, repository=runner_repository)
+            assert profile.read_bytes() == before
+            assert len(list_runs(runs)) == 1
+            assert list_capabilities(repository=runner_repository)["engines"]["qutip-cpu"]
+        finally:
+            if run is not None:
+                (run / "artifacts/release").touch()
+        assert future.result(timeout=10)["exit_code"] == 0
+
+
+def test_first_launch_atomically_pins_one_extras_profile(tmp_path):
+    barrier = Barrier(2)
+
+    def claim(extras):
+        barrier.wait(timeout=5)
+        try:
+            _claim_runner_extras(tmp_path, extras)
+            return extras
+        except ValueError:
+            return None
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        results = list(pool.map(claim, [[], ["differentiable"]]))
+    winner = [value for value in results if value is not None]
+    assert len(winner) == 1
+    assert _load_record(tmp_path / ".venv-runner-extras.toml")["extras"] == winner[0]
+
+
+def test_unmarked_existing_environment_is_not_resynced(runner_repository):
+    environment = runner_repository / ".venv-runner"
+    environment.mkdir()
+    (environment / "pyvenv.cfg").write_text("existing environment")
+    with pytest.raises(ValueError, match="has no extras profile"):
+        _cpu_job_context(runner_repository, "entanglix._script_job")
+    assert not (runner_repository / ".venv-runner-extras.toml").exists()
+    assert (environment / "pyvenv.cfg").read_text() == "existing environment"

@@ -12,6 +12,7 @@ import numpy as np
 from pydantic import Field, model_validator
 
 from entanglix.corrector import load_policy, validate_refinement
+from entanglix.corrector.metrics import EndpointMetric, Population, observable_operator
 from entanglix.engines.frames import prepare_dynamics
 from entanglix.engines.selection import selection_table
 from entanglix.evolution import Carrier, EvolutionInput, RotatingFrame, normalize_input
@@ -38,7 +39,7 @@ class EvolutionSpec(StrictModel):
     array_file: str
     initial_state: str
     times_ns: list[float]
-    observables: dict[str, str] = Field(default_factory=dict)
+    observables: dict[str, str | Population] = Field(default_factory=dict)
     drive_amplitudes_ghz: dict[str, float | list[float]] = Field(default_factory=dict)
     rtol: float = 1e-10
     atol: float = 1e-12
@@ -50,11 +51,14 @@ class EvolutionSpec(StrictModel):
 class ExecutionPlan(StrictModel):
     format_version: Literal[1]
     kind: Literal["lindblad", "spectrum"]
-    engine: Literal["qutip-cpu", "dynamiqs"] = "qutip-cpu"
+    engine: Literal["qutip-cpu", "dynamiqs", "cudensitymat"] = "qutip-cpu"
+    device: Literal["cpu", "cuda"] = "cpu"
     purpose: Literal["computation", "reference"] = "computation"
     levels: int | None = Field(default=None, strict=True, gt=0)
     evolution: EvolutionSpec | None = None
     refinement: dict[str, Refinement] = Field(default_factory=dict)
+    metrics: dict[str, EndpointMetric] = Field(default_factory=dict)
+    rwa_bounds: dict[str, float] = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def check_kind(self):
@@ -64,6 +68,28 @@ class ExecutionPlan(StrictModel):
             raise ValueError("spectrum requires levels; lindblad must not contain levels")
         if self.kind == "spectrum" and self.engine != "qutip-cpu":
             raise ValueError("spectrum uses the qutip-cpu eigensolver")
+        if self.engine == "cudensitymat" and self.device != "cuda":
+            raise ValueError("cudensitymat requires device cuda")
+        if self.engine == "qutip-cpu" and self.device != "cpu":
+            raise ValueError("qutip-cpu requires device cpu")
+        if self.purpose == "reference" and self.device != "cpu":
+            raise ValueError("reference plans require device cpu")
+        if self.metrics and self.evolution is None:
+            raise ValueError("endpoint metrics require evolution")
+        if self.evolution is not None:
+            names = self.evolution.observables.keys()
+            if any(metric.observable not in names for metric in self.metrics.values()):
+                raise ValueError("metrics must name declared observables")
+        if (self.rwa_bounds or any(metric.rwa_bound for metric in self.metrics.values())) and (
+            self.evolution is None or self.evolution.frame is None
+        ):
+            raise ValueError("rwa_bounds require a rotating frame")
+        if any(not math.isfinite(value) or value <= 0 for value in self.rwa_bounds.values()):
+            raise ValueError("rwa_bounds must be finite and positive")
+        if self.rwa_bounds.keys() - (
+            self.evolution.observables.keys() if self.evolution else set()
+        ):
+            raise ValueError("rwa_bounds must name declared observables")
         return self
 
 
@@ -120,13 +146,19 @@ def load_plan(
             state = np.array(archive[spec.initial_state])
         if state.dtype.kind not in "iufc":
             raise ValueError("initial_state must be a numeric array")
-        unknown = set(spec.observables.values()) - system.operators.keys()
-        if unknown:
-            raise ValueError(f"unknown observable operators: {sorted(unknown)}")
+        operators = {
+            name: observable_operator(system, value) for name, value in spec.observables.items()
+        }
+        for metric in plan.metrics.values():
+            operator = operators[metric.observable]
+            if metric.kind == "endpoint_real" and not np.allclose(
+                operator, operator.conj().T, rtol=0, atol=1e-12
+            ):
+                raise ValueError("endpoint_real requires a Hermitian observable")
         request = EvolutionInput(
             state,
             np.asarray(spec.times_ns),
-            {name: system.operators[operator] for name, operator in spec.observables.items()},
+            operators,
             {name: np.asarray(value) for name, value in spec.drive_amplitudes_ghz.items()},
             spec.rtol,
             spec.atol,

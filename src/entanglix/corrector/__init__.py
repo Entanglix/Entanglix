@@ -164,6 +164,7 @@ def create_verification_run(
     if record["status"] != "completed" or record["manifest"]["protocol"] not in {
         "plan",
         "reference",
+        "simulate",
     }:
         raise ValueError("verification requires a completed built-in plan run")
     manifest = record["manifest"]
@@ -172,6 +173,9 @@ def create_verification_run(
             raise ValueError(f"source input digest mismatch: {name}")
     result = _script_result(source)
     loaded = load_plan(source / "spec/system.toml", source / "spec/plan.toml")
+    from entanglix.corrector.metrics import metric_values
+    from entanglix.corrector.verification import _output
+
     if (
         loaded.digest != manifest["launch"]["plan_sha256"]
         or result.get("plan_sha256") != loaded.digest
@@ -180,7 +184,7 @@ def create_verification_run(
         or result.get("engine") != loaded.definition.engine
         or manifest["engine"] != loaded.definition.engine
         or result.get("dimensions") != list(loaded.system.dimensions)
-        or result["metrics"]  # Plans have no trusted metric definitions yet.
+        or result["metrics"] != metric_values(loaded.definition.metrics, _output(source))
     ):
         raise ValueError("source result is inconsistent with its trusted execution plan")
     output = result["artifacts"]["output"]

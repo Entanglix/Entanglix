@@ -51,6 +51,7 @@ def select_engine(
     limits: EngineLimits,
     available_engines: set[str],
     needs_gradients: bool = False,
+    device: str | None = None,
     batched: bool = False,
     fallbacks: tuple[str, ...] = (),
 ) -> EngineSelection:
@@ -58,11 +59,13 @@ def select_engine(
     engines = table["engines"]
     if not isinstance(needs_gradients, bool) or not isinstance(batched, bool):
         raise EngineSelectionError("needs_gradients and batched must be booleans")
+    if device not in {None, "cpu", "cuda"}:
+        raise EngineSelectionError("device must be cpu or cuda")
     unknown = (set(fallbacks) | available_engines) - engines.keys()
     if unknown:
         raise EngineSelectionError(f"unknown engines: {sorted(unknown)}")
     dimension = math.prod(system.dimensions)
-    primary = "dynamiqs" if needs_gradients else "qutip-cpu"
+    primary = "dynamiqs" if needs_gradients else "cudensitymat" if device == "cuda" else "qutip-cpu"
     matrices = [
         system.hamiltonian_ghz,
         *system.operators.values(),
@@ -83,6 +86,9 @@ def select_engine(
         row = engines[name]
         if name not in available_engines:
             reasons.append(f"{name}: unavailable")
+            continue
+        if device is not None and name != "dynamiqs" and row["device_kind"] != device:
+            reasons.append(f"{name}: requested device {device} is unsupported")
             continue
         if (
             (needs_gradients and not row["differentiable"])
@@ -105,7 +111,7 @@ def select_engine(
         )
         output_bytes = (state_bytes + 16 * len(normalized.observables)) * len(normalized.times_ns)
         host_bytes = model_bytes + input_bytes + output_bytes
-        device_bytes = host_bytes if row["device_kind"] == "cuda" else 0
+        device_bytes = host_bytes if row["device_kind"] == "cuda" and device != "cpu" else 0
         if host_bytes > limits.host_memory_bytes or device_bytes > limits.device_memory_bytes:
             reasons.append(
                 f"{name}: estimated host/device bytes {host_bytes}/{device_bytes} exceed configured limits {limits.host_memory_bytes}/{limits.device_memory_bytes}"

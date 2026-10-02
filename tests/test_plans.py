@@ -44,9 +44,14 @@ def plan_files(tmp_path):
     return tmp_path, definition
 
 
-def test_plan_job_records_and_replays_frozen_complex_inputs(plan_files):
+def test_plan_job_records_and_replays_frozen_complex_inputs(plan_files, runner_repository):
     root, _ = plan_files
-    first = run_plan(root / "system.toml", root / "plan.toml", runs_root=root / "runs")
+    first = run_plan(
+        root / "system.toml",
+        root / "plan.toml",
+        runs_root=root / "runs",
+        repository=runner_repository,
+    )
     assert first["exit_code"] == 0
     run = Path(first["path"])
     record = read_run(run)
@@ -63,6 +68,7 @@ def test_plan_job_records_and_replays_frozen_complex_inputs(plan_files):
         run / "spec/plan.toml",
         runs_root=root / "runs",
         parent_run_ids=(run.name,),
+        repository=runner_repository,
     )
     repeated = read_run(Path(replay["path"]))
     assert repeated["result"] == record["result"]
@@ -72,7 +78,9 @@ def test_plan_job_records_and_replays_frozen_complex_inputs(plan_files):
         assert abs(output["states"][0, 0, 1].imag) > 0.4
 
 
-def test_carrier_frame_plan_freezes_settings_and_reference_uses_lab_frame(plan_files):
+def test_carrier_frame_plan_freezes_settings_and_reference_uses_lab_frame(
+    plan_files, runner_repository
+):
     from entanglix.corrector.reference import prepare_reference
     from entanglix.engines import QuTiPIntegrator
     from entanglix.models import load_system
@@ -92,7 +100,14 @@ def test_carrier_frame_plan_freezes_settings_and_reference_uses_lab_frame(plan_f
     (root / "plan.toml").write_text(tomli_w.dumps(definition))
     loaded = load_plan(root / "system.toml", root / "plan.toml")
     expected = QuTiPIntegrator().evolve(loaded.system, loaded.request)
-    run = Path(run_plan(root / "system.toml", root / "plan.toml", runs_root=root / "runs")["path"])
+    run = Path(
+        run_plan(
+            root / "system.toml",
+            root / "plan.toml",
+            runs_root=root / "runs",
+            repository=runner_repository,
+        )["path"]
+    )
     with np.load(run / "artifacts/output.npz") as output:
         np.testing.assert_allclose(output["states"], expected.states, rtol=0, atol=1e-12)
     assert read_run(run)["result"]["diagnostics"]["frame"]["rwa"]
@@ -136,10 +151,17 @@ def test_reference_step_allowance_matches_solver_scope(plan_files, engine, contr
     assert reference.request.frame is None
 
 
-def test_verification_admission_binds_source_and_leaves_source_unchanged(plan_files):
+def test_verification_admission_binds_source_and_leaves_source_unchanged(
+    plan_files, runner_repository
+):
     root, _ = plan_files
     source = Path(
-        run_plan(root / "system.toml", root / "plan.toml", runs_root=root / "runs")["path"]
+        run_plan(
+            root / "system.toml",
+            root / "plan.toml",
+            runs_root=root / "runs",
+            repository=runner_repository,
+        )["path"]
     )
     before = {
         path: path.read_bytes()
@@ -191,7 +213,7 @@ def test_verification_admission_binds_source_and_leaves_source_unchanged(plan_fi
 
 
 @pytest.mark.parametrize("change", ["kind", "array_path", "unknown_operator", "inconsistent"])
-def test_invalid_plan_is_rejected_before_admission(plan_files, change):
+def test_invalid_plan_is_rejected_before_admission(plan_files, change, runner_repository):
     root, definition = plan_files
     if change == "kind":
         definition["kind"] = "authored-script"
@@ -203,11 +225,16 @@ def test_invalid_plan_is_rejected_before_admission(plan_files, change):
         definition["kind"] = "spectrum"
     (root / "plan.toml").write_text(tomli_w.dumps(definition))
     with pytest.raises(ValueError):
-        run_plan(root / "system.toml", root / "plan.toml", runs_root=root / "runs")
+        run_plan(
+            root / "system.toml",
+            root / "plan.toml",
+            runs_root=root / "runs",
+            repository=runner_repository,
+        )
     assert not (root / "runs").exists()
 
 
-def test_policy_mismatch_fails_job_without_a_verdict(plan_files, monkeypatch):
+def test_policy_mismatch_fails_job_without_a_verdict(plan_files, monkeypatch, runner_repository):
     import entanglix.runner as runner
 
     root, _ = plan_files
@@ -221,7 +248,12 @@ def test_policy_mismatch_fails_job_without_a_verdict(plan_files, monkeypatch):
         return execute(owner, command, environment, **kwargs)
 
     monkeypatch.setattr(runner, "_execute_job", changed_policy)
-    job = run_plan(root / "system.toml", root / "plan.toml", runs_root=root / "runs")
+    job = run_plan(
+        root / "system.toml",
+        root / "plan.toml",
+        runs_root=root / "runs",
+        repository=runner_repository,
+    )
     record = read_run(Path(job["path"]))
     assert job["exit_code"] == 64
     assert record["status"] == "failed"
@@ -229,10 +261,17 @@ def test_policy_mismatch_fails_job_without_a_verdict(plan_files, monkeypatch):
     assert "result" not in record
 
 
-def test_policy_mismatch_fails_verification_execution_without_a_verdict(plan_files):
+def test_policy_mismatch_fails_verification_execution_without_a_verdict(
+    plan_files, runner_repository
+):
     root, _ = plan_files
     source = Path(
-        run_plan(root / "system.toml", root / "plan.toml", runs_root=root / "runs")["path"]
+        run_plan(
+            root / "system.toml",
+            root / "plan.toml",
+            runs_root=root / "runs",
+            repository=runner_repository,
+        )["path"]
     )
     with create_verification_run(
         source,
@@ -264,10 +303,15 @@ load_verification(Path(os.environ['ENTANGLIX_RUN_DIR']))
 
 
 @pytest.mark.parametrize("change", ["script", "incomplete", "artifact"])
-def test_verification_rejects_untrusted_or_incomplete_source(plan_files, change):
+def test_verification_rejects_untrusted_or_incomplete_source(plan_files, change, runner_repository):
     root, _ = plan_files
     source = Path(
-        run_plan(root / "system.toml", root / "plan.toml", runs_root=root / "runs")["path"]
+        run_plan(
+            root / "system.toml",
+            root / "plan.toml",
+            runs_root=root / "runs",
+            repository=runner_repository,
+        )["path"]
     )
     if change == "script":
         manifest = read_run(source)["manifest"]
@@ -288,10 +332,17 @@ def test_verification_rejects_untrusted_or_incomplete_source(plan_files, change)
 
 
 @pytest.mark.parametrize("change", ["result", "artifact", "missing"])
-def test_verification_rechecks_retained_source_after_admission(plan_files, change):
+def test_verification_rechecks_retained_source_after_admission(
+    plan_files, change, runner_repository
+):
     root, _ = plan_files
     source = Path(
-        run_plan(root / "system.toml", root / "plan.toml", runs_root=root / "runs")["path"]
+        run_plan(
+            root / "system.toml",
+            root / "plan.toml",
+            runs_root=root / "runs",
+            repository=runner_repository,
+        )["path"]
     )
     with create_verification_run(
         source,
@@ -329,7 +380,9 @@ def test_plan_identity_ignores_toml_formatting_but_tracks_inputs_and_settings(pl
     assert load_plan(root / "system.toml", path).digest != first.digest
 
 
-def test_reference_plan_limit_is_separate_and_refinement_cannot_be_waived(tmp_path, monkeypatch):
+def test_reference_plan_limit_is_separate_and_refinement_cannot_be_waived(
+    tmp_path, monkeypatch, runner_repository
+):
     system = {
         "format_version": 1,
         "id": "oscillator",
@@ -362,7 +415,9 @@ def test_reference_plan_limit_is_separate_and_refinement_cannot_be_waived(tmp_pa
     }
     plan = tmp_path / "plan.toml"
     plan.write_text(tomli_w.dumps(definition))
-    job = run_plan(tmp_path / "system.toml", plan, runs_root=tmp_path / "runs")
+    job = run_plan(
+        tmp_path / "system.toml", plan, runs_root=tmp_path / "runs", repository=runner_repository
+    )
     assert job["exit_code"] == 0
     assert read_run(Path(job["path"]))["manifest"]["protocol"] == "reference"
     definition["purpose"] = "computation"
@@ -405,10 +460,14 @@ def test_cutoff_refinement_must_meet_the_corrector_minimum(tmp_path):
     assert load_plan(tmp_path / "system.toml", path).system.dimensions == (6, 5)
 
 
-def test_plan_timeout_uses_runner_lifecycle(plan_files):
+def test_plan_timeout_uses_runner_lifecycle(plan_files, runner_repository):
     root, _ = plan_files
     job = run_plan(
-        root / "system.toml", root / "plan.toml", runs_root=root / "runs", timeout_seconds=0.0001
+        root / "system.toml",
+        root / "plan.toml",
+        runs_root=root / "runs",
+        timeout_seconds=0.0001,
+        repository=runner_repository,
     )
     record = read_run(Path(job["path"]))
     assert job["exit_code"] == 130

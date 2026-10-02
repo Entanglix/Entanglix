@@ -13,7 +13,7 @@ def _runner_repository(tmp_path, extras):
     """Configure a separate exact CPU runner environment without changing the checkout."""
     root = Path(__file__).resolve().parents[1]
     repository = tmp_path / "checkout"
-    repository.mkdir()
+    repository.mkdir(parents=True)
     shutil.copytree(root / "src", repository / "src", ignore=shutil.ignore_patterns("__pycache__"))
     for name in ("uv.lock", ".gitignore"):
         shutil.copyfile(root / name, repository / name)
@@ -38,15 +38,17 @@ def _runner_repository(tmp_path, extras):
 
 
 @pytest.fixture
-def runner_repository(tmp_path):
+def runner_repository(tmp_path, monkeypatch):
     """A runner checkout with no extras, independent of developer configuration."""
-    return _runner_repository(tmp_path, [])
+    monkeypatch.delenv("ENTANGLIX_RUNNER_EXTRAS", raising=False)
+    return _runner_repository(tmp_path / "cpu-runner", [])
 
 
 @pytest.fixture
-def differentiable_repository(tmp_path):
+def differentiable_repository(tmp_path, monkeypatch):
     pytest.importorskip("dynamiqs")
-    return _runner_repository(tmp_path, ["differentiable"])
+    monkeypatch.delenv("ENTANGLIX_RUNNER_EXTRAS", raising=False)
+    return _runner_repository(tmp_path / "differentiable-runner", ["differentiable"])
 
 
 @pytest.fixture(scope="session")

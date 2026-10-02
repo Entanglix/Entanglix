@@ -1,6 +1,7 @@
 # Python environments, caches, and builds
 .venv/
 .venv-runner/
+.venv-runner-extras.toml
 __pycache__/
 *.py[cod]
 *.egg-info/
