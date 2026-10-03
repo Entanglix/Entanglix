@@ -52,7 +52,7 @@ Every milestone must demonstrate these qualities for the capabilities it introdu
 - Lean by default. Reuse process, scheduler, and agent-runtime facilities for timeouts, GPU allocation, accounting, and permissions; build only what they cannot provide. Professional quality with infrastructure proportional to demonstrated needs.
 - Stage, never promote. Agents write candidates and results; humans promote into the catalog and the device model.
 - Every attempted run contributes to research history, including failed and unpromoted attempts. Human promotion records endorsement; run lineage exists from execution onward.
-- Cheap-to-expensive funnel. Spec validation → small-size reference → GPU run → corrector. Nothing skips a stage.
+- Cheap-to-expensive funnel. Spec validation → environment and memory checks → GPU run → corrector. Nothing skips a stage.
 - Truncation and convergence are reported on every run, never assumed.
 
 ---
@@ -138,7 +138,7 @@ The [M2 guide](m2-guide.md) covers the joint implementation of Blocks 3–5. [AD
 ### Block 4 — Corrector v0
 
 - **Depends on:** Blocks 1–3.
-- Physicality checks at every point and, at a bounded set of evidence points, one comparison with an independent CPU engine at tightened tolerances and refined truncation, as a separate package with hashed code and a versioned thresholds file; `compare_reference` verb. Verification is a linked run whose report states each point's coverage.
+- Physicality checks at every point and, at a bounded set of evidence points, one comparison with an independent CPU engine at tightened tolerances and refined truncation, as a separate package with hashed code and a versioned thresholds file; `compare_reference` verb. Verification is a linked run whose report states each point's coverage. Block 5 replaces the per-point full-window comparison with requirement-based evidence ([ADR-0003 §2.4](adr/0003-runs-verification-and-dispatch.md#24-requirement-based-dynamics-verification)).
 - Block 4 owns trusted computation definitions and shared check functions; Block 5 protocols supply metric definitions and sweep application.
 - The corrector derives applicable checks from trusted computation definitions and the validated execution plan. Agent-written labels cannot waive checks; design-sweep checks add to the applicable dynamics or spectral checks.
 - CPU plan jobs use the runner's existing gate, records, and lifecycle; linked verification runs integrate with history and `read_run` before this block closes.
@@ -149,11 +149,12 @@ The [M2 guide](m2-guide.md) covers the joint implementation of Blocks 3–5. [AD
 - **Depends on:** Blocks 1–4.
 - Standalone simulation and static and dynamic grid sweeps over scqubits parameters against declared observables or a simulated metric (for example dispersive shift, T1 limit from a noise model, gate error under a fixed pulse).
 - The first end-to-end example exercises open-system dynamics on the local GPU; this class of metric is settled. The CPU feasibility probe settles the exact observable, drive, parameter region, and candidate evidence thresholds; these are recorded in the [readout example](../examples/readout/README.md). Independent-engine acceptance of the candidate frame bounds belongs to 5B. Spectral-only studies remain useful supported workflows.
-- Lab-frame carrier drives and rotating frames with an explicit rotating-wave approximation, verified against the lab frame. A declared `device = "cuda"` runs non-gradient work on cuDensityMat without a performance claim.
+- Lab-frame carrier drives and rotating frames with an explicit rotating-wave approximation; the approximation is checked by a requested lab-frame reference. A declared `device = "cuda"` runs non-gradient work on cuDensityMat without a performance claim.
+- Verification at a small fraction of an expensive run's cost, before the first sweep. Verdicts follow evidence requirements and include `INCONCLUSIVE` for unresolved ones. Automatic checks are integrity of stored states and segments in the source run's frame; they detect failures, and static shifts are diagnostics. Whole-window accuracy is established only by the full-window reference, which runs on request. Metric accuracy targets replace declared rotating-wave bounds. Waivers are human actions, automatic work is bounded by an allowance, and a launch preview lists the planned checks.
 - Built-in protocols integrate the runner's gate, environment identity, GPU ownership, usage, and recovery facilities. Freeze protocol/plan inputs, record seeds and solver settings, and validate reproduction and interrupted-attempt history on CPU and GPU.
-- Protocols supply trusted metric definitions to the corrector; sweep verification applies bounded evidence selection and monotonicity checks to actual grids.
+- Protocols supply trusted metric definitions and accuracy targets to the corrector; sweep verification applies bounded evidence selection and monotonicity checks to actual grids.
 - Plots and `result.toml` summaries with enough evidence for a user to inspect results and choose a refined sweep.
-- **Done when:** a documented simulation and one agreed dynamics sweep run end to end through `entanglix`, the sweep exercises the local GPU, corrector checks pass, and a user can inspect and refine the sweep without control or calibration.
+- **Done when:** a documented simulation and one agreed dynamics sweep run end to end through `entanglix`, the sweep exercises the local GPU, verification reports its verdicts with stated requirements and no check fails, and a user can inspect and refine the sweep without control or calibration.
 
 ### Investigation decisions — after M2, before Blocks 6a–6b
 

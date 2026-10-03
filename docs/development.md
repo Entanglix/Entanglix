@@ -18,7 +18,7 @@ Run `uv sync --locked --exact`, `uv run --locked --exact pytest`, `uv run --lock
 - Operational docs never link to planning/development docs. Keep contributor instructions out of research-agent guidance; [Block 6b](roadmap.md#block-6b--agent-integration) will decide how that guidance reaches user agents.
 - Keep core imports and CPU tests usable without GPU or private packages. Preserve [ADR-0001's numerical policy](adr/0001-mandate.md#33-units-time-grid-and-truncation-defaults).
 - Lean by default: reuse existing facilities and implement capabilities when needed.
-- ADRs hold design decisions only, stated as final. Document organization belongs in the docs index, and edit history in git. A substantive change to an accepted decision gets a new ADR that supersedes the old one.
+- ADRs hold design decisions only, stated as final. Document organization belongs in the docs index, and edit history in git. A substantive change to an accepted decision rewrites that ADR in place with a revised date; earlier text stays in git.
 - Link acceptance artifacts from the checklist; distinguish implemented, validated, and planned behavior. Keep progress narratives in conversation. Retain implementation details and scientific evidence in the appropriate operational docs, code, tests, or artifacts.
 - Commit or push only with the user's go-ahead. A request to "save" means stash.
 

@@ -173,13 +173,27 @@ The [M2 guide](m2-guide.md) records the implementation approach; [ADR-0003](adr/
 - [x] A declared `device = "cuda"` routes non-gradient work to cuDensityMat in a versioned selection table, without a performance claim ([table](../src/entanglix/engines/selection.toml), [selection tests](../tests/test_engine_selection.py))
 - [x] `simulate` connects selected-device environment/memory checks, pre-launch reference evidence, inherited GPU allocation and attempt locks, usage accounting, cancellation before and after GPU start, and reconciliation; completed and interrupted GPU runs pass runner integration checks (5C) ([tests](../tests/test_simulate.py), [GPU acceptance](../tests/probes/m2_simulation_gpu.xml), [operating rules](operations/protocols.md#gpu-configuration-and-verification))
 - [-] `simulate` and `sweep` freeze protocol/plan specs and data, record seeds and solver settings, retain code/environment provenance, and reproduce from retained inputs under new linked IDs; all attempt states remain queryable (5C–5D) ([simulation replay tests](../tests/test_simulate.py), [CPU acceptance](../tests/probes/m2_simulation_cpu.json), [CUDA acceptance](../tests/probes/m2_simulation_cuda.json), [replay rules](operations/protocols.md#replay)); sweep integration belongs to 5D
-- [-] `simulate`/`sweep` supply trusted metric definitions and declared rotating-frame bounds; sweep verification applies bounded selection and monotonicity to actual grids (5C–5D) ([simulation formulas](../src/entanglix/corrector/metrics.py), [metric and bound checks](../tests/test_simulate.py)); grid application belongs to 5D
+- [-] `simulate`/`sweep` supply trusted metric definitions with accuracy targets; sweep verification applies bounded selection and monotonicity to actual grids (5C–5D) ([simulation formulas](../src/entanglix/corrector/metrics.py), [metric checks](../tests/test_simulate.py)); 5V replaces 5C's declared rotating-frame bounds with accuracy targets; grid application belongs to 5D
+- [x] Verification feasibility probe measures integrity, static screens, exact step propagators, and segments against retained full-window references, including deliberate failures and false-alarm cases (5V) ([probe](../tests/probes/m2_verification.py), [measurements](../tests/probes/m2_verification_results.json))
+- [ ] Verdicts follow evidence requirements: `UNVERIFIED` takes precedence, `INCONCLUSIVE` lists unresolved requirements with reasons, and allowance exhaustion reports while a terminated verifier has no verdict (5V)
+- [ ] Dynamics verification replaces the automatic full-window reference (5V):
+  - integrity at every stored state;
+  - refined segments in the source run's frame as local evidence, within the allowance, at the window's start, middle, and end and at drive changes;
+  - top-level population and static shifts as diagnostics;
+  - whole-window requirements satisfied only by the requested full-window reference.
+- [ ] Metric accuracy targets with recorded effective values replace declared rotating-frame bounds (5V)
+- [ ] Waivers are a separate human CLI operation that permission settings can block, recorded and shown with every verdict; research-tool requests reject waiver fields (5V). Runtime restrictions on agents are tested in 6b
+- [ ] A launch preview lists the model, execution, and verification plan, and reports list the same checks (5V)
+- [ ] GPU launches no longer run 5C's pre-launch reference; verification follows the run on CPU (5V)
+- [ ] The full-window reference runs on request and satisfies the requirements it covers (5V)
+- [ ] The 5C simulation acceptance re-runs under the revised corrector, showing `INCONCLUSIVE` by default and `VERIFIED` with the requested reference (5V)
+- [ ] Floquet quasienergy example through an authored script, claiming quasienergies under periodic driving only
 - [ ] First end-to-end sweep exercises open-system dynamics on the local GPU (metric class already fixed)
 - [x] Spectral-only studies remain usable independently ([CPU spectral simulation and replay test](../tests/test_simulate.py))
 - [ ] Plots and `result.toml` summaries expose evidence needed to inspect and refine a sweep
 - [-] Documented CLI examples for simulation and iterative sweep refinement ([Purcell protocols](../examples/readout/README.md)); sweep refinement belongs to 5D
 - [-] Applicable quality evidence recorded ([protocol reference](operations/protocols.md), [CPU CI](../.github/workflows/ci.yml), [GPU integration](../tests/probes/m2_simulation_gpu.xml), [full-window CPU/CUDA simulation and replay](environment.md#simulation-acceptance)); sweep acceptance belongs to 5D
-- [ ] **Done:** a documented simulation and agreed dynamics sweep run through `entanglix`, GPU execution and corrector checks pass, and a user can inspect/refine the sweep without control or calibration
+- [ ] **Done:** a documented simulation and agreed dynamics sweep run through `entanglix`, GPU execution passes, verification reports verdicts with stated requirements and no failed check, and a user can inspect/refine the sweep without control or calibration
 
 ---
 

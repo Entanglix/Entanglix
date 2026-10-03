@@ -119,4 +119,4 @@ Operators are referenced as `<subsystem>.<name>`. Available names depend on the 
 - The schema, `validate`, and the model adapter implement these rules in Block 1. The derived coordinate offsets, available operator names, and scqubits' default transformation are reported by `validate`.
 - The coordinate maps `Mᵀ` and `M⁻ᵀ`, the gauge and eliminated-coordinate rules, the transformation constraint, and the node-phase availability rule need tests. The custom two-mode circuit fixture exercises them.
 - Offset and flux signs need observable checks, such as charge expectations or a multi-loop case, because opposite signs can give identical spectra.
-- Branch-phase operators, further constructors, and additional units or bases are extensions. A change to a decision above requires a new ADR that supersedes this one.
+- Branch-phase operators, further constructors, and additional units or bases are extensions.

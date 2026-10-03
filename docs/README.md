@@ -8,7 +8,7 @@ This index supports project planning and implementation. Operational entry point
 |---|---|---|
 | Planning/development | Roadmap, checklist, phase guides, development instructions | Internal implementation guidance; plans are removable after building |
 | Operational harness | Root README, harness contract, research-agent guidance, skills | Retained and maintained for production users and agents; draft guidance awaits integration |
-| Decision records | ADRs | Retained public history; consulted when relevant, not automatically loaded into runtime context |
+| Decision records | ADRs | Retained public decisions, rewritten in place when a decision changes, with earlier text in git; consulted when relevant, not automatically loaded into runtime context |
 
 - Operational docs stand alone: they never link to or depend on planning/development docs. Planning docs may link to anything.
 - Before a planning doc is removed, move lasting decisions into an ADR and operating guidance into an operational doc.
@@ -35,10 +35,10 @@ This index supports project planning and implementation. Operational entry point
 
 ## Decision records
 
-- [adr/](adr/) — Public decision history, retained during operation.
+- [adr/](adr/) — Public decision records, kept current and retained during operation.
 - [adr/0001-mandate.md](adr/0001-mandate.md) — Accepted foundation mandate and constraints. Future decisions add records as implementation proceeds.
 - [adr/0002-system-model-representation.md](adr/0002-system-model-representation.md) — Accepted system model representation: model kinds, units, circuit coordinates, cutoffs, biases, operator names, and composite basis.
-- [adr/0003-runs-verification-and-dispatch.md](adr/0003-runs-verification-and-dispatch.md) — Accepted run records, scoped verification, engine dispatch by declared needs, and drives and frames.
+- [adr/0003-runs-verification-and-dispatch.md](adr/0003-runs-verification-and-dispatch.md) — Accepted run records, requirement-based verification, engine dispatch by declared needs, and drives and frames.
 
 ## Sharing rule
 

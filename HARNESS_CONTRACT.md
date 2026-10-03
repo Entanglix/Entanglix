@@ -73,19 +73,31 @@ research_runs/<system_id>/<run_id>/
 
 The corrector is an independent, deterministic package, hashed at load, with versioned thresholds configured outside the candidate workspace. Research tools cannot replace the corrector, thresholds, or verdicts. A hash mismatch fails execution. It verifies every completed protocol; failed or interrupted attempts retain diagnostics without a successful verdict. Verification never depends on a private solver.
 
-Verification is a separate run linked to its source run. Its result holds the verdict, `VERIFIED` or `UNVERIFIED`, and a report bound to the source artifact digests and the verification policy version, the digest of the corrector code and thresholds; protocol results carry no verdict. Evidence is reused when plan digests and policy version match. Reads show the latest verification attempt and whether a verdict exists under the requested policy, by default the current one; earlier verdicts remain history and never substitute for a missing current verdict.
+Verification is a separate run linked to its source run. Its result holds the verdict, `VERIFIED`, `UNVERIFIED`, or `INCONCLUSIVE`, and a report bound to the source artifact digests and the verification policy version, the digest of the corrector code and thresholds; protocol results carry no verdict. Evidence is reused when plan digests and policy version match. Reads show the latest verification attempt and whether a verdict exists under the requested policy, by default the current one; earlier verdicts remain history and never substitute for a missing current verdict.
 
 | Protocol | Required checks |
 |---|---|
-| Dynamics `simulate` / `sweep` | Trace, hermiticity, and positivity of stored states at every point, with top retained-level population reported as a truncation warning; at each evidence point, one comparison with an independent CPU engine at tightened tolerances and refined truncation, using the lab frame for rotating-frame runs |
+| Dynamics `simulate` / `sweep` | Trace, hermiticity, and positivity of stored states at every point. Segments restarted from stored states on an independent CPU engine, at tightened tolerances and refined truncation, detect local disagreement. Whole-window numerical accuracy, truncation, and, for rotating-wave runs, the approximation are established only by a requested full-window reference on an independent CPU engine, in the lab frame for rotating-wave runs. Top retained-level population is a diagnostic |
 | Spectral `simulate` / `sweep` | Reference spectra or analytic cases where available; truncation convergence; checks applicable to the declared observable |
 | `control` | Pulse rollout on a different engine; comparison on the same ProblemSpec with an open solver; independently calculated metric and constraint satisfaction for each candidate |
 | `calibrate` | Fitting receives training data only; corrector evaluates holdout data without refitting; identifiability report using covariance or profile likelihood |
-| Design `sweep` (additional checks) | Reproducibility across seeds; metric monotonicity where physics predicts it |
+| Design `sweep` (additional checks) | Reproducibility across seeds; metric monotonicity where the sweep declares an expected direction |
 
-The corrector derives applicability from trusted protocol/metric definitions and the validated execution plan, not agent-written labels or exemptions. Unknown or inconsistent definitions cannot receive a verified verdict. Design-sweep checks stack with applicable dynamics or spectral checks. Reports identify checks, tolerances, residuals, reference engine and dimension, each point's coverage, and reasons for inapplicability.
+The corrector derives evidence requirements and applicable checks from trusted protocol/metric definitions and the validated execution plan, not agent-written labels or exemptions. Only a recorded human waiver (§5) removes a check, and its requirement stays unresolved. An expectation declared in a spec adds a check; it never removes one or satisfies a requirement, and its failure is reported as a violated declared expectation. Unknown or inconsistent definitions cannot receive a verified verdict. Design-sweep checks stack with applicable dynamics or spectral checks. Reports identify:
 
-A single run is its own evidence point. A sweep's evidence points follow a deterministic rule with a maximum count set by the verification policy; when required evidence cannot be covered within that count, the verdict is `UNVERIFIED` with a refinement recommendation. `VERIFIED` means every output check and every evidence-point comparison passed; it certifies nothing about convergence at points with output checks only. Reference solves run on CPU engines within a validated reference dimension limit. Reference agreement does not certify the full production problem; numerical agreement does not establish device-model accuracy. Cross-solver comparisons report discrepancies; distinct pulses or local optima alone do not invalidate a candidate passing independent checks. Promotion eligibility follows §6.
+- checks, accuracy targets, tolerances and residuals;
+- the coverage of each segment and reference;
+- reference engine and dimension;
+- unresolved requirements and inapplicable checks, with reasons;
+- waivers.
+
+Verdicts follow the evidence requirements, and alternative checks can satisfy a requirement:
+
+- `UNVERIFIED` means a check failed, and it takes precedence.
+- `VERIFIED` means every requirement is satisfied.
+- Otherwise the verdict is `INCONCLUSIVE`, listing each unresolved requirement and why: waived, no applicable check, or verification allowance exhausted.
+
+Verification bounds its automatic work by a policy allowance; a verifier terminated before reporting has no verdict. A sweep's requirements apply to the whole sweep. Its evidence points follow a deterministic rule with a maximum count set by the verification policy; the verdict certifies nothing about convergence at unsampled points, and reports mark each point's coverage. Reference and segment solves run on CPU engines within a validated reference dimension limit. Reference agreement does not certify the full production problem; numerical agreement does not establish device-model accuracy. Cross-solver comparisons report discrepancies; distinct pulses or local optima alone do not invalidate a candidate passing independent checks. Promotion eligibility follows §6.
 
 ## 4. Bounded investigations
 
@@ -97,7 +109,7 @@ The runner enforces the investigation lifecycle through supported CLI/MCP paths.
 - **Admission:** check active revision, supported protocol, mechanically checkable scope constraints, review/stop state, and any run/investigation limits before dispatch. Free-text research aims are recorded context, not machine-certified scientific judgments.
 - **Progress:** progress checkpoints, not preset budgets, are the primary control on continuing work. A checkpoint is declared as a count of finished attempts, including failed and aborted runs, or an elapsed interval; when one is due, the runner refuses further dispatch until a progress assessment is recorded. Assessments reference available results, verification status, constraint/convergence evidence, observed cost, learning or uncertainty, and a continue/refine/stop rationale. The runner does not certify that continuation is worthwhile. Findings may recommend stopping with resources still available.
 - **Stopping and resume:** a running job's live trace is readable through `read_run`, and `abort_run` stops a stalled run without waiting for it to finish. Stopping an investigation closes admission and requests cancellation of active jobs. Record a reason distinguishing evidence completion, insufficient progress, unresolved model/strategy limitations, user cancellation, configured limits, interruption, and review handoff. Resume retains accounting and requires outstanding user reviews to be released. Restart files are versioned artifacts where supported; restarted computation gets a new linked run ID.
-- **Findings:** link scientific claims to applicable verified evidence; retain diagnostics separately when execution or verification fails. Early-stop reports preserve the best available results, limitations, and suggested next experiments. Negative/exploratory findings can satisfy declared reporting criteria without a finished device.
+- **Findings:** link scientific claims to applicable verification evidence, stating any unresolved or waived requirements; retain diagnostics separately when execution or verification fails. Early-stop reports preserve the best available results, limitations, and suggested next experiments. Negative/exploratory findings can satisfy declared reporting criteria without a finished device.
 - **Composition:** sweep/search requires no control, calibration, or catalog. Control accepts an existing system model; calibration accepts its declared data. Co-design links device/model, control, and evaluation runs with shared review state, usage accounting, and any configured limits; declare constraints, uncertainty, and comparable evaluation conditions.
 
 Usage is always recorded from executor reports (§7). Limits are optional, and the absence of a limit is recorded explicitly. Unknown limit names are rejected.
@@ -135,9 +147,9 @@ CLI and MCP share backing operations and expose available capabilities. Research
 | `reconcile_run` | Controlled write | Record an interrupted attempt's uncertain state only after ownership and process-group checks permit it |
 | `register_result` | Controlled write | Stage a candidate for human promotion |
 | `propose_device_update` | Controlled write | Write a calibration proposal |
-| Investigation start/resume, scope/limit changes, review release; `promote`; device-model apply | Human action | Record user decisions, release named reviews, promote verified results, or apply proposals |
+| Investigation start/resume, scope/limit changes, review release; verification waivers; `promote`; device-model apply | Human action | Record user decisions, release named reviews, waive verification checks, promote eligible results (§6), or apply proposals |
 
-Human actions use the operator CLI or runtime user-input path and record the action source and affected revision. The research-tool surface cannot synthesize these events, promote results, or apply device updates. The agent runtime's permission settings block the human-action commands, so an agent cannot run them from its shell by accident. This separates supported workflow roles; it is not authentication, and stronger identity and credential isolation is deferred deployment work.
+Human actions use the operator CLI or runtime user-input path and record the action source and affected revision. The research-tool surface cannot synthesize these events, waive checks, promote results, or apply device updates. The agent runtime's permission settings block the human-action commands, so an agent cannot run them from its shell by accident. This separates supported workflow roles; it is not authentication, and stronger identity and credential isolation is deferred deployment work.
 
 Read-only operations do not mutate research state. Controlled jobs use the runner/executor. Controlled writes are limited to staged outputs and runner-managed investigation records; they cannot change policy, verification thresholds, configured ceilings, promoted entries, or device models through the research API. Typed tools validate structured scope constraints; data and notes cannot change execution policy.
 
@@ -154,7 +166,7 @@ The runner is the single writer for history and publishes immutable events atomi
 
 Audit records are append-only through supported APIs and stored outside candidate run outputs; these are provenance guarantees, not protection against a hostile OS user. Supported tools expose histories without catalog promotion; unknown outcomes remain explicit until reconciled.
 
-`register_result` writes to `catalog/staging/`, referencing existing evidence. Human `entanglix promote <staged-id>` records the promoter, source runs, and `parent_entry_ids`. Promotion requires verified evidence; `UNVERIFIED` results remain available for diagnosis but cannot be promoted or represented as verified design evidence. Reuse records both the source entry and the new run. Continuing an authorized investigation requires no promotion.
+`register_result` writes to `catalog/staging/`, referencing existing evidence. Human `entanglix promote <staged-id>` records the promoter, source runs, and `parent_entry_ids`. Promotion requires a `VERIFIED` or `INCONCLUSIVE` verdict. An `INCONCLUSIVE` entry records its unresolved and waived requirements, and claims citing it state that reduced scope. `UNVERIFIED` results remain available for diagnosis but cannot be promoted or represented as verified design evidence. Reuse records both the source entry and the new run. Continuing an authorized investigation requires no promotion.
 
 `propose_device_update` writes next to the calibration run. Applying it to the device model is a separate human command. Research tools can stage proposals and findings but expose neither promotion nor device-model write-back.
 
@@ -173,7 +185,7 @@ Executors provide the same guarantees from facilities that already exist:
 
 | Boundary | Requirement |
 |---|---|
-| Launch checks | Runner validates specs, scans authored imports, checks the environment, and requires a passing reference-size check before GPU launch |
+| Launch checks | Runner validates specs, scans authored imports, and checks the environment before launch; GPU runs are verified after they complete |
 | Run ownership | Unique directories, frozen inputs, and assigned outputs; supported job paths cannot overwrite another run |
 | Scientific records | Runner owns ledger/audit publication; research tools cannot modify verification policy or substitute successful verdicts |
 | Human actions | Research APIs stage proposals; human actions follow §5 |
@@ -195,7 +207,7 @@ Conformance evidence must cover the observable guarantees below. Implementations
 |---|---|---|
 | Objects and interfaces (§1, §5) | Schemas, adapters, CLI/MCP | Validation, transport consistency, capability checks, open-only/plugin-boundary tests |
 | Execution (§2) | Runner and executors | Reproduction, atomic artifacts, cancellation/interruption recovery including runner loss while the job survives, amicode run-directory layout and ProblemSpec compatibility |
-| Verification (§3) | Corrector | Reference cases, convergence failures, trusted applicability and label-spoof rejection, additive sweep checks, bounded evidence-point coverage, verdict presentation after a failed newer attempt, independent constraint checks, training/holdout data separation, hash-mismatch rejection |
+| Verification (§3) | Corrector | Reference cases, convergence failures, trusted applicability and label-spoof rejection, verdict precedence and unresolved requirements, allowance exhaustion distinct from verifier termination, human-only waivers, additive sweep checks, bounded evidence-point coverage, verdict presentation after a failed newer attempt, independent constraint checks, training/holdout data separation, hash-mismatch rejection |
 | Investigations (§4) | Runner and tools | User-start/review event handling, rejection of tool-authored approvals, checkpoint gating including failed/aborted attempts, early-stop reports, no-limit and limit cases, atomic admission accounting for proposed/queued/running jobs, deadlines across queueing and execution, timeout resolution/grace and recorded overruns, rejection of unknown limits, retry/verification usage, cancellation and resume accounting |
 | History and promotion (§6) | Ledger, audit, catalog | Atomic concurrent events, failed-attempt lineage, verification eligibility and human-promotion boundaries |
 | Execution environments (§7) | Runner, executors, runtime adapter | Run/GPU ownership, conflicting-launch rejection, process cancellation, controlled history writes, blocked human-action commands, GPU-hidden agent session, and rejection of policy/verification bypass through supported tools; one executor test suite passes against the local executor and a stubbed scheduler; no OS-level containment claim |

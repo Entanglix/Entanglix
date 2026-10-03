@@ -1,0 +1,5247 @@
+{
+  "complete": true,
+  "kind": "feasibility measurements, not production verdicts",
+  "revision": "06792c0883cb505f96555fbd2c66e3f335f40a80",
+  "environment": {
+    "python": "3.13.12",
+    "platform": "Linux-7.0.0-34-generic-x86_64-with-glibc2.43",
+    "packages": {
+      "numpy": "2.5.3",
+      "scipy": "1.18.1",
+      "qutip": "5.3.1",
+      "scqubits": "4.3.1",
+      "dynamiqs": "0.3.6",
+      "jax": "0.6.2"
+    },
+    "lock_sha256": "86cb0cc828fae097fad65a23e77e905d97ee8f4038728f4b1818d53690c91a1e",
+    "threads": {
+      "OPENBLAS_NUM_THREADS": "1",
+      "OMP_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1"
+    }
+  },
+  "source_sha256": {
+    "tests/probes/m2_verification.py": "d2d2acc029f83b1cd763f4182e3f4ca6cd611b7ab8ce1b48e4da6279de9b3c49",
+    "tests/probes/m2_feasibility.py": "054ed0a97707c68bb4aa1b2ade2146dfc766e4badb81fc596777f38333c853b3",
+    "tests/engine_cases.py": "8aa1e34e75c7317bdb59344435f6e2c96663fef112bd4a19904cd4e12c3092bf",
+    "src/entanglix/evolution.py": "6999daea4956e205109c251eeb6a1cdcae6a5bbee437aad0d6b3ca27e38d9611",
+    "src/entanglix/models.py": "c67adcf1a53521ac742e63bb74051cf649a1a613dc55853a025710220b3a9b57",
+    "src/entanglix/corrector/reference.py": "1c146336fd9b9ea6d1453d949cb4f7cde08e7d864c1b4d82d703b2ab7f1b9062",
+    "src/entanglix/corrector/checks.py": "53210a9add0d6abdf0a86498291b6e8514a8de7afc8d61b2057264694a780c6b",
+    "src/entanglix/protocols/plans.py": "c85b697a7dce40f6fa01f32498bb66959f28877f026cfd4030aceac91a687a6a",
+    "src/entanglix/engines/__init__.py": "384d79114ef6ed775dd8b26aafdec353ba4c9e8f1e1cbc2682b5adb7904e90bf",
+    "src/entanglix/engines/cudensitymat.py": "ff8f2ae493e6e8d53cf9af27dae335044cdc0efd3c4e19885d87678b82995597",
+    "src/entanglix/engines/dynamiqs_jax.py": "1f07e91a92ea9097ab95e4b92265e61718e5a8d80e203e682ca05248361a448c",
+    "src/entanglix/engines/frames.py": "048228cf3d6577628676aa6c03ed62c03b715d27a6f5414f4b3b21a19d757ade",
+    "src/entanglix/engines/qutip_cpu.py": "9949ac309a7246edf2c3710d7a8497e76aa45a7d778c97bc33f356e186f849ee",
+    "src/entanglix/engines/selection.py": "3d007d10d703ea61c6ab46779dc8d01f88a1867761f07396172fc395f62b5863"
+  },
+  "candidate_targets": {
+    "numerical": 1e-06,
+    "readout_endpoint_coherence": 0.0005,
+    "purcell_endpoint_population": 0.005
+  },
+  "cases": [
+    {
+      "name": "5b-readout-ej12.0-a0.0",
+      "dimensions": [
+        5,
+        6
+      ],
+      "reference_dimensions": [
+        6,
+        8
+      ],
+      "duration_ns": 100.0,
+      "source_wall_seconds": 0.3533053499995731,
+      "source_cost_kind": "regenerated engine solve",
+      "source_parameters": {
+        "rtol": 1e-10,
+        "atol": 1e-12,
+        "max_steps": 2000000,
+        "frame": "rotating-rwa"
+      },
+      "baseline": {
+        "kind": "retained full-window independent summary, not trajectory",
+        "artifact": "tests/probes/m2_frames_results.json",
+        "sha256": "9bd0801c4ed5143bd1348ff600f42e83e20b87a4edd87ca2907508f2c82b52d5",
+        "trajectory_residuals": {
+          "coherence": 0.0006392338345185822,
+          "excited": 0.0001627055045260728,
+          "photons": 0.0002437497199692289
+        },
+        "reference_wall_seconds": 44.45771130701178,
+        "limitation": "baseline aggregate cannot supply arbitrary endpoint errors or segment states",
+        "reported_metric": "endpoint coherence",
+        "endpoint_coherence_error": 5.42585947842511e-05
+      },
+      "integrity": {
+        "wall_seconds": 0.0020545399747788906,
+        "checks": [
+          {
+            "name": "trace",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 3.9968052462835205e-15,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "hermiticity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 1.0394821424486416e-16,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "positivity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": -3.566078604879966e-28,
+            "tolerance": -1e-08
+          }
+        ],
+        "warnings": [
+          {
+            "name": "top_level_population",
+            "subsystem_index": 0,
+            "scope": "every stored state at every output time",
+            "population": 0.0,
+            "threshold": 1e-06,
+            "triggered": false
+          },
+          {
+            "name": "top_level_population",
+            "subsystem_index": 1,
+            "scope": "every stored state at every output time",
+            "population": 0.0,
+            "threshold": 1e-06,
+            "triggered": false
+          }
+        ]
+      },
+      "static": {
+        "wall_seconds": 0.0025978710036724806,
+        "scope": "initially occupied undriven Hamiltonian eigenstates",
+        "occupied_weight_threshold": 1e-05,
+        "minimum_assignment_overlap": 0.9999911204436572,
+        "maximum_excitation_shift_ghz": 4.724968607305868e-05,
+        "maximum_outside_retained_weight": 8.873480423887692e-06,
+        "dynamics_accuracy_estimate": null,
+        "unresolved": "static eigensystem alone does not establish open/driven dynamics convergence",
+        "driven": false,
+        "rwa_excitation_shift_ghz": 0.0014287219403090745,
+        "refined_model_construction_seconds": 0.0013746159966103733
+      },
+      "propagator": {
+        "applicable": true,
+        "scope": "same declared generator, all stored intervals; exact-arithmetic bound",
+        "dimension": 30,
+        "distinct_generators": 1,
+        "initial_state_term": 0.0,
+        "maximum_defect": 2.515902278199722e-10,
+        "state_error_bound": 2.3226247315121133e-08,
+        "floating_point_disagreement_estimate": 1.832342672301215e-14,
+        "floating_point_caveat": "full step versus two half steps is not a certified roundoff bound",
+        "metric_error_bound": {
+          "excited": 1.1613125655989114e-08,
+          "photons": 5.806562827994557e-08,
+          "coherence": 4.6452494630242266e-08,
+          "coherence_real": 2.3226247315121133e-08
+        },
+        "metric_floating_estimate": {
+          "excited": 9.161713361506076e-15,
+          "photons": 4.580856680753038e-14,
+          "coherence": 3.66468534460243e-14,
+          "coherence_real": 1.832342672301215e-14
+        },
+        "wall_seconds": 1.7223354599555023,
+        "exponential_seconds": 1.6740214960300364,
+        "full_step_exponential_seconds": 0.8759698659996502,
+        "half_step_exponential_seconds": 0.7980516300303861,
+        "cost_scope": "one BLAS thread; generator construction, full-step expm, a second half-step expm and two-half-step products for the floating-point estimate, all interval products and trace norms"
+      },
+      "segments": {
+        "scope": "local restarts from source states; no full-window bound",
+        "reference_frame": "lab",
+        "cost_scope": "fresh spawn per segment; wall time includes process startup, imports, serialization and cleanup; solve_seconds includes first-use JAX/dynamiqs compilation and is not a warmed intrinsic solver cost",
+        "selection": "start/middle/end",
+        "attempted_window_fraction": 0.06,
+        "completed_window_fraction": 0.06,
+        "wall_seconds": 7.006183860008605,
+        "segments": [
+          {
+            "start_ns": 0.0,
+            "stop_ns": 2.0,
+            "wall_seconds": 2.3194890320301056,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 1.8933828310109675,
+            "startup_and_transport_seconds": 0.4261062010191381,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 0.00014872626483364293,
+                "trajectory": 0.00030447850075110416
+              },
+              "coherence_real": {
+                "endpoint": 0.006144230610588136,
+                "trajectory": 0.006144230610588136
+              },
+              "excited": {
+                "endpoint": 7.862991346635484e-05,
+                "trajectory": 7.862991346635484e-05
+              },
+              "photons": {
+                "endpoint": 0.00017899228521030502,
+                "trajectory": 0.000225342328753541
+              }
+            }
+          },
+          {
+            "start_ns": 49.0,
+            "stop_ns": 51.0,
+            "wall_seconds": 2.326232576975599,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 1.9066319330013357,
+            "startup_and_transport_seconds": 0.4196006439742632,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 0.0003677730871783913,
+                "trajectory": 0.0003677730871783913
+              },
+              "coherence_real": {
+                "endpoint": 0.006110932968042937,
+                "trajectory": 0.006110932968042937
+              },
+              "excited": {
+                "endpoint": 7.85128438169913e-05,
+                "trajectory": 7.85128438169913e-05
+              },
+              "photons": {
+                "endpoint": 0.00017816584327660725,
+                "trajectory": 0.00022507644329634456
+              }
+            }
+          },
+          {
+            "start_ns": 98.0,
+            "stop_ns": 100.0,
+            "wall_seconds": 2.3604622510029003,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 1.9414037469541654,
+            "startup_and_transport_seconds": 0.4190585040487349,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 0.0003635738406411182,
+                "trajectory": 0.0003635738406411182
+              },
+              "coherence_real": {
+                "endpoint": 0.004919094626506637,
+                "trajectory": 0.004919094626506637
+              },
+              "excited": {
+                "endpoint": 7.811675422148001e-05,
+                "trajectory": 7.811675422148001e-05
+              },
+              "photons": {
+                "endpoint": 0.00017769470227180548,
+                "trajectory": 0.00022489091003684693
+              }
+            }
+          }
+        ]
+      },
+      "same_frame_refined_segments": {
+        "scope": "local restarts from source states; no full-window bound",
+        "reference_frame": "same rotating-rwa",
+        "cost_scope": "fresh spawn per segment; wall time includes process startup, imports, serialization and cleanup; solve_seconds includes first-use JAX/dynamiqs compilation and is not a warmed intrinsic solver cost",
+        "selection": "start/middle/end",
+        "attempted_window_fraction": 0.06,
+        "completed_window_fraction": 0.06,
+        "wall_seconds": 4.70354891003808,
+        "segments": [
+          {
+            "start_ns": 0.0,
+            "stop_ns": 2.0,
+            "wall_seconds": 1.5864877610001713,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 1.1627895510173403,
+            "startup_and_transport_seconds": 0.42369820998283103,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 5.352629450783297e-11,
+                "trajectory": 5.352629450783297e-11
+              },
+              "coherence_real": {
+                "endpoint": 2.069292792672428e-10,
+                "trajectory": 2.069292792672428e-10
+              },
+              "excited": {
+                "endpoint": 2.337574578348267e-13,
+                "trajectory": 2.337574578348267e-13
+              },
+              "photons": {
+                "endpoint": 2.3396432360933694e-13,
+                "trajectory": 2.3396432360933694e-13
+              }
+            }
+          },
+          {
+            "start_ns": 49.0,
+            "stop_ns": 51.0,
+            "wall_seconds": 1.5771595780388452,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 1.169398504018318,
+            "startup_and_transport_seconds": 0.4077610740205273,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 6.275946429212809e-11,
+                "trajectory": 6.275946429212809e-11
+              },
+              "coherence_real": {
+                "endpoint": 1.990452802580478e-10,
+                "trajectory": 1.990452802580478e-10
+              },
+              "excited": {
+                "endpoint": 1.687538997430238e-14,
+                "trajectory": 4.39648317751562e-14
+              },
+              "photons": {
+                "endpoint": 1.3404506454470222e-14,
+                "trajectory": 4.241854263675737e-14
+              }
+            }
+          },
+          {
+            "start_ns": 98.0,
+            "stop_ns": 100.0,
+            "wall_seconds": 1.5399015709990636,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 1.1323561489698477,
+            "startup_and_transport_seconds": 0.40754542202921584,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 5.099876076997134e-11,
+                "trajectory": 5.099876076997134e-11
+              },
+              "coherence_real": {
+                "endpoint": 1.3688739031181285e-10,
+                "trajectory": 1.3688739031181285e-10
+              },
+              "excited": {
+                "endpoint": 4.96269692007445e-14,
+                "trajectory": 4.96269692007445e-14
+              },
+              "photons": {
+                "endpoint": 5.4128088729926693e-14,
+                "trajectory": 5.4128088729926693e-14
+              }
+            }
+          }
+        ]
+      },
+      "verification_cost": {
+        "static_only": {
+          "seconds": 0.0025978710036724806,
+          "source_ratio": 0.007353047452226862,
+          "fits_source_fractions": {
+            "0.05": true,
+            "0.1": true,
+            "0.25": true
+          }
+        },
+        "integrity_static_segments": {
+          "seconds": 7.010836270987056,
+          "source_ratio": 19.843561018805765,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": false
+          }
+        },
+        "integrity_static_same_frame_segments": {
+          "seconds": 4.708201321016531,
+          "source_ratio": 13.326153484577068,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": false
+          }
+        },
+        "integrity_static_propagator": {
+          "seconds": 1.7269878709339537,
+          "source_ratio": 4.888088648915281,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": false
+          }
+        }
+      }
+    },
+    {
+      "name": "5b-readout-ej12.0-a0.001",
+      "dimensions": [
+        5,
+        6
+      ],
+      "reference_dimensions": [
+        6,
+        8
+      ],
+      "duration_ns": 100.0,
+      "source_wall_seconds": 0.4761160060297698,
+      "source_cost_kind": "regenerated engine solve",
+      "source_parameters": {
+        "rtol": 1e-10,
+        "atol": 1e-12,
+        "max_steps": 2000000,
+        "frame": "rotating-rwa"
+      },
+      "baseline": {
+        "kind": "retained full-window independent summary, not trajectory",
+        "artifact": "tests/probes/m2_frames_results.json",
+        "sha256": "9bd0801c4ed5143bd1348ff600f42e83e20b87a4edd87ca2907508f2c82b52d5",
+        "trajectory_residuals": {
+          "coherence": 0.0006856739565358483,
+          "excited": 0.0006199183136103015,
+          "photons": 0.002473121133200872
+        },
+        "reference_wall_seconds": 57.82843391902861,
+        "limitation": "baseline aggregate cannot supply arbitrary endpoint errors or segment states",
+        "reported_metric": "endpoint coherence",
+        "endpoint_coherence_error": 8.888918920502142e-05
+      },
+      "integrity": {
+        "wall_seconds": 0.002661878999788314,
+        "checks": [
+          {
+            "name": "trace",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 4.218867430201859e-15,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "hermiticity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 8.011458109230292e-15,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "positivity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": -8.643842391175442e-14,
+            "tolerance": -1e-08
+          }
+        ],
+        "warnings": [
+          {
+            "name": "top_level_population",
+            "subsystem_index": 0,
+            "scope": "every stored state at every output time",
+            "population": 2.102308013258186e-15,
+            "threshold": 1e-06,
+            "triggered": false
+          },
+          {
+            "name": "top_level_population",
+            "subsystem_index": 1,
+            "scope": "every stored state at every output time",
+            "population": 1.859518568815868e-10,
+            "threshold": 1e-06,
+            "triggered": false
+          }
+        ]
+      },
+      "static": {
+        "wall_seconds": 0.0021277820342220366,
+        "scope": "initially occupied undriven Hamiltonian eigenstates",
+        "occupied_weight_threshold": 1e-05,
+        "minimum_assignment_overlap": 0.9999911204436572,
+        "maximum_excitation_shift_ghz": 4.724968607305868e-05,
+        "maximum_outside_retained_weight": 8.873480423887692e-06,
+        "dynamics_accuracy_estimate": null,
+        "unresolved": "static eigensystem alone does not establish open/driven dynamics convergence",
+        "driven": true,
+        "rwa_excitation_shift_ghz": 0.0014287219403090745,
+        "refined_model_construction_seconds": 0.0011281840270385146
+      },
+      "propagator": {
+        "applicable": true,
+        "scope": "same declared generator, all stored intervals; exact-arithmetic bound",
+        "dimension": 30,
+        "distinct_generators": 1,
+        "initial_state_term": 0.0,
+        "maximum_defect": 1.9837614124530362e-10,
+        "state_error_bound": 1.621233216629834e-08,
+        "floating_point_disagreement_estimate": 7.24222785671675e-14,
+        "floating_point_caveat": "full step versus two half steps is not a certified roundoff bound",
+        "metric_error_bound": {
+          "excited": 8.106168192638791e-09,
+          "photons": 4.0530840963193956e-08,
+          "coherence": 3.242466433259668e-08,
+          "coherence_real": 1.621233216629834e-08
+        },
+        "metric_floating_estimate": {
+          "excited": 3.621113928358375e-14,
+          "photons": 1.8105569641791877e-13,
+          "coherence": 1.44844557134335e-13,
+          "coherence_real": 7.24222785671675e-14
+        },
+        "wall_seconds": 1.7073010539752431,
+        "exponential_seconds": 1.660452912969049,
+        "full_step_exponential_seconds": 0.8468724489794113,
+        "half_step_exponential_seconds": 0.8135804639896378,
+        "cost_scope": "one BLAS thread; generator construction, full-step expm, a second half-step expm and two-half-step products for the floating-point estimate, all interval products and trace norms"
+      },
+      "segments": {
+        "scope": "local restarts from source states; no full-window bound",
+        "reference_frame": "lab",
+        "cost_scope": "fresh spawn per segment; wall time includes process startup, imports, serialization and cleanup; solve_seconds includes first-use JAX/dynamiqs compilation and is not a warmed intrinsic solver cost",
+        "selection": "start/middle/end",
+        "attempted_window_fraction": 0.06,
+        "completed_window_fraction": 0.06,
+        "wall_seconds": 7.556308598956093,
+        "segments": [
+          {
+            "start_ns": 0.0,
+            "stop_ns": 2.0,
+            "wall_seconds": 2.3056664129835553,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 1.8917813680018298,
+            "startup_and_transport_seconds": 0.4138850449817255,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 0.00014885370974404566,
+                "trajectory": 0.00030480776560160017
+              },
+              "coherence_real": {
+                "endpoint": 0.006143998186315919,
+                "trajectory": 0.006143998186315919
+              },
+              "excited": {
+                "endpoint": 0.00012085179192439233,
+                "trajectory": 0.00012085179192439233
+              },
+              "photons": {
+                "endpoint": 0.00013739357604488083,
+                "trajectory": 0.00024160808359897966
+              }
+            }
+          },
+          {
+            "start_ns": 49.0,
+            "stop_ns": 51.0,
+            "wall_seconds": 2.545985466975253,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 2.1335164989577606,
+            "startup_and_transport_seconds": 0.41246896801749244,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 0.0002575715846928617,
+                "trajectory": 0.0004465930006266605
+              },
+              "coherence_real": {
+                "endpoint": 0.006074441053637802,
+                "trajectory": 0.006074441053637802
+              },
+              "excited": {
+                "endpoint": 0.0007201569994974566,
+                "trajectory": 0.0007201569994974566
+              },
+              "photons": {
+                "endpoint": 0.0004608626404937477,
+                "trajectory": 0.0009796213031055025
+              }
+            }
+          },
+          {
+            "start_ns": 98.0,
+            "stop_ns": 100.0,
+            "wall_seconds": 2.7046567189972848,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 2.2827966440236196,
+            "startup_and_transport_seconds": 0.4218600749736652,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 1.0114432923091776e-05,
+                "trajectory": 0.0005282212640677075
+              },
+              "coherence_real": {
+                "endpoint": 0.005045272908593912,
+                "trajectory": 0.005045272908593912
+              },
+              "excited": {
+                "endpoint": 0.0007857794609574253,
+                "trajectory": 0.0012765347650145475
+              },
+              "photons": {
+                "endpoint": 0.0005358751103899176,
+                "trajectory": 0.0015827743327222442
+              }
+            }
+          }
+        ]
+      },
+      "same_frame_refined_segments": {
+        "scope": "local restarts from source states; no full-window bound",
+        "reference_frame": "same rotating-rwa",
+        "cost_scope": "fresh spawn per segment; wall time includes process startup, imports, serialization and cleanup; solve_seconds includes first-use JAX/dynamiqs compilation and is not a warmed intrinsic solver cost",
+        "selection": "start/middle/end",
+        "attempted_window_fraction": 0.06,
+        "completed_window_fraction": 0.06,
+        "wall_seconds": 4.751210690941662,
+        "segments": [
+          {
+            "start_ns": 0.0,
+            "stop_ns": 2.0,
+            "wall_seconds": 1.5775192319997586,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 1.1626269170083106,
+            "startup_and_transport_seconds": 0.4148923149914481,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 1.0225242874639662e-10,
+                "trajectory": 1.0225242874639662e-10
+              },
+              "coherence_real": {
+                "endpoint": 2.01965957846717e-10,
+                "trajectory": 2.01965957846717e-10
+              },
+              "excited": {
+                "endpoint": 2.3647750424515834e-13,
+                "trajectory": 2.3647750424515834e-13
+              },
+              "photons": {
+                "endpoint": 2.3489760483941247e-13,
+                "trajectory": 2.3489760483941247e-13
+              }
+            }
+          },
+          {
+            "start_ns": 49.0,
+            "stop_ns": 51.0,
+            "wall_seconds": 1.606257781968452,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 1.1854589700233191,
+            "startup_and_transport_seconds": 0.4207988119451329,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 5.840528061185069e-11,
+                "trajectory": 5.840528061185069e-11
+              },
+              "coherence_real": {
+                "endpoint": 1.2464546061963233e-10,
+                "trajectory": 1.2464546061963233e-10
+              },
+              "excited": {
+                "endpoint": 5.908606937055083e-13,
+                "trajectory": 5.908606937055083e-13
+              },
+              "photons": {
+                "endpoint": 5.55730808593502e-13,
+                "trajectory": 5.55730808593502e-13
+              }
+            }
+          },
+          {
+            "start_ns": 98.0,
+            "stop_ns": 100.0,
+            "wall_seconds": 1.567433676973451,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 1.158904496987816,
+            "startup_and_transport_seconds": 0.408529179985635,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 4.363376326921298e-11,
+                "trajectory": 4.363376326921298e-11
+              },
+              "coherence_real": {
+                "endpoint": 7.202127783045853e-11,
+                "trajectory": 7.202127783045853e-11
+              },
+              "excited": {
+                "endpoint": 2.7372548672133235e-13,
+                "trajectory": 5.410116798998388e-13
+              },
+              "photons": {
+                "endpoint": 7.651761169125137e-13,
+                "trajectory": 8.121454897480618e-13
+              }
+            }
+          }
+        ]
+      },
+      "verification_cost": {
+        "static_only": {
+          "seconds": 0.0021277820342220366,
+          "source_ratio": 0.004469041173316476,
+          "fits_source_fractions": {
+            "0.05": true,
+            "0.1": true,
+            "0.25": true
+          }
+        },
+        "integrity_static_segments": {
+          "seconds": 7.5610982599901035,
+          "source_ratio": 15.88078990042888,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": false
+          }
+        },
+        "integrity_static_same_frame_segments": {
+          "seconds": 4.756000351975672,
+          "source_ratio": 9.989162917741305,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": false
+          }
+        },
+        "integrity_static_propagator": {
+          "seconds": 1.7120907150092535,
+          "source_ratio": 3.595952863013395,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": false
+          }
+        }
+      }
+    },
+    {
+      "name": "5b-readout-ej12.0-a0.002",
+      "dimensions": [
+        5,
+        6
+      ],
+      "reference_dimensions": [
+        6,
+        8
+      ],
+      "duration_ns": 100.0,
+      "source_wall_seconds": 0.46785473701311275,
+      "source_cost_kind": "regenerated engine solve",
+      "source_parameters": {
+        "rtol": 1e-10,
+        "atol": 1e-12,
+        "max_steps": 2000000,
+        "frame": "rotating-rwa"
+      },
+      "baseline": {
+        "kind": "retained full-window independent summary, not trajectory",
+        "artifact": "tests/probes/m2_frames_results.json",
+        "sha256": "9bd0801c4ed5143bd1348ff600f42e83e20b87a4edd87ca2907508f2c82b52d5",
+        "trajectory_residuals": {
+          "coherence": 0.001421900091053696,
+          "excited": 0.001117846596007499,
+          "photons": 0.005289987630472656
+        },
+        "reference_wall_seconds": 72.81591378900339,
+        "limitation": "baseline aggregate cannot supply arbitrary endpoint errors or segment states",
+        "reported_metric": "endpoint coherence",
+        "endpoint_coherence_error": 0.0003955578095369283
+      },
+      "integrity": {
+        "wall_seconds": 0.002549997007008642,
+        "checks": [
+          {
+            "name": "trace",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 5.329080704809104e-15,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "hermiticity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 4.823957742445687e-15,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "positivity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": -1.4310894706011865e-13,
+            "tolerance": -1e-08
+          }
+        ],
+        "warnings": [
+          {
+            "name": "top_level_population",
+            "subsystem_index": 0,
+            "scope": "every stored state at every output time",
+            "population": 1.3452878075845397e-13,
+            "threshold": 1e-06,
+            "triggered": false
+          },
+          {
+            "name": "top_level_population",
+            "subsystem_index": 1,
+            "scope": "every stored state at every output time",
+            "population": 1.0785160807683245e-07,
+            "threshold": 1e-06,
+            "triggered": false
+          }
+        ]
+      },
+      "static": {
+        "wall_seconds": 0.0020564489532262087,
+        "scope": "initially occupied undriven Hamiltonian eigenstates",
+        "occupied_weight_threshold": 1e-05,
+        "minimum_assignment_overlap": 0.9999911204436572,
+        "maximum_excitation_shift_ghz": 4.724968607305868e-05,
+        "maximum_outside_retained_weight": 8.873480423887692e-06,
+        "dynamics_accuracy_estimate": null,
+        "unresolved": "static eigensystem alone does not establish open/driven dynamics convergence",
+        "driven": true,
+        "rwa_excitation_shift_ghz": 0.0014287219403090745,
+        "refined_model_construction_seconds": 0.0011423909454606473
+      },
+      "propagator": {
+        "applicable": true,
+        "scope": "same declared generator, all stored intervals; exact-arithmetic bound",
+        "dimension": 30,
+        "distinct_generators": 1,
+        "initial_state_term": 0.0,
+        "maximum_defect": 1.5602183467357768e-10,
+        "state_error_bound": 1.2813211710964127e-08,
+        "floating_point_disagreement_estimate": 9.316648699026276e-14,
+        "floating_point_caveat": "full step versus two half steps is not a certified roundoff bound",
+        "metric_error_bound": {
+          "excited": 6.406608520045138e-09,
+          "photons": 3.203304260022569e-08,
+          "coherence": 2.5626423421928254e-08,
+          "coherence_real": 1.2813211710964127e-08
+        },
+        "metric_floating_estimate": {
+          "excited": 4.658324349513138e-14,
+          "photons": 2.329162174756569e-13,
+          "coherence": 1.8633297398052552e-13,
+          "coherence_real": 9.316648699026276e-14
+        },
+        "wall_seconds": 1.6987120459671132,
+        "exponential_seconds": 1.6513628509710543,
+        "full_step_exponential_seconds": 0.862922896980308,
+        "half_step_exponential_seconds": 0.7884399539907463,
+        "cost_scope": "one BLAS thread; generator construction, full-step expm, a second half-step expm and two-half-step products for the floating-point estimate, all interval products and trace norms"
+      },
+      "segments": {
+        "scope": "local restarts from source states; no full-window bound",
+        "reference_frame": "lab",
+        "cost_scope": "fresh spawn per segment; wall time includes process startup, imports, serialization and cleanup; solve_seconds includes first-use JAX/dynamiqs compilation and is not a warmed intrinsic solver cost",
+        "selection": "start/middle/end",
+        "attempted_window_fraction": 0.06,
+        "completed_window_fraction": 0.06,
+        "wall_seconds": 8.203562328999396,
+        "segments": [
+          {
+            "start_ns": 0.0,
+            "stop_ns": 2.0,
+            "wall_seconds": 2.295890089008026,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 1.8957285369979218,
+            "startup_and_transport_seconds": 0.40016155201010406,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 0.00014909633146420465,
+                "trajectory": 0.00030511856177162233
+              },
+              "coherence_real": {
+                "endpoint": 0.006143756147468246,
+                "trajectory": 0.006143756147468246
+              },
+              "excited": {
+                "endpoint": 0.00016310750333470292,
+                "trajectory": 0.00016310750333470292
+              },
+              "photons": {
+                "endpoint": 9.584011670506058e-05,
+                "trajectory": 0.0002578858932903063
+              }
+            }
+          },
+          {
+            "start_ns": 49.0,
+            "stop_ns": 51.0,
+            "wall_seconds": 2.8548803600133397,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 2.447965061001014,
+            "startup_and_transport_seconds": 0.4069152990123257,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 0.00017556316583289266,
+                "trajectory": 0.0006071650826594555
+              },
+              "coherence_real": {
+                "endpoint": 0.006017557484537417,
+                "trajectory": 0.006017557484537417
+              },
+              "excited": {
+                "endpoint": 0.0013870585711798777,
+                "trajectory": 0.0014097810504614672
+              },
+              "photons": {
+                "endpoint": 0.0011142995500543137,
+                "trajectory": 0.0017301895502851578
+              }
+            }
+          },
+          {
+            "start_ns": 98.0,
+            "stop_ns": 100.0,
+            "wall_seconds": 3.052791879978031,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 2.6374802549835294,
+            "startup_and_transport_seconds": 0.41531162499450147,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 0.0003739046584261274,
+                "trajectory": 0.0009414789688203529
+              },
+              "coherence_real": {
+                "endpoint": 0.005112090753864429,
+                "trajectory": 0.005112090753864429
+              },
+              "excited": {
+                "endpoint": 0.0015486986503681077,
+                "trajectory": 0.0025658431733930898
+              },
+              "photons": {
+                "endpoint": 0.0012923491351531091,
+                "trajectory": 0.0029184742973799166
+              }
+            }
+          }
+        ]
+      },
+      "same_frame_refined_segments": {
+        "scope": "local restarts from source states; no full-window bound",
+        "reference_frame": "same rotating-rwa",
+        "cost_scope": "fresh spawn per segment; wall time includes process startup, imports, serialization and cleanup; solve_seconds includes first-use JAX/dynamiqs compilation and is not a warmed intrinsic solver cost",
+        "selection": "start/middle/end",
+        "attempted_window_fraction": 0.06,
+        "completed_window_fraction": 0.06,
+        "wall_seconds": 4.77637172100367,
+        "segments": [
+          {
+            "start_ns": 0.0,
+            "stop_ns": 2.0,
+            "wall_seconds": 1.5826231469982304,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 1.1646104360115714,
+            "startup_and_transport_seconds": 0.41801271098665893,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 1.7483103853521698e-10,
+                "trajectory": 1.7483103853521698e-10
+              },
+              "coherence_real": {
+                "endpoint": 1.9869593470556168e-10,
+                "trajectory": 1.9869593470556168e-10
+              },
+              "excited": {
+                "endpoint": 2.7056135110115065e-13,
+                "trajectory": 2.7056135110115065e-13
+              },
+              "photons": {
+                "endpoint": 2.6796663846195834e-13,
+                "trajectory": 2.6796663846195834e-13
+              }
+            }
+          },
+          {
+            "start_ns": 49.0,
+            "stop_ns": 51.0,
+            "wall_seconds": 1.5877466649981216,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 1.1747411679825746,
+            "startup_and_transport_seconds": 0.413005497015547,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 8.521350292056695e-11,
+                "trajectory": 2.150339906137333e-10
+              },
+              "coherence_real": {
+                "endpoint": 5.01410635234123e-10,
+                "trajectory": 5.01410635234123e-10
+              },
+              "excited": {
+                "endpoint": 9.68491953301509e-12,
+                "trajectory": 1.781458314198403e-11
+              },
+              "photons": {
+                "endpoint": 4.459199676176695e-11,
+                "trajectory": 4.459199676176695e-11
+              }
+            }
+          },
+          {
+            "start_ns": 98.0,
+            "stop_ns": 100.0,
+            "wall_seconds": 1.6060019090073183,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 1.1948799100355245,
+            "startup_and_transport_seconds": 0.4111219989717938,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 1.54633494897638e-09,
+                "trajectory": 1.9013344232376994e-09
+              },
+              "coherence_real": {
+                "endpoint": 2.7988354966979045e-09,
+                "trajectory": 2.7988354966979045e-09
+              },
+              "excited": {
+                "endpoint": 1.7805423802030873e-10,
+                "trajectory": 5.72390246311727e-10
+              },
+              "photons": {
+                "endpoint": 1.2692965845051418e-09,
+                "trajectory": 1.2692965845051418e-09
+              }
+            }
+          }
+        ]
+      },
+      "verification_cost": {
+        "static_only": {
+          "seconds": 0.0020564489532262087,
+          "source_ratio": 0.004395486014216784,
+          "fits_source_fractions": {
+            "0.05": true,
+            "0.1": true,
+            "0.25": true
+          }
+        },
+        "integrity_static_segments": {
+          "seconds": 8.208168774959631,
+          "source_ratio": 17.544267751487098,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": false
+          }
+        },
+        "integrity_static_same_frame_segments": {
+          "seconds": 4.780978166963905,
+          "source_ratio": 10.21893718013142,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": false
+          }
+        },
+        "integrity_static_propagator": {
+          "seconds": 1.703318491927348,
+          "source_ratio": 3.6406994675349593,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": false
+          }
+        }
+      }
+    },
+    {
+      "name": "5b-readout-ej13.5-a0.002",
+      "dimensions": [
+        5,
+        6
+      ],
+      "reference_dimensions": [
+        6,
+        8
+      ],
+      "duration_ns": 100.0,
+      "source_wall_seconds": 0.4121242110268213,
+      "source_cost_kind": "regenerated engine solve",
+      "source_parameters": {
+        "rtol": 1e-10,
+        "atol": 1e-12,
+        "max_steps": 2000000,
+        "frame": "rotating-rwa"
+      },
+      "baseline": {
+        "kind": "retained full-window independent summary, not trajectory",
+        "artifact": "tests/probes/m2_frames_results.json",
+        "sha256": "9bd0801c4ed5143bd1348ff600f42e83e20b87a4edd87ca2907508f2c82b52d5",
+        "trajectory_residuals": {
+          "coherence": 0.0015959123690638677,
+          "excited": 0.0024535565683384553,
+          "photons": 0.005505721498976129
+        },
+        "reference_wall_seconds": 76.94785796501674,
+        "limitation": "baseline aggregate cannot supply arbitrary endpoint errors or segment states",
+        "reported_metric": "endpoint coherence",
+        "endpoint_coherence_error": 0.0002959305076200014
+      },
+      "integrity": {
+        "wall_seconds": 0.0025257740053348243,
+        "checks": [
+          {
+            "name": "trace",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 6.883382794970732e-15,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "hermiticity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 9.86709805607414e-15,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "positivity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": -1.5705394249148133e-13,
+            "tolerance": -1e-08
+          }
+        ],
+        "warnings": [
+          {
+            "name": "top_level_population",
+            "subsystem_index": 0,
+            "scope": "every stored state at every output time",
+            "population": 3.347556067935156e-13,
+            "threshold": 1e-06,
+            "triggered": false
+          },
+          {
+            "name": "top_level_population",
+            "subsystem_index": 1,
+            "scope": "every stored state at every output time",
+            "population": 9.632453514461213e-08,
+            "threshold": 1e-06,
+            "triggered": false
+          }
+        ]
+      },
+      "static": {
+        "wall_seconds": 0.0020356049644760787,
+        "scope": "initially occupied undriven Hamiltonian eigenstates",
+        "occupied_weight_threshold": 1e-05,
+        "minimum_assignment_overlap": 0.9999944222511495,
+        "maximum_excitation_shift_ghz": 3.6785434561537045e-05,
+        "maximum_outside_retained_weight": 5.5737178065173865e-06,
+        "dynamics_accuracy_estimate": null,
+        "unresolved": "static eigensystem alone does not establish open/driven dynamics convergence",
+        "driven": true,
+        "rwa_excitation_shift_ghz": 0.0015114075600433097,
+        "refined_model_construction_seconds": 0.0011299229809083045
+      },
+      "propagator": {
+        "applicable": true,
+        "scope": "same declared generator, all stored intervals; exact-arithmetic bound",
+        "dimension": 30,
+        "distinct_generators": 1,
+        "initial_state_term": 0.0,
+        "maximum_defect": 1.1545988966770279e-10,
+        "state_error_bound": 1.0272381626153605e-08,
+        "floating_point_disagreement_estimate": 8.531109127535115e-14,
+        "floating_point_caveat": "full step versus two half steps is not a certified roundoff bound",
+        "metric_error_bound": {
+          "excited": 5.136194199259313e-09,
+          "photons": 2.5680970996296564e-08,
+          "coherence": 2.054476325230721e-08,
+          "coherence_real": 1.0272381626153605e-08
+        },
+        "metric_floating_estimate": {
+          "excited": 4.265554563767557e-14,
+          "photons": 2.1327772818837787e-13,
+          "coherence": 1.706221825507023e-13,
+          "coherence_real": 8.531109127535115e-14
+        },
+        "wall_seconds": 1.602376135007944,
+        "exponential_seconds": 1.5526626640348695,
+        "full_step_exponential_seconds": 0.8049336650292389,
+        "half_step_exponential_seconds": 0.7477289990056306,
+        "cost_scope": "one BLAS thread; generator construction, full-step expm, a second half-step expm and two-half-step products for the floating-point estimate, all interval products and trace norms"
+      },
+      "segments": {
+        "scope": "local restarts from source states; no full-window bound",
+        "reference_frame": "lab",
+        "cost_scope": "fresh spawn per segment; wall time includes process startup, imports, serialization and cleanup; solve_seconds includes first-use JAX/dynamiqs compilation and is not a warmed intrinsic solver cost",
+        "selection": "start/middle/end",
+        "attempted_window_fraction": 0.06,
+        "completed_window_fraction": 0.06,
+        "wall_seconds": 8.293164924078155,
+        "segments": [
+          {
+            "start_ns": 0.0,
+            "stop_ns": 2.0,
+            "wall_seconds": 2.366760802047793,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 1.9567916839732789,
+            "startup_and_transport_seconds": 0.40996911807451397,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 0.0002648903561399685,
+                "trajectory": 0.0002648903561399685
+              },
+              "coherence_real": {
+                "endpoint": 0.005500688580837743,
+                "trajectory": 0.005500688580837743
+              },
+              "excited": {
+                "endpoint": 3.3312657951700686e-05,
+                "trajectory": 0.0001289167370068789
+              },
+              "photons": {
+                "endpoint": 0.0001997662362904624,
+                "trajectory": 0.0001997662362904624
+              }
+            }
+          },
+          {
+            "start_ns": 49.0,
+            "stop_ns": 51.0,
+            "wall_seconds": 2.9033239040290937,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 2.4790659800055437,
+            "startup_and_transport_seconds": 0.42425792402355,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 0.00021043048965263544,
+                "trajectory": 0.00021043048965263544
+              },
+              "coherence_real": {
+                "endpoint": 0.004584215439119466,
+                "trajectory": 0.004584215439119466
+              },
+              "excited": {
+                "endpoint": 0.0012965102703634268,
+                "trajectory": 0.0012965102703634268
+              },
+              "photons": {
+                "endpoint": 0.001054085566358956,
+                "trajectory": 0.001054085566358956
+              }
+            }
+          },
+          {
+            "start_ns": 98.0,
+            "stop_ns": 100.0,
+            "wall_seconds": 3.023080218001269,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 2.6086793450522237,
+            "startup_and_transport_seconds": 0.41440087294904515,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 0.000889567509715472,
+                "trajectory": 0.000889567509715472
+              },
+              "coherence_real": {
+                "endpoint": 0.005009176640773938,
+                "trajectory": 0.005009176640773938
+              },
+              "excited": {
+                "endpoint": 0.0007864677124908015,
+                "trajectory": 0.0007864677124908015
+              },
+              "photons": {
+                "endpoint": 0.0010262683917859061,
+                "trajectory": 0.0010262683917859061
+              }
+            }
+          }
+        ]
+      },
+      "same_frame_refined_segments": {
+        "scope": "local restarts from source states; no full-window bound",
+        "reference_frame": "same rotating-rwa",
+        "cost_scope": "fresh spawn per segment; wall time includes process startup, imports, serialization and cleanup; solve_seconds includes first-use JAX/dynamiqs compilation and is not a warmed intrinsic solver cost",
+        "selection": "start/middle/end",
+        "attempted_window_fraction": 0.06,
+        "completed_window_fraction": 0.06,
+        "wall_seconds": 4.6818679589778185,
+        "segments": [
+          {
+            "start_ns": 0.0,
+            "stop_ns": 2.0,
+            "wall_seconds": 1.5508277009939775,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 1.1345587150426582,
+            "startup_and_transport_seconds": 0.41626898595131934,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 1.9333978862334789e-10,
+                "trajectory": 1.9333978862334789e-10
+              },
+              "coherence_real": {
+                "endpoint": 2.3644397550981466e-10,
+                "trajectory": 2.3644397550981466e-10
+              },
+              "excited": {
+                "endpoint": 3.863021014183232e-13,
+                "trajectory": 3.863021014183232e-13
+              },
+              "photons": {
+                "endpoint": 3.81559746905763e-13,
+                "trajectory": 3.81559746905763e-13
+              }
+            }
+          },
+          {
+            "start_ns": 49.0,
+            "stop_ns": 51.0,
+            "wall_seconds": 1.5653808920178562,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 1.1603994970209897,
+            "startup_and_transport_seconds": 0.4049813949968666,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 6.554434772709783e-11,
+                "trajectory": 1.0037914943694659e-10
+              },
+              "coherence_real": {
+                "endpoint": 5.895839372271894e-10,
+                "trajectory": 5.895839372271894e-10
+              },
+              "excited": {
+                "endpoint": 9.347189688924118e-12,
+                "trajectory": 9.347189688924118e-12
+              },
+              "photons": {
+                "endpoint": 4.489000837715196e-11,
+                "trajectory": 4.489000837715196e-11
+              }
+            }
+          },
+          {
+            "start_ns": 98.0,
+            "stop_ns": 100.0,
+            "wall_seconds": 1.5656593659659848,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 1.1471647879807279,
+            "startup_and_transport_seconds": 0.4184945779852569,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 1.531031457169263e-08,
+                "trajectory": 1.531031457169263e-08
+              },
+              "coherence_real": {
+                "endpoint": 1.7570971011515724e-08,
+                "trajectory": 1.7570971011515724e-08
+              },
+              "excited": {
+                "endpoint": 8.340395041273041e-11,
+                "trajectory": 8.340395041273041e-11
+              },
+              "photons": {
+                "endpoint": 1.3533035525536974e-09,
+                "trajectory": 1.3533035525536974e-09
+              }
+            }
+          }
+        ]
+      },
+      "verification_cost": {
+        "static_only": {
+          "seconds": 0.0020356049644760787,
+          "source_ratio": 0.00493929963348744,
+          "fits_source_fractions": {
+            "0.05": true,
+            "0.1": true,
+            "0.25": true
+          }
+        },
+        "integrity_static_segments": {
+          "seconds": 8.297726303047966,
+          "source_ratio": 20.13404231305388,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": false
+          }
+        },
+        "integrity_static_same_frame_segments": {
+          "seconds": 4.686429337947629,
+          "source_ratio": 11.371400205465322,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": false
+          }
+        },
+        "integrity_static_propagator": {
+          "seconds": 1.6069375139777549,
+          "source_ratio": 3.8991582415748307,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": false
+          }
+        }
+      }
+    },
+    {
+      "name": "5b-readout-ej15.0-a0.0",
+      "dimensions": [
+        5,
+        6
+      ],
+      "reference_dimensions": [
+        6,
+        8
+      ],
+      "duration_ns": 100.0,
+      "source_wall_seconds": 0.2785473859985359,
+      "source_cost_kind": "regenerated engine solve",
+      "source_parameters": {
+        "rtol": 1e-10,
+        "atol": 1e-12,
+        "max_steps": 2000000,
+        "frame": "rotating-rwa"
+      },
+      "baseline": {
+        "kind": "retained full-window independent summary, not trajectory",
+        "artifact": "tests/probes/m2_frames_results.json",
+        "sha256": "9bd0801c4ed5143bd1348ff600f42e83e20b87a4edd87ca2907508f2c82b52d5",
+        "trajectory_residuals": {
+          "coherence": 0.0010333507941790998,
+          "excited": 0.00014823220796089664,
+          "photons": 0.00026578188848242444
+        },
+        "reference_wall_seconds": 47.45560550800292,
+        "limitation": "baseline aggregate cannot supply arbitrary endpoint errors or segment states",
+        "reported_metric": "endpoint coherence",
+        "endpoint_coherence_error": 0.0002657863342608868
+      },
+      "integrity": {
+        "wall_seconds": 0.0015116470167413354,
+        "checks": [
+          {
+            "name": "trace",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 4.329885764933467e-15,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "hermiticity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 8.810921536561362e-17,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "positivity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": -7.890033839313714e-28,
+            "tolerance": -1e-08
+          }
+        ],
+        "warnings": [
+          {
+            "name": "top_level_population",
+            "subsystem_index": 0,
+            "scope": "every stored state at every output time",
+            "population": 0.0,
+            "threshold": 1e-06,
+            "triggered": false
+          },
+          {
+            "name": "top_level_population",
+            "subsystem_index": 1,
+            "scope": "every stored state at every output time",
+            "population": 0.0,
+            "threshold": 1e-06,
+            "triggered": false
+          }
+        ]
+      },
+      "static": {
+        "wall_seconds": 0.0020590200438164175,
+        "scope": "initially occupied undriven Hamiltonian eigenstates",
+        "occupied_weight_threshold": 1e-05,
+        "minimum_assignment_overlap": 0.9999962185364464,
+        "maximum_excitation_shift_ghz": 2.9611418529640332e-05,
+        "maximum_outside_retained_weight": 3.7786570645792494e-06,
+        "dynamics_accuracy_estimate": null,
+        "unresolved": "static eigensystem alone does not establish open/driven dynamics convergence",
+        "driven": false,
+        "rwa_excitation_shift_ghz": 0.0015840674257603382,
+        "refined_model_construction_seconds": 0.0011180210276506841
+      },
+      "propagator": {
+        "applicable": true,
+        "scope": "same declared generator, all stored intervals; exact-arithmetic bound",
+        "dimension": 30,
+        "distinct_generators": 1,
+        "initial_state_term": 0.0,
+        "maximum_defect": 1.8347005033733824e-10,
+        "state_error_bound": 1.6812673961284343e-08,
+        "floating_point_disagreement_estimate": 1.7497850776867796e-14,
+        "floating_point_caveat": "full step versus two half steps is not a certified roundoff bound",
+        "metric_error_bound": {
+          "excited": 8.406339201092161e-09,
+          "photons": 4.2031696005460806e-08,
+          "coherence": 3.3625347922568685e-08,
+          "coherence_real": 1.6812673961284343e-08
+        },
+        "metric_floating_estimate": {
+          "excited": 8.748925388433898e-15,
+          "photons": 4.374462694216949e-14,
+          "coherence": 3.499570155373559e-14,
+          "coherence_real": 1.7497850776867796e-14
+        },
+        "wall_seconds": 1.5549993920139968,
+        "exponential_seconds": 1.5113216200843453,
+        "full_step_exponential_seconds": 0.794919018051587,
+        "half_step_exponential_seconds": 0.7164026020327583,
+        "cost_scope": "one BLAS thread; generator construction, full-step expm, a second half-step expm and two-half-step products for the floating-point estimate, all interval products and trace norms"
+      },
+      "segments": {
+        "scope": "local restarts from source states; no full-window bound",
+        "reference_frame": "lab",
+        "cost_scope": "fresh spawn per segment; wall time includes process startup, imports, serialization and cleanup; solve_seconds includes first-use JAX/dynamiqs compilation and is not a warmed intrinsic solver cost",
+        "selection": "start/middle/end",
+        "attempted_window_fraction": 0.06,
+        "completed_window_fraction": 0.06,
+        "wall_seconds": 7.225458196015097,
+        "segments": [
+          {
+            "start_ns": 0.0,
+            "stop_ns": 2.0,
+            "wall_seconds": 2.396197473979555,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 1.9906576629728079,
+            "startup_and_transport_seconds": 0.4055398110067472,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 0.0009410409076321402,
+                "trajectory": 0.0009410409076321402
+              },
+              "coherence_real": {
+                "endpoint": 1.7425437434511437,
+                "trajectory": 1.9999999999999996
+              },
+              "excited": {
+                "endpoint": 5.111049803130374e-05,
+                "trajectory": 5.111049803130374e-05
+              },
+              "photons": {
+                "endpoint": 0.0001267103791575859,
+                "trajectory": 0.0001267103791575859
+              }
+            }
+          },
+          {
+            "start_ns": 49.0,
+            "stop_ns": 51.0,
+            "wall_seconds": 2.417317286017351,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 2.0089177939807996,
+            "startup_and_transport_seconds": 0.40839949203655124,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 0.0010464497845935616,
+                "trajectory": 0.0010464497845935616
+              },
+              "coherence_real": {
+                "endpoint": 0.4591798660898536,
+                "trajectory": 1.9910960170870378
+              },
+              "excited": {
+                "endpoint": 5.158115822129217e-05,
+                "trajectory": 5.158115822129217e-05
+              },
+              "photons": {
+                "endpoint": 0.0001258367504574972,
+                "trajectory": 0.0001258367504574972
+              }
+            }
+          },
+          {
+            "start_ns": 98.0,
+            "stop_ns": 100.0,
+            "wall_seconds": 2.4119434360181913,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 1.9916379820206203,
+            "startup_and_transport_seconds": 0.420305453997571,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 0.0006108750667266349,
+                "trajectory": 0.0006108750667266349
+              },
+              "coherence_real": {
+                "endpoint": 1.9868050289490835,
+                "trajectory": 1.9868050289490835
+              },
+              "excited": {
+                "endpoint": 5.199770285035932e-05,
+                "trajectory": 5.199770285035932e-05
+              },
+              "photons": {
+                "endpoint": 0.0001257731840625092,
+                "trajectory": 0.0001257731840625092
+              }
+            }
+          }
+        ]
+      },
+      "same_frame_refined_segments": {
+        "scope": "local restarts from source states; no full-window bound",
+        "reference_frame": "same rotating-rwa",
+        "cost_scope": "fresh spawn per segment; wall time includes process startup, imports, serialization and cleanup; solve_seconds includes first-use JAX/dynamiqs compilation and is not a warmed intrinsic solver cost",
+        "selection": "start/middle/end",
+        "attempted_window_fraction": 0.06,
+        "completed_window_fraction": 0.06,
+        "wall_seconds": 4.559605836926494,
+        "segments": [
+          {
+            "start_ns": 0.0,
+            "stop_ns": 2.0,
+            "wall_seconds": 1.5258823809563182,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 1.1145661799819209,
+            "startup_and_transport_seconds": 0.41131620097439736,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 4.247802110057819e-11,
+                "trajectory": 4.247802110057819e-11
+              },
+              "coherence_real": {
+                "endpoint": 1.7449024142804757,
+                "trajectory": 1.9999999999999996
+              },
+              "excited": {
+                "endpoint": 2.5374147227807953e-13,
+                "trajectory": 2.5374147227807953e-13
+              },
+              "photons": {
+                "endpoint": 2.541916330200955e-13,
+                "trajectory": 2.541916330200955e-13
+              }
+            }
+          },
+          {
+            "start_ns": 49.0,
+            "stop_ns": 51.0,
+            "wall_seconds": 1.4984981039888225,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 1.0912141730077565,
+            "startup_and_transport_seconds": 0.4072839309810661,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 5.628231214416246e-11,
+                "trajectory": 5.628231214416246e-11
+              },
+              "coherence_real": {
+                "endpoint": 0.4522612133552118,
+                "trajectory": 1.9909469615587145
+              },
+              "excited": {
+                "endpoint": 5.46229728115577e-14,
+                "trajectory": 8.626432901337466e-14
+              },
+              "photons": {
+                "endpoint": 5.6272694837211645e-14,
+                "trajectory": 8.722037848907238e-14
+              }
+            }
+          },
+          {
+            "start_ns": 98.0,
+            "stop_ns": 100.0,
+            "wall_seconds": 1.535225351981353,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 1.1180140899959952,
+            "startup_and_transport_seconds": 0.41721126198535785,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 4.07097688892577e-11,
+                "trajectory": 4.07097688892577e-11
+              },
+              "coherence_real": {
+                "endpoint": 1.9859049512735503,
+                "trajectory": 1.9859049512735503
+              },
+              "excited": {
+                "endpoint": 3.524958103184872e-14,
+                "trajectory": 3.524958103184872e-14
+              },
+              "photons": {
+                "endpoint": 3.1528816016312966e-14,
+                "trajectory": 3.1528816016312966e-14
+              }
+            }
+          }
+        ]
+      },
+      "verification_cost": {
+        "static_only": {
+          "seconds": 0.0020590200438164175,
+          "source_ratio": 0.007391991981670365,
+          "fits_source_fractions": {
+            "0.05": true,
+            "0.1": true,
+            "0.25": true
+          }
+        },
+        "integrity_static_segments": {
+          "seconds": 7.229028863075655,
+          "source_ratio": 25.952599903822655,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": false
+          }
+        },
+        "integrity_static_same_frame_segments": {
+          "seconds": 4.5631765039870515,
+          "source_ratio": 16.382047484053707,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": false
+          }
+        },
+        "integrity_static_propagator": {
+          "seconds": 1.5585700590745546,
+          "source_ratio": 5.595349794748197,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": false
+          }
+        }
+      }
+    },
+    {
+      "name": "5b-readout-ej15.0-a0.002",
+      "dimensions": [
+        5,
+        6
+      ],
+      "reference_dimensions": [
+        6,
+        8
+      ],
+      "duration_ns": 100.0,
+      "source_wall_seconds": 0.3857731380267069,
+      "source_cost_kind": "regenerated engine solve",
+      "source_parameters": {
+        "rtol": 1e-10,
+        "atol": 1e-12,
+        "max_steps": 2000000,
+        "frame": "rotating-rwa"
+      },
+      "baseline": {
+        "kind": "retained full-window independent summary, not trajectory",
+        "artifact": "tests/probes/m2_frames_results.json",
+        "sha256": "9bd0801c4ed5143bd1348ff600f42e83e20b87a4edd87ca2907508f2c82b52d5",
+        "trajectory_residuals": {
+          "coherence": 0.0019245439227169037,
+          "excited": 0.003613046986973456,
+          "photons": 0.005447765421635886
+        },
+        "reference_wall_seconds": 74.0632164980052,
+        "limitation": "baseline aggregate cannot supply arbitrary endpoint errors or segment states",
+        "reported_metric": "endpoint coherence",
+        "endpoint_coherence_error": 0.0003752773640582907
+      },
+      "integrity": {
+        "wall_seconds": 0.0026739920140244067,
+        "checks": [
+          {
+            "name": "trace",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 4.4408988363292885e-15,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "hermiticity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 5.343185316797922e-15,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "positivity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": -1.6350459602051888e-13,
+            "tolerance": -1e-08
+          }
+        ],
+        "warnings": [
+          {
+            "name": "top_level_population",
+            "subsystem_index": 0,
+            "scope": "every stored state at every output time",
+            "population": 8.368088350963824e-13,
+            "threshold": 1e-06,
+            "triggered": false
+          },
+          {
+            "name": "top_level_population",
+            "subsystem_index": 1,
+            "scope": "every stored state at every output time",
+            "population": 1.2701682351752524e-07,
+            "threshold": 1e-06,
+            "triggered": false
+          }
+        ]
+      },
+      "static": {
+        "wall_seconds": 0.00207499205134809,
+        "scope": "initially occupied undriven Hamiltonian eigenstates",
+        "occupied_weight_threshold": 1e-05,
+        "minimum_assignment_overlap": 0.9999962185364464,
+        "maximum_excitation_shift_ghz": 2.9611418529640332e-05,
+        "maximum_outside_retained_weight": 3.7786570645792494e-06,
+        "dynamics_accuracy_estimate": null,
+        "unresolved": "static eigensystem alone does not establish open/driven dynamics convergence",
+        "driven": true,
+        "rwa_excitation_shift_ghz": 0.0015840674257603382,
+        "refined_model_construction_seconds": 0.0011134770466014743
+      },
+      "propagator": {
+        "applicable": true,
+        "scope": "same declared generator, all stored intervals; exact-arithmetic bound",
+        "dimension": 30,
+        "distinct_generators": 1,
+        "initial_state_term": 0.0,
+        "maximum_defect": 8.392682075856194e-11,
+        "state_error_bound": 7.793751947598491e-09,
+        "floating_point_disagreement_estimate": 9.004800917563352e-14,
+        "floating_point_caveat": "full step versus two half steps is not a certified roundoff bound",
+        "metric_error_bound": {
+          "excited": 3.896878194253473e-09,
+          "photons": 1.9484390971267365e-08,
+          "coherence": 1.5587503895196982e-08,
+          "coherence_real": 7.793751947598491e-09
+        },
+        "metric_floating_estimate": {
+          "excited": 4.502400458781676e-14,
+          "photons": 2.2512002293908381e-13,
+          "coherence": 1.8009601835126705e-13,
+          "coherence_real": 9.004800917563352e-14
+        },
+        "wall_seconds": 1.5944822860183194,
+        "exponential_seconds": 1.546971898060292,
+        "full_step_exponential_seconds": 0.8090727900271304,
+        "half_step_exponential_seconds": 0.7378991080331616,
+        "cost_scope": "one BLAS thread; generator construction, full-step expm, a second half-step expm and two-half-step products for the floating-point estimate, all interval products and trace norms"
+      },
+      "segments": {
+        "scope": "local restarts from source states; no full-window bound",
+        "reference_frame": "lab",
+        "cost_scope": "fresh spawn per segment; wall time includes process startup, imports, serialization and cleanup; solve_seconds includes first-use JAX/dynamiqs compilation and is not a warmed intrinsic solver cost",
+        "selection": "start/middle/end",
+        "attempted_window_fraction": 0.06,
+        "completed_window_fraction": 0.06,
+        "wall_seconds": 8.348010587971658,
+        "segments": [
+          {
+            "start_ns": 0.0,
+            "stop_ns": 2.0,
+            "wall_seconds": 2.3572002860018983,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 1.9571461289888248,
+            "startup_and_transport_seconds": 0.40005415701307356,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 0.0009417314374722263,
+                "trajectory": 0.0009417314374722263
+              },
+              "coherence_real": {
+                "endpoint": 1.742520715880489,
+                "trajectory": 1.9999999999999996
+              },
+              "excited": {
+                "endpoint": 1.0765864760120536e-05,
+                "trajectory": 1.7292997343709704e-05
+              },
+              "photons": {
+                "endpoint": 9.183826006835174e-05,
+                "trajectory": 9.183826006835174e-05
+              }
+            }
+          },
+          {
+            "start_ns": 49.0,
+            "stop_ns": 51.0,
+            "wall_seconds": 2.9514762359904125,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 2.533376043953467,
+            "startup_and_transport_seconds": 0.4181001920369454,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 0.001593039185307621,
+                "trajectory": 0.001593039185307621
+              },
+              "coherence_real": {
+                "endpoint": 0.4725689673459149,
+                "trajectory": 1.9820147488469602
+              },
+              "excited": {
+                "endpoint": 0.00196259029389495,
+                "trajectory": 0.00196259029389495
+              },
+              "photons": {
+                "endpoint": 0.0020867143704141403,
+                "trajectory": 0.0020867143704141403
+              }
+            }
+          },
+          {
+            "start_ns": 98.0,
+            "stop_ns": 100.0,
+            "wall_seconds": 3.0393340659793466,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 2.614921455970034,
+            "startup_and_transport_seconds": 0.42441261000931263,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 0.0017105069437531872,
+                "trajectory": 0.0017105069437531872
+              },
+              "coherence_real": {
+                "endpoint": 1.9549197558537506,
+                "trajectory": 1.9549197558537506
+              },
+              "excited": {
+                "endpoint": 0.0038943824223950374,
+                "trajectory": 0.0038943824223950374
+              },
+              "photons": {
+                "endpoint": 0.0039002513538713007,
+                "trajectory": 0.0039002513538713007
+              }
+            }
+          }
+        ]
+      },
+      "same_frame_refined_segments": {
+        "scope": "local restarts from source states; no full-window bound",
+        "reference_frame": "same rotating-rwa",
+        "cost_scope": "fresh spawn per segment; wall time includes process startup, imports, serialization and cleanup; solve_seconds includes first-use JAX/dynamiqs compilation and is not a warmed intrinsic solver cost",
+        "selection": "start/middle/end",
+        "attempted_window_fraction": 0.06,
+        "completed_window_fraction": 0.06,
+        "wall_seconds": 4.583073804969899,
+        "segments": [
+          {
+            "start_ns": 0.0,
+            "stop_ns": 2.0,
+            "wall_seconds": 1.5207567070028745,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 1.1101481710211374,
+            "startup_and_transport_seconds": 0.4106085359817371,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 2.0819101997915368e-10,
+                "trajectory": 2.0819101997915368e-10
+              },
+              "coherence_real": {
+                "endpoint": 1.7448778847271622,
+                "trajectory": 1.9999999999999996
+              },
+              "excited": {
+                "endpoint": 5.193623309196482e-13,
+                "trajectory": 5.193623309196482e-13
+              },
+              "photons": {
+                "endpoint": 5.141529563212899e-13,
+                "trajectory": 5.141529563212899e-13
+              }
+            }
+          },
+          {
+            "start_ns": 49.0,
+            "stop_ns": 51.0,
+            "wall_seconds": 1.5316861529718153,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 1.1202471969882026,
+            "startup_and_transport_seconds": 0.4114389559836127,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 9.215335161627536e-10,
+                "trajectory": 9.215335161627536e-10
+              },
+              "coherence_real": {
+                "endpoint": 0.46542362927944864,
+                "trajectory": 1.9819553978104993
+              },
+              "excited": {
+                "endpoint": 2.788080877280663e-11,
+                "trajectory": 2.788080877280663e-11
+              },
+              "photons": {
+                "endpoint": 7.44455191936666e-11,
+                "trajectory": 7.44455191936666e-11
+              }
+            }
+          },
+          {
+            "start_ns": 98.0,
+            "stop_ns": 100.0,
+            "wall_seconds": 1.5306309449952096,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 1.1248006299720146,
+            "startup_and_transport_seconds": 0.405830315023195,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 2.1085512114105143e-08,
+                "trajectory": 2.1085512114105143e-08
+              },
+              "coherence_real": {
+                "endpoint": 1.9531900683236907,
+                "trajectory": 1.9531900683236907
+              },
+              "excited": {
+                "endpoint": 5.777934797279727e-10,
+                "trajectory": 5.777934797279727e-10
+              },
+              "photons": {
+                "endpoint": 1.7265632534790853e-09,
+                "trajectory": 1.7265632534790853e-09
+              }
+            }
+          }
+        ]
+      },
+      "verification_cost": {
+        "static_only": {
+          "seconds": 0.00207499205134809,
+          "source_ratio": 0.0053787883261183405,
+          "fits_source_fractions": {
+            "0.05": true,
+            "0.1": true,
+            "0.25": true
+          }
+        },
+        "integrity_static_segments": {
+          "seconds": 8.35275957203703,
+          "source_ratio": 21.65199893067405,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": false
+          }
+        },
+        "integrity_static_same_frame_segments": {
+          "seconds": 4.587822789035272,
+          "source_ratio": 11.892540814279451,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": false
+          }
+        },
+        "integrity_static_propagator": {
+          "seconds": 1.599231270083692,
+          "source_ratio": 4.1455226205329465,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": false
+          }
+        }
+      }
+    },
+    {
+      "name": "5b-purcell-ej15.0-a0.0",
+      "dimensions": [
+        5,
+        6
+      ],
+      "reference_dimensions": [
+        6,
+        8
+      ],
+      "duration_ns": 1600.0,
+      "source_wall_seconds": 1.7433989319833927,
+      "source_cost_kind": "regenerated engine solve",
+      "source_parameters": {
+        "rtol": 1e-10,
+        "atol": 1e-12,
+        "max_steps": 2000000,
+        "frame": "rotating-rwa"
+      },
+      "baseline": {
+        "kind": "retained full-window independent summary, not trajectory",
+        "artifact": "tests/probes/m2_frames_results.json",
+        "sha256": "9bd0801c4ed5143bd1348ff600f42e83e20b87a4edd87ca2907508f2c82b52d5",
+        "trajectory_residuals": {
+          "coherence": 4.1394604612068046e-19,
+          "excited": 0.003894362249258765,
+          "photons": 0.0003557898677723978
+        },
+        "reference_wall_seconds": 385.3544006329612,
+        "limitation": "baseline aggregate cannot supply arbitrary endpoint errors or segment states",
+        "reported_metric": "excited population",
+        "trajectory_population_error": 0.003894362249258765,
+        "metric_limitation": "retained summary supplies a trajectory maximum, not endpoint population error; coherence is uninformative for this excited initial state"
+      },
+      "integrity": {
+        "wall_seconds": 0.026285486994311213,
+        "checks": [
+          {
+            "name": "trace",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 7.216525682911399e-15,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "hermiticity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 1.9524125819954591e-16,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "positivity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": -1.8194378946538582e-16,
+            "tolerance": -1e-08
+          }
+        ],
+        "warnings": [
+          {
+            "name": "top_level_population",
+            "subsystem_index": 0,
+            "scope": "every stored state at every output time",
+            "population": 0.0,
+            "threshold": 1e-06,
+            "triggered": false
+          },
+          {
+            "name": "top_level_population",
+            "subsystem_index": 1,
+            "scope": "every stored state at every output time",
+            "population": 0.0,
+            "threshold": 1e-06,
+            "triggered": false
+          }
+        ]
+      },
+      "static": {
+        "wall_seconds": 0.002130548993591219,
+        "scope": "initially occupied undriven Hamiltonian eigenstates",
+        "occupied_weight_threshold": 1e-05,
+        "minimum_assignment_overlap": 0.9999962185364464,
+        "maximum_excitation_shift_ghz": 2.9611418529640332e-05,
+        "maximum_outside_retained_weight": 3.7786570645792494e-06,
+        "dynamics_accuracy_estimate": null,
+        "unresolved": "static eigensystem alone does not establish open/driven dynamics convergence",
+        "driven": false,
+        "rwa_excitation_shift_ghz": 0.0015840674257603382,
+        "purcell_candidate": {
+          "assumptions": "undriven weak-loss qubit-like dressed excitation, resonator loss only",
+          "full_photon_admixture": 0.0023806986285062415,
+          "rwa_photon_admixture": 0.002282539659800106,
+          "rate_ratio": 1.0430042773998203,
+          "endpoint_estimate": 0.004212756702402287,
+          "claim": "model-specific estimate, not a bound",
+          "refined_full_photon_admixture": 0.0023806993568980103,
+          "truncation_endpoint_estimate": 3.118730829143601e-08
+        },
+        "refined_model_construction_seconds": 0.0011249249801039696
+      },
+      "propagator": {
+        "applicable": true,
+        "scope": "same declared generator, all stored intervals; exact-arithmetic bound",
+        "dimension": 30,
+        "distinct_generators": 1,
+        "initial_state_term": 0.0,
+        "maximum_defect": 4.19820582804888e-11,
+        "state_error_bound": 4.4104586204990117e-08,
+        "floating_point_disagreement_estimate": 8.642204795476192e-14,
+        "floating_point_caveat": "full step versus two half steps is not a certified roundoff bound",
+        "metric_error_bound": {
+          "excited": 2.2052296710930588e-08,
+          "photons": 1.1026148355465294e-07,
+          "coherence": 8.820917240998023e-08,
+          "coherence_real": 4.4104586204990117e-08
+        },
+        "metric_floating_estimate": {
+          "excited": 4.321102397738096e-14,
+          "photons": 2.160551198869048e-13,
+          "coherence": 1.7284409590952383e-13,
+          "coherence_real": 8.642204795476192e-14
+        },
+        "wall_seconds": 1.9184793030144647,
+        "exponential_seconds": 1.502612269949168,
+        "full_step_exponential_seconds": 0.7794305789866485,
+        "half_step_exponential_seconds": 0.7231816909625195,
+        "cost_scope": "one BLAS thread; generator construction, full-step expm, a second half-step expm and two-half-step products for the floating-point estimate, all interval products and trace norms"
+      },
+      "segments": {
+        "scope": "local restarts from source states; no full-window bound",
+        "reference_frame": "lab",
+        "cost_scope": "fresh spawn per segment; wall time includes process startup, imports, serialization and cleanup; solve_seconds includes first-use JAX/dynamiqs compilation and is not a warmed intrinsic solver cost",
+        "selection": "start/middle/end",
+        "attempted_window_fraction": 0.00375,
+        "completed_window_fraction": 0.00375,
+        "wall_seconds": 6.530554962053429,
+        "segments": [
+          {
+            "start_ns": 0.0,
+            "stop_ns": 2.0,
+            "wall_seconds": 2.1791571530047804,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 1.7758250510087237,
+            "startup_and_transport_seconds": 0.40333210199605674,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 1.6278819126058915e-19,
+                "trajectory": 1.6278819126058915e-19
+              },
+              "coherence_real": {
+                "endpoint": 1.583550482729181e-19,
+                "trajectory": 1.583550482729181e-19
+              },
+              "excited": {
+                "endpoint": 8.162543219536467e-05,
+                "trajectory": 8.162543219536467e-05
+              },
+              "photons": {
+                "endpoint": 7.363629598654622e-05,
+                "trajectory": 7.363629598654622e-05
+              }
+            }
+          },
+          {
+            "start_ns": 799.0,
+            "stop_ns": 801.0,
+            "wall_seconds": 2.174043655046262,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 1.7599367030197755,
+            "startup_and_transport_seconds": 0.4141069520264864,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 1.40392417818313e-19,
+                "trajectory": 1.40392417818313e-19
+              },
+              "coherence_real": {
+                "endpoint": 1.3634204773542255e-19,
+                "trajectory": 1.3634204773542255e-19
+              },
+              "excited": {
+                "endpoint": 6.767358414605518e-05,
+                "trajectory": 6.767358414605518e-05
+              },
+              "photons": {
+                "endpoint": 7.719699586599673e-05,
+                "trajectory": 7.719699586599673e-05
+              }
+            }
+          },
+          {
+            "start_ns": 1598.0,
+            "stop_ns": 1600.0,
+            "wall_seconds": 2.177354154002387,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 1.760679617000278,
+            "startup_and_transport_seconds": 0.416674537002109,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 1.255588313794855e-19,
+                "trajectory": 1.255588313794855e-19
+              },
+              "coherence_real": {
+                "endpoint": 1.2200070550094957e-19,
+                "trajectory": 1.2200070550094957e-19
+              },
+              "excited": {
+                "endpoint": 5.4282008226214096e-05,
+                "trajectory": 5.4282008226214096e-05
+              },
+              "photons": {
+                "endpoint": 8.265902091835918e-05,
+                "trajectory": 8.265902091835918e-05
+              }
+            }
+          }
+        ]
+      },
+      "verification_cost": {
+        "static_only": {
+          "seconds": 0.002130548993591219,
+          "source_ratio": 0.0012220662491558268,
+          "fits_source_fractions": {
+            "0.05": true,
+            "0.1": true,
+            "0.25": true
+          }
+        },
+        "integrity_static_segments": {
+          "seconds": 6.558970998041332,
+          "source_ratio": 3.7621744958736794,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": false
+          }
+        },
+        "integrity_static_propagator": {
+          "seconds": 1.946895339002367,
+          "source_ratio": 1.1167239484238212,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": false
+          }
+        }
+      }
+    },
+    {
+      "name": "5c-purcell-cpu",
+      "dimensions": [
+        5,
+        6
+      ],
+      "reference_dimensions": [
+        6,
+        8
+      ],
+      "duration_ns": 1600.0,
+      "source_wall_seconds": 31.140705645957496,
+      "source_cost_kind": "retained job",
+      "source_parameters": {
+        "rtol": 1e-10,
+        "atol": 1e-12,
+        "max_steps": 100000,
+        "frame": "lab"
+      },
+      "baseline": {
+        "kind": "retained full-window independent trajectory",
+        "summary": "tests/probes/m2_simulation_cpu.json",
+        "summary_sha256": "2e0b763262bf936578e6c36e9e7885570854f9a38a62704bc01b57783d604a1b",
+        "source_run_id": "r20261002T050830862385Z-e449207e",
+        "reference_run_id": "r20261002T050903760783Z-4e4c0e49",
+        "reference_engine": "dynamiqs",
+        "residuals": {
+          "coherence": {
+            "endpoint": 3.185715726851298e-19,
+            "trajectory": 4.1394604612068046e-19
+          },
+          "coherence_real": {
+            "endpoint": 2.2606578338145314e-19,
+            "trajectory": 4.08950501563002e-19
+          },
+          "excited": {
+            "endpoint": 3.5809286091925685e-08,
+            "trajectory": 9.46591247497075e-07
+          },
+          "photons": {
+            "endpoint": 2.837256496586449e-08,
+            "trajectory": 9.632330782820275e-07
+          }
+        }
+      },
+      "integrity": {
+        "wall_seconds": 0.04280458198627457,
+        "checks": [
+          {
+            "name": "trace",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 1.0613732119559262e-13,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "hermiticity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 1.8875935237911737e-15,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "positivity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": -3.372344797517687e-13,
+            "tolerance": -1e-08
+          }
+        ],
+        "warnings": [
+          {
+            "name": "top_level_population",
+            "subsystem_index": 0,
+            "scope": "every stored state at every output time",
+            "population": 3.7237686239897745e-06,
+            "threshold": 1e-06,
+            "triggered": true
+          },
+          {
+            "name": "top_level_population",
+            "subsystem_index": 1,
+            "scope": "every stored state at every output time",
+            "population": 1.1880152284491107e-14,
+            "threshold": 1e-06,
+            "triggered": false
+          }
+        ]
+      },
+      "static": {
+        "wall_seconds": 0.004125914012547582,
+        "scope": "initially occupied undriven Hamiltonian eigenstates",
+        "occupied_weight_threshold": 1e-05,
+        "minimum_assignment_overlap": 0.9999962185364464,
+        "maximum_excitation_shift_ghz": 2.9611418529640332e-05,
+        "maximum_outside_retained_weight": 3.7786570645792494e-06,
+        "dynamics_accuracy_estimate": null,
+        "unresolved": "static eigensystem alone does not establish open/driven dynamics convergence",
+        "driven": false,
+        "refined_model_construction_seconds": 0.003685133997350931
+      },
+      "propagator": {
+        "applicable": true,
+        "scope": "same declared generator, all stored intervals; exact-arithmetic bound",
+        "dimension": 30,
+        "distinct_generators": 1,
+        "initial_state_term": 0.0,
+        "maximum_defect": 6.784741957827504e-11,
+        "state_error_bound": 8.086969967166113e-08,
+        "floating_point_disagreement_estimate": 3.3228856810675244e-13,
+        "floating_point_caveat": "full step versus two half steps is not a certified roundoff bound",
+        "metric_error_bound": {
+          "excited": 4.043490290449116e-08,
+          "photons": 2.021745145224558e-07,
+          "coherence": 1.6173939934332226e-07,
+          "coherence_real": 8.086969967166113e-08
+        },
+        "metric_floating_estimate": {
+          "excited": 1.6614428405337622e-13,
+          "photons": 8.307214202668812e-13,
+          "coherence": 6.645771362135049e-13,
+          "coherence_real": 3.3228856810675244e-13
+        },
+        "wall_seconds": 2.36060280300444,
+        "exponential_seconds": 1.892199405003339,
+        "full_step_exponential_seconds": 0.9766407029819675,
+        "half_step_exponential_seconds": 0.9155587020213716,
+        "cost_scope": "one BLAS thread; generator construction, full-step expm, a second half-step expm and two-half-step products for the floating-point estimate, all interval products and trace norms"
+      },
+      "segments": {
+        "scope": "local restarts from source states; no full-window bound",
+        "reference_frame": "lab",
+        "cost_scope": "fresh spawn per segment; wall time includes process startup, imports, serialization and cleanup; solve_seconds includes first-use JAX/dynamiqs compilation and is not a warmed intrinsic solver cost",
+        "selection": "start/middle/end",
+        "attempted_window_fraction": 0.00375,
+        "completed_window_fraction": 0.00375,
+        "wall_seconds": 5.809097464021761,
+        "segments": [
+          {
+            "start_ns": 0.0,
+            "stop_ns": 2.0,
+            "wall_seconds": 2.109955792024266,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 1.703117488999851,
+            "startup_and_transport_seconds": 0.4068383030244149,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 1.6278819126058915e-19,
+                "trajectory": 1.6278819126058915e-19
+              },
+              "coherence_real": {
+                "endpoint": 1.583550482729181e-19,
+                "trajectory": 1.583550482729181e-19
+              },
+              "excited": {
+                "endpoint": 5.0791558847684826e-08,
+                "trajectory": 5.0791558847684826e-08
+              },
+              "photons": {
+                "endpoint": 5.2161537577102846e-08,
+                "trajectory": 5.2161537577102846e-08
+              }
+            }
+          },
+          {
+            "start_ns": 799.0,
+            "stop_ns": 801.0,
+            "wall_seconds": 1.876308840001002,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 1.457613044010941,
+            "startup_and_transport_seconds": 0.418695795990061,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 1.3965405983771292e-19,
+                "trajectory": 1.3965405983771292e-19
+              },
+              "coherence_real": {
+                "endpoint": 1.3550858492208683e-19,
+                "trajectory": 1.3550858492208683e-19
+              },
+              "excited": {
+                "endpoint": 4.881866022543591e-10,
+                "trajectory": 4.881866022543591e-10
+              },
+              "photons": {
+                "endpoint": 3.41924455589393e-09,
+                "trajectory": 3.41924455589393e-09
+              }
+            }
+          },
+          {
+            "start_ns": 1598.0,
+            "stop_ns": 1600.0,
+            "wall_seconds": 1.822832831996493,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 1.423154918011278,
+            "startup_and_transport_seconds": 0.3996779139852151,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 1.2458954907776987e-19,
+                "trajectory": 1.2458954907776987e-19
+              },
+              "coherence_real": {
+                "endpoint": 1.209787256367543e-19,
+                "trajectory": 1.209787256367543e-19
+              },
+              "excited": {
+                "endpoint": 4.799325381554809e-10,
+                "trajectory": 4.799325381554809e-10
+              },
+              "photons": {
+                "endpoint": 5.9407520278977055e-09,
+                "trajectory": 5.9407520278977055e-09
+              }
+            }
+          }
+        ]
+      },
+      "verification_cost": {
+        "static_only": {
+          "seconds": 0.004125914012547582,
+          "source_ratio": 0.00013249263068909245,
+          "fits_source_fractions": {
+            "0.05": true,
+            "0.1": true,
+            "0.25": true
+          }
+        },
+        "integrity_static_segments": {
+          "seconds": 5.856027960020583,
+          "source_ratio": 0.18805058647669978,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": true
+          }
+        },
+        "integrity_static_propagator": {
+          "seconds": 2.407533299003262,
+          "source_ratio": 0.07731145614922165,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": true,
+            "0.25": true
+          }
+        }
+      }
+    },
+    {
+      "name": "5c-purcell-cuda",
+      "dimensions": [
+        5,
+        6
+      ],
+      "reference_dimensions": [
+        6,
+        8
+      ],
+      "duration_ns": 1600.0,
+      "source_wall_seconds": 172.52824225404765,
+      "source_cost_kind": "retained job",
+      "source_parameters": {
+        "rtol": 1e-10,
+        "atol": 1e-12,
+        "max_steps": 100000,
+        "frame": "rotating-rwa"
+      },
+      "baseline": {
+        "kind": "retained full-window independent trajectory",
+        "summary": "tests/probes/m2_simulation_cuda.json",
+        "summary_sha256": "988f819c5cc23e4ae8e626d7dda4b0ef77e37caaeb6ff2d87284b57c1f1a3722",
+        "source_run_id": "r20261002T053327995081Z-1d11a214",
+        "reference_run_id": "r20261002T053328861208Z-daf90a1e",
+        "reference_engine": "qutip-cpu",
+        "residuals": {
+          "coherence": {
+            "endpoint": 0.0,
+            "trajectory": 0.0
+          },
+          "coherence_real": {
+            "endpoint": 0.0,
+            "trajectory": 0.0
+          },
+          "excited": {
+            "endpoint": 0.003894362223847536,
+            "trajectory": 0.003894362223847536
+          },
+          "photons": {
+            "endpoint": 9.809211750228799e-05,
+            "trajectory": 0.0003557898532199049
+          }
+        }
+      },
+      "integrity": {
+        "wall_seconds": 0.024501525971572846,
+        "checks": [
+          {
+            "name": "trace",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 1.3198219917899448e-13,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "hermiticity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 1.1705181327764165e-12,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "positivity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": -2.325506411167265e-11,
+            "tolerance": -1e-08
+          }
+        ],
+        "warnings": [
+          {
+            "name": "top_level_population",
+            "subsystem_index": 0,
+            "scope": "every stored state at every output time",
+            "population": 0.0,
+            "threshold": 1e-06,
+            "triggered": false
+          },
+          {
+            "name": "top_level_population",
+            "subsystem_index": 1,
+            "scope": "every stored state at every output time",
+            "population": 0.0,
+            "threshold": 1e-06,
+            "triggered": false
+          }
+        ]
+      },
+      "static": {
+        "wall_seconds": 0.004685120016802102,
+        "scope": "initially occupied undriven Hamiltonian eigenstates",
+        "occupied_weight_threshold": 1e-05,
+        "minimum_assignment_overlap": 0.9999962185364464,
+        "maximum_excitation_shift_ghz": 2.9611418529640332e-05,
+        "maximum_outside_retained_weight": 3.7786570645792494e-06,
+        "dynamics_accuracy_estimate": null,
+        "unresolved": "static eigensystem alone does not establish open/driven dynamics convergence",
+        "driven": false,
+        "rwa_excitation_shift_ghz": 0.0015840674257603382,
+        "purcell_candidate": {
+          "assumptions": "undriven weak-loss qubit-like dressed excitation, resonator loss only",
+          "full_photon_admixture": 0.0023806986285062415,
+          "rwa_photon_admixture": 0.002282539659800106,
+          "rate_ratio": 1.0430042773998203,
+          "endpoint_estimate": 0.004212756702402287,
+          "claim": "model-specific estimate, not a bound",
+          "refined_full_photon_admixture": 0.0023806993568980103,
+          "truncation_endpoint_estimate": 3.118730829143601e-08
+        },
+        "refined_model_construction_seconds": 0.003618073998950422
+      },
+      "propagator": {
+        "applicable": true,
+        "scope": "same declared generator, all stored intervals; exact-arithmetic bound",
+        "dimension": 30,
+        "distinct_generators": 1,
+        "initial_state_term": 0.0,
+        "maximum_defect": 7.037645033505491e-11,
+        "state_error_bound": 6.065656296932787e-08,
+        "floating_point_disagreement_estimate": 8.305792535922102e-14,
+        "floating_point_caveat": "full step versus two half steps is not a certified roundoff bound",
+        "metric_error_bound": {
+          "excited": 3.032834748153616e-08,
+          "photons": 1.516417374076808e-07,
+          "coherence": 1.2131312593865573e-07,
+          "coherence_real": 6.065656296932787e-08
+        },
+        "metric_floating_estimate": {
+          "excited": 4.152896267961051e-14,
+          "photons": 2.0764481339805255e-13,
+          "coherence": 1.6611585071844204e-13,
+          "coherence_real": 8.305792535922102e-14
+        },
+        "wall_seconds": 1.9473441549926065,
+        "exponential_seconds": 1.5360965540166944,
+        "full_step_exponential_seconds": 0.8021078620222397,
+        "half_step_exponential_seconds": 0.7339886919944547,
+        "cost_scope": "one BLAS thread; generator construction, full-step expm, a second half-step expm and two-half-step products for the floating-point estimate, all interval products and trace norms"
+      },
+      "segments": {
+        "scope": "local restarts from source states; no full-window bound",
+        "reference_frame": "lab",
+        "cost_scope": "fresh spawn per segment; wall time includes process startup, imports, serialization and cleanup; solve_seconds includes first-use JAX/dynamiqs compilation and is not a warmed intrinsic solver cost",
+        "selection": "start/middle/end",
+        "attempted_window_fraction": 0.00375,
+        "completed_window_fraction": 0.00375,
+        "wall_seconds": 1.9445218070177361,
+        "segments": [
+          {
+            "start_ns": 0.0,
+            "stop_ns": 2.0,
+            "wall_seconds": 0.6594808130175807,
+            "hard_timeout_seconds": 12.0,
+            "engine": "qutip-cpu",
+            "outcome": "measured",
+            "solve_seconds": 0.23330720799276605,
+            "startup_and_transport_seconds": 0.4261736050248146,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 0.0,
+                "trajectory": 0.0
+              },
+              "coherence_real": {
+                "endpoint": 0.0,
+                "trajectory": 0.0
+              },
+              "excited": {
+                "endpoint": 8.162542702838671e-05,
+                "trajectory": 8.162542702838671e-05
+              },
+              "photons": {
+                "endpoint": 7.363629085411875e-05,
+                "trajectory": 7.363629085411875e-05
+              }
+            }
+          },
+          {
+            "start_ns": 799.0,
+            "stop_ns": 801.0,
+            "wall_seconds": 0.6441493930178694,
+            "hard_timeout_seconds": 12.0,
+            "engine": "qutip-cpu",
+            "outcome": "measured",
+            "solve_seconds": 0.23898279998684302,
+            "startup_and_transport_seconds": 0.4051665930310264,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 0.0,
+                "trajectory": 0.0
+              },
+              "coherence_real": {
+                "endpoint": 0.0,
+                "trajectory": 0.0
+              },
+              "excited": {
+                "endpoint": 6.767358841675009e-05,
+                "trajectory": 6.767358841675009e-05
+              },
+              "photons": {
+                "endpoint": 7.7197000235629e-05,
+                "trajectory": 7.7197000235629e-05
+              }
+            }
+          },
+          {
+            "start_ns": 1598.0,
+            "stop_ns": 1600.0,
+            "wall_seconds": 0.640891600982286,
+            "hard_timeout_seconds": 12.0,
+            "engine": "qutip-cpu",
+            "outcome": "measured",
+            "solve_seconds": 0.23200586502207443,
+            "startup_and_transport_seconds": 0.4088857359602116,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 0.0,
+                "trajectory": 0.0
+              },
+              "coherence_real": {
+                "endpoint": 0.0,
+                "trajectory": 0.0
+              },
+              "excited": {
+                "endpoint": 5.428200884738388e-05,
+                "trajectory": 5.428200884738388e-05
+              },
+              "photons": {
+                "endpoint": 8.265902165845596e-05,
+                "trajectory": 8.265902165845596e-05
+              }
+            }
+          }
+        ]
+      },
+      "verification_cost": {
+        "static_only": {
+          "seconds": 0.004685120016802102,
+          "source_ratio": 2.715567002591534e-05,
+          "fits_source_fractions": {
+            "0.05": true,
+            "0.1": true,
+            "0.25": true
+          }
+        },
+        "integrity_static_segments": {
+          "seconds": 1.973708453006111,
+          "source_ratio": 0.011439915153716267,
+          "fits_source_fractions": {
+            "0.05": true,
+            "0.1": true,
+            "0.25": true
+          }
+        },
+        "integrity_static_propagator": {
+          "seconds": 1.9765308009809814,
+          "source_ratio": 0.011456273912943146,
+          "fits_source_fractions": {
+            "0.05": true,
+            "0.1": true,
+            "0.25": true
+          }
+        }
+      }
+    },
+    {
+      "name": "4b-loose-tolerance",
+      "dimensions": [
+        2
+      ],
+      "reference_dimensions": [
+        2
+      ],
+      "duration_ns": 10.0,
+      "source_wall_seconds": 0.0006257320055738091,
+      "source_cost_kind": "regenerated engine solve",
+      "source_parameters": {
+        "rtol": 0.1,
+        "atol": 0.1,
+        "max_steps": 100000,
+        "frame": "lab"
+      },
+      "baseline": {
+        "kind": "existing M1 exponential helper; independent generator construction, shared scipy.expm",
+        "wall_seconds": 0.0001271669752895832,
+        "residuals": {
+          "excited": {
+            "endpoint": 3.1086244689504383e-15,
+            "trajectory": 3.1086244689504383e-15
+          },
+          "coherence": {
+            "endpoint": 0.033124816582360994,
+            "trajectory": 0.037048749504569156
+          },
+          "coherence_real": {
+            "endpoint": 0.06053461813599026,
+            "trajectory": 0.06053461813599026
+          },
+          "number": {
+            "endpoint": 3.1086244689504383e-15,
+            "trajectory": 3.1086244689504383e-15
+          }
+        }
+      },
+      "integrity": {
+        "wall_seconds": 0.00030414003413170576,
+        "checks": [
+          {
+            "name": "trace",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 4.440892098500626e-16,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "hermiticity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 0.0,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "positivity",
+            "scope": "every stored state at every output time",
+            "outcome": "fail",
+            "residual": -0.004243125602845926,
+            "tolerance": -1e-08
+          }
+        ],
+        "warnings": [
+          {
+            "name": "top_level_population",
+            "subsystem_index": 0,
+            "scope": "every stored state at every output time",
+            "population": 0.4999999999999999,
+            "threshold": 1e-06,
+            "triggered": true
+          }
+        ]
+      },
+      "static": {
+        "wall_seconds": 0.00011342298239469528,
+        "scope": "initially occupied undriven Hamiltonian eigenstates",
+        "occupied_weight_threshold": 1e-05,
+        "minimum_assignment_overlap": 1.0,
+        "maximum_excitation_shift_ghz": 0.0,
+        "maximum_outside_retained_weight": 0.0,
+        "dynamics_accuracy_estimate": null,
+        "unresolved": "static eigensystem alone does not establish open/driven dynamics convergence",
+        "driven": false,
+        "refined_model_construction_seconds": 0.0
+      },
+      "propagator": {
+        "applicable": true,
+        "scope": "same declared generator, all stored intervals; exact-arithmetic bound",
+        "dimension": 2,
+        "distinct_generators": 1,
+        "initial_state_term": 0.0,
+        "maximum_defect": 0.022286458357454263,
+        "state_error_bound": 0.1255883589214432,
+        "floating_point_disagreement_estimate": 4.6557627531266715e-15,
+        "floating_point_caveat": "full step versus two half steps is not a certified roundoff bound",
+        "metric_error_bound": {
+          "excited": 0.06279417946072183,
+          "number": 0.06279417946072183,
+          "coherence": 0.2511767178428864,
+          "coherence_real": 0.1255883589214432
+        },
+        "metric_floating_estimate": {
+          "excited": 2.3278813765633358e-15,
+          "number": 2.3278813765633358e-15,
+          "coherence": 9.311525506253343e-15,
+          "coherence_real": 4.6557627531266715e-15
+        },
+        "wall_seconds": 0.00032058299984782934,
+        "exponential_seconds": 2.3489061277359724e-05,
+        "full_step_exponential_seconds": 1.4113029465079308e-05,
+        "half_step_exponential_seconds": 9.376031812280416e-06,
+        "cost_scope": "one BLAS thread; generator construction, full-step expm, a second half-step expm and two-half-step products for the floating-point estimate, all interval products and trace norms"
+      },
+      "segments": {
+        "scope": "local restarts from source states; no full-window bound",
+        "reference_frame": "lab",
+        "cost_scope": "fresh spawn per segment; wall time includes process startup, imports, serialization and cleanup; solve_seconds includes first-use JAX/dynamiqs compilation and is not a warmed intrinsic solver cost",
+        "selection": "start/middle/end",
+        "attempted_window_fraction": 0.6,
+        "completed_window_fraction": 0.4,
+        "wall_seconds": 2.954705443000421,
+        "segments": [
+          {
+            "start_ns": 0.0,
+            "stop_ns": 2.0,
+            "wall_seconds": 1.270686955016572,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 0.8550691140117124,
+            "startup_and_transport_seconds": 0.41561784100485966,
+            "local_metric_residuals": {
+              "excited": {
+                "endpoint": 1.3322676295501878e-15,
+                "trajectory": 1.3322676295501878e-15
+              },
+              "coherence": {
+                "endpoint": 0.01593892438839062,
+                "trajectory": 0.01593892438839062
+              },
+              "coherence_real": {
+                "endpoint": 0.003294390261129876,
+                "trajectory": 0.01756366163445766
+              },
+              "number": {
+                "endpoint": 1.3322676295501878e-15,
+                "trajectory": 1.3322676295501878e-15
+              }
+            }
+          },
+          {
+            "start_ns": 4.0,
+            "stop_ns": 6.0,
+            "wall_seconds": 0.4067247299826704,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "error",
+            "error": "EvolutionInputError: initial density matrix must be positive semidefinite"
+          },
+          {
+            "start_ns": 8.0,
+            "stop_ns": 10.0,
+            "wall_seconds": 1.2772937580011785,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 0.8568077210220508,
+            "startup_and_transport_seconds": 0.4204860369791277,
+            "local_metric_residuals": {
+              "excited": {
+                "endpoint": 3.4416913763379853e-15,
+                "trajectory": 3.4416913763379853e-15
+              },
+              "coherence": {
+                "endpoint": 0.008637100208818804,
+                "trajectory": 0.01243828794083257
+              },
+              "coherence_real": {
+                "endpoint": 0.013305842028889528,
+                "trajectory": 0.013305842028889528
+              },
+              "number": {
+                "endpoint": 3.4416913763379853e-15,
+                "trajectory": 3.4416913763379853e-15
+              }
+            }
+          }
+        ]
+      },
+      "verification_cost": {
+        "static_only": {
+          "seconds": 0.00011342298239469528,
+          "source_ratio": 0.18126447326389206,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": true
+          }
+        },
+        "integrity_static_segments": {
+          "seconds": 2.9551230060169473,
+          "source_ratio": 4722.66558158079,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": false
+          }
+        },
+        "integrity_static_propagator": {
+          "seconds": 0.0007381460163742304,
+          "source_ratio": 1.179652007247632,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": false
+          }
+        }
+      }
+    },
+    {
+      "name": "4b-driven-truncation",
+      "dimensions": [
+        2,
+        2
+      ],
+      "reference_dimensions": [
+        3,
+        3
+      ],
+      "duration_ns": 2.0,
+      "source_wall_seconds": 0.0005420660017989576,
+      "source_cost_kind": "regenerated engine solve",
+      "source_parameters": {
+        "rtol": 1e-10,
+        "atol": 1e-12,
+        "max_steps": 100000,
+        "frame": "lab"
+      },
+      "baseline": {
+        "kind": "existing M1 exponential helper; independent generator construction, shared scipy.expm",
+        "wall_seconds": 0.0008914769859984517,
+        "residuals": {
+          "coherence": {
+            "endpoint": 0.4979356504974836,
+            "trajectory": 0.4979356504974836
+          },
+          "coherence_real": {
+            "endpoint": 0.060530792905680975,
+            "trajectory": 0.3171395396283121
+          },
+          "excited": {
+            "endpoint": 0.271873712164292,
+            "trajectory": 0.271873712164292
+          },
+          "photons": {
+            "endpoint": 0.737847623741638,
+            "trajectory": 0.737847623741638
+          }
+        }
+      },
+      "integrity": {
+        "wall_seconds": 0.0003251940361224115,
+        "checks": [
+          {
+            "name": "trace",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 5.551115123125783e-16,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "hermiticity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 0.0,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "positivity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": -1.1103234124583003e-16,
+            "tolerance": -1e-08
+          }
+        ],
+        "warnings": [
+          {
+            "name": "top_level_population",
+            "subsystem_index": 0,
+            "scope": "every stored state at every output time",
+            "population": 0.5677295653958693,
+            "threshold": 1e-06,
+            "triggered": true
+          },
+          {
+            "name": "top_level_population",
+            "subsystem_index": 1,
+            "scope": "every stored state at every output time",
+            "population": 0.0,
+            "threshold": 1e-06,
+            "triggered": false
+          }
+        ]
+      },
+      "static": {
+        "wall_seconds": 0.0006004480528645217,
+        "scope": "initially occupied undriven Hamiltonian eigenstates",
+        "occupied_weight_threshold": 1e-05,
+        "minimum_assignment_overlap": 1.0,
+        "maximum_excitation_shift_ghz": 0.0,
+        "maximum_outside_retained_weight": 0.0,
+        "dynamics_accuracy_estimate": null,
+        "unresolved": "static eigensystem alone does not establish open/driven dynamics convergence",
+        "driven": true,
+        "refined_model_construction_seconds": 0.00045741605572402477
+      },
+      "propagator": {
+        "applicable": true,
+        "scope": "same declared generator, all stored intervals; exact-arithmetic bound",
+        "dimension": 4,
+        "distinct_generators": 1,
+        "initial_state_term": 0.0,
+        "maximum_defect": 5.7197244188533735e-12,
+        "state_error_bound": 8.271918888309846e-12,
+        "floating_point_disagreement_estimate": 1.9058662673575476e-16,
+        "floating_point_caveat": "full step versus two half steps is not a certified roundoff bound",
+        "metric_error_bound": {
+          "excited": 4.136236999911079e-12,
+          "photons": 4.136236999911079e-12,
+          "coherence": 1.6543837776619692e-11,
+          "coherence_real": 8.271918888309846e-12
+        },
+        "metric_floating_estimate": {
+          "excited": 9.529331336787738e-17,
+          "photons": 9.529331336787738e-17,
+          "coherence": 3.811732534715095e-16,
+          "coherence_real": 1.9058662673575476e-16
+        },
+        "wall_seconds": 0.000336216005962342,
+        "exponential_seconds": 4.807801451534033e-05,
+        "full_step_exponential_seconds": 2.9802031349390745e-05,
+        "half_step_exponential_seconds": 1.8275983165949583e-05,
+        "cost_scope": "one BLAS thread; generator construction, full-step expm, a second half-step expm and two-half-step products for the floating-point estimate, all interval products and trace norms"
+      },
+      "segments": {
+        "scope": "local restarts from source states; no full-window bound",
+        "reference_frame": "lab",
+        "cost_scope": "fresh spawn per segment; wall time includes process startup, imports, serialization and cleanup; solve_seconds includes first-use JAX/dynamiqs compilation and is not a warmed intrinsic solver cost",
+        "selection": "start/middle/end",
+        "attempted_window_fraction": 1.0,
+        "completed_window_fraction": 1.0,
+        "wall_seconds": 1.2828613729798235,
+        "segments": [
+          {
+            "start_ns": 0.0,
+            "stop_ns": 2.0,
+            "wall_seconds": 1.2828613729798235,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 0.8658347849850543,
+            "startup_and_transport_seconds": 0.4170265879947692,
+            "local_metric_residuals": {
+              "coherence": {
+                "endpoint": 0.49793565049747884,
+                "trajectory": 0.49793565049747884
+              },
+              "coherence_real": {
+                "endpoint": 0.06053079290614133,
+                "trajectory": 0.3171395396289095
+              },
+              "excited": {
+                "endpoint": 0.2718737121638387,
+                "trajectory": 0.2718737121638387
+              },
+              "photons": {
+                "endpoint": 0.7378476237415896,
+                "trajectory": 0.7378476237415896
+              }
+            }
+          }
+        ]
+      },
+      "verification_cost": {
+        "static_only": {
+          "seconds": 0.0006004480528645217,
+          "source_ratio": 1.1077028459114044,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": false
+          }
+        },
+        "integrity_static_segments": {
+          "seconds": 1.2837870150688104,
+          "source_ratio": 2368.3223275547607,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": false
+          }
+        },
+        "integrity_static_propagator": {
+          "seconds": 0.0012618580949492753,
+          "source_ratio": 2.3278679916496134,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": false
+          }
+        }
+      }
+    },
+    {
+      "name": "strong-drive",
+      "dimensions": [
+        4
+      ],
+      "reference_dimensions": [
+        8
+      ],
+      "duration_ns": 10.0,
+      "source_wall_seconds": 0.0031676850048825145,
+      "source_cost_kind": "regenerated engine solve",
+      "source_parameters": {
+        "rtol": 1e-10,
+        "atol": 1e-12,
+        "max_steps": 100000,
+        "frame": "lab"
+      },
+      "baseline": {
+        "kind": "new full-window independent dynamiqs trajectory",
+        "wall_seconds": 0.9287731790100224,
+        "residuals": {
+          "excited": {
+            "endpoint": 0.10653675540228802,
+            "trajectory": 0.4107385529030696
+          },
+          "coherence": {
+            "endpoint": 0.22722518404566178,
+            "trajectory": 0.8062264707849497
+          },
+          "coherence_real": {
+            "endpoint": 0.011483473989549443,
+            "trajectory": 0.42198222351292036
+          },
+          "number": {
+            "endpoint": 1.7687066836221892,
+            "trajectory": 4.683802422656047
+          },
+          "level2": {
+            "endpoint": 0.16376759371305089,
+            "trajectory": 0.2890618465432522
+          }
+        }
+      },
+      "integrity": {
+        "wall_seconds": 0.0004350789822638035,
+        "checks": [
+          {
+            "name": "trace",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 8.881784197001252e-16,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "hermiticity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 0.0,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "positivity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 0.0,
+            "tolerance": -1e-08
+          }
+        ],
+        "warnings": [
+          {
+            "name": "top_level_population",
+            "subsystem_index": 0,
+            "scope": "every stored state at every output time",
+            "population": 0.7564100321702187,
+            "threshold": 1e-06,
+            "triggered": true
+          }
+        ]
+      },
+      "static": {
+        "wall_seconds": 0.00018186698434874415,
+        "scope": "initially occupied undriven Hamiltonian eigenstates",
+        "occupied_weight_threshold": 1e-05,
+        "minimum_assignment_overlap": 1.0,
+        "maximum_excitation_shift_ghz": 0.0,
+        "maximum_outside_retained_weight": 0.0,
+        "dynamics_accuracy_estimate": null,
+        "unresolved": "static eigensystem alone does not establish open/driven dynamics convergence",
+        "driven": true,
+        "refined_model_construction_seconds": 0.0
+      },
+      "propagator": {
+        "applicable": false,
+        "reason": "continuous carrier in the lab frame"
+      },
+      "segments": {
+        "scope": "local restarts from source states; no full-window bound",
+        "reference_frame": "lab",
+        "cost_scope": "fresh spawn per segment; wall time includes process startup, imports, serialization and cleanup; solve_seconds includes first-use JAX/dynamiqs compilation and is not a warmed intrinsic solver cost",
+        "selection": "start/middle/end",
+        "attempted_window_fraction": 0.3,
+        "completed_window_fraction": 0.3,
+        "wall_seconds": 3.8831557880039327,
+        "segments": [
+          {
+            "start_ns": 0.0,
+            "stop_ns": 1.0,
+            "wall_seconds": 1.2840217159828171,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 0.8803141160169616,
+            "startup_and_transport_seconds": 0.4037075999658555,
+            "local_metric_residuals": {
+              "excited": {
+                "endpoint": 9.477964308096665e-05,
+                "trajectory": 9.477964308096665e-05
+              },
+              "coherence": {
+                "endpoint": 0.00012419428972698654,
+                "trajectory": 0.00012419428972698654
+              },
+              "coherence_real": {
+                "endpoint": 0.00032356721929904797,
+                "trajectory": 0.00032356721929904797
+              },
+              "number": {
+                "endpoint": 0.001060873033796983,
+                "trajectory": 0.001060873033796983
+              },
+              "level2": {
+                "endpoint": 0.0001411994693268498,
+                "trajectory": 0.0001411994693268498
+              }
+            }
+          },
+          {
+            "start_ns": 4.5,
+            "stop_ns": 5.5,
+            "wall_seconds": 1.2903218760038726,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 0.8906012660008855,
+            "startup_and_transport_seconds": 0.3997206100029871,
+            "local_metric_residuals": {
+              "excited": {
+                "endpoint": 0.1055375611559266,
+                "trajectory": 0.1055375611559266
+              },
+              "coherence": {
+                "endpoint": 0.07174881910015637,
+                "trajectory": 0.07174881910015637
+              },
+              "coherence_real": {
+                "endpoint": 0.060821359331943006,
+                "trajectory": 0.060821359331943006
+              },
+              "number": {
+                "endpoint": 1.8550021360819664,
+                "trajectory": 1.8550021360819664
+              },
+              "level2": {
+                "endpoint": 0.1469687597759829,
+                "trajectory": 0.1469687597759829
+              }
+            }
+          },
+          {
+            "start_ns": 9.0,
+            "stop_ns": 10.0,
+            "wall_seconds": 1.308812196017243,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 0.8935084780096076,
+            "startup_and_transport_seconds": 0.4153037180076353,
+            "local_metric_residuals": {
+              "excited": {
+                "endpoint": 0.0027182638346563426,
+                "trajectory": 0.0027182638346563426
+              },
+              "coherence": {
+                "endpoint": 0.005738830897172864,
+                "trajectory": 0.005738830897172864
+              },
+              "coherence_real": {
+                "endpoint": 0.00866366497088767,
+                "trajectory": 0.00866366497088767
+              },
+              "number": {
+                "endpoint": 0.017953870624344892,
+                "trajectory": 0.017953870624344892
+              },
+              "level2": {
+                "endpoint": 0.008883864607146075,
+                "trajectory": 0.008883864607146075
+              }
+            }
+          }
+        ]
+      },
+      "verification_cost": {
+        "static_only": {
+          "seconds": 0.00018186698434874415,
+          "source_ratio": 0.05741321629784,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": true,
+            "0.25": true
+          }
+        },
+        "integrity_static_segments": {
+          "seconds": 3.8837727339705452,
+          "source_ratio": 1226.0602705080487,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": false
+          }
+        }
+      }
+    },
+    {
+      "name": "top-fock-false-alarm",
+      "dimensions": [
+        4
+      ],
+      "reference_dimensions": [
+        8
+      ],
+      "duration_ns": 100.0,
+      "source_wall_seconds": 0.0008832230232656002,
+      "source_cost_kind": "regenerated engine solve",
+      "source_parameters": {
+        "rtol": 1e-10,
+        "atol": 1e-12,
+        "max_steps": 100000,
+        "frame": "lab"
+      },
+      "baseline": {
+        "kind": "existing M1 exponential helper; independent generator construction, shared scipy.expm",
+        "wall_seconds": 0.0007370899547822773,
+        "residuals": {
+          "excited": {
+            "endpoint": 1.4168111128753935e-12,
+            "trajectory": 2.513433905448892e-12
+          },
+          "coherence": {
+            "endpoint": 0.0,
+            "trajectory": 0.0
+          },
+          "coherence_real": {
+            "endpoint": 0.0,
+            "trajectory": 0.0
+          },
+          "number": {
+            "endpoint": 7.549516567451064e-15,
+            "trajectory": 1.9673151996357774e-13
+          },
+          "level2": {
+            "endpoint": 1.5202838987704581e-12,
+            "trajectory": 2.5949242754563784e-12
+          }
+        }
+      },
+      "integrity": {
+        "wall_seconds": 0.00036645197542384267,
+        "checks": [
+          {
+            "name": "trace",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 2.220446049250313e-16,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "hermiticity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 0.0,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "positivity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 0.0,
+            "tolerance": -1e-08
+          }
+        ],
+        "warnings": [
+          {
+            "name": "top_level_population",
+            "subsystem_index": 0,
+            "scope": "every stored state at every output time",
+            "population": 1.0,
+            "threshold": 1e-06,
+            "triggered": true
+          }
+        ]
+      },
+      "static": {
+        "wall_seconds": 0.0001566680148243904,
+        "scope": "initially occupied undriven Hamiltonian eigenstates",
+        "occupied_weight_threshold": 1e-05,
+        "minimum_assignment_overlap": 1.0,
+        "maximum_excitation_shift_ghz": 0.0,
+        "maximum_outside_retained_weight": 0.0,
+        "dynamics_accuracy_estimate": null,
+        "unresolved": "static eigensystem alone does not establish open/driven dynamics convergence",
+        "driven": false,
+        "refined_model_construction_seconds": 0.0
+      },
+      "propagator": {
+        "applicable": true,
+        "scope": "same declared generator, all stored intervals; exact-arithmetic bound",
+        "dimension": 4,
+        "distinct_generators": 1,
+        "initial_state_term": 0.0,
+        "maximum_defect": 3.674782700358037e-12,
+        "state_error_bound": 1.6400269122894724e-11,
+        "floating_point_disagreement_estimate": 1.986258379993444e-15,
+        "floating_point_caveat": "full step versus two half steps is not a certified roundoff bound",
+        "metric_error_bound": {
+          "excited": 8.200245583749825e-12,
+          "number": 2.4600736751249474e-11,
+          "coherence": 3.280053824578945e-11,
+          "coherence_real": 1.6400269122894724e-11,
+          "level2": 8.200245583749825e-12
+        },
+        "metric_floating_estimate": {
+          "excited": 9.93129189996722e-16,
+          "number": 2.979387569990166e-15,
+          "coherence": 3.972516759986888e-15,
+          "coherence_real": 1.986258379993444e-15,
+          "level2": 9.93129189996722e-16
+        },
+        "wall_seconds": 0.0003931239480152726,
+        "exponential_seconds": 6.42529921606183e-05,
+        "full_step_exponential_seconds": 4.110799636691809e-05,
+        "half_step_exponential_seconds": 2.3144995793700218e-05,
+        "cost_scope": "one BLAS thread; generator construction, full-step expm, a second half-step expm and two-half-step products for the floating-point estimate, all interval products and trace norms"
+      },
+      "segments": {
+        "scope": "local restarts from source states; no full-window bound",
+        "reference_frame": "lab",
+        "cost_scope": "fresh spawn per segment; wall time includes process startup, imports, serialization and cleanup; solve_seconds includes first-use JAX/dynamiqs compilation and is not a warmed intrinsic solver cost",
+        "selection": "start/middle/end",
+        "attempted_window_fraction": 0.3,
+        "completed_window_fraction": 0.3,
+        "wall_seconds": 3.7817429560236633,
+        "segments": [
+          {
+            "start_ns": 0.0,
+            "stop_ns": 10.0,
+            "wall_seconds": 1.2663136799819767,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 0.8536265729926527,
+            "startup_and_transport_seconds": 0.4126871069893241,
+            "local_metric_residuals": {
+              "excited": {
+                "endpoint": 1.3971462875517204e-14,
+                "trajectory": 3.3448070702046806e-14
+              },
+              "coherence": {
+                "endpoint": 0.0,
+                "trajectory": 0.0
+              },
+              "coherence_real": {
+                "endpoint": 0.0,
+                "trajectory": 0.0
+              },
+              "number": {
+                "endpoint": 0.0,
+                "trajectory": 2.7977620220553945e-14
+              },
+              "level2": {
+                "endpoint": 1.637578961322106e-14,
+                "trajectory": 1.637578961322106e-14
+              }
+            }
+          },
+          {
+            "start_ns": 45.0,
+            "stop_ns": 55.0,
+            "wall_seconds": 1.2491640120279044,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 0.8458648989908397,
+            "startup_and_transport_seconds": 0.40329911303706467,
+            "local_metric_residuals": {
+              "excited": {
+                "endpoint": 7.138734048339757e-14,
+                "trajectory": 2.3668844661983712e-12
+              },
+              "coherence": {
+                "endpoint": 0.0,
+                "trajectory": 0.0
+              },
+              "coherence_real": {
+                "endpoint": 0.0,
+                "trajectory": 0.0
+              },
+              "number": {
+                "endpoint": 1.942890293094024e-13,
+                "trajectory": 1.942890293094024e-13
+              },
+              "level2": {
+                "endpoint": 9.037215420448774e-14,
+                "trajectory": 3.1499802766177254e-12
+              }
+            }
+          },
+          {
+            "start_ns": 90.0,
+            "stop_ns": 100.0,
+            "wall_seconds": 1.2662652640137821,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 0.8624587020021863,
+            "startup_and_transport_seconds": 0.4038065620115958,
+            "local_metric_residuals": {
+              "excited": {
+                "endpoint": 5.814793091474257e-13,
+                "trajectory": 1.18804965865138e-12
+              },
+              "coherence": {
+                "endpoint": 0.0,
+                "trajectory": 0.0
+              },
+              "coherence_real": {
+                "endpoint": 0.0,
+                "trajectory": 0.0
+              },
+              "number": {
+                "endpoint": 5.10702591327572e-15,
+                "trajectory": 3.4861002973229915e-14
+              },
+              "level2": {
+                "endpoint": 5.501155087017651e-13,
+                "trajectory": 1.6040502259784262e-12
+              }
+            }
+          }
+        ]
+      },
+      "verification_cost": {
+        "static_only": {
+          "seconds": 0.0001566680148243904,
+          "source_ratio": 0.17738216814721514,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": true
+          }
+        },
+        "integrity_static_segments": {
+          "seconds": 3.7822660760139115,
+          "source_ratio": 4282.345428484737,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": false
+          }
+        },
+        "integrity_static_propagator": {
+          "seconds": 0.0009162439382635057,
+          "source_ratio": 1.0373868367649828,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": false
+          }
+        }
+      },
+      "analytic_number_residual": 1.965094753586527e-13
+    },
+    {
+      "name": "slow-phase-loose-tolerance",
+      "dimensions": [
+        2
+      ],
+      "reference_dimensions": [
+        2
+      ],
+      "duration_ns": 10000.0,
+      "source_wall_seconds": 0.015694379981141537,
+      "source_cost_kind": "regenerated engine solve",
+      "source_parameters": {
+        "rtol": 0.001,
+        "atol": 1e-05,
+        "max_steps": 100000,
+        "frame": "lab"
+      },
+      "baseline": {
+        "kind": "existing M1 exponential helper; independent generator construction, shared scipy.expm",
+        "wall_seconds": 0.001319929026067257,
+        "residuals": {
+          "excited": {
+            "endpoint": 0.0,
+            "trajectory": 0.0
+          },
+          "coherence": {
+            "endpoint": 0.006952494017811672,
+            "trajectory": 0.006954680065052898
+          },
+          "coherence_real": {
+            "endpoint": 0.006680112866649698,
+            "trajectory": 0.009488754572436475
+          },
+          "number": {
+            "endpoint": 0.0,
+            "trajectory": 0.0
+          }
+        }
+      },
+      "integrity": {
+        "wall_seconds": 0.000673063041176647,
+        "checks": [
+          {
+            "name": "trace",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 1.1102230246251565e-16,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "hermiticity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 0.0,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "positivity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 0.24999948460723478,
+            "tolerance": -1e-08
+          }
+        ],
+        "warnings": [
+          {
+            "name": "top_level_population",
+            "subsystem_index": 0,
+            "scope": "every stored state at every output time",
+            "population": 0.49999999999999994,
+            "threshold": 1e-06,
+            "triggered": true
+          }
+        ]
+      },
+      "static": {
+        "wall_seconds": 0.00011304504005238414,
+        "scope": "initially occupied undriven Hamiltonian eigenstates",
+        "occupied_weight_threshold": 1e-05,
+        "minimum_assignment_overlap": 1.0,
+        "maximum_excitation_shift_ghz": 0.0,
+        "maximum_outside_retained_weight": 0.0,
+        "dynamics_accuracy_estimate": null,
+        "unresolved": "static eigensystem alone does not establish open/driven dynamics convergence",
+        "driven": false,
+        "refined_model_construction_seconds": 0.0
+      },
+      "propagator": {
+        "applicable": true,
+        "scope": "same declared generator, all stored intervals; exact-arithmetic bound",
+        "dimension": 2,
+        "distinct_generators": 1,
+        "initial_state_term": 0.0,
+        "maximum_defect": 1.9359249912779143e-05,
+        "state_error_bound": 0.014604704113346436,
+        "floating_point_disagreement_estimate": 5.2470283439937676e-14,
+        "floating_point_caveat": "full step versus two half steps is not a certified roundoff bound",
+        "metric_error_bound": {
+          "excited": 0.0073023520566732735,
+          "number": 0.0073023520566732735,
+          "coherence": 0.029209408226692872,
+          "coherence_real": 0.014604704113346436
+        },
+        "metric_floating_estimate": {
+          "excited": 2.6235141719968838e-14,
+          "number": 2.6235141719968838e-14,
+          "coherence": 1.0494056687987535e-13,
+          "coherence_real": 5.2470283439937676e-14
+        },
+        "wall_seconds": 0.001582906988915056,
+        "exponential_seconds": 1.1019001249223948e-05,
+        "full_step_exponential_seconds": 7.342023309320211e-06,
+        "half_step_exponential_seconds": 3.676977939903736e-06,
+        "cost_scope": "one BLAS thread; generator construction, full-step expm, a second half-step expm and two-half-step products for the floating-point estimate, all interval products and trace norms"
+      },
+      "segments": {
+        "scope": "local restarts from source states; no full-window bound",
+        "reference_frame": "lab",
+        "cost_scope": "fresh spawn per segment; wall time includes process startup, imports, serialization and cleanup; solve_seconds includes first-use JAX/dynamiqs compilation and is not a warmed intrinsic solver cost",
+        "selection": "start/middle/end",
+        "attempted_window_fraction": 0.006,
+        "completed_window_fraction": 0.006,
+        "wall_seconds": 3.712766023061704,
+        "segments": [
+          {
+            "start_ns": 0.0,
+            "stop_ns": 20.0,
+            "wall_seconds": 1.260560405033175,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 0.839036854042206,
+            "startup_and_transport_seconds": 0.42152355099096894,
+            "local_metric_residuals": {
+              "excited": {
+                "endpoint": 0.0,
+                "trajectory": 0.0
+              },
+              "coherence": {
+                "endpoint": 1.0486899403305827e-06,
+                "trajectory": 1.0486899403305827e-06
+              },
+              "coherence_real": {
+                "endpoint": 2.1543794553602336e-05,
+                "trajectory": 2.1543794553602336e-05
+              },
+              "number": {
+                "endpoint": 0.0,
+                "trajectory": 0.0
+              }
+            }
+          },
+          {
+            "start_ns": 4990.0,
+            "stop_ns": 5010.0,
+            "wall_seconds": 1.2201731849927455,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 0.8201169300009497,
+            "startup_and_transport_seconds": 0.40005625499179587,
+            "local_metric_residuals": {
+              "excited": {
+                "endpoint": 0.0,
+                "trajectory": 0.0
+              },
+              "coherence": {
+                "endpoint": 1.03926049917491e-05,
+                "trajectory": 1.03926049917491e-05
+              },
+              "coherence_real": {
+                "endpoint": 3.507244660472253e-06,
+                "trajectory": 7.66979861618151e-06
+              },
+              "number": {
+                "endpoint": 0.0,
+                "trajectory": 0.0
+              }
+            }
+          },
+          {
+            "start_ns": 9980.0,
+            "stop_ns": 10000.0,
+            "wall_seconds": 1.2320324330357835,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 0.8263522990164347,
+            "startup_and_transport_seconds": 0.40568013401934877,
+            "local_metric_residuals": {
+              "excited": {
+                "endpoint": 0.0,
+                "trajectory": 0.0
+              },
+              "coherence": {
+                "endpoint": 1.3734218723637781e-05,
+                "trajectory": 1.5920266525637494e-05
+              },
+              "coherence_real": {
+                "endpoint": 3.1469753120384747e-06,
+                "trajectory": 1.1830120531186594e-05
+              },
+              "number": {
+                "endpoint": 0.0,
+                "trajectory": 0.0
+              }
+            }
+          }
+        ]
+      },
+      "verification_cost": {
+        "static_only": {
+          "seconds": 0.00011304504005238414,
+          "source_ratio": 0.007202899393809742,
+          "fits_source_fractions": {
+            "0.05": true,
+            "0.1": true,
+            "0.25": true
+          }
+        },
+        "integrity_static_segments": {
+          "seconds": 3.713552131142933,
+          "source_ratio": 236.61668288936292,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": false
+          }
+        },
+        "integrity_static_propagator": {
+          "seconds": 0.002369015070144087,
+          "source_ratio": 0.15094671296290202,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": true
+          }
+        }
+      }
+    },
+    {
+      "name": "delayed-pulse-local-fault",
+      "dimensions": [
+        2
+      ],
+      "reference_dimensions": [
+        2
+      ],
+      "duration_ns": 100.0,
+      "source_wall_seconds": 0.015895066026132554,
+      "source_cost_kind": "regenerated engine solve",
+      "source_parameters": {
+        "rtol": 1e-10,
+        "atol": 1e-12,
+        "max_steps": 100000,
+        "frame": "lab"
+      },
+      "baseline": {
+        "kind": "existing M1 exponential helper; independent generator construction, shared scipy.expm",
+        "wall_seconds": 0.00025715999072417617,
+        "residuals": {
+          "excited": {
+            "endpoint": 0.03360010188358221,
+            "trajectory": 0.03360010188358221
+          },
+          "coherence": {
+            "endpoint": 0.10598069144289118,
+            "trajectory": 0.10598069144289118
+          },
+          "coherence_real": {
+            "endpoint": 0.033329908031170585,
+            "trajectory": 0.10597977612971521
+          },
+          "number": {
+            "endpoint": 0.03360010188358221,
+            "trajectory": 0.03360010188358221
+          }
+        }
+      },
+      "integrity": {
+        "wall_seconds": 0.000369472021702677,
+        "checks": [
+          {
+            "name": "trace",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 2.220446049250313e-16,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "hermiticity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 0.0,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "positivity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": -4.198488778861531e-12,
+            "tolerance": -1e-08
+          }
+        ],
+        "warnings": [
+          {
+            "name": "top_level_population",
+            "subsystem_index": 0,
+            "scope": "every stored state at every output time",
+            "population": 0.09536507327429376,
+            "threshold": 1e-06,
+            "triggered": true
+          }
+        ]
+      },
+      "static": {
+        "wall_seconds": 0.00012995203724130988,
+        "scope": "initially occupied undriven Hamiltonian eigenstates",
+        "occupied_weight_threshold": 1e-05,
+        "minimum_assignment_overlap": 1.0,
+        "maximum_excitation_shift_ghz": 0.0,
+        "maximum_outside_retained_weight": 0.0,
+        "dynamics_accuracy_estimate": null,
+        "unresolved": "static eigensystem alone does not establish open/driven dynamics convergence",
+        "driven": true,
+        "refined_model_construction_seconds": 0.0
+      },
+      "propagator": {
+        "applicable": true,
+        "scope": "same declared generator, all stored intervals; exact-arithmetic bound",
+        "dimension": 2,
+        "distinct_generators": 2,
+        "initial_state_term": 0.0,
+        "maximum_defect": 0.1254908470934058,
+        "state_error_bound": 0.12549084711562575,
+        "floating_point_disagreement_estimate": 2.882881939149314e-15,
+        "floating_point_caveat": "full step versus two half steps is not a certified roundoff bound",
+        "metric_error_bound": {
+          "excited": 0.06274542355781298,
+          "number": 0.06274542355781298,
+          "coherence": 0.2509816942312515,
+          "coherence_real": 0.12549084711562575
+        },
+        "metric_floating_estimate": {
+          "excited": 1.441440969574657e-15,
+          "number": 1.441440969574657e-15,
+          "coherence": 5.765763878298628e-15,
+          "coherence_real": 2.882881939149314e-15
+        },
+        "wall_seconds": 0.0005213700351305306,
+        "exponential_seconds": 2.6506022550165653e-05,
+        "full_step_exponential_seconds": 1.772999530658126e-05,
+        "half_step_exponential_seconds": 8.776027243584394e-06,
+        "cost_scope": "one BLAS thread; generator construction, full-step expm, a second half-step expm and two-half-step products for the floating-point estimate, all interval products and trace norms"
+      },
+      "segments": {
+        "scope": "local restarts from source states; no full-window bound",
+        "reference_frame": "lab",
+        "cost_scope": "fresh spawn per segment; wall time includes process startup, imports, serialization and cleanup; solve_seconds includes first-use JAX/dynamiqs compilation and is not a warmed intrinsic solver cost",
+        "selection": "start/middle/end",
+        "attempted_window_fraction": 0.06,
+        "completed_window_fraction": 0.06,
+        "wall_seconds": 3.963559551979415,
+        "segments": [
+          {
+            "start_ns": 0.0,
+            "stop_ns": 2.0,
+            "wall_seconds": 1.3132777719874866,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 0.9088468460249715,
+            "startup_and_transport_seconds": 0.4044309259625152,
+            "local_metric_residuals": {
+              "excited": {
+                "endpoint": 0.0,
+                "trajectory": 0.0
+              },
+              "coherence": {
+                "endpoint": 0.0,
+                "trajectory": 0.0
+              },
+              "coherence_real": {
+                "endpoint": 0.0,
+                "trajectory": 0.0
+              },
+              "number": {
+                "endpoint": 0.0,
+                "trajectory": 0.0
+              }
+            }
+          },
+          {
+            "start_ns": 49.0,
+            "stop_ns": 51.0,
+            "wall_seconds": 1.321541415003594,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 0.9078359119594097,
+            "startup_and_transport_seconds": 0.4137055030441843,
+            "local_metric_residuals": {
+              "excited": {
+                "endpoint": 0.0,
+                "trajectory": 0.0
+              },
+              "coherence": {
+                "endpoint": 6.789013795582832e-13,
+                "trajectory": 6.789013795582832e-13
+              },
+              "coherence_real": {
+                "endpoint": 8.563150188933832e-13,
+                "trajectory": 8.563150188933832e-13
+              },
+              "number": {
+                "endpoint": 0.0,
+                "trajectory": 0.0
+              }
+            }
+          },
+          {
+            "start_ns": 98.0,
+            "stop_ns": 100.0,
+            "wall_seconds": 1.3287403649883345,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 0.9103312270017341,
+            "startup_and_transport_seconds": 0.4184091379866004,
+            "local_metric_residuals": {
+              "excited": {
+                "endpoint": 0.0,
+                "trajectory": 0.0
+              },
+              "coherence": {
+                "endpoint": 6.780132011385831e-13,
+                "trajectory": 6.780132011385831e-13
+              },
+              "coherence_real": {
+                "endpoint": 8.065492718145606e-13,
+                "trajectory": 8.065492718145606e-13
+              },
+              "number": {
+                "endpoint": 0.0,
+                "trajectory": 0.0
+              }
+            }
+          }
+        ]
+      },
+      "verification_cost": {
+        "static_only": {
+          "seconds": 0.00012995203724130988,
+          "source_ratio": 0.008175621103281988,
+          "fits_source_fractions": {
+            "0.05": true,
+            "0.1": true,
+            "0.25": true
+          }
+        },
+        "integrity_static_segments": {
+          "seconds": 3.964058976038359,
+          "source_ratio": 249.38927397477812,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": false
+          }
+        },
+        "integrity_static_propagator": {
+          "seconds": 0.0010207940940745175,
+          "source_ratio": 0.06422081496209349,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": true,
+            "0.25": true
+          }
+        }
+      },
+      "fault_injection": "one declared pulse 0.04 GHz executed as 0.05 GHz, all later evolution correct",
+      "transition_aware_segments": {
+        "scope": "local restarts from source states; no full-window bound",
+        "reference_frame": "lab",
+        "cost_scope": "fresh spawn per segment; wall time includes process startup, imports, serialization and cleanup; solve_seconds includes first-use JAX/dynamiqs compilation and is not a warmed intrinsic solver cost",
+        "selection": "start/middle/end plus drive transitions",
+        "attempted_window_fraction": 0.08,
+        "completed_window_fraction": 0.08,
+        "wall_seconds": 6.609983602014836,
+        "segments": [
+          {
+            "start_ns": 0.0,
+            "stop_ns": 2.0,
+            "wall_seconds": 1.3278329700115137,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 0.9141600680304691,
+            "startup_and_transport_seconds": 0.41367290198104456,
+            "local_metric_residuals": {
+              "excited": {
+                "endpoint": 0.0,
+                "trajectory": 0.0
+              },
+              "coherence": {
+                "endpoint": 0.0,
+                "trajectory": 0.0
+              },
+              "coherence_real": {
+                "endpoint": 0.0,
+                "trajectory": 0.0
+              },
+              "number": {
+                "endpoint": 0.0,
+                "trajectory": 0.0
+              }
+            }
+          },
+          {
+            "start_ns": 46.0,
+            "stop_ns": 48.0,
+            "wall_seconds": 1.309176083013881,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 0.9036213330109604,
+            "startup_and_transport_seconds": 0.4055547500029206,
+            "local_metric_residuals": {
+              "excited": {
+                "endpoint": 0.03360010188354472,
+                "trajectory": 0.03360010188354472
+              },
+              "coherence": {
+                "endpoint": 0.1059806914283713,
+                "trajectory": 0.1059806914283713
+              },
+              "coherence_real": {
+                "endpoint": 0.0072635436143429905,
+                "trajectory": 0.0072635436143429905
+              },
+              "number": {
+                "endpoint": 0.03360010188354472,
+                "trajectory": 0.03360010188354472
+              }
+            }
+          },
+          {
+            "start_ns": 47.0,
+            "stop_ns": 49.0,
+            "wall_seconds": 1.317383979971055,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 0.9040346840047278,
+            "startup_and_transport_seconds": 0.4133492959663272,
+            "local_metric_residuals": {
+              "excited": {
+                "endpoint": 0.03360010188354472,
+                "trajectory": 0.03360010188354472
+              },
+              "coherence": {
+                "endpoint": 0.1059806914287002,
+                "trajectory": 0.1059806914287002
+              },
+              "coherence_real": {
+                "endpoint": 0.020458043597163217,
+                "trajectory": 0.020458043597163217
+              },
+              "number": {
+                "endpoint": 0.03360010188354472,
+                "trajectory": 0.03360010188354472
+              }
+            }
+          },
+          {
+            "start_ns": 48.0,
+            "stop_ns": 50.0,
+            "wall_seconds": 1.3386345659964718,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 0.9177395909791812,
+            "startup_and_transport_seconds": 0.42089497501729056,
+            "local_metric_residuals": {
+              "excited": {
+                "endpoint": 0.0,
+                "trajectory": 0.0
+              },
+              "coherence": {
+                "endpoint": 6.789013795582832e-13,
+                "trajectory": 6.789013795582832e-13
+              },
+              "coherence_real": {
+                "endpoint": 8.06521516238945e-13,
+                "trajectory": 8.06521516238945e-13
+              },
+              "number": {
+                "endpoint": 0.0,
+                "trajectory": 0.0
+              }
+            }
+          },
+          {
+            "start_ns": 97.0,
+            "stop_ns": 99.0,
+            "wall_seconds": 1.3169560030219145,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 0.9004517570137978,
+            "startup_and_transport_seconds": 0.41650424600811675,
+            "local_metric_residuals": {
+              "excited": {
+                "endpoint": 0.0,
+                "trajectory": 0.0
+              },
+              "coherence": {
+                "endpoint": 6.783462680459706e-13,
+                "trajectory": 6.783462680459706e-13
+              },
+              "coherence_real": {
+                "endpoint": 7.440298377403565e-13,
+                "trajectory": 7.440298377403565e-13
+              },
+              "number": {
+                "endpoint": 0.0,
+                "trajectory": 0.0
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "two-photon-transmon",
+      "dimensions": [
+        3
+      ],
+      "reference_dimensions": [
+        6
+      ],
+      "duration_ns": 100.0,
+      "source_wall_seconds": 0.004210590966977179,
+      "source_cost_kind": "regenerated engine solve",
+      "source_parameters": {
+        "rtol": 1e-10,
+        "atol": 1e-12,
+        "max_steps": 100000,
+        "frame": "rotating-rwa"
+      },
+      "baseline": {
+        "kind": "new full-window independent dynamiqs trajectory",
+        "wall_seconds": 1.3895372429979034,
+        "residuals": {
+          "excited": {
+            "endpoint": 0.007053697342245223,
+            "trajectory": 0.029818477348808388
+          },
+          "coherence": {
+            "endpoint": 0.09123172077830083,
+            "trajectory": 0.12111115786968782
+          },
+          "coherence_real": {
+            "endpoint": 0.17485092532171131,
+            "trajectory": 0.7588890854026088
+          },
+          "number": {
+            "endpoint": 0.26029820981220375,
+            "trajectory": 0.26029820981220375
+          },
+          "level2": {
+            "endpoint": 0.12777177945352536,
+            "trajectory": 0.12777177945352536
+          }
+        }
+      },
+      "integrity": {
+        "wall_seconds": 0.0005505320150405169,
+        "checks": [
+          {
+            "name": "trace",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 2.4440035804976947e-15,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "hermiticity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": 1.4619569000352776e-15,
+            "tolerance": 1e-08
+          },
+          {
+            "name": "positivity",
+            "scope": "every stored state at every output time",
+            "outcome": "pass",
+            "residual": -2.111956660539899e-12,
+            "tolerance": -1e-08
+          }
+        ],
+        "warnings": [
+          {
+            "name": "top_level_population",
+            "subsystem_index": 0,
+            "scope": "every stored state at every output time",
+            "population": 0.9040843476348074,
+            "threshold": 1e-06,
+            "triggered": true
+          }
+        ]
+      },
+      "static": {
+        "wall_seconds": 0.0004153680056333542,
+        "scope": "initially occupied undriven Hamiltonian eigenstates",
+        "occupied_weight_threshold": 1e-05,
+        "minimum_assignment_overlap": 1.0,
+        "maximum_excitation_shift_ghz": 0.0,
+        "maximum_outside_retained_weight": 0.0,
+        "dynamics_accuracy_estimate": null,
+        "unresolved": "static eigensystem alone does not establish open/driven dynamics convergence",
+        "driven": true,
+        "rwa_excitation_shift_ghz": 0.0,
+        "refined_model_construction_seconds": 0.0
+      },
+      "propagator": {
+        "applicable": true,
+        "scope": "same declared generator, all stored intervals; exact-arithmetic bound",
+        "dimension": 3,
+        "distinct_generators": 1,
+        "initial_state_term": 0.0,
+        "maximum_defect": 9.285463338628313e-13,
+        "state_error_bound": 3.954913517186516e-11,
+        "floating_point_disagreement_estimate": 2.613851753633207e-14,
+        "floating_point_caveat": "full step versus two half steps is not a certified roundoff bound",
+        "metric_error_bound": {
+          "excited": 1.9775790441130207e-11,
+          "number": 3.9551580882260414e-11,
+          "coherence": 7.909827034373032e-11,
+          "coherence_real": 3.954913517186516e-11,
+          "level2": 1.9775790441130207e-11
+        },
+        "metric_floating_estimate": {
+          "excited": 1.3069258768166035e-14,
+          "number": 2.613851753633207e-14,
+          "coherence": 5.227703507266414e-14,
+          "coherence_real": 2.613851753633207e-14,
+          "level2": 1.3069258768166035e-14
+        },
+        "wall_seconds": 0.0007132960017770529,
+        "exponential_seconds": 3.3304968383163214e-05,
+        "full_step_exponential_seconds": 2.411799505352974e-05,
+        "half_step_exponential_seconds": 9.186973329633474e-06,
+        "cost_scope": "one BLAS thread; generator construction, full-step expm, a second half-step expm and two-half-step products for the floating-point estimate, all interval products and trace norms"
+      },
+      "segments": {
+        "scope": "local restarts from source states; no full-window bound",
+        "reference_frame": "lab",
+        "cost_scope": "fresh spawn per segment; wall time includes process startup, imports, serialization and cleanup; solve_seconds includes first-use JAX/dynamiqs compilation and is not a warmed intrinsic solver cost",
+        "selection": "start/middle/end",
+        "attempted_window_fraction": 0.06,
+        "completed_window_fraction": 0.06,
+        "wall_seconds": 3.8878808259614743,
+        "segments": [
+          {
+            "start_ns": 0.0,
+            "stop_ns": 2.0,
+            "wall_seconds": 1.2771802779752761,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 0.870484707003925,
+            "startup_and_transport_seconds": 0.4066955709713511,
+            "local_metric_residuals": {
+              "excited": {
+                "endpoint": 0.0006909740886456572,
+                "trajectory": 0.0006909740886456572
+              },
+              "coherence": {
+                "endpoint": 0.0035440595885989357,
+                "trajectory": 0.004571550853677525
+              },
+              "coherence_real": {
+                "endpoint": 0.7046704013020288,
+                "trajectory": 0.7046704013020288
+              },
+              "number": {
+                "endpoint": 0.0007574404153135247,
+                "trajectory": 0.0007574404153135247
+              },
+              "level2": {
+                "endpoint": 2.927910808052294e-05,
+                "trajectory": 2.927910808052294e-05
+              }
+            }
+          },
+          {
+            "start_ns": 49.0,
+            "stop_ns": 51.0,
+            "wall_seconds": 1.2935947329970077,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 0.8826402410049923,
+            "startup_and_transport_seconds": 0.4109544919920154,
+            "local_metric_residuals": {
+              "excited": {
+                "endpoint": 0.00019852219967697246,
+                "trajectory": 0.0002135209473788091
+              },
+              "coherence": {
+                "endpoint": 0.0010228022316479124,
+                "trajectory": 0.0010228022316479124
+              },
+              "coherence_real": {
+                "endpoint": 0.2014464462038214,
+                "trajectory": 0.5187884327706964
+              },
+              "number": {
+                "endpoint": 1.9010802336794086e-05,
+                "trajectory": 0.007277390928515093
+              },
+              "level2": {
+                "endpoint": 0.001181796724244455,
+                "trajectory": 0.00774454217989351
+              }
+            }
+          },
+          {
+            "start_ns": 98.0,
+            "stop_ns": 100.0,
+            "wall_seconds": 1.3171058149891905,
+            "hard_timeout_seconds": 12.0,
+            "engine": "dynamiqs",
+            "outcome": "measured",
+            "solve_seconds": 0.9056380100082606,
+            "startup_and_transport_seconds": 0.41146780498092994,
+            "local_metric_residuals": {
+              "excited": {
+                "endpoint": 0.00015065778260568014,
+                "trajectory": 0.00015937775774050623
+              },
+              "coherence": {
+                "endpoint": 0.0004876040890406663,
+                "trajectory": 0.0006012218854813817
+              },
+              "coherence_real": {
+                "endpoint": 0.2681197585610801,
+                "trajectory": 0.2681197585610801
+              },
+              "number": {
+                "endpoint": 0.002083925183706148,
+                "trajectory": 0.013275637059269707
+              },
+              "level2": {
+                "endpoint": 0.0007101266869792289,
+                "trajectory": 0.012891674364433836
+              }
+            }
+          }
+        ]
+      },
+      "verification_cost": {
+        "static_only": {
+          "seconds": 0.0004153680056333542,
+          "source_ratio": 0.09864838662577348,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": true,
+            "0.25": true
+          }
+        },
+        "integrity_static_segments": {
+          "seconds": 3.888846725982148,
+          "source_ratio": 923.5869160603805,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": false
+          }
+        },
+        "integrity_static_propagator": {
+          "seconds": 0.001679196022450924,
+          "source_ratio": 0.39880293184983334,
+          "fits_source_fractions": {
+            "0.05": false,
+            "0.1": false,
+            "0.25": false
+          }
+        }
+      },
+      "maximum_level2_population": 0.9040843476348074
+    }
+  ],
+  "spectral_failure": {
+    "case": "4b-fluxonium-small-cutoff",
+    "reported_levels": 4,
+    "residual_ghz": 0.031302782301355414,
+    "target_ghz": 1e-05,
+    "eigensolve_seconds": 1.784402411431074e-05
+  },
+  "benchmarks": {
+    "propagators": [
+      {
+        "applicable": true,
+        "scope": "same declared generator, all stored intervals; exact-arithmetic bound",
+        "dimension": 6,
+        "distinct_generators": 1,
+        "initial_state_term": 0.0,
+        "maximum_defect": 6.1740366231550684e-12,
+        "state_error_bound": 5.754194417321183e-11,
+        "floating_point_disagreement_estimate": 5.651226212820936e-16,
+        "floating_point_caveat": "full step versus two half steps is not a certified roundoff bound",
+        "metric_error_bound": {
+          "excited": 2.8772137820781864e-11,
+          "photons": 5.754427564156373e-11,
+          "coherence": 1.1508388834642365e-10,
+          "coherence_real": 5.754194417321183e-11
+        },
+        "metric_floating_estimate": {
+          "excited": 2.825613106410468e-16,
+          "photons": 5.651226212820936e-16,
+          "coherence": 1.1302452425641873e-15,
+          "coherence_real": 5.651226212820936e-16
+        },
+        "wall_seconds": 0.0010197379742749035,
+        "exponential_seconds": 0.00026194803649559617,
+        "full_step_exponential_seconds": 0.000136009999550879,
+        "half_step_exponential_seconds": 0.00012593803694471717,
+        "cost_scope": "one BLAS thread; generator construction, full-step expm, a second half-step expm and two-half-step products for the floating-point estimate, all interval products and trace norms"
+      },
+      {
+        "applicable": true,
+        "scope": "same declared generator, all stored intervals; exact-arithmetic bound",
+        "dimension": 12,
+        "distinct_generators": 1,
+        "initial_state_term": 0.0,
+        "maximum_defect": 1.2403896620187053e-11,
+        "state_error_bound": 1.1379826248929181e-10,
+        "floating_point_disagreement_estimate": 5.309510789940088e-16,
+        "floating_point_caveat": "full step versus two half steps is not a certified roundoff bound",
+        "metric_error_bound": {
+          "excited": 5.690057453591391e-11,
+          "photons": 1.7070172360774173e-10,
+          "coherence": 2.2759652497858362e-10,
+          "coherence_real": 1.1379826248929181e-10
+        },
+        "metric_floating_estimate": {
+          "excited": 2.654755394970044e-16,
+          "photons": 7.964266184910131e-16,
+          "coherence": 1.0619021579880175e-15,
+          "coherence_real": 5.309510789940088e-16
+        },
+        "wall_seconds": 0.009182223991956562,
+        "exponential_seconds": 0.00813583703711629,
+        "full_step_exponential_seconds": 0.004240815993398428,
+        "half_step_exponential_seconds": 0.003895021043717861,
+        "cost_scope": "one BLAS thread; generator construction, full-step expm, a second half-step expm and two-half-step products for the floating-point estimate, all interval products and trace norms"
+      },
+      {
+        "applicable": true,
+        "scope": "same declared generator, all stored intervals; exact-arithmetic bound",
+        "dimension": 20,
+        "distinct_generators": 1,
+        "initial_state_term": 0.0,
+        "maximum_defect": 2.0203650210221043e-11,
+        "state_error_bound": 1.8940303130474744e-10,
+        "floating_point_disagreement_estimate": 6.264900793168579e-16,
+        "floating_point_caveat": "full step versus two half steps is not a certified roundoff bound",
+        "metric_error_bound": {
+          "excited": 9.470251485422245e-11,
+          "photons": 3.788100594168898e-10,
+          "coherence": 3.7880606260949487e-10,
+          "coherence_real": 1.8940303130474744e-10
+        },
+        "metric_floating_estimate": {
+          "excited": 3.1324503965842896e-16,
+          "photons": 1.2529801586337159e-15,
+          "coherence": 1.2529801586337159e-15,
+          "coherence_real": 6.264900793168579e-16
+        },
+        "wall_seconds": 0.1421889750054106,
+        "exponential_seconds": 0.13791552698239684,
+        "full_step_exponential_seconds": 0.07280734297819436,
+        "half_step_exponential_seconds": 0.06510818400420249,
+        "cost_scope": "one BLAS thread; generator construction, full-step expm, a second half-step expm and two-half-step products for the floating-point estimate, all interval products and trace norms"
+      },
+      {
+        "applicable": true,
+        "scope": "same declared generator, all stored intervals; exact-arithmetic bound",
+        "dimension": 30,
+        "distinct_generators": 1,
+        "initial_state_term": 0.0,
+        "maximum_defect": 2.986426508719399e-11,
+        "state_error_bound": 2.830389020854817e-10,
+        "floating_point_disagreement_estimate": 3.871254722962484e-16,
+        "floating_point_caveat": "full step versus two half steps is not a certified roundoff bound",
+        "metric_error_bound": {
+          "excited": 1.4152045031542582e-10,
+          "photons": 7.07602251577129e-10,
+          "coherence": 5.660778041709634e-10,
+          "coherence_real": 2.830389020854817e-10
+        },
+        "metric_floating_estimate": {
+          "excited": 1.935627361481242e-16,
+          "photons": 9.67813680740621e-16,
+          "coherence": 7.742509445924968e-16,
+          "coherence_real": 3.871254722962484e-16
+        },
+        "wall_seconds": 1.563271530030761,
+        "exponential_seconds": 1.5462348989676684,
+        "full_step_exponential_seconds": 0.7982581699616276,
+        "half_step_exponential_seconds": 0.7479767290060408,
+        "cost_scope": "one BLAS thread; generator construction, full-step expm, a second half-step expm and two-half-step products for the floating-point estimate, all interval products and trace norms"
+      },
+      {
+        "applicable": true,
+        "scope": "same declared generator, all stored intervals; exact-arithmetic bound",
+        "dimension": 48,
+        "distinct_generators": 1,
+        "initial_state_term": 0.0,
+        "maximum_defect": 4.7374398400104496e-11,
+        "state_error_bound": 4.495394277238386e-10,
+        "floating_point_disagreement_estimate": 6.74375515376198e-16,
+        "floating_point_caveat": "full step versus two half steps is not a certified roundoff bound",
+        "metric_error_bound": {
+          "excited": 2.247703800010654e-10,
+          "photons": 1.5733926600074578e-09,
+          "coherence": 8.990788554476772e-10,
+          "coherence_real": 4.495394277238386e-10
+        },
+        "metric_floating_estimate": {
+          "excited": 3.37187757688099e-16,
+          "photons": 2.360314303816693e-15,
+          "coherence": 1.348751030752396e-15,
+          "coherence_real": 6.74375515376198e-16
+        },
+        "wall_seconds": 26.80820255796425,
+        "exponential_seconds": 26.580493259010836,
+        "full_step_exponential_seconds": 13.852145604032557,
+        "half_step_exponential_seconds": 12.728347654978279,
+        "cost_scope": "one BLAS thread; generator construction, full-step expm, a second half-step expm and two-half-step products for the floating-point estimate, all interval products and trace norms"
+      }
+    ],
+    "integrity": [
+      {
+        "dimension": 30,
+        "stored_states": 21,
+        "wall_seconds": 0.0008980639977380633,
+        "distribution": "seeded mixed states, not diagonal shortcuts"
+      },
+      {
+        "dimension": 48,
+        "stored_states": 21,
+        "wall_seconds": 0.0017699140007607639,
+        "distribution": "seeded mixed states, not diagonal shortcuts"
+      },
+      {
+        "dimension": 120,
+        "stored_states": 21,
+        "wall_seconds": 0.011373841960448772,
+        "distribution": "seeded mixed states, not diagonal shortcuts"
+      },
+      {
+        "dimension": 240,
+        "stored_states": 21,
+        "wall_seconds": 0.062058586976490915,
+        "distribution": "seeded mixed states, not diagonal shortcuts"
+      }
+    ]
+  },
+  "timeout_control": {
+    "scope": "local restarts from source states; no full-window bound",
+    "reference_frame": "lab",
+    "cost_scope": "fresh spawn per segment; wall time includes process startup, imports, serialization and cleanup; solve_seconds includes first-use JAX/dynamiqs compilation and is not a warmed intrinsic solver cost",
+    "selection": "start/middle/end",
+    "attempted_window_fraction": 0.3,
+    "completed_window_fraction": 0.0,
+    "wall_seconds": 0.03301226202165708,
+    "segments": [
+      {
+        "start_ns": 0.0,
+        "stop_ns": 10.0,
+        "wall_seconds": 0.010946737020276487,
+        "hard_timeout_seconds": 0.01,
+        "engine": "dynamiqs",
+        "outcome": "allowance_exhausted"
+      },
+      {
+        "start_ns": 45.0,
+        "stop_ns": 55.0,
+        "wall_seconds": 0.011086492973845452,
+        "hard_timeout_seconds": 0.01,
+        "engine": "dynamiqs",
+        "outcome": "allowance_exhausted"
+      },
+      {
+        "start_ns": 90.0,
+        "stop_ns": 100.0,
+        "wall_seconds": 0.01097903202753514,
+        "hard_timeout_seconds": 0.01,
+        "engine": "dynamiqs",
+        "outcome": "allowance_exhausted"
+      }
+    ]
+  },
+  "initial_state_control": {
+    "applicable": true,
+    "scope": "same declared generator, all stored intervals; exact-arithmetic bound",
+    "dimension": 4,
+    "distinct_generators": 1,
+    "initial_state_term": 2.0,
+    "maximum_defect": 3.674782700358037e-12,
+    "state_error_bound": 2.0000000000164,
+    "floating_point_disagreement_estimate": 1.986258379993444e-15,
+    "floating_point_caveat": "full step versus two half steps is not a certified roundoff bound",
+    "metric_error_bound": {
+      "excited": 1.0000000000082,
+      "number": 3.0000000000246003,
+      "coherence": 4.0000000000328,
+      "coherence_real": 2.0000000000164,
+      "level2": 1.0000000000082
+    },
+    "metric_floating_estimate": {
+      "excited": 9.93129189996722e-16,
+      "number": 2.979387569990166e-15,
+      "coherence": 3.972516759986888e-15,
+      "coherence_real": 1.986258379993444e-15,
+      "level2": 9.93129189996722e-16
+    },
+    "wall_seconds": 0.00046751898480579257,
+    "exponential_seconds": 6.001099245622754e-05,
+    "full_step_exponential_seconds": 3.8631027564406395e-05,
+    "half_step_exponential_seconds": 2.1379964891821146e-05,
+    "cost_scope": "one BLAS thread; generator construction, full-step expm, a second half-step expm and two-half-step products for the floating-point estimate, all interval products and trace norms"
+  },
+  "assessment": {
+    "regression_checks": {
+      "loose_tolerance_propagator_detected": true,
+      "slow_error_integrity_passes": true,
+      "slow_error_propagator_detected": true,
+      "truncation_segments_detected": true,
+      "strong_drive_segments_detected": true,
+      "two_photon_case_populates_level2": true,
+      "two_photon_segments_detected": true,
+      "top_fock_diagnostic_triggers": true,
+      "top_fock_no_accuracy_failure": true,
+      "delayed_sparse_segments_miss": true,
+      "delayed_transition_segments_detect": true,
+      "delayed_propagator_detects": true,
+      "spectral_small_cutoff_detected": true,
+      "budget_exhaustion_returns_no_segment_evidence": true,
+      "initial_state_term_measured": true,
+      "same_frame_readout_segments_completed": true
+    },
+    "pass": true,
+    "detection": [
+      {
+        "case": "4b-loose-tolerance",
+        "metric": "coherence",
+        "target": 1e-06,
+        "measured_endpoint_error": 0.033124816582360994,
+        "propagator_numerical_signal": 0.2511767178428864,
+        "segment_local_signal": 0.01593892438839062,
+        "segment_missed_failure": false,
+        "static_cleared_dynamics": false
+      },
+      {
+        "case": "4b-driven-truncation",
+        "metric": "photons",
+        "target": 1e-06,
+        "measured_endpoint_error": 0.737847623741638,
+        "propagator_numerical_signal": 4.136236999911079e-12,
+        "segment_local_signal": 0.7378476237415896,
+        "segment_missed_failure": false,
+        "static_cleared_dynamics": false
+      },
+      {
+        "case": "strong-drive",
+        "metric": "number",
+        "target": 1e-06,
+        "measured_endpoint_error": 1.7687066836221892,
+        "propagator_numerical_signal": null,
+        "segment_local_signal": 1.8550021360819664,
+        "segment_missed_failure": false,
+        "static_cleared_dynamics": false
+      },
+      {
+        "case": "slow-phase-loose-tolerance",
+        "metric": "coherence_real",
+        "target": 1e-06,
+        "measured_endpoint_error": 0.006680112866649698,
+        "propagator_numerical_signal": 0.014604704113346436,
+        "segment_local_signal": 2.1543794553602336e-05,
+        "segment_missed_failure": false,
+        "static_cleared_dynamics": false
+      },
+      {
+        "case": "delayed-pulse-local-fault",
+        "metric": "excited",
+        "target": 1e-06,
+        "measured_endpoint_error": 0.03360010188358221,
+        "propagator_numerical_signal": 0.06274542355781298,
+        "segment_local_signal": 0.0,
+        "segment_missed_failure": true,
+        "static_cleared_dynamics": false
+      },
+      {
+        "case": "two-photon-transmon",
+        "metric": "level2",
+        "target": 1e-06,
+        "measured_endpoint_error": 0.12777177945352536,
+        "propagator_numerical_signal": 1.9775790441130207e-11,
+        "segment_local_signal": 0.012891674364433836,
+        "segment_missed_failure": false,
+        "static_cleared_dynamics": false
+      }
+    ],
+    "direct_lab_segment_thresholding": {
+      "comparisons": [
+        {
+          "case": "5b-readout-ej12.0-a0.0",
+          "metric": "endpoint coherence",
+          "local_endpoint_signal": 0.0003677730871783913,
+          "local_trajectory_signal": 0.0003677730871783913,
+          "full_window_endpoint_error": 5.42585947842511e-05,
+          "accepted_endpoint_target": 0.0005,
+          "numerical_threshold": 1e-06,
+          "false_alarm_at_numerical_threshold": true,
+          "false_alarm_at_endpoint_target": false
+        },
+        {
+          "case": "5b-readout-ej12.0-a0.001",
+          "metric": "endpoint coherence",
+          "local_endpoint_signal": 0.0002575715846928617,
+          "local_trajectory_signal": 0.0005282212640677075,
+          "full_window_endpoint_error": 8.888918920502142e-05,
+          "accepted_endpoint_target": 0.0005,
+          "numerical_threshold": 1e-06,
+          "false_alarm_at_numerical_threshold": true,
+          "false_alarm_at_endpoint_target": false
+        },
+        {
+          "case": "5b-readout-ej12.0-a0.002",
+          "metric": "endpoint coherence",
+          "local_endpoint_signal": 0.0003739046584261274,
+          "local_trajectory_signal": 0.0009414789688203529,
+          "full_window_endpoint_error": 0.0003955578095369283,
+          "accepted_endpoint_target": 0.0005,
+          "numerical_threshold": 1e-06,
+          "false_alarm_at_numerical_threshold": true,
+          "false_alarm_at_endpoint_target": false
+        },
+        {
+          "case": "5b-readout-ej13.5-a0.002",
+          "metric": "endpoint coherence",
+          "local_endpoint_signal": 0.000889567509715472,
+          "local_trajectory_signal": 0.000889567509715472,
+          "full_window_endpoint_error": 0.0002959305076200014,
+          "accepted_endpoint_target": 0.0005,
+          "numerical_threshold": 1e-06,
+          "false_alarm_at_numerical_threshold": true,
+          "false_alarm_at_endpoint_target": true
+        },
+        {
+          "case": "5b-readout-ej15.0-a0.0",
+          "metric": "endpoint coherence",
+          "local_endpoint_signal": 0.0010464497845935616,
+          "local_trajectory_signal": 0.0010464497845935616,
+          "full_window_endpoint_error": 0.0002657863342608868,
+          "accepted_endpoint_target": 0.0005,
+          "numerical_threshold": 1e-06,
+          "false_alarm_at_numerical_threshold": true,
+          "false_alarm_at_endpoint_target": true
+        },
+        {
+          "case": "5b-readout-ej15.0-a0.002",
+          "metric": "endpoint coherence",
+          "local_endpoint_signal": 0.0017105069437531872,
+          "local_trajectory_signal": 0.0017105069437531872,
+          "full_window_endpoint_error": 0.0003752773640582907,
+          "accepted_endpoint_target": 0.0005,
+          "numerical_threshold": 1e-06,
+          "false_alarm_at_numerical_threshold": true,
+          "false_alarm_at_endpoint_target": true
+        }
+      ],
+      "false_alarms_at_numerical_threshold": 6,
+      "false_alarms_at_endpoint_target": 3,
+      "scope": "six RWA readout cases; false alarm means rejecting a case whose retained full-window endpoint error meets the accepted 5e-4 target; local endpoints and the reported full-window endpoint have different scopes",
+      "claim": "lab-frame segments include RWA differences and cannot be thresholded as pure numerical error at 1e-6; even the same endpoint target does not translate into a local restart rule"
+    },
+    "same_frame_refined_segments": {
+      "comparisons": [
+        {
+          "case": "5b-readout-ej12.0-a0.0",
+          "same_frame_local_endpoint_residuals": {
+            "coherence": 6.275946429212809e-11,
+            "excited": 2.337574578348267e-13,
+            "photons": 2.3396432360933694e-13
+          },
+          "lab_frame_local_endpoint_coherence_residual": 0.0003677730871783913,
+          "same_frame_wall_seconds": 4.70354891003808,
+          "lab_frame_wall_seconds": 7.006183860008605
+        },
+        {
+          "case": "5b-readout-ej12.0-a0.001",
+          "same_frame_local_endpoint_residuals": {
+            "coherence": 1.0225242874639662e-10,
+            "excited": 5.908606937055083e-13,
+            "photons": 7.651761169125137e-13
+          },
+          "lab_frame_local_endpoint_coherence_residual": 0.0002575715846928617,
+          "same_frame_wall_seconds": 4.751210690941662,
+          "lab_frame_wall_seconds": 7.556308598956093
+        },
+        {
+          "case": "5b-readout-ej12.0-a0.002",
+          "same_frame_local_endpoint_residuals": {
+            "coherence": 1.54633494897638e-09,
+            "excited": 1.7805423802030873e-10,
+            "photons": 1.2692965845051418e-09
+          },
+          "lab_frame_local_endpoint_coherence_residual": 0.0003739046584261274,
+          "same_frame_wall_seconds": 4.77637172100367,
+          "lab_frame_wall_seconds": 8.203562328999396
+        },
+        {
+          "case": "5b-readout-ej13.5-a0.002",
+          "same_frame_local_endpoint_residuals": {
+            "coherence": 1.531031457169263e-08,
+            "excited": 8.340395041273041e-11,
+            "photons": 1.3533035525536974e-09
+          },
+          "lab_frame_local_endpoint_coherence_residual": 0.000889567509715472,
+          "same_frame_wall_seconds": 4.6818679589778185,
+          "lab_frame_wall_seconds": 8.293164924078155
+        },
+        {
+          "case": "5b-readout-ej15.0-a0.0",
+          "same_frame_local_endpoint_residuals": {
+            "coherence": 5.628231214416246e-11,
+            "excited": 2.5374147227807953e-13,
+            "photons": 2.541916330200955e-13
+          },
+          "lab_frame_local_endpoint_coherence_residual": 0.0010464497845935616,
+          "same_frame_wall_seconds": 4.559605836926494,
+          "lab_frame_wall_seconds": 7.225458196015097
+        },
+        {
+          "case": "5b-readout-ej15.0-a0.002",
+          "same_frame_local_endpoint_residuals": {
+            "coherence": 2.1085512114105143e-08,
+            "excited": 5.777934797279727e-10,
+            "photons": 1.7265632534790853e-09
+          },
+          "lab_frame_local_endpoint_coherence_residual": 0.0017105069437531872,
+          "same_frame_wall_seconds": 4.583073804969899,
+          "lab_frame_wall_seconds": 8.348010587971658
+        }
+      ],
+      "scope": "independent tighter refined RWA solves restarted from source lab states at absolute times; local truncation/numerical evidence with the same approximation, not an RWA check or a full-window truncation estimate"
+    },
+    "segment_extrapolation": {
+      "comparisons": [
+        {
+          "case": "5b-readout-ej12.0-a0.0",
+          "metric": "endpoint coherence",
+          "target": 0.0005,
+          "hypothesis": "largest local endpoint defect divided by segment duration times full duration",
+          "estimate": 0.018388654358919565,
+          "measured": 5.42585947842511e-05,
+          "false_alarm": true
+        },
+        {
+          "case": "5b-readout-ej12.0-a0.001",
+          "metric": "endpoint coherence",
+          "target": 0.0005,
+          "hypothesis": "largest local endpoint defect divided by segment duration times full duration",
+          "estimate": 0.012878579234643084,
+          "measured": 8.888918920502142e-05,
+          "false_alarm": true
+        },
+        {
+          "case": "5b-readout-ej12.0-a0.002",
+          "metric": "endpoint coherence",
+          "target": 0.0005,
+          "hypothesis": "largest local endpoint defect divided by segment duration times full duration",
+          "estimate": 0.01869523292130637,
+          "measured": 0.0003955578095369283,
+          "false_alarm": true
+        },
+        {
+          "case": "5b-readout-ej13.5-a0.002",
+          "metric": "endpoint coherence",
+          "target": 0.0005,
+          "hypothesis": "largest local endpoint defect divided by segment duration times full duration",
+          "estimate": 0.0444783754857736,
+          "measured": 0.0002959305076200014,
+          "false_alarm": true
+        },
+        {
+          "case": "5b-readout-ej15.0-a0.0",
+          "metric": "endpoint coherence",
+          "target": 0.0005,
+          "hypothesis": "largest local endpoint defect divided by segment duration times full duration",
+          "estimate": 0.05232248922967808,
+          "measured": 0.0002657863342608868,
+          "false_alarm": true
+        },
+        {
+          "case": "5b-readout-ej15.0-a0.002",
+          "metric": "endpoint coherence",
+          "target": 0.0005,
+          "hypothesis": "largest local endpoint defect divided by segment duration times full duration",
+          "estimate": 0.08552534718765936,
+          "measured": 0.0003752773640582907,
+          "false_alarm": true
+        }
+      ],
+      "false_alarms": 6,
+      "claim": "rejected candidate estimate; sampled restarts do not establish global metric accuracy"
+    },
+    "candidate_assessment": {
+      "propagator": "detects numerical/local-pulse errors in every covered interval; cost depends on dimension and generator count",
+      "segments": "detect the sampled truncation/drive failures; sparse restarts can miss a persistent error introduced elsewhere",
+      "static": "Purcell rate estimate is promising within its narrow assumptions; no generic driven/truncation metric estimate was established",
+      "general_replacement_ready": false
+    },
+    "policy_candidates": {
+      "propagator_dimension_options": {
+        "0.1": [
+          6,
+          12
+        ],
+        "1.0": [
+          6,
+          12,
+          20
+        ],
+        "3.0": [
+          6,
+          12,
+          20,
+          30
+        ]
+      },
+      "caveat": "measured options, not accepted caps or default accuracy targets; full-window estimates from sampled segments remain unvalidated"
+    }
+  },
+  "pass": true
+}
