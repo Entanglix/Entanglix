@@ -4,8 +4,8 @@
   "device": "cpu",
   "records": [
     {
-      "run_id": "r20261003T161034917054Z-61075a48",
-      "path": "/home/paimon/Projects/Entanglix/research_runs/readout/r20261003T161034917054Z-61075a48",
+      "run_id": "r20261003T184755398067Z-4bda4a7a",
+      "path": "/home/paimon/Projects/Entanglix/research_runs/readout/r20261003T184755398067Z-4bda4a7a",
       "parent_run_ids": [],
       "engine": "qutip-cpu",
       "device": "cpu",
@@ -37,9 +37,9 @@
         }
       },
       "code": {
-        "revision": "dca09ffce8657afc384e2811d4a2bedfd0f71493",
+        "revision": "f7f25b9c7410d2ab3d305a791e1b7e3874bfad7a",
         "dirty": true,
-        "patch_sha256": "4d576ff4758ba26c1ab4c9fea98475d2a7857526c752dd3effa882db2b5cb08a",
+        "patch_sha256": "9026fccfbcf1dfeffcbaa31a095c79ff336e210950ec73f4d4986ffdb6ffe5b5",
         "untracked_sha256": {}
       },
       "plan_sha256": "b2049bddced5a794a9a5623d76201de908ff734c973a25c068f087c900776429",
@@ -47,13 +47,13 @@
         "excited_population": 0.8882458734127346
       },
       "usage": {
-        "wall_seconds": 30.6052935939515,
+        "wall_seconds": 33.18857041595038,
         "gpu_seconds": 0,
         "uncertain": false
       },
       "automatic_checks": false,
-      "verification_run_id": "r20261003T161105845058Z-c56711c0",
-      "policy_version": "5e6f0f8d415279de2a0d82bec13ca66624adc2d55a88c7541351a20ae421a6dc",
+      "verification_run_id": "r20261003T184828991876Z-1609cdcc",
+      "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
       "report": {
         "kind": "lindblad",
         "requested_checks": [
@@ -62,7 +62,7 @@
           "diagnostics"
         ],
         "refinement_origin": "source spec",
-        "work_seconds": 0.892526223033201,
+        "work_seconds": 1.0252928329864517,
         "limit": "No built-in check measures whole-window error or the accuracy of a rotating-wave approximation.",
         "checks": [
           {
@@ -433,10 +433,10 @@
       }
     },
     {
-      "run_id": "r20261003T161107975269Z-9b84da47",
-      "path": "/home/paimon/Projects/Entanglix/research_runs/readout/r20261003T161107975269Z-9b84da47",
+      "run_id": "r20261003T184831543776Z-0b116e22",
+      "path": "/home/paimon/Projects/Entanglix/research_runs/readout/r20261003T184831543776Z-0b116e22",
       "parent_run_ids": [
-        "r20261003T161034917054Z-61075a48"
+        "r20261003T184755398067Z-4bda4a7a"
       ],
       "engine": "qutip-cpu",
       "device": "cpu",
@@ -468,9 +468,9 @@
         }
       },
       "code": {
-        "revision": "dca09ffce8657afc384e2811d4a2bedfd0f71493",
+        "revision": "f7f25b9c7410d2ab3d305a791e1b7e3874bfad7a",
         "dirty": true,
-        "patch_sha256": "4d576ff4758ba26c1ab4c9fea98475d2a7857526c752dd3effa882db2b5cb08a",
+        "patch_sha256": "9026fccfbcf1dfeffcbaa31a095c79ff336e210950ec73f4d4986ffdb6ffe5b5",
         "untracked_sha256": {}
       },
       "plan_sha256": "b2049bddced5a794a9a5623d76201de908ff734c973a25c068f087c900776429",
@@ -478,13 +478,13 @@
         "excited_population": 0.8882458734127346
       },
       "usage": {
-        "wall_seconds": 30.481488274002913,
+        "wall_seconds": 33.440410433046054,
         "gpu_seconds": 0,
         "uncertain": false
       },
       "automatic_checks": false,
-      "verification_run_id": "r20261003T161138675152Z-201dfbc7",
-      "policy_version": "5e6f0f8d415279de2a0d82bec13ca66624adc2d55a88c7541351a20ae421a6dc",
+      "verification_run_id": "r20261003T184905173150Z-502ca79b",
+      "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
       "report": {
         "kind": "lindblad",
         "requested_checks": [
@@ -493,7 +493,7 @@
           "diagnostics"
         ],
         "refinement_origin": "source spec",
-        "work_seconds": 0.897757183003705,
+        "work_seconds": 1.0110654279706068,
         "limit": "No built-in check measures whole-window error or the accuracy of a rotating-wave approximation.",
         "checks": [
           {
@@ -871,8 +871,8 @@
     "environment_matches": true
   },
   "more_levels": {
-    "run_id": "r20261003T161140909195Z-d24d4df4",
-    "path": "/home/paimon/Projects/Entanglix/research_runs/readout/r20261003T161140909195Z-d24d4df4",
+    "run_id": "r20261003T184907901510Z-b26b0161",
+    "path": "/home/paimon/Projects/Entanglix/research_runs/readout/r20261003T184907901510Z-b26b0161",
     "parent_run_ids": [],
     "engine": "qutip-cpu",
     "device": "cpu",
@@ -904,9 +904,9 @@
       }
     },
     "code": {
-      "revision": "dca09ffce8657afc384e2811d4a2bedfd0f71493",
+      "revision": "f7f25b9c7410d2ab3d305a791e1b7e3874bfad7a",
       "dirty": true,
-      "patch_sha256": "4d576ff4758ba26c1ab4c9fea98475d2a7857526c752dd3effa882db2b5cb08a",
+      "patch_sha256": "9026fccfbcf1dfeffcbaa31a095c79ff336e210950ec73f4d4986ffdb6ffe5b5",
       "untracked_sha256": {}
     },
     "plan_sha256": "4d46f940f3c3238536d51bef8c04f9d91ae44c7e04d01713c428bec9a236e391",
@@ -914,20 +914,20 @@
       "excited_population": 0.8882458376038301
     },
     "usage": {
-      "wall_seconds": 116.24388428096427,
+      "wall_seconds": 123.03288077999605,
       "gpu_seconds": 0,
       "uncertain": false
     },
     "automatic_checks": false,
-    "verification_run_id": "r20261003T161337406739Z-a04f4d7f",
-    "policy_version": "5e6f0f8d415279de2a0d82bec13ca66624adc2d55a88c7541351a20ae421a6dc",
+    "verification_run_id": "r20261003T185111232637Z-2dc76e79",
+    "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
     "report": {
       "kind": "lindblad",
       "requested_checks": [
         "integrity"
       ],
       "refinement_origin": "source spec",
-      "work_seconds": 0.4082553489715792,
+      "work_seconds": 0.42787993798265234,
       "limit": "No built-in check measures whole-window error or the accuracy of a rotating-wave approximation.",
       "checks": [
         {

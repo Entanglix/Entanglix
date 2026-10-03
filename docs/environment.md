@@ -135,6 +135,35 @@ Keep the code, docs and runner profile unchanged through the acceptance studies.
 Write reports outside the checkout and copy them into `tests/probes/` after all
 studies finish. Recorded provenance describes the tree before replacing the reports.
 
+## Sweep acceptance
+
+The [sweep tests](../tests/test_sweep.py) cover static/dynamic grids, driven lab and
+rotating frames, complex coherence, paired axis settings, frozen replay, invalid
+inputs, bounded warning selection, and partial results after cancellation or runner
+loss. Grids whose corners exceed the check-selection bound still run. The
+[GPU integration report](../tests/probes/m2_sweep_gpu.xml) covers cuDensityMat,
+post-run CPU checks, GPU usage, and full-grid replay.
+
+The [readout acceptance probe](../tests/probes/m2_sweep.py) runs the 3 × 3 grid on
+CPU and CUDA, requests integrity, local segments, diagnostics and the declared
+amplitude expectation, and reproduces every point's arrays on replay within `1e-7`.
+The [CPU summary](../tests/probes/m2_sweep_cpu.json) also retains the static `χ`
+companion and a narrower linked CPU grid. The [CUDA summary](../tests/probes/m2_sweep_cuda.json)
+retains GPU execution and usage without a speedup claim. Reports identify the
+outcomes, maximum residuals, selected and uncovered points, local windows and warnings;
+full per-point reports remain in the linked verification attempts. Passing sampled
+checks says nothing about convergence at unsampled points or RWA accuracy.
+
+```sh
+export ENTANGLIX_RUNNER_EXTRAS=cuquantum,differentiable-cuda12
+MPLCONFIGDIR=/tmp/entanglix-m2-matplotlib uv run --locked --exact python tests/probes/m2_sweep.py --device cpu --output /tmp/m2_sweep_cpu.json
+MPLCONFIGDIR=/tmp/entanglix-m2-matplotlib uv run --locked --exact python tests/probes/m2_sweep.py --device cuda --output /tmp/m2_sweep_cuda.json
+UV_PROJECT_ENVIRONMENT=/tmp/entanglix-simulation-tests XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact --extra cuquantum --extra differentiable-cuda12 pytest -q tests/test_sweep.py -m gpu --require-gpu -o tmp_path_retention_policy=failed --junitxml=/tmp/m2_sweep_gpu.xml
+```
+
+Keep the tree and runner profile fixed until all studies finish, then copy summaries
+and reports into `tests/probes/`. Full attempts and arrays stay in `research_runs/`.
+
 ## Reproduce GPU compatibility from a source checkout
 
 Run where the NVIDIA driver and GPU device are accessible.

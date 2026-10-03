@@ -1,6 +1,6 @@
 # Run records
 
-`entanglix.runner` launches authored CPU scripts with optional timeouts, cancellation, live inspection, recovery, and linked reruns. It freezes inputs and code provenance and publishes records atomically. The [simulation protocol](protocols.md) runs built-in CPU/CUDA computations with linked checks on request. Per-device GPU allocation locks protect scientific dispatch; grid sweeps are not yet available. Reconciliation checks ownership and recorded process-group liveness itself.
+`entanglix.runner` launches authored CPU scripts with optional timeouts, cancellation, live inspection, recovery, and linked reruns. It freezes inputs and code provenance and publishes records atomically. The [simulation protocol](protocols.md) runs built-in CPU/CUDA computations with linked checks on request. Per-device GPU allocation locks protect scientific dispatch; serial static/dynamic sweeps retain per-point results. Reconciliation checks ownership and recorded process-group liveness itself.
 
 ## Authored CPU jobs
 
@@ -46,6 +46,17 @@ Simulations appear as `protocol = "simulate"`. Internal plan jobs, which no comm
 The result records the actual engine, method, dimensions, device, and solver diagnostics. `artifacts/output.npz` holds `states`, `times_ns`, and `observable.<name>` arrays for dynamics, or `energies_ghz` for spectra; its digest is checked before completion. Computation completion describes execution only; checks run separately on request.
 
 CPU dynamiqs jobs require `extras = ["differentiable"]` in `[tool.entanglix.runner]` in `pyproject.toml`. Installing an extra only in the development environment does not configure the job environment. Keep one extras set for all jobs sharing `.venv-runner/`; no CUDA extra is needed for CPU jobs.
+
+Sweeps appear as `protocol = "sweep"`. Their frozen inputs include the base protocol,
+`sweep.toml`, an internal sweep manifest, and each point's effective model/plan
+under `spec/points/<index>/`. Point indices follow grid order with the last axis
+varying fastest. `artifacts/points/<index>/` contains `output.npz` and an atomic
+`result.toml` with its plan digest, metrics, dimensions, engine, solver and diagnostics.
+A point result is published only after its archive is complete. `read_run.sweep_progress`
+shows completed points and archive errors even after interruption. The final
+`artifacts/output.npz` contains the metric grids; aggregate `result.toml` links point
+artifacts and metric plots. The [protocol reference](protocols.md#serial-grid-sweeps)
+describes sweep checks, coverage and full-grid replay.
 
 ## Corrector policy and verification records
 

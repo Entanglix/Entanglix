@@ -1017,8 +1017,10 @@ def list_capabilities(repository: Path | None = None) -> dict:
             "check",
             "simulate",
             "rerun_simulation",
+            "sweep",
+            "rerun_sweep",
         ],
-        "protocols": ["simulate"],
+        "protocols": ["simulate", "sweep"],
         "runner_devices": ["cpu", "cuda"],
         "engines": {
             engine: {"version": found[package], "devices": devices}
@@ -1097,7 +1099,7 @@ def read_run(run: Path) -> dict:
     """Read retained records and check history, even if the frozen plan is obsolete."""
     run = run.resolve()
     record = _read_attempt(run)
-    if record["manifest"]["protocol"] in {"plan", "reference", "simulate"}:
+    if record["manifest"]["protocol"] in {"plan", "reference", "simulate", "sweep"}:
         from entanglix.corrector.verification import check_run, verification_history
 
         record["verification"] = verification_history(run)
@@ -1105,6 +1107,10 @@ def read_run(run: Path) -> dict:
             record["check_listing"] = check_run(run)
         except (OSError, ValueError, RuntimeError, KeyError, MemoryError) as exc:
             record["check_listing"] = {"checks": [], "reason": failure_message(exc)}
+    if record["manifest"]["protocol"] == "sweep":
+        from entanglix.protocols.sweep import partial_results
+
+        record["sweep_progress"] = partial_results(run)
     return record
 
 

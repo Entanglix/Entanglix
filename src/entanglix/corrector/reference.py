@@ -2,11 +2,13 @@
 
 import shutil
 import tomllib
+from dataclasses import replace
 from pathlib import Path
 
 import numpy as np
 import tomli_w
 
+from entanglix.corrector.metrics import Coherence
 from entanglix.models import load_system
 from entanglix.protocols.plans import load_plan
 
@@ -135,4 +137,19 @@ def prepare_refinement(loaded, directory: Path, policy):
         evolution["array_file"] = name
         evolution["initial_state"] = "initial_state"
     (directory / "plan.toml").write_text(tomli_w.dumps(plan))
-    return load_plan(directory / "system.toml", directory / "plan.toml")
+    target = load_plan(directory / "system.toml", directory / "plan.toml")
+    if loaded.request is not None:
+        operators = target.request.observables.copy()
+        mapping = None
+        for name, definition in loaded.definition.evolution.observables.items():
+            if isinstance(definition, Coherence):
+                # Coherence is defined in the source retained basis. Carry its phase
+                # into the refined basis, keeping identity on all spectator levels.
+                if mapping is None:
+                    mapping = embedding_matrix(loaded.system, target.system)
+                mapped = mapping @ loaded.request.observables[name] @ mapping.conj().T
+                operators[name] = operators[name] * (
+                    np.vdot(operators[name], mapped) / np.vdot(mapped, mapped)
+                )
+        target = replace(target, request=replace(target.request, observables=operators))
+    return target

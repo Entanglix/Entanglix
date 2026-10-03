@@ -140,7 +140,7 @@ CLI and MCP share backing operations and expose available capabilities. Research
 | `simulate` / `sweep` / `control` / `calibrate` | Controlled job | Execute through the runner, enforcing any configured limits |
 | `run_script` | Controlled job | Execute an authored script through the runner, enforcing any configured limits |
 | `rerun_script` | Controlled job | Replay frozen script inputs as a new attempt linked to the prior run |
-| `rerun_simulation` | Controlled job | Replay frozen simulation inputs as a new linked attempt, recording current code/environment provenance |
+| `rerun_simulation` / `rerun_sweep` | Controlled job | Replay frozen simulation inputs or recompute a frozen sweep grid as a new linked attempt, recording current code/environment provenance |
 | `check` | Controlled job | Run the named built-in checks on a completed run (§3) |
 | `abort_run` / `stop_investigation` | Controlled job | Cancel work; investigation stop also closes admission and records its reason |
 | `create_investigation` / `revise_investigation` | Controlled write | Draft a new investigation or publish in-scope revisions; broader changes remain proposals until a user decision |

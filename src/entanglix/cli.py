@@ -116,7 +116,9 @@ def main(argv: list[str] | None = None) -> int:
     checking = subcommands.add_parser("check", help="list relevant checks, or run named checks")
     checking.add_argument("run", type=Path, help="source attempt directory")
     checking.add_argument(
-        "names", nargs="*", help="integrity, segments, diagnostics, spectral_refinement"
+        "names",
+        nargs="*",
+        help="integrity, segments, diagnostics, spectral_refinement, declared_expectation",
     )
     checking.add_argument("--timeout", type=float, help="check time limit in seconds")
     checking.add_argument("--refinement", type=Path, help="replacement [refinement.*] declarations")
@@ -128,10 +130,21 @@ def main(argv: list[str] | None = None) -> int:
         "--dry-run", action="store_true", help="preview without launching or creating a run"
     )
     replay = subcommands.add_parser(
-        "rerun-simulation", help="replay a frozen simulation with linked lineage"
+        "rerun-simulation",
+        help="replay a frozen simulation with linked lineage",
     )
     replay.add_argument("run", type=Path, help="earlier simulation attempt")
     replay.add_argument("--runs-root", type=Path)
+    grid = subcommands.add_parser("sweep", help="run a serial static or dynamic grid")
+    grid.add_argument("protocol", type=Path, help="path to sweep.toml")
+    grid.add_argument("--runs-root", type=Path, default=Path("research_runs"))
+    grid.add_argument("--parent-run", action="append", default=[])
+    grid.add_argument("--dry-run", action="store_true", help="validate and preview the frozen grid")
+    grid_replay = subcommands.add_parser(
+        "rerun-sweep", help="recompute a frozen grid with linked lineage"
+    )
+    grid_replay.add_argument("run", type=Path)
+    grid_replay.add_argument("--runs-root", type=Path)
     args = parser.parse_args(argv)
     if args.command == "validate":
         from entanglix.models import SpecError, load_system
@@ -162,6 +175,8 @@ def main(argv: list[str] | None = None) -> int:
         "check",
         "simulate",
         "rerun-simulation",
+        "sweep",
+        "rerun-sweep",
     }:
         from entanglix.runner import (
             abort_run,
@@ -180,6 +195,8 @@ def main(argv: list[str] | None = None) -> int:
             "check",
             "simulate",
             "rerun-simulation",
+            "sweep",
+            "rerun-sweep",
         }:
             # A supervising command stops its job on termination or hangup, as on Ctrl-C.
             signal.signal(signal.SIGTERM, signal.default_int_handler)
@@ -233,6 +250,19 @@ def main(argv: list[str] | None = None) -> int:
                     if args.command == "simulate"
                     else rerun_simulation(args.run, runs_root=args.runs_root)
                 )
+            elif args.command in {"sweep", "rerun-sweep"}:
+                from entanglix.protocols.sweep import rerun_sweep, sweep
+
+                result = (
+                    sweep(
+                        args.protocol,
+                        runs_root=args.runs_root,
+                        parent_run_ids=tuple(args.parent_run),
+                        dry_run=args.dry_run,
+                    )
+                    if args.command == "sweep"
+                    else rerun_sweep(args.run, runs_root=args.runs_root)
+                )
             elif args.command == "list-runs":
                 result = list_runs(args.runs_root)
             else:
@@ -244,7 +274,15 @@ def main(argv: list[str] | None = None) -> int:
         return (
             result.get("exit_code", 0)
             if args.command
-            in {"run-script", "rerun-script", "check", "simulate", "rerun-simulation"}
+            in {
+                "run-script",
+                "rerun-script",
+                "check",
+                "simulate",
+                "rerun-simulation",
+                "sweep",
+                "rerun-sweep",
+            }
             else 0
         )
     parser.print_help()

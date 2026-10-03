@@ -18,7 +18,7 @@ import tomli_w
 from pydantic import Field
 
 from entanglix.corrector.dynamics import check_listing
-from entanglix.corrector.metrics import EndpointMetric
+from entanglix.corrector.metrics import Metric
 from entanglix.engines.selection import select_engine
 from entanglix.models import StrictModel, load_system
 from entanglix.protocols.plans import EvolutionSpec, Refinement, load_plan
@@ -65,7 +65,7 @@ class SimulationSpec(StrictModel):
     levels: int | None = None
     evolution: SimulationEvolution | None = None
     refinement: dict[str, Refinement] = Field(default_factory=dict)
-    metrics: dict[str, EndpointMetric] = Field(default_factory=dict)
+    metrics: dict[str, Metric] = Field(default_factory=dict)
     segment_tolerances: dict[str, float] = Field(default_factory=dict)
     timeout_seconds: float | None = None
 
@@ -77,7 +77,9 @@ def _adjacent(root, name):
     return path
 
 
-def compile_simulation(protocol: Path, directory: Path, extras: list[str], repository: Path):
+def compile_simulation(
+    protocol: Path, directory: Path, extras: list[str], repository: Path, *, probe_device=True
+):
     """Compile and check in the exactly synced job environment, before admission."""
     content = protocol.read_bytes()
     spec = SimulationSpec.model_validate(tomllib.loads(content.decode()))
@@ -170,7 +172,7 @@ def compile_simulation(protocol: Path, directory: Path, extras: list[str], repos
     canonical["system"] = "system.toml"
     (directory / "simulate.toml").write_text(tomli_w.dumps(canonical))
     gpu_check = None
-    if spec.needs.device == "cuda":
+    if spec.needs.device == "cuda" and probe_device:
         try:
             import cupy as cp
         except ImportError as exc:
@@ -224,14 +226,27 @@ def simulate(
     dry_run: bool = False,
 ) -> dict:
     """Launch one simulation without unrequested scientific checks."""
+    return _launch_protocol(
+        protocol,
+        runs_root=runs_root,
+        repository=repository,
+        parent_run_ids=parent_run_ids,
+        dry_run=dry_run,
+        operation="simulate",
+    )
+
+
+def _launch_protocol(protocol, *, runs_root, repository, parent_run_ids, dry_run, operation):
     repository = (repository or Path(__file__).resolve().parents[3]).resolve()
-    command, environment, extras = _cpu_job_context(repository, "entanglix.protocols._simulate_job")
+    command, environment, extras = _cpu_job_context(
+        repository, f"entanglix.protocols._{operation}_job"
+    )
     gate_environment = environment.copy()
     if "CUDA_VISIBLE_DEVICES" in os.environ:
         gate_environment["CUDA_VISIBLE_DEVICES"] = os.environ["CUDA_VISIBLE_DEVICES"]
     else:
         gate_environment.pop("CUDA_VISIBLE_DEVICES", None)
-    with tempfile.TemporaryDirectory(prefix="entanglix-simulate-") as scratch:
+    with tempfile.TemporaryDirectory(prefix=f"entanglix-{operation}-") as scratch:
         check = subprocess.run(
             [*command, "check"],
             input=json.dumps(
@@ -247,7 +262,7 @@ def simulate(
             capture_output=True,
         )
         if check.returncode:
-            raise ValueError(process_failure(check, "simulation launch rejected"))
+            raise ValueError(process_failure(check, f"{operation} launch rejected"))
         gate = json.loads(check.stdout)
         if dry_run:
             return {"exit_code": 0, "preview": gate["preview"]}
@@ -257,7 +272,7 @@ def simulate(
             launch["timeout_seconds"] = gate["timeout_seconds"]
         with create_run(
             system_id=gate["system_id"],
-            protocol="simulate",
+            protocol=operation,
             inputs={name: Path(path) for name, path in gate["inputs"].items()},
             environment=gate["environment"],
             code=capture_code(repository),
@@ -272,7 +287,7 @@ def simulate(
             gpu = None
             try:
                 if _load_record(run / "run.toml")["spec_sha256"] != gate["spec_sha256"]:
-                    raise ValueError("inputs changed after simulation validation")
+                    raise ValueError(f"inputs changed after {operation} validation")
                 if gate["device"] == "cuda":
                     gpu = acquire_gpu(gate["gpu_check"]["device_uuid"], owner)
                     environment.update(
@@ -288,14 +303,14 @@ def simulate(
                     environment,
                     timeout_seconds=gate["timeout_seconds"],
                     gpu=gpu,
-                    job_input="plan.toml",
+                    job_input="sweep-manifest.toml" if operation == "sweep" else "plan.toml",
                 )
             except (Exception, KeyboardInterrupt) as exc:
                 status, exit_code = (
                     ("aborted", 130) if isinstance(exc, KeyboardInterrupt) else ("failed", 64)
                 )
                 if not (run / "FINISHED").exists():
-                    (run / "run.log").write_text(f"simulation launch failed: {exc}\n")
+                    (run / "run.log").write_text(f"{operation} launch failed: {exc}\n")
                     record_finish(
                         owner, status=status, exit_code=exit_code, wall_seconds=0, gpu_seconds=0
                     )
@@ -307,16 +322,22 @@ def simulate(
 
 
 def rerun_simulation(run: Path, *, repository: Path | None = None, runs_root: Path | None = None):
+    return _rerun_protocol(run, operation="simulate", repository=repository, runs_root=runs_root)
+
+
+def _rerun_protocol(run, *, operation, repository=None, runs_root=None):
     record = _read_attempt(run)
-    if record["manifest"]["protocol"] != "simulate" or record["status"] in {"active", "unknown"}:
-        raise ValueError("rerun requires an inactive simulation attempt")
+    if record["manifest"]["protocol"] != operation or record["status"] in {"active", "unknown"}:
+        raise ValueError(f"rerun requires an inactive {operation} attempt")
     run = Path(record["path"])
     repository = (repository or Path(__file__).resolve().parents[3]).resolve()
     for name, digest in record["manifest"]["spec_sha256"].items():
         if _digest((run / "spec" / name).read_bytes()) != digest:
             raise ValueError(f"frozen input digest mismatch: {name}")
-    result = simulate(
-        run / "spec/simulate.toml",
+    result = _launch_protocol(
+        run / "spec" / f"{operation}.toml",
+        operation=operation,
+        dry_run=False,
         repository=repository,
         runs_root=runs_root or run.parent.parent,
         parent_run_ids=(run.name,),

@@ -12,8 +12,8 @@ import numpy as np
 import pytest
 import tomli_w
 
-from entanglix.corrector import load_policy, select_evidence
-from entanglix.corrector.checks import coverage_report, output_checks, series_checks
+from entanglix.corrector import load_policy
+from entanglix.corrector.checks import output_checks, series_checks
 from entanglix.corrector.reference import embed_state, prepare_refinement
 from entanglix.corrector.verification import check_run
 from entanglix.models import load_system
@@ -65,15 +65,6 @@ def test_output_checks_cover_all_times_and_warning_is_not_a_gate():
         "hermiticity",
         "positivity",
     }
-
-
-def test_coverage_reports_uncovered_warnings_without_extra_solves():
-    selection = select_evidence((12,), warnings=np.ones(12))
-    report = coverage_report(selection, (12,))
-    assert len(report["evidence_points"]) == 8
-    assert not report["complete"]
-    assert report["uncovered_points"]
-    assert set(report["output_checked_points"]).isdisjoint(report["evidence_points"])
 
 
 def test_initial_state_embedding_preserves_complex_operator_gauge(tmp_path):

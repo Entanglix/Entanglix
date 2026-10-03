@@ -1,4 +1,4 @@
-# Simulation protocols
+# Simulation and sweep protocols
 
 `entanglix simulate simulate.toml` runs one declared computation and retains its
 inputs, arrays, observable plot, summaries, and execution outcome. No check runs
@@ -59,7 +59,21 @@ with `--refinement FILE`, using the same `[refinement.*]` tables. The request is
 with its linked check run, and the source remains unchanged.
 
 `[metrics.<name>]` may declare `kind = "endpoint_real"` for a Hermitian observable,
-with `observable = "excited"`. The endpoint is evaluated from stored expectations.
+with `observable = "excited"`. An observable `{kind = "coherence", subsystem = "q"}`
+is the retained-basis operator `|1⟩⟨0|` on `q` tensored with identity on other
+subsystems; its complex expectation is `ρq,01`. A metric `kind = "endpoint_coherence"`
+requires that observable and reports `2|ρq,01(T)|`. It is a coherence proxy, not a
+fitted dephasing rate. Refinement carries its phase with the source eigenstate gauge
+while retaining identity on all spectator levels. Endpoints are evaluated from stored expectations.
+
+A spectral metric `kind = "dispersive_shift"`, with `qubit = "q"` and
+`resonator = "r"`, requires exactly those two subsystems. Within the reported
+`levels`, it assigns dressed states `(0,0), (0,1), (1,0), (1,1)` by largest squared
+bare-product overlap. Assignments must be distinct and overlaps at least `0.9`;
+otherwise computation fails with the indices and overlaps. It reports
+`χ = (E11 − E10 − E01 + E00)/2` in GHz. The archive retains assigned energies,
+indices and overlaps as well as the lowest spectrum. Spectral refinement compares
+both reported excitation energies and these metric values.
 Unknown formulas and undeclared observables are rejected. `result.toml` also
 summarizes observable endpoints and maximum magnitudes. `artifacts/output.npz`
 stores all states and expectations; `artifacts/observables.png` plots real and
@@ -148,4 +162,79 @@ reconcile its process ownership first. Matching provenance and numerical output
 agreement provide reproduction evidence. A replay runs no checks automatically.
 Plots and elapsed times need not match byte for byte.
 
-Static and dynamic grid sweeps are not yet available.
+## Serial grid sweeps
+
+`entanglix sweep sweep.toml` runs one static or dynamic grid as one attempt.
+Version 1 requires an adjacent `base` simulation spec and at least one axis.
+Optional `evidence_metric` names a metric in the base spec to select extrema
+and steepest-change evidence points when a refinement check is requested.
+Without it, selection uses corners and any requested diagnostics warnings.
+The base supports either computation kind; dynamic sweeps use its declared lab
+or rotating frame, drives, initial state and solver settings.
+
+```toml
+format_version = 1
+base = "simulate.toml"
+evidence_metric = "excited_population"
+
+[[axes]]
+id = "frequency"
+target = "parameters.frequency"
+values = [0.2, 0.3, 0.4]
+```
+
+Axis IDs and targets are unique. Values are finite and distinct, and the last
+axis varies fastest. Targets name declared scalar fields: `parameters.NAME`,
+`evolution.drive_amplitudes_ghz.NAME`,
+`evolution.carriers.NAME.frequency_ghz`, or
+`evolution.frame.frequencies_ghz.SUBSYSTEM`. A parameter must already appear in
+the base's `[parameters]` overrides and be declared by its system.
+
+Optional `[axes.linked_values]` maps other targets to a list of the same length,
+paired with that axis's values. The [readout sweep](../../examples/readout/dephasing.toml)
+uses this for the carrier and frame frequencies at each `EJ`. It is explicit data,
+with no expressions or automatic frequency updates. A target belongs to one axis.
+Every point's effective model and plan are frozen before admission;
+refinement retains that point's frequencies and initial-state meaning.
+
+An optional `[expectation]` declares `metric`, `axis`, and `direction = "increasing"`
+or `"decreasing"`. Request `declared_expectation` to check every grid line along
+that axis in numeric-value order, regardless of the declared value order.
+The check uses the corrector's numerical tolerance (`1e-6` for dynamic metrics,
+`1e-5 GHz` for spectral metrics). Its failure means "declared expectation violated";
+the expectation may itself be wrong. No expectation is inferred from the model.
+
+```sh
+uv run --locked --exact entanglix sweep sweep.toml --dry-run
+uv run --locked --exact entanglix sweep sweep.toml
+uv run --locked --exact entanglix check research_runs/<system_id>/<run_id> integrity segments diagnostics declared_expectation
+uv run --locked --exact entanglix rerun-sweep research_runs/<system_id>/<run_id>
+```
+
+Points execute serially using the base's selected engine/device. All states and
+observables, or reported spectral arrays, remain in per-point artifacts. A point
+publishes its array archive first and then its atomic result. `read-run` shows
+completed points while the run is active or interrupted. No aggregate result
+establishes completion until the runner writes `FINISHED`. The sweep result retains
+metric grids, extrema and plot links: line plots for one varying axis, heatmaps for two,
+and point-order plots for larger grids or a single point. No scientific diagnostic runs unless requested.
+
+On request, integrity and diagnostics cover every retained dynamic point. Segments
+and spectral refinement select at most eight points: corners first, metric extrema,
+the first endpoint of the steepest grid edge, and ranked truncation warnings when
+`diagnostics` is requested in the same check run. Selection and ties are deterministic
+in grid order. Listings describe the checks once using the first point; reports
+record the actual selection. Every warning is reported, and uncovered
+warning points are identified without expanding the bound. If corners alone exceed
+eight, the sweep still runs; the bounded checks are inapplicable. Other checks remain
+available. Reports list each checked and uncovered point, local windows, reasons,
+residuals and tolerances. Passing sampled checks makes no convergence claim at
+unsampled points or about whole-window/RWA accuracy.
+
+A sweep-level `timeout_seconds` covers the whole job, including imports and all points;
+the base's single-simulation timeout does not apply separately at each point.
+Cancellation and runner-loss recovery use the existing run lifecycle. `rerun-sweep`
+checks frozen input digests, recomputes the entire grid with current code/environment,
+and reports provenance matches against its parent. To explore a narrower or finer
+grid, copy and edit the specs and launch with `--parent-run ID`. Partial points are
+retained for inspection; replay does not resume them. Checks remain separate commands.

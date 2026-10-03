@@ -37,6 +37,7 @@ runs/
 # Small reviewed reference fixtures may be committed
 !examples/two-level/operators.npz
 !examples/lossy-oscillator/operators.npz
+!examples/readout/readout-state.npz
 !tests/fixtures/**/*.npy
 !tests/fixtures/**/*.npz
 !tests/fixtures/**/*.h5

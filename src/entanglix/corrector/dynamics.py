@@ -10,7 +10,7 @@ import numpy as np
 
 from entanglix.corrector import CHECK_DEFINITIONS, load_policy, relevant_checks, validate_refinement
 from entanglix.corrector.checks import check, inapplicable, output_checks, top_level_populations
-from entanglix.corrector.metrics import metric_tolerance
+from entanglix.corrector.metrics import metric_tolerance, metric_values
 from entanglix.corrector.reference import embedding_matrix, prepare_refinement
 from entanglix.engines.frames import matrix, prepare_dynamics
 from entanglix.evolution import EvolutionInputError, normalize_input
@@ -244,12 +244,22 @@ def refined_segments(loaded, arrays, policy):
                     check(
                         "metric",
                         abs(
-                            float(
-                                (
-                                    arrays[f"observable.{definition.observable}"][last]
-                                    - trace.expectations[definition.observable][-1]
-                                ).real
-                            )
+                            metric_values(
+                                {name: definition},
+                                {
+                                    f"observable.{definition.observable}": arrays[
+                                        f"observable.{definition.observable}"
+                                    ][first : last + 1]
+                                },
+                            )[name]
+                            - metric_values(
+                                {name: definition},
+                                {
+                                    f"observable.{definition.observable}": trace.expectations[
+                                        definition.observable
+                                    ]
+                                },
+                            )[name]
                         ),
                         metric_tolerance(definition, policy),
                         scope="local endpoint",

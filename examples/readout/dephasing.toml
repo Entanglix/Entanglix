@@ -1,0 +1,26 @@
+format_version = 1
+base = "readout.toml"
+evidence_metric = "coherence"
+
+[[axes]]
+id = "EJ"
+target = "parameters.EJ"
+values = [12.0, 13.5, 15.0]
+
+# Dressed resonator-frequency midpoints from the static model, in GHz.
+# These paired values also set the common rotating frame and remain frozen
+# when checks refine the truncation.
+[axes.linked_values]
+"evolution.carriers.readout.frequency_ghz" = [7.0017536727417085, 7.002206406997239, 7.002760675881172]
+"evolution.frame.frequencies_ghz.q" = [7.0017536727417085, 7.002206406997239, 7.002760675881172]
+"evolution.frame.frequencies_ghz.r" = [7.0017536727417085, 7.002206406997239, 7.002760675881172]
+
+[[axes]]
+id = "amplitude"
+target = "evolution.drive_amplitudes_ghz.readout"
+values = [0.0, 0.001, 0.002]
+
+[expectation]
+metric = "coherence"
+axis = "amplitude"
+direction = "decreasing"

@@ -85,8 +85,6 @@ def relevant_checks(kind: str) -> tuple[str, ...]:
         return ("integrity", "segments", "diagnostics")
     if kind == "spectrum":
         return ("spectral_refinement",)
-    if kind == "parameter_series":
-        return ("declared_expectation",)
     raise ValueError(f"unknown computation definition: {kind!r}")
 
 
@@ -169,7 +167,7 @@ def create_verification_run(
     import tomli_w
     from pydantic import TypeAdapter
 
-    from entanglix.protocols.plans import Refinement, load_plan
+    from entanglix.protocols.plans import Refinement, load_computation
     from entanglix.runner import _digest, _read_attempt, _relative_file, _script_result, create_run
 
     if not checks or set(checks) - CHECK_DEFINITIONS.keys():
@@ -181,6 +179,7 @@ def create_verification_run(
     if record["status"] != "completed" or record["manifest"]["protocol"] not in {
         "plan",
         "simulate",
+        "sweep",
     }:
         raise ValueError("checks require a completed built-in computation run")
     manifest = record["manifest"]
@@ -188,18 +187,19 @@ def create_verification_run(
         if _digest((source / "spec" / _relative_file(name)).read_bytes()) != digest:
             raise ValueError(f"source input digest mismatch: {name}")
     result = _script_result(source)
-    loaded = load_plan(source / "spec/system.toml", source / "spec/plan.toml")
+    loaded = load_computation(source / "spec")
+    point = loaded.points[0] if hasattr(loaded, "points") else loaded
     if (
         loaded.digest != manifest["launch"]["plan_sha256"]
         or result.get("plan_sha256") != loaded.digest
-        or result.get("kind") != loaded.definition.kind
-        or manifest["launch"]["kind"] != loaded.definition.kind
-        or result.get("engine") != loaded.definition.engine
-        or manifest["engine"] != loaded.definition.engine
+        or result.get("kind") != point.definition.kind
+        or manifest["launch"]["kind"] != point.definition.kind
+        or result.get("engine") != point.definition.engine
+        or manifest["engine"] != point.definition.engine
         or result.get("dimensions") != list(loaded.system.dimensions)
     ):
         raise ValueError("source result is inconsistent with its trusted execution plan")
-    declaration = loaded.definition.refinement
+    declaration = point.definition.refinement
     if refinement is not None:
         document = tomllib.loads(refinement.read_text())
         if set(document) != {"refinement"}:
@@ -254,7 +254,7 @@ def create_verification_run(
 
 def load_verification(run: Path):
     """Recheck request/input digests, policy, and the recorded completed parent."""
-    from entanglix.protocols.plans import load_plan
+    from entanglix.protocols.plans import load_computation
     from entanglix.runner import (
         _digest,
         _load_record,
@@ -271,7 +271,7 @@ def load_verification(run: Path):
     for name, digest in manifest["spec_sha256"].items():
         if _digest((run / "spec" / _relative_file(name)).read_bytes()) != digest:
             raise ValueError(f"verification input digest mismatch: {name}")
-    loaded = load_plan(run / "spec/system.toml", run / "spec/plan.toml")
+    loaded = load_computation(run / "spec")
     if loaded.digest != binding["plan_sha256"] or manifest["parent_run_ids"] != [
         binding["source_run_id"]
     ]:

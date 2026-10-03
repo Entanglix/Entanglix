@@ -23,10 +23,10 @@ from entanglix.corrector.dynamics import (
     refined_segments,
     refinement_reason,
 )
-from entanglix.corrector.metrics import metric_values
+from entanglix.corrector.metrics import metric_values, spectral_arrays
 from entanglix.corrector.reference import prepare_refinement
 from entanglix.evolution import normalize_input
-from entanglix.protocols.plans import Refinement, load_plan
+from entanglix.protocols.plans import Refinement, load_computation
 from entanglix.runner import (
     _cpu_job_context,
     _digest,
@@ -139,13 +139,21 @@ def spectral_refinement(loaded, arrays, policy):
         )
     with tempfile.TemporaryDirectory(prefix="entanglix-spectral-refinement-") as directory:
         refined = prepare_refinement(loaded, Path(directory), policy)
-        energies = refined.system.qutip_hamiltonian().eigenenergies()[: loaded.definition.levels]
+        refined_arrays = spectral_arrays(
+            refined.system, loaded.definition.levels, loaded.definition.metrics
+        )
+        energies = refined_arrays["energies_ghz"]
     stored = arrays["energies_ghz"]
     if stored.shape != energies.shape or not np.isfinite(stored).all():
         raise ValueError("stored spectrum does not match the declared reported levels")
+    residual = float(np.max(abs(stored - stored[0] - energies + energies[0])))
+    for name, value in metric_values(loaded.definition.metrics, arrays).items():
+        residual = max(
+            residual, abs(value - metric_values(refined.definition.metrics, refined_arrays)[name])
+        )
     return check(
         "spectral_refinement",
-        float(np.max(abs(stored - stored[0] - energies + energies[0]))),
+        residual,
         policy.thresholds["refinement"]["excitation_convergence_atol_ghz"],
         scope="reported lowest excitation energies at the refined cutoff",
         engine="qutip-cpu",
@@ -161,34 +169,41 @@ def execute_verification(run: Path):
     declaration = {
         name: Refinement.model_validate(value) for name, value in request["refinement"].items()
     }
-    effective = replace(
-        loaded, definition=loaded.definition.model_copy(update={"refinement": declaration})
-    )
     source = (run.parent / binding["source_path"]).resolve()
-    arrays = _output(source)
-    outcomes = []
-    for name in request["checks"]:
-        if name not in relevant_checks(loaded.definition.kind):
-            item = inapplicable(
-                name, f"not applicable to {loaded.definition.kind}", scope="source computation"
-            )
-        elif name == "integrity":
-            item = integrity(effective, arrays, _script_result(source), policy)
-        elif name == "segments":
-            item = refined_segments(effective, arrays, policy)
-        elif name == "diagnostics":
-            item = diagnostics(effective, arrays, policy)
-        else:
-            item = spectral_refinement(effective, arrays, policy)
-        outcomes.append(item)
+    if hasattr(loaded, "points"):
+        from entanglix.corrector.sweeps import sweep_checks
+
+        kind = loaded.manifest["kind"]
+        has_dynamics = loaded.points[0].request is not None
+        outcomes = sweep_checks(loaded, source, request, declaration, policy)
+    else:
+        kind = loaded.definition.kind
+        has_dynamics = loaded.request is not None
+        effective = replace(
+            loaded, definition=loaded.definition.model_copy(update={"refinement": declaration})
+        )
+        arrays = _output(source)
+        outcomes = []
+        for name in request["checks"]:
+            if name not in relevant_checks(kind):
+                item = inapplicable(name, f"not applicable to {kind}", scope="source computation")
+            elif name == "integrity":
+                item = integrity(effective, arrays, _script_result(source), policy)
+            elif name == "segments":
+                item = refined_segments(effective, arrays, policy)
+            elif name == "diagnostics":
+                item = diagnostics(effective, arrays, policy)
+            else:
+                item = spectral_refinement(effective, arrays, policy)
+            outcomes.append(item)
     report = {
-        "kind": loaded.definition.kind,
+        "kind": kind,
         "requested_checks": request["checks"],
         "checks": outcomes,
         "refinement": request["refinement"],
         "refinement_origin": request["refinement_origin"],
         "work_seconds": time.monotonic() - started,
-        **({"limit": WHOLE_WINDOW_LIMIT} if loaded.request is not None else {}),
+        **({"limit": WHOLE_WINDOW_LIMIT} if has_dynamics else {}),
     }
     load_verification(run)
     publish_toml(
@@ -228,9 +243,14 @@ def check_run(
         if refinement is not None:
             raise ValueError("a replacement refinement requires named checks")
         record = _read_attempt(source)
-        if record["manifest"]["protocol"] not in {"plan", "simulate"}:
+        if record["manifest"]["protocol"] not in {"plan", "simulate", "sweep"}:
             return {"checks": [], "reason": "run has no trusted built-in computation definition"}
-        return check_listing(load_plan(source / "spec/system.toml", source / "spec/plan.toml"))
+        loaded = load_computation(source / "spec")
+        if hasattr(loaded, "points"):
+            from entanglix.corrector.sweeps import sweep_listing
+
+            return sweep_listing(loaded)
+        return check_listing(loaded)
     repository = (repository or Path(__file__).resolve().parents[3]).resolve()
     command, environment, extras = _cpu_job_context(repository, "entanglix.corrector._job")
     gate = subprocess.run(

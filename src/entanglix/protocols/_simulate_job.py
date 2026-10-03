@@ -6,17 +6,23 @@ import sys
 from pathlib import Path
 
 
-def main():
+def main(operation="simulate"):
     try:
         if sys.argv[1] == "check":
-            from entanglix.protocols.simulate import compile_simulation
+            if operation == "sweep":
+                from entanglix.protocols.sweep import compile_sweep as compile_protocol
+            else:
+                from entanglix.protocols.simulate import compile_simulation as compile_protocol
 
             request = json.load(sys.stdin)
             for name in ("protocol", "directory", "repository"):
                 request[name] = Path(request[name])
-            print(json.dumps(compile_simulation(**request)))
+            print(json.dumps(compile_protocol(**request)))
         else:
-            from entanglix.protocols._plan_job import execute
+            if operation == "sweep":
+                from entanglix.protocols._sweep_job import execute
+            else:
+                from entanglix.protocols._plan_job import execute
 
             os.fstat(int(sys.argv[3]))
             if sys.stdin.buffer.read(1) != b"1":
@@ -33,7 +39,7 @@ def main():
     except Exception as exc:
         from entanglix.runner import failure_message
 
-        print(f"simulation rejected: {failure_message(exc)}", file=sys.stderr)
+        print(f"{operation} rejected: {failure_message(exc)}", file=sys.stderr)
         return 64
     return 0
 

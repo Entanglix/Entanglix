@@ -3,7 +3,7 @@
 [system.toml](system.toml) is a validated transmon–resonator model. Carrier drives
 and explicit rotating-wave frames are available through the
 [Python evolution interface](../../docs/operations/system-spec.md#carriers-and-rotating-frames).
-Public simulation is available; grid sweeps follow separately. The
+Public simulation and serial static/dynamic grid sweeps are available. The
 [CPU feasibility probe](../../tests/probes/m2_feasibility.py) evaluates
 these cases directly in QuTiP; its [retained measurements](../../tests/probes/m2_feasibility_results.json)
 include solver times, accepted steps, physicality, spectra, and convergence comparisons.
@@ -244,3 +244,77 @@ its ceiling counts per solve, unlike QuTiP's per-output-interval limit.
 ```sh
 JAX_PLATFORMS=cpu XLA_PYTHON_CLIENT_PREALLOCATE=false MPLCONFIGDIR=/tmp/entanglix-m2-matplotlib uv run --locked --exact --extra differentiable python tests/probes/m2_frames.py --output tests/probes/m2_frames_results.json
 ```
+
+## Serial readout and static sweeps
+
+[dephasing.toml](dephasing.toml) runs the declared 3 × 3 `EJ`/amplitude grid through
+[readout.toml](readout.toml), with its complex initial state in
+[readout-state.npz](readout-state.npz). It uses the 100 ns rotating-wave computation
+and the endpoint metric `C(T) = 2|ρq,01(T)|`. The carrier and both frame frequencies
+are paired explicitly with `EJ` in the sweep: `7.0017536727417085`,
+`7.002206406997239`, and `7.002760675881172 GHz`. These are the current model's
+four-label dressed midpoints and stay fixed during truncation refinement. The
+[CPU convention test](../../tests/test_sweep.py) checks coherence normalization,
+dressed assignment and the midpoint at the default `EJ`.
+
+On the workstation, preserve the shared runner extras profile:
+
+```sh
+export ENTANGLIX_RUNNER_EXTRAS=cuquantum,differentiable-cuda12
+uv run --locked --exact entanglix sweep examples/readout/dephasing.toml --dry-run
+uv run --locked --exact entanglix sweep examples/readout/dephasing.toml
+uv run --locked --exact entanglix read-run research_runs/readout/<run_id>
+uv run --locked --exact entanglix check research_runs/readout/<run_id> integrity segments diagnostics declared_expectation
+uv run --locked --exact entanglix rerun-sweep research_runs/readout/<run_id>
+```
+
+For CPU dynamics, copy `system.toml`, `readout.toml`, `readout-state.npz` and
+`dephasing.toml` beside each other and change `[needs].device` in `readout.toml`
+to `"cpu"`. Omitting the frame gives a lab-frame sweep; preserve the paired carrier
+frequencies and explicitly compare the resulting metrics when frame accuracy matters.
+Local segments do not check the rotating-wave approximation. The earlier frame study's
+low-drive resolution limits still apply.
+
+The static companion [dispersive.toml](dispersive.toml) uses
+[spectrum.toml](spectrum.toml) to report `χ` over `EJ`, with five reported energies
+and four uniquely assigned dressed labels. It requires CPU and has no dynamics:
+
+```sh
+uv run --locked --exact entanglix sweep examples/readout/dispersive.toml
+uv run --locked --exact entanglix check research_runs/readout/<run_id> spectral_refinement
+```
+
+Each point retains its states/observables or spectral arrays, solver settings, and
+metrics. Aggregate line/heatmap plots and extrema help choose a finer region. To
+refine the grid, copy the files, retain `EJ = 13.5`, reduce every `linked_values`
+list to its matching frequency, and set amplitudes to `[0.001, 0.0015, 0.002]`.
+Launch the new sweep with `--parent-run <earlier_run_id>`. A replay instead recomputes
+the unchanged frozen grid, including points completed before interruption.
+
+The [acceptance probe](../../tests/probes/m2_sweep.py) retains CPU/CUDA grid replay,
+requested checks, a static companion and a linked narrower CPU grid. Its
+[CPU summary](../../tests/probes/m2_sweep_cpu.json) and
+[CUDA summary](../../tests/probes/m2_sweep_cuda.json) record results and per-point
+coverage; [commands](../../docs/environment.md#sweep-acceptance) regenerate them.
+CUDA demonstrates the execution path and carries no performance claim. Passing
+segments applies only to selected points and sampled local windows; no run-level
+verdict, whole-window error bound, or RWA certification is produced.
+
+The retained CPU endpoint grid is:
+
+| `EJ` (GHz) | `A = 0 GHz` | `A = 0.001 GHz` | `A = 0.002 GHz` |
+|---|---:|---:|---:|
+| 12 | 0.997271 | 0.996449 | 0.993327 |
+| 13.5 | 0.995635 | 0.991608 | 0.983839 |
+| 15 | 0.993890 | 0.988401 | 0.976614 |
+
+CUDA endpoints agree within `4.82e-8` at these points. This compares two engines
+for the same RWA declaration. All requested checks pass; local segments sample
+points `0, 2, 6, 7, 8` and three 2 ns windows per point. Integrity, diagnostics
+and the declared expectation cover all nine points. CPU replay is numerically
+identical; CUDA replay differences across stored states and
+observables remain below `1e-7`. Both replays match their parents' code and environment.
+Whole-job execution takes about `5 s` on CPU and `8 min` on CUDA in these
+retained runs, excluding validation and checks. These timings describe this small
+fixture and backend, not a general crossover. The static `χ` values are
+`−0.434875`, `−0.559116`, and `−0.733591 MHz`; requested refinement passes.

@@ -8,7 +8,7 @@ from pathlib import Path
 
 import numpy as np
 
-from entanglix.corrector.metrics import metric_values
+from entanglix.corrector.metrics import metric_values, spectral_arrays
 from entanglix.protocols.plans import load_plan
 from entanglix.runner import _digest, _load_record, capture_environment, publish_toml
 
@@ -34,19 +34,14 @@ def gate(system: str, plan: str, repository: str, extras: list[str]) -> dict:
     }
 
 
-def execute(plan: Path) -> None:
-    run = Path(os.environ["ENTANGLIX_RUN_DIR"])
-    launch = _load_record(run / "run.toml")["launch"]
-    loaded = load_plan(run / "spec/system.toml", plan)
-    if loaded.digest != launch["plan_sha256"]:
-        raise ValueError("frozen execution plan digest changed")
+def compute(loaded):
     if loaded.definition.kind == "spectrum":
-        arrays = {
-            "energies_ghz": loaded.system.qutip_hamiltonian().eigenenergies()[
-                : loaded.definition.levels
-            ]
-        }
-        engine, method, diagnostics = "qutip-cpu", "eigenenergies", {}
+        arrays = spectral_arrays(loaded.system, loaded.definition.levels, loaded.definition.metrics)
+        engine, method, diagnostics = (
+            "qutip-cpu",
+            ("numpy-eigh" if loaded.definition.metrics else "eigenenergies"),
+            {},
+        )
     else:
         if loaded.definition.engine == "cudensitymat":
             from entanglix.engines.cudensitymat import CuQuantumIntegrator
@@ -66,6 +61,17 @@ def execute(plan: Path) -> None:
         arrays = {"times_ns": result.times_ns, "states": np.asarray(result.states)}
         arrays.update({f"observable.{name}": value for name, value in result.expectations.items()})
         engine, method, diagnostics = result.engine, result.method, result.diagnostics
+    return arrays, {"engine": engine, "method": method, "diagnostics": diagnostics}
+
+
+def execute(plan: Path) -> None:
+    run = Path(os.environ["ENTANGLIX_RUN_DIR"])
+    launch = _load_record(run / "run.toml")["launch"]
+    loaded = load_plan(run / "spec/system.toml", plan)
+    if loaded.digest != launch["plan_sha256"]:
+        raise ValueError("frozen execution plan digest changed")
+    arrays, details = compute(loaded)
+    engine, method, diagnostics = details["engine"], details["method"], details["diagnostics"]
     output = run / "artifacts/output.npz"
     np.savez(output, **arrays)
     artifacts = {"output": {"path": "artifacts/output.npz", "sha256": _digest(output.read_bytes())}}

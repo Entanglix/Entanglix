@@ -12,7 +12,7 @@ from typing import Annotated, Literal
 import numpy as np
 from pydantic import Field, model_validator
 
-from entanglix.corrector.metrics import EndpointMetric, Population, observable_operator
+from entanglix.corrector.metrics import Coherence, Metric, Observable, observable_operator
 from entanglix.engines.frames import prepare_dynamics
 from entanglix.evolution import Carrier, EvolutionInput, RotatingFrame, normalize_input
 from entanglix.models import ConstructedSystem, StrictModel, load_system
@@ -38,7 +38,7 @@ class EvolutionSpec(StrictModel):
     array_file: str
     initial_state: str
     times_ns: list[float]
-    observables: dict[str, str | Population] = Field(default_factory=dict)
+    observables: dict[str, str | Observable] = Field(default_factory=dict)
     drive_amplitudes_ghz: dict[str, float | list[float]] = Field(default_factory=dict)
     rtol: float = 1e-10
     atol: float = 1e-12
@@ -55,7 +55,7 @@ class ExecutionPlan(StrictModel):
     levels: int | None = Field(default=None, strict=True, gt=0)
     evolution: EvolutionSpec | None = None
     refinement: dict[str, Refinement] = Field(default_factory=dict)
-    metrics: dict[str, EndpointMetric] = Field(default_factory=dict)
+    metrics: dict[str, Metric] = Field(default_factory=dict)
     segment_tolerances: dict[str, float] = Field(default_factory=dict)
 
     @model_validator(mode="after")
@@ -70,8 +70,13 @@ class ExecutionPlan(StrictModel):
             raise ValueError("cudensitymat requires device cuda")
         if self.engine == "qutip-cpu" and self.device != "cpu":
             raise ValueError("qutip-cpu requires device cpu")
-        if self.metrics and self.evolution is None:
-            raise ValueError("endpoint metrics require evolution")
+        if any(
+            (metric.kind == "dispersive_shift") != (self.kind == "spectrum")
+            for metric in self.metrics.values()
+        ):
+            raise ValueError(
+                "dispersive_shift requires spectrum; endpoint metrics require evolution"
+            )
         if self.evolution is not None:
             names = self.evolution.observables.keys()
             if any(metric.observable not in names for metric in self.metrics.values()):
@@ -129,6 +134,10 @@ def load_plan(system_path: Path, plan_path: Path) -> LoadedPlan:
             name: observable_operator(system, value) for name, value in spec.observables.items()
         }
         for metric in plan.metrics.values():
+            if metric.kind == "endpoint_coherence":
+                # Validate the declared formula, not an arbitrary non-Hermitian operator.
+                if not isinstance(spec.observables[metric.observable], Coherence):
+                    raise ValueError("endpoint_coherence requires a coherence observable")
             operator = operators[metric.observable]
             if metric.kind == "endpoint_real" and not np.allclose(
                 operator, operator.conj().T, rtol=0, atol=1e-12
@@ -154,3 +163,11 @@ def load_plan(system_path: Path, plan_path: Path) -> LoadedPlan:
     }
     digest = hashlib.sha256(json.dumps(identity, sort_keys=True).encode()).hexdigest()
     return LoadedPlan(plan, system, request, digest, paths, hashes)
+
+
+def load_computation(root):
+    if (root / "sweep-manifest.toml").exists():
+        from entanglix.protocols.sweep import load_sweep
+
+        return load_sweep(root)
+    return load_plan(root / "system.toml", root / "plan.toml")

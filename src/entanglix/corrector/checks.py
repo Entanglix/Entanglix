@@ -125,19 +125,3 @@ def top_level_populations(states, dimensions, *, policy):
             }
         )
     return warnings
-
-
-def coverage_report(selection, shape):
-    selected = set(selection.points)
-    return {
-        "point_count": math.prod(shape),
-        "evidence_points": list(selection.points),
-        "output_checked_points": [
-            index for index in range(math.prod(shape)) if index not in selected
-        ],
-        "selection_reasons": {
-            str(index): list(reasons) for index, reasons in selection.reasons.items()
-        },
-        "uncovered_points": list(selection.uncovered),
-        "complete": not selection.uncovered,
-    }
