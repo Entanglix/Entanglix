@@ -124,7 +124,7 @@ Refined solves run on CPU, so a check never waits for the GPU lock. Segments use
 
 The spectral check refines cutoffs and retained levels for the reported quantities, following the M1 CPU fixtures. Comparisons with a second eigensolver, an analytic case, or an independently constructed model stay in the M1 acceptance tests and are not run-time checks.
 
-The checklist lists the 5V cases with their evidence. One case remains for 5D: a grid whose corners exceed the evidence-point bound still runs, and warnings across many grid points do not expand the evidence set.
+The checklist links the 5V evidence. One case remains for 5D: a grid whose corners exceed the evidence-point bound still runs, and warnings across many grid points do not expand the evidence set.
 
 ## 5. Block 5 — feasibility, drives, frames, and protocols
 

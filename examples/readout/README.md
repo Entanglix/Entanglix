@@ -93,6 +93,68 @@ passing local checks establishes neither their whole-window error nor RWA accura
 The [acceptance command](../../docs/environment.md#simulation-acceptance) regenerates
 the records and summaries.
 
+## Closed-system Floquet quasienergies
+
+The [authored script](floquet.py) uses this model at its default `EJ = 13.5 GHz`
+and 5 × 6 retained levels, with its declared readout operator and
+`A cos(2π f t) (a + a†)`. It deliberately omits the `resonator_loss = 0.03/ns`
+dissipator and records that omission. The frequency `f = 6.9 GHz` is detuned
+below the roughly 7 GHz readout resonance to avoid strong mode mixing and large
+highest-resonator-level occupation in this six-level basis; the period is
+`1/f ≈ 0.144928 ns`.
+This is full lab-frame periodic driving, using QuTiP `FloquetBasis` with `vern9`
+at `rtol/atol = 1e-10/1e-12` and a 100,000-step ceiling.
+
+```sh
+uv run --locked --exact entanglix run-script examples/readout/floquet.py --system examples/readout/system.toml
+uv run --locked --exact entanglix read-run research_runs/readout/<run_id>
+uv run --locked --exact entanglix rerun-script research_runs/readout/<run_id>
+```
+
+Use the same [runner extras profile](../../docs/operations/runs.md#authored-cpu-jobs)
+as other jobs in the checkout. The script, model and settings are frozen with the
+run. `artifacts/quasienergies.npz` retains all 30 quasienergies at each amplitude,
+label assignments, overlaps and margins, phase sampling times, both subsystem
+population diagnostics, and the transition shift. Quasienergies are
+in GHz, folded into `[-f/2, f/2)`, after conversion from radians/ns.
+
+The two static dressed states are assigned to `(q,r) = (0,0), (1,0)`
+by squared bare-product overlaps. Their Floquet labels use squared overlaps with
+those static eigenstates at `t = 0`, at zero carrier phase. Assignments must be
+distinct, with overlap at least `0.9`; otherwise the script fails with the
+offending assignments and overlaps. Sorted quasienergy positions do not define the
+labels. The `r = 0` metric is
+`wrap_f[(ε(1,0;A) − ε(0,0;A)) − (ε(1,0;0) − ε(0,0;0))]`, choosing the shift nearest
+zero modulo `f`. This convention describes the small shifts in this sampled region;
+it does not select all physical transition sidebands or track branches through crossings.
+
+| Amplitude (GHz) | Qubit shift, `r = 0` (kHz) |
+| --- | --- |
+| 0 | 0 |
+| 0.005 | −0.736031 |
+| 0.01 | −2.944122 |
+| 0.02 | −11.776446 |
+
+The script's numerical evidence is authored data in `result.toml`. Across this
+grid, zero-drive agreement with all static eigenvalues modulo `f` has maximum
+residual `9.64e-11 GHz`. Tightening to `1e-11/1e-13` changes the two labelled
+quasienergies by at most `7.38e-14 GHz`; both comparisons require `1e-8 GHz`.
+The one-period unitarity residual `||U†U − I||_F` is at most `1.32e-9`, below
+the `1e-8` limit. The smallest static overlap is `0.99829`; the smallest Floquet
+label overlap is `0.99024`, above the `0.9` assignment threshold. Among these two
+labelled modes, the maximum sampled highest-qubit-level population is `1.20e-7`
+(already `1.01e-7` at zero drive), and the highest-resonator-level population is
+`5.58e-12`. Both are below the `1e-6` truncation-warning level used in this example.
+The populations are sampled at 32 uniformly spaced, distinct phases over one
+period; unitarity is evaluated separately at `T`. They are diagnostics of the
+fixed basis, not evidence of basis convergence.
+
+These results claim quasienergies under strictly periodic driving only. Crossings
+alone do not establish transition probabilities or dissipative accuracy. Integration
+refinement leaves the construction cutoff and retained levels fixed. Authored scripts
+receive no built-in checks; the [CPU runner test](../../tests/test_floquet_example.py)
+checks the numerical evidence, label assignments, artifact and pinned shift values.
+
 ## Numerical evidence and candidate frame bounds
 
 The probe checks all nine rotating-frame readout points. It compares the four grid
