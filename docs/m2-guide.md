@@ -1,23 +1,23 @@
 # M2 Guide — Runs, Verification, and First Sweeps
 
-**Status:** Draft implementation plan; no M2 capability is claimed by this document. The decisions in §8 are recorded in [ADR-0003](adr/0003-runs-verification-and-dispatch.md), with matching contract, roadmap, and checklist edits. Formats, syntax, fixture values, and file names below are proposals.
+**Status:** Implementation guide through checks on request; sweeps and final M2 acceptance remain planned. Completion and evidence belong to the checklist. The decisions in §8 are recorded in [ADR-0003](adr/0003-runs-verification-and-dispatch.md), with matching contract, roadmap, and checklist edits. Implemented syntax and operating conventions live in the operational references.
 **Scope:** M2, covering Block 3 (Runner and Run Contract), Block 4 (Corrector v0), and Block 5 (Protocols `simulate` and `sweep`).
-**Authority:** [roadmap](roadmap.md#block-3--runner-and-run-contract), [accepted mandate](adr/0001-mandate.md#4-later-decisions-and-implementation-evidence), and [harness contract](../HARNESS_CONTRACT.md#2-execution-and-artifacts). [The checklist](checklist.md#m2--verified-local-sweep-blocks-35) owns completion status and acceptance evidence.
+**Authority:** [roadmap](roadmap.md#block-3--runner-and-run-contract), [accepted mandate](adr/0001-mandate.md#4-later-decisions-and-implementation-evidence), and [harness contract](../HARNESS_CONTRACT.md#2-execution-and-artifacts). [The checklist](checklist.md#m2--local-sweep-with-checks-blocks-35) owns completion status and acceptance evidence.
 **Audience:** the owner and implementation agents. This is a planning document; operational docs and production agents must work without it.
 
 ## 1. Outcome and boundary
 
-M2 turns the M1 library into retained, verified research runs on the workstation. At completion, a developer or expert user can:
+M2 turns the M1 library into retained research runs on the workstation that a user can check on request. At completion, a developer or expert user can:
 
 1. Launch a simulation, a sweep, or an authored script through `entanglix`. The runner validates inputs, checks the environment, selects the engine from the versioned table, and creates a run directory.
 2. List and read every attempt, including failed, aborted, and incomplete ones, with lineage, resource use, and the live trace of a running job; abort a stalled job; rerun interrupted work under a new linked ID.
 3. Reproduce a completed run from its frozen inputs, code version, and environment hash.
-4. Receive an independent verdict for completed `simulate` and `sweep` runs, listing checks, accuracy targets, tolerances, residuals, evidence coverage, unresolved requirements, waivers, and inapplicable checks with reasons.
+4. Request built-in checks on a completed `simulate` or `sweep` run and receive a report listing each check's outcome, scope, tolerance, residual, and coverage, and inapplicable checks with reasons.
 5. Run static (spectral) and dynamic sweeps, undriven or driven, in the lab frame or a rotating frame, and use plots and summaries to choose a refined sweep.
 
 M2 covers standalone runs. Investigations, progress checkpoints, and limits (contract §4) arrive in Block 6a; MCP transport and agent permissions in Block 6b; scheduler execution in Block 9; control in Block 7. M2 supplies the Python backing operations and CLI commands that the MCP surface will later wrap.
 
-GPU runs in M2 demonstrate the execution path, not a performance choice. Crossover and peak-memory measurements, batching, automatic GPU selection, and dispatch caps above 30 belong to a later cuDensityMat usage study, tracked in the checklist as a prerequisite for automatic performance-based dispatch. Costs recorded during M2 therefore describe an unstudied GPU path; investigation sizing after M2 should treat them accordingly.
+GPU runs in M2 demonstrate the execution path, not a performance choice. Crossover and peak-memory measurements, batching, and automatic GPU selection belong to a later cuDensityMat usage study, tracked in the checklist as a prerequisite for automatic performance-based dispatch. Costs recorded during M2 therefore describe an unstudied GPU path; investigation sizing after M2 should treat them accordingly.
 
 ## 2. Build by block
 
@@ -26,25 +26,25 @@ M1: models, engines, selection table
     |
 Block 3: run records --> CPU runner --> lifecycle and GPU lock
     |
-Block 4: corrector and plans --> checks and compare_reference
+Block 4: corrector and plans --> checks
     |
-Block 5: feasibility --> drives and frames --> simulate --> verification cost --> sweep + M2 acceptance
+Block 5: feasibility --> drives and frames --> simulate --> checks on request --> sweep + M2 acceptance
 ```
 
-Each step belongs to one block, and blocks complete in order. Block 3 accepts runner facilities through authored CPU jobs, CPU process/lock tests, and a workstation GPU environment check. Plan-job integration belongs to 4A, linked verification and inspection to 4A–4B, and built-in protocol records, reproduction, and scientific GPU dispatch integration to 5C–5D. Block 4 owns trusted computation definitions, shared series-check functions, and spoofing tests; 5C–5D supply protocol-specific metric definitions and apply bounded evidence selection and monotonicity checks to actual sweep grids. Those integration checks remain required for the later blocks. Step 5A needs only M1 and QuTiP, so it can run before Blocks 3 and 4 finish.
+Each step belongs to one block, and blocks complete in order. Block 3 accepts runner facilities through authored CPU jobs, CPU process/lock tests, and a workstation GPU environment check. Plan-job integration belongs to 4A, linked verification and inspection to 4A–4B, and built-in protocol records, reproduction, and scientific GPU dispatch integration to 5C–5D. Block 4 owns trusted computation definitions, shared series-check functions, and spoofing tests; 5C–5D supply protocol-specific metric definitions and apply bounded evidence selection and declared-expectation checks to actual sweep grids. Those integration checks remain required for the later blocks. Step 5A needs only M1 and QuTiP, so it can run before Blocks 3 and 4 finish.
 
 | Step | Work | Evidence before advancing |
 |---|---|---|
 | 3A — Run records | Fields of `run.toml`, the runner's start and reconciliation records, `result.toml`, and `FINISHED`; run IDs; `env_hash` inputs; code provenance including uncommitted changes; exit codes | Records and their meanings written in an operational run reference; contract wording agrees |
 | 3B — CPU runner | Gate (spec validation, import scan, environment check); launch of an authored script in its own process group; frozen `spec/`; `FINISHED` last; `list_capabilities`, `list_runs`, `read_run` | Completed and failed runs leave valid records; launches rejected before `run.toml` exists exit `64` with a diagnostic; a completed run reproduces |
 | 3C — Lifecycle and GPU | Timeouts, `abort_run`, termination of the job or runner, an attempt lock, a GPU lock across runner instances, reconciliation of unknown process state, live trace, rerun lineage, documented recovery | Abrupt termination never yields a completed `FINISHED`; an attempt whose runner or job is alive is never reconciled; a runner killed while its job survives leaves the GPU blocked until reconciliation; interrupted attempts, including those that never started, remain queryable with their records and uncertain usage |
-| 4A — Corrector and plans | `entanglix.corrector`, versioned thresholds including reference dimension and evidence-point limits, deterministic point selection, policy digest, check definitions per computation kind, execution-plan format and CPU plan job using runner facilities, verification run records | Unknown or inconsistent definitions cannot verify; a hash mismatch fails verification; both CPU reference engines pass an exact-Liouvillian regression at the reference limit; plan jobs retain runner records and provenance |
-| 4B — Checks and `compare_reference` | Output checks, combined reference solves at evidence points, spectral checks, sweep-level checks, coverage reports, evidence reuse, linked verification inspection | An under-converged run is `UNVERIFIED`; label-spoof cases cannot skip checks; reports show scope, tolerances, residuals, reference engine and dimension, coverage, and inapplicable checks with reasons; reads expose failed/latest verification without substituting older verdicts |
+| 4A — Corrector and plans | Versioned thresholds, policy digest, deterministic bounded evidence selection, trusted computation definitions, internal execution plans and CPU jobs, linked check records | Plan jobs preserve runner records and provenance; source bindings and policy digests are checked; dimension-48 exact regression qualifies the CPU engines without imposing a cap |
+| 4B — Shared checks | Integrity and spectral-refinement functions, declared sweep-expectation checks, coverage and linked inspection | Deliberate faults are detected; labels cannot change check applicability; reports identify scope, tolerances, residuals, coverage and inapplicable reasons |
 | 5A — Feasibility and metric | Disposable QuTiP probe of the first example; metric, region, windows, grids, drive-frequency policy, refined dimensions, and candidate thresholds | Choices recorded with measured durations and step counts before drive, frame, or protocol implementation |
 | 5B — Drives and frames | Lab-frame carrier drives on all three engines; rotating frames with an explicit rotating-wave approximation; frame comparison in the reference solve | Carrier fixtures pass M1-style agreement, refinement, and physicality checks; rotating and lab frames agree within declared tolerances |
-| 5C — `simulate` | Protocol spec, declared needs including device, engine selection, pre-launch reference for GPU runs, runner GPU environment/ownership/lifecycle integration, frozen protocol inputs and reproduction fields, summaries and artifacts, automatic verification; Purcell example | The documented simulation runs on CPU and, when declared, on the GPU, verifies and reproduces; GPU cancellation, runner loss, reconciliation, and linked rerun checks pass |
-| 5V — Verification cost | Evidence requirements and the `INCONCLUSIVE` verdict. Integrity and same-frame refined segments run automatically and detect failures; the full-window reference (4B) runs only on request and alone establishes whole-window accuracy; the GPU pre-launch reference (5C) is removed. Metric accuracy targets replace declared RWA bounds. Human waivers, a verification allowance, and a launch preview | The probe's segment-detectable failure cases are caught and its false-alarm cases are not; verdict precedence, allowance exhaustion, verifier termination, and recorded waivers pass; the 5C simulation acceptance re-runs, `INCONCLUSIVE` by default and `VERIFIED` with the requested reference |
-| 5D — `sweep` and M2 acceptance | Static and dynamic grid sweeps, frozen grids and per-point settings, plots and summaries, sweep checks; readout sweep | The agreed sweep runs end to end on the GPU, verifies with stated requirements and coverage, and reproduces; points report their whole-window requirements as unresolved unless a reference is requested; interrupted partial results and rerun lineage remain queryable; M2 exit criteria pass |
+| 5C — `simulate` | Protocol spec, declared needs/device selection, GPU environment and ownership/lifecycle integration, frozen inputs, summaries, plots and replay; Purcell example | Documented CPU/CUDA computations complete and reproduce; cancellation, runner loss, reconciliation and linked rerun tests pass; checks are requested separately through 5V |
+| 5V — Checks on request | A run computes and stores its results only. Built-in checks (integrity, same-frame refined segments, diagnostics, spectral refinement) run on request with per-check outcomes and no verdict. A check's prerequisites never restrict a run, and the dimension caps and memory estimates are removed (§5) | A run completes with no verification run and with no refinement declared; requested segments catch the probe's segment-detectable failures and not its false alarms; a run above dimension 30 completes, and an allocation failure is reported as out of memory; the 5C simulation acceptance re-runs with its requested checks passing |
+| 5D — `sweep` and M2 acceptance | Static and dynamic grid sweeps, frozen grids and per-point settings, plots and summaries, sweep checks including declared expectations; readout sweep | The agreed sweep runs end to end on the GPU and reproduces; its requested checks pass and report their coverage; interrupted partial results and rerun lineage remain queryable; M2 exit criteria pass |
 
 ## 3. Block 3 — runs as the history
 
@@ -67,17 +67,17 @@ research_runs/<system_id>/<run_id>/
 
 Run IDs use amicode's `r<UTC-timestamp>Z-<hex>` form, and the runner creates each directory exclusively. Exit codes follow contract §2: `0` completed, `130` aborted, `64` usage or orchestration fault, otherwise the job's code. Run Inspector conveniences and control-specific records (`index`, `latest`, `AMICODE_ITER` lines, `iter_<N>.png` names, amicode's `[julia]` table and `fidelity`/`iterations` fields) wait for Block 12 or the protocol that needs them.
 
-The runner's records are the attempt history; there is no separate ledger store. Jobs write only `result.toml` and `artifacts/`; runner records use separate, read-only paths. `list_runs` scans the runs root. An attempt without a valid `FINISHED` is incomplete: active while its attempt lock is held or its process group is alive, otherwise interrupted. Reconciliation records an interrupted attempt in `runner/reconciled.toml` with its last observed state, its start record if one was written, and usage marked uncertain; it never writes `FINISHED`, and a result left by such an attempt cannot substantiate a completed result. Reruns get new IDs with the earlier attempt as a parent. Verification status comes from linked verification runs (§4).
+The runner's records are the attempt history; there is no separate ledger store. Jobs write only `result.toml` and `artifacts/`; runner records use separate, read-only paths. `list_runs` scans the runs root. An attempt without a valid `FINISHED` is incomplete: active while its attempt lock is held or its process group is alive, otherwise interrupted. Reconciliation records an interrupted attempt in `runner/reconciled.toml` with its last observed state, its start record if one was written, and usage marked uncertain; it never writes `FINISHED`, and a result left by such an attempt cannot substantiate a completed result. Reruns get new IDs with the earlier attempt as a parent. Check outcomes come from linked verification runs (§4).
 
 ### Environment and provenance
 
-`env_hash` covers the `uv.lock` digest, Python and platform, the installed extras, and observed driver, CUDA, and cuQuantum versions. Jobs sharing an environment run through `uv run --locked --exact` with one declared extras set: an exact sync with a different set would reshape the environment between jobs. Scientific GPU dispatch in 5C must probe the actual job environment; how workstation-local configuration declares both GPU extras while CPU-only installations remain lean is an open choice in §8. Separate processes still keep JAX and cuQuantum initialization apart.
+`env_hash` covers the `uv.lock` digest, Python and platform, the installed extras, and observed driver, CUDA, and cuQuantum versions. Jobs sharing an environment run through `uv run --locked --exact` with one declared extras set: an exact sync with a different set would reshape the environment between jobs. Scientific GPU dispatch probes the actual job environment. A workstation-local extras list declares both GPU extras for every job sharing the environment, so CPU-only installations stay lean (§8). Separate processes still keep JAX and cuQuantum initialization apart.
 
 Code provenance records the Git revision and dirty state. For uncommitted changes, freeze a patch and untracked source files into `spec/` so the run can be reproduced; digests alone only detect differences. Authored scripts and data are copied into `spec/` with digests. Reproduction reruns the frozen inputs in an environment with the same `env_hash`, using determinism checks where the engine supports them and declared tolerances otherwise.
 
 ### Launch and lifecycle
 
-The gate validates specs through `load_system` and the protocol loader, scans authored-script imports against the import-boundary allowlist, and, when the selected engine uses CUDA, checks the driver, cuQuantum, and free GPU memory against the selection estimate. There is no daemon or queue: the runner process supervises its job in a new process group, and separate CLI invocations read and abort through the run records. The job begins computing only after the runner has written `runner/started.toml`.
+The gate validates specs through `load_system` and the protocol loader, scans authored-script imports against the import-boundary allowlist, and, when the selected engine uses CUDA, checks the driver and cuQuantum. There is no daemon or queue: the runner process supervises its job in a new process group, and separate CLI invocations read and abort through the run records. The job begins computing only after the runner has written `runner/started.toml`.
 
 The runner is outside its job's process group, so an empty group does not show that the runner is gone. Each attempt therefore has an attempt lock, a `flock` on its directory, taken before `run.toml` is published. The job inherits it, and the runner releases it and any GPU lock only after writing `FINISHED`.
 
@@ -92,38 +92,39 @@ The lock is a file lock, so lifecycle tests use short CPU jobs and real signals 
 
 ### Package, thresholds, and policy digest
 
-`src/entanglix/corrector/` ships in the same distribution, with a versioned thresholds file as package data, like the engine-selection table. Neither lives in run directories or authored-script workspaces, and research tools cannot write them. The verification policy version is the digest of the corrector code and thresholds: the verification run records it at launch, the job recomputes it when the corrector loads, and a mismatch fails the verification run without a verdict. Version-1 thresholds start from the M1 pinned limits and also set minimum refinement steps, the reference dimension limit, and the evidence-point bound.
+`src/entanglix/corrector/` ships in the same distribution, with a versioned thresholds file as package data, like the engine-selection table. Neither lives in run directories or authored-script workspaces, and research tools cannot write them. The corrector policy version is the digest of the corrector code and thresholds: the verification run records it at launch, the job recomputes it when the corrector loads, and a mismatch fails the verification run without a report. Version-1 thresholds start from the M1 pinned limits and also set minimum refinement steps and the evidence-point bound.
 
 ### Plans and applicability
 
-Checks are keyed to computation kinds M1 already provides: Lindblad evolution, spectrum, and parameter series. A plan is the runner-validated execution record for one computation: frozen system, evolution or spectral request, and engine decision. Step 4A pins the plan format and adds a built-in plan job that evaluates a plan on a named engine. Reference solves use it, and Block 4 tests verify plan runs directly; Block 5 protocols compile to plans and add metrics, summaries, and plots.
+Checks are keyed to computation kinds M1 already provides: Lindblad evolution, spectrum, and parameter series. A plan is the runner-validated execution record for one computation: frozen system, evolution or spectral request, and engine decision. Step 4A pins the plan format and adds a built-in plan job that evaluates a plan on a named engine. Block 4 tests check plan runs directly; Block 5 protocols compile to plans and add metrics, summaries, and plots.
 
-The corrector derives applicable checks from the plan's content and the trusted definition of its kind. For example, dissipators require trace and positivity checks, and a rotating-wave approximation adds an approximation requirement (5V). Labels in specs or results cannot remove checks; only a recorded human waiver does (5V). Declared refinement steps below the thresholds' minimum are rejected. Runs without a trusted definition, including authored scripts, cannot verify.
+The corrector derives the checks relevant to a run from the plan's content and the trusted definition of its kind, not from labels in specs or results. For example, dynamics checks do not apply to a spectral run, and rotating-wave shifts are reported only for a rotating-frame run. Runs without a trusted definition, including authored scripts, have no built-in checks.
 
-### Verdict and verification runs
+A check's prerequisites never restrict a run. A refinement declaration is optional: a plan without one loads and runs.
 
-Verification is an ordinary run whose parent is the source run. Its `result.toml` holds the verdict, `VERIFIED` or `UNVERIFIED` (5V adds `INCONCLUSIVE`), and a report bound to the source artifact digests and the verification policy version. The report lists each check's scope, tolerance, residual, reference engine and dimension, and outcome (pass, fail, or inapplicable with a reason), and marks each point as evidence-checked or output-checked. Step 5V defines verdicts over evidence requirements (§5).
+- A malformed declaration, such as a wrong type or a nonpositive step, is rejected by the spec schema like any other field.
+- A declaration that is missing, leaves out a truncated subsystem, or is below the thresholds' minimum does not stop the run. The listing names the checks that cannot run and why, and those checks are reported as inapplicable with that reason.
+- A check request may carry a replacement declaration, so correcting one never requires repeating the run.
 
-A failed verification execution yields no verdict, and the source result remains available only for diagnosis. The runner starts verification after each completed `simulate` or `sweep` run; `compare_reference` starts it on demand. Evidence is reused when plan digests and the policy version match.
+### Verification runs
 
-`read_run` shows the latest verification attempt's status and whether a verdict is available for the requested policy, defaulting to the current corrector policy, and the source artifact digests. A failed or incomplete latest attempt is shown with diagnostics and no verdict for that attempt. Earlier verdicts remain available as historical evidence labeled with their policy and source digests; they cannot substitute for a missing current verdict. For example, success under policy A followed by a failed attempt under policy B shows B's failure and no B verdict, with A's success retained in the history.
+Verification is an ordinary run whose parent is the source run. It executes the checks the user requested, and its `result.toml` holds a report bound to the source artifact digests and the corrector policy version. A replacement refinement declaration supplied with the request is frozen in the verification run's `spec/`; the source run is unchanged. The report lists each check's outcome (pass, fail, or inapplicable with a reason), scope, tolerance, residual, and the engine, dimension, and refinement declaration of any refined solve, and marks each point's coverage. There is no verdict (5V).
+
+A failed or interrupted verification run reports no outcome. No verification run starts unless the user requests a check.
+
+`read_run` lists the checks relevant to the run and its verification runs with their status, policy version, source artifact digests, and each check's outcome. A failed or incomplete attempt is shown with diagnostics and no outcomes. Reports under an earlier policy remain history labelled with that policy.
 
 ### Dynamics checks and cost
 
-Block 4 implemented two kinds of check:
+The dynamics checks are integrity of the stored states at every point, refined segments at evidence points, and diagnostics; the [protocol reference](operations/protocols.md#requested-checks-and-segment-tolerances) defines each. Segments and spectral refinement build a refined plan in the same format and solve it inside the verification job; no separate plan job is launched.
 
-- output checks at every point: trace, Hermiticity, and minimum eigenvalue of stored states, with top retained-level population as a truncation warning;
-- one combined reference solve per evidence point: an independent CPU engine (QuTiP, or dynamiqs when the run used QuTiP) at tightened tolerances, with each truncated subsystem refined by its declared step.
+For sweeps, step 4A pins a deterministic selection rule and a small maximum evidence-point count in the corrector policy. A starting rule is grid corners plus the metric's global minimum and maximum, one point for its steepest change, and one for the worst truncation warning, deduplicated with ties resolved by grid order. The bound limits checks, not grids: a sweep whose required corners exceed it still runs, and a requested segments or refinement check is reported as inapplicable with that reason. Report every warning, but select only the bounded worst cases for refined solves. If the evidence points cannot cover the warnings within the bound, report that instead of expanding the set. The report names selected points, reasons, and uncovered warnings. A declared expectation, such as a metric's direction along an axis, comes from the sweep spec (5D).
 
-On the first example, that reference cost 12× to about 210× the run it checked. Step 5V replaces it with requirement-based evidence (§5) and keeps the full-window reference for on-request use; its plan-job machinery also runs 5V's segment solves.
+Refined solves run on CPU, so a check never waits for the GPU lock. Segments use the run's own engine on CPU and QuTiP for GPU runs, so checking a QuTiP run needs no optional extra.
 
-For sweeps, step 4A pins a deterministic selection rule and a small maximum evidence-point count in the verification policy. A starting rule is grid corners plus the metric's global minimum and maximum, one point for its steepest change, and one for the worst truncation warning, deduplicated with ties resolved by grid order. Reject grids whose required corners exceed the bound before launch. Report every warning, but select only the bounded worst cases for additional solves. If required evidence cannot be covered within the bound, report it with a refinement recommendation instead of expanding the set automatically; under 5V the requirement stays unresolved. The report names selected points, reasons, and uncovered warnings. Monotonicity applies where the sweep spec declares an expected direction (5D); a declaration adds a check and never removes one. Seed reproducibility is reported as inapplicable to deterministic solves.
+The spectral check refines cutoffs and retained levels for the reported quantities, following the M1 CPU fixtures. Comparisons with a second eigensolver, an analytic case, or an independently constructed model stay in the M1 acceptance tests and are not run-time checks.
 
-Reference solves run on CPU engines, so verification never waits for the GPU lock. They are plan jobs on a named engine, bounded by the reference dimension limit rather than the dispatch cap, following the M1 separation of CPU convergence references from policy eligibility. Validate that limit for both CPU reference engines with the M1 exact-Liouvillian regression; at dimension 48 the dense Liouvillian is 2304 × 2304. Verifying QuTiP runs needs dynamiqs: CPU-only installs use the `differentiable` extra, and CPU CI covers that path.
-
-Spectral checks compare with analytic or independently constructed references where available and refine cutoffs and retained levels for the reported quantities, following the M1 CPU fixtures. The M1 acceptance helpers move into the corrector, and the M1 tests call them there.
-
-Required Block 4 cases: a truncation that is too small and a tolerance that is too loose each yield `UNVERIFIED`; a corrector file changed between launch and load fails verification; a spec or result claiming a different kind, omitting checks, or declaring a refinement step below the minimum cannot avoid them; an authored-script run cannot verify; repeated verification with matching digests and policy reuses evidence; a newer failed verification is visible without substituting an older successful verdict; warnings across many grid points do not exceed the evidence-point bound.
+The checklist lists the 5V cases with their evidence. One case remains for 5D: a grid whose corners exceed the evidence-point bound still runs, and warnings across many grid points do not expand the evidence set.
 
 ## 5. Block 5 — feasibility, drives, frames, and protocols
 
@@ -137,51 +138,33 @@ Step 5B implements continuous carrier drives and numeric rotating-wave frames th
 
 - **Carrier drives in the lab frame:** a declared envelope times `cos(2π f t + φ)`, with `f` in GHz, `t` in ns, and `φ` in radians. Each engine evaluates it continuously through its time-dependent coefficient path: QuTiP coefficients, dynamiqs modulated operators, and cuDensityMat callbacks through qutip-cuquantum, which evaluates them on the CPU at every step. Constant and piecewise-constant envelopes come first; other envelopes arrive with the example that needs them.
 - **Rotating frames:** declared in the evolution input as frame frequencies applied to excitation-number operators in each subsystem's retained eigenbasis; explicit-operator models must declare theirs. The transformation is an explicit numeric operation on the constructed operators through the common engine interface, not a general symbolic framework. A declared rotating-wave approximation removes counter-rotating terms, and provenance records the frame and the removed terms. Comparisons across frames use frame-invariant observables or states transformed back to the lab frame.
-- **Frame comparison:** 5B accepted the first fixture's frames with a full-window lab-frame reference. From 5V, the approximation requirement is checked as described under verification cost.
+- **Frame comparison:** 5B accepted the first fixture's frames with a full-window lab-frame reference. From 5V, no built-in check measures the approximation; a user compares a rotating-frame run with a lab-frame run of the same spec.
 
-The pinned adaptive solvers stay; there are no stiff or specialized integrators. The rotating frame is the cost lever; 5V states how its approximation is checked. Carrier fixtures need M1-style acceptance against independent references on all three engines. Before 5C relies on the lab-frame 5 × 6 readout/Purcell fixture, 5B must compare its full-window observables against CPU dynamiqs at tightened tolerances and 6 × 8 levels. Differentiable controls extend to carrier envelopes only where gradient tests cover them; otherwise `evolve_jax` rejects them.
+The pinned adaptive solvers stay; there are no stiff or specialized integrators. The rotating frame is the cost lever; checking its approximation against a lab-frame run is the user's choice. Carrier fixtures need M1-style acceptance against independent references on all three engines. Before 5C relies on the lab-frame 5 × 6 readout/Purcell fixture, 5B must compare its full-window observables against CPU dynamiqs at tightened tolerances and 6 × 8 levels. Differentiable controls extend to carrier envelopes only where gradient tests cover them; otherwise `evolve_jax` rejects them.
 
 ### `simulate`
 
-A `simulate.toml` protocol spec names the system, frame, initial state, output grid, drives, observables, solver tolerances, refinement steps, declared needs, and an optional timeout, and compiles to one plan. Declared needs are `gradients` and `device`. A new selection-table version maps a declared `device = "cuda"` without gradients to cuDensityMat; without a declared device, non-gradient requests stay on QuTiP CPU. The table records needs, not performance, and the dispatch cap stays at 30.
+A `simulate.toml` protocol spec names the system, frame, initial state, output grid, drives, observables, solver tolerances, optional refinement steps, declared needs, and an optional timeout, and compiles to one plan. Declared needs are `gradients` and `device`. A new selection-table version maps a declared `device = "cuda"` without gradients to cuDensityMat; without a declared device, non-gradient requests stay on QuTiP CPU. The table records needs, not performance. The harness imposes no dimension cap, and a run that exhausts memory fails as the [run reference](operations/runs.md#execution-outcomes) describes.
 
-GPU launches follow the contract's cheap-to-expensive funnel. In 5C the combined CPU reference solve ran first as a linked run; 5V removes it, and GPU runs are verified after they complete. Results include observable and metric summaries in `result.toml`, stored states and observables in `artifacts/`, and plots. Plots use matplotlib, today a transitive scqubits dependency; declare it directly and add it to the import-boundary allowlist.
+GPU launches follow the contract's cheap-to-expensive funnel. No scientific check precedes or follows a launch unless the user requests one. Results include observable and metric summaries in `result.toml`, stored states and observables in `artifacts/`, and plots. Plots use matplotlib, today a transitive scqubits dependency; declare it directly and add it to the import-boundary allowlist.
 
-### Verification cost (5V)
+### Checks on request (5V)
 
-Step 5V implements [ADR-0003 §2.3–§2.4](adr/0003-runs-verification-and-dispatch.md#23-verification-runs-and-verdicts). The [verification probe](../tests/probes/m2_verification.py) and its [measurements](../tests/probes/m2_verification_results.json) supply the measured basis and the regression cases.
+Step 5V implements [ADR-0003 §2.3–§2.5](adr/0003-runs-verification-and-dispatch.md#23-verification-runs-and-checks-on-request). The [protocol reference](operations/protocols.md#requested-checks-and-segment-tolerances) and the [run reference](operations/runs.md#corrector-policy-and-verification-records) describe the implemented interface, and the checklist links the acceptance evidence. The [probe](../tests/probes/m2_verification.py) and its [measurements](../tests/probes/m2_verification_results.json) supply the measured basis and the regression cases.
 
-- **Verdicts:**
-  - Requirements: integrity, numerical accuracy, truncation, and, for rotating-wave runs, the approximation.
-  - Precedence: `UNVERIFIED`, then `VERIFIED`, then `INCONCLUSIVE`, with each unresolved requirement's reason: waived, no applicable check, or allowance exhausted.
-  - A dynamics run with no failed check and no requested reference is `INCONCLUSIVE`; the report lists the local evidence that passed. Spectral verification keeps its existing reference and refinement checks.
-  - A violated declared expectation is `UNVERIFIED` even when a reference comparison passes. The report names it "declared expectation violated", because the expectation itself may be wrong.
-  - A controlled allowance stop writes a report; a verifier stopped by the runner's timeout, an abort, or a crash has no verdict.
-- **Segments:**
-  - Run in one warm process and reuse compiled solvers. The probe's cold per-segment processes cost about 1.5 s each, mostly startup and JAX compilation.
-  - Run in the source run's frame. Select start, middle, end, and drive changes, within the allowance; report drive changes left uncovered.
-  - A disagreement beyond the metric's accuracy target fails. Passing shows local agreement over the reported coverage and resolves no whole-window requirement. Results are never extrapolated.
-- **Diagnostics:** top-level population, cutoff shifts and outside weights, and full-against-RWA shifts appear in the preview and the report and never affect the verdict.
-- **Full-window reference:** `compare_reference` keeps the combined reference and runs it on request. It detects disagreement without separating its causes and satisfies the requirements it covers.
-- **Accuracy targets:** per-metric defaults with an explicit override in the metric's units. Record the effective target. Remove `rwa_bounds` and the metric `rwa_bound`.
-- **Waivers:**
-  - A separate human CLI operation that the agent runtime's permission settings can block, as for `promote`. Research-tool requests reject waiver fields. Block 6b tests the runtime restrictions.
-  - Record who applied a waiver, when, and why. A waived check does not run, and its requirement stays unresolved.
-- **Allowance:** the corrector tracks its own allowance and stops starting work when it is exhausted. The runner's timeout remains the backstop.
-- **GPU runs:** remove 5C's pre-launch reference. Verification runs on CPU after the run.
-- **Preview:** `simulate --dry-run` lists:
-  - the model: retained levels, frame, the terms the RWA drops, drives;
-  - the execution plan: engine, device and the reason for the choice, tolerances, timeout;
-  - the verification plan: checks with applicability, targets and allowance, diagnostics, waivers, and evidence reuse.
+- **Requests:** a run computes and stores its results. `check` lists the relevant checks, or runs named ones as one linked verification run with per-check outcomes and no verdict.
+- **Checks:** integrity, same-frame refined segments on the run's own CPU engine, diagnostics, and spectral refinement. No built-in check measures whole-window error or the rotating-wave approximation; a user compares two runs.
+- **Prerequisites:** they never restrict a run. The refinement declaration is optional, and a check request may replace it.
+- **Size:** the harness imposes no dimension cap and makes no memory estimate before launch. An allocation failure is reported as out of memory, and an unexplained signal death as its signal.
+- **Removed:** automatic verification, verdicts, waivers and the allowance, the full-window reference and `compare-reference`, the spectral cross-checks, the dimension caps, and the memory estimates.
 
-  The final report uses the same list.
-- **Operational docs:** `runs.md`, `protocols.md`, the readout example's frame-study text, and `purcell-cuda.toml` change with the code.
+Step 5D applies the same rules to sweeps: segments and spectral refinement at the bounded evidence points (§4), and declared expectations from the sweep spec.
 
 ### `sweep`
 
-A `sweep.toml` names a base `simulate` or spectral spec and grid axes over system parameters, such as a constructor's `josephson_energy`, and protocol quantities, such as a drive amplitude. Static sweeps compute spectral quantities; dynamic sweeps evolve each point, undriven or driven, in either frame. One run covers one sweep: points run serially inside the job, completed points remain in `artifacts/` if the run is interrupted, and a rerun is a new linked run that recomputes the grid. Verification applies integrity and diagnostics at every point, and runs segments, and a requested reference, at the bounded evidence points (§4) selected after the sweep. Requirements apply to the sweep as a whole, and reports mark which points were sampled.
+A `sweep.toml` names a base `simulate` or spectral spec and grid axes over system parameters, such as a constructor's `josephson_energy`, and protocol quantities, such as a drive amplitude. Static sweeps compute spectral quantities; dynamic sweeps evolve each point, undriven or driven, in either frame. One run covers one sweep: points run serially inside the job, completed points remain in `artifacts/` if the run is interrupted, and a rerun is a new linked run that recomputes the grid. On request, integrity and diagnostics cover every point whose states the sweep retained, and segments or spectral refinement run at the bounded evidence points (§4) selected after the sweep. Reports mark which points were sampled. The bound limits these checks, never the grid. A sweep spec may declare an expectation, such as a metric's direction along an axis, which becomes a check the user can request.
 
-Summaries and plots show the metric over the grid, per-point top-level populations, and each point's verification coverage, so a user can choose a narrower or finer grid and rerun with the earlier sweep as parent. Batch-versus-serial checks are needed only before batching is advertised.
+Summaries and plots show the metric over the grid. `read_run` adds the outcomes and coverage of any checks run, including requested diagnostics such as per-point top-level populations; a sweep computes no diagnostic unrequested. From these a user can choose a narrower or finer grid and rerun with the earlier sweep as parent. Batch-versus-serial checks are needed only before batching is advertised.
 
 ## 6. First example
 
@@ -219,28 +202,28 @@ uv run --locked --exact --extra differentiable-cuda12 --extra cuquantum entangli
 
 ## 8. Settled decisions and open choices
 
-Recorded in [ADR-0003](adr/0003-runs-verification-and-dispatch.md), with matching edits to contract §2, §3, §5, §6, and §7 and to the roadmap and checklist:
+Recorded in [ADR-0003](adr/0003-runs-verification-and-dispatch.md), with matching contract, roadmap, and checklist edits:
 
 1. Run directories are the attempt history: runner-owned `run.toml`, start and reconciliation records, and `FINISHED`, with no separate ledger store, `index`, or `latest`. amicode's layout and terminal semantics are adopted without Julia fields; Inspector compatibility waits for Block 12.
-2. Verification is a separate linked run whose `result.toml` holds the verdict and a report bound to source digests and the policy version; protocol results carry no verdict.
-3. Dynamics verification follows evidence requirements:
-   - integrity at every point;
-   - same-frame segments as local evidence that detects failures;
-   - whole-window numerical accuracy, truncation, and approximation established only by the full-window reference, on request;
-   - `INCONCLUSIVE` when a requirement stays unresolved;
-   - human waivers.
+2. Verification is a separate linked run whose `result.toml` holds a report of per-check outcomes bound to source digests and the policy version; protocol results carry no check outcomes.
+3. Nothing is checked unless the user requests it. The built-in checks are:
+   - integrity of stored states;
+   - same-frame segments as local evidence;
+   - diagnostics;
+   - spectral refinement;
+   - declared expectations in sweeps.
 
-   Sweep requirements apply to the whole sweep: segments run at a bounded, deterministically selected set of points, the verdict certifies nothing about convergence at unsampled points, and reports state coverage.
-4. Corrector reference solves have their own dimension limit, validated like the M1 exact-Liouvillian regression; the dispatch cap stays at 30.
+   Each check reports its own outcome, with no verdict, waiver, or allowance. A check's prerequisites, such as a refinement declaration or the evidence-point bound, never restrict a run. No built-in check measures whole-window error or the rotating-wave approximation. In a sweep, segments and refinement run at a bounded, deterministically selected set of points, and reports state coverage.
+4. The harness imposes no dimension cap, on dispatch or on the corrector's refined solves, and makes no memory estimate before launch; tested sizes are acceptance evidence, not a ceiling. An observed allocation failure is reported as out of memory, and an unexplained signal death as its signal.
 5. A declared `device` need routes non-gradient requests to cuDensityMat. Engine efficiency and the corresponding Block 5 checklist items move to a cuDensityMat usage study, tracked as a prerequisite for automatic performance-based dispatch.
 6. Lab-frame carrier drives and rotating frames are M2 capabilities, using the pinned adaptive solvers and explicit numeric transformations.
 7. The first example is the qubit–resonator readout model in §6; 5A settled the metric and feasibility choices recorded in the readout example.
 
-Run records, implemented plans, reference limits, and evidence-point selection are documented in [the operational run reference](operations/runs.md). The readout example records the settled feasibility choices and independently accepted frame bounds with their resolution limits. Frame declarations and rotating-wave rules are implemented as described in the operational system reference. Open, decided in the named step: sweep spec syntax and remaining sweep CLI command names (5D). Simulation syntax, trusted endpoint metrics, declared trajectory and endpoint-metric RWA bounds (replaced by accuracy targets in 5V), replay, and workstation-local runner extras are documented in the [protocol reference](operations/protocols.md). The extras choice must preserve one declared set for jobs sharing an environment and run the GPU probe in the actual job environment.
+Run records and implemented plans are documented in [the operational run reference](operations/runs.md); evidence-point selection is implemented in the corrector policy and reaches the operational references with sweeps (5D). The readout example records the settled feasibility choices and independently accepted frame bounds with their resolution limits. Frame declarations and rotating-wave rules are implemented as described in the operational system reference. Open, decided in the named step: sweep spec syntax, remaining sweep CLI command names, whether a spec may request checks to run after its run, and what each sweep point retains (5D). Simulation syntax, trusted endpoint metrics, segment tolerances, replay, and workstation-local runner extras are documented in the [protocol reference](operations/protocols.md). The extras choice must preserve one declared set for jobs sharing an environment and run the GPU probe in the actual job environment.
 
 ## 9. Exit evidence and handoff
 
-[Checklist M2](checklist.md#m2--verified-local-sweep-blocks-35) is the sole acceptance list; this guide adds no completion gates. Acceptance runs are themselves Entanglix run directories: retain the cited runs and their verification runs, and link them with test commands and results, as M1 retained its acceptance results. Publish run records, exit codes, and recovery in `docs/operations/runs.md`, frames and carrier drives in `system-spec.md`, protocol usage in an operational protocol reference, and available commands in the root README. Operational documents stand alone without linking to planning docs.
+[Checklist M2](checklist.md#m2--local-sweep-with-checks-blocks-35) is the sole acceptance list; this guide adds no completion gates. Acceptance runs are themselves Entanglix run directories: retain the cited runs and their verification runs, and link them with test commands and results, as M1 retained its acceptance results. Publish run records, exit codes, and recovery in `docs/operations/runs.md`, frames and carrier drives in `system-spec.md`, protocol usage in an operational protocol reference, and available commands in the root README. Operational documents stand alone without linking to planning docs.
 
 The investigation decisions after M2 build on the runner, run history, verification, and sweep outputs. Block 6a adds investigation revisions to run records and admission checks before launch; Block 6b wraps the backing operations in MCP. The cuDensityMat usage study can proceed once M2 runs exist and updates the selection table only from its measurements.
 

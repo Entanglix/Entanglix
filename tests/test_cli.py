@@ -4,6 +4,7 @@ import sys
 import pytest
 
 from entanglix import __version__
+from entanglix.cli import main
 
 
 @pytest.mark.parametrize("invocation", [["entanglix"], [sys.executable, "-m", "entanglix"]])
@@ -38,3 +39,48 @@ def test_help_and_unavailable_protocols():
     assert result.returncode == 64
     assert result.stdout == ""
     assert "invalid choice" in result.stderr
+
+
+@pytest.mark.parametrize(
+    "command,target",
+    [
+        (["validate", "unused.toml"], "entanglix.models.load_system"),
+        (["capabilities"], "entanglix.runner.list_capabilities"),
+    ],
+)
+def test_cli_allocation_failure_has_diagnostic(command, target, monkeypatch, capsys):
+    def fail(*args, **kwargs):
+        raise MemoryError
+
+    monkeypatch.setattr(target, fail)
+    assert main(command) == 64
+    captured = capsys.readouterr()
+    assert "out of memory: MemoryError" in captured.err
+    assert "Traceback" not in captured.err
+    assert captured.out == ""
+
+
+@pytest.mark.parametrize(
+    "command,target,expected",
+    [
+        (
+            ["validate", "unused.toml"],
+            "entanglix.models.load_system",
+            "entanglix: invalid system: units: Field required\n",
+        ),
+        (
+            ["capabilities"],
+            "entanglix.runner.list_capabilities",
+            "entanglix: units: Field required\n",
+        ),
+    ],
+)
+def test_cli_ordinary_errors_keep_plain_messages(command, target, expected, monkeypatch, capsys):
+    from entanglix.models import SpecError
+
+    def fail(*args, **kwargs):
+        raise SpecError("units: Field required")
+
+    monkeypatch.setattr(target, fail)
+    assert main(command) == 64
+    assert capsys.readouterr().err == expected

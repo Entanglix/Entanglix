@@ -71,7 +71,14 @@ def embed_state(system, refined, state):
     return result
 
 
-def prepare_reference(loaded, directory: Path, policy):
+def embedding_matrix(system, refined):
+    """Map the ordered source basis into the refined basis with aligned phases."""
+    return np.column_stack(
+        [embed_state(system, refined, state) for state in np.eye(np.prod(system.dimensions))]
+    )
+
+
+def prepare_refinement(loaded, directory: Path, policy):
     """Write a combined refinement; returned plan is validated before any solve."""
     for name, path in loaded.inputs.items():
         shutil.copyfile(path, directory / name)
@@ -108,24 +115,13 @@ def prepare_reference(loaded, directory: Path, policy):
     (directory / "system.toml").write_text(tomli_w.dumps(document))
     refined = load_system(directory / "system.toml")
     plan = loaded.definition.model_dump(exclude_none=True)
-    plan["purpose"] = "reference"
     if loaded.request is not None:
-        plan["engine"] = "dynamiqs" if plan["engine"] == "qutip-cpu" else "qutip-cpu"
+        plan["engine"] = plan["engine"] if plan["device"] == "cpu" else "qutip-cpu"
         plan["device"] = "cpu"
-        plan.pop("rwa_bounds", None)
-        for metric in plan["metrics"].values():
-            metric.pop("rwa_bound", None)
         evolution = plan["evolution"]
-        # Reference states and source outputs are both expressed in the lab basis.
-        evolution.pop("frame", None)
-        # Preserve QuTiP's per-interval allowance in a whole-window dynamiqs solve.
-        if plan["engine"] == "dynamiqs" and not any(
-            np.ndim(value) for value in loaded.request.drive_amplitudes_ghz.values()
-        ):
-            evolution["max_steps"] *= len(loaded.request.times_ns) - 1
-        factor = policy.thresholds["reference"]["tolerance_factor"]
-        evolution["rtol"] = min(evolution["rtol"] * factor, policy.thresholds["reference"]["rtol"])
-        evolution["atol"] = min(evolution["atol"] * factor, policy.thresholds["reference"]["atol"])
+        factor = policy.thresholds["refinement"]["tolerance_factor"]
+        evolution["rtol"] = min(evolution["rtol"] * factor, policy.thresholds["refinement"]["rtol"])
+        evolution["atol"] = min(evolution["atol"] * factor, policy.thresholds["refinement"]["atol"])
         # Retain the numerical initial state in the same ordered low-level subspace.
         name = "reference-state.npz"
         while (directory / name).exists():
@@ -139,6 +135,4 @@ def prepare_reference(loaded, directory: Path, policy):
         evolution["array_file"] = name
         evolution["initial_state"] = "initial_state"
     (directory / "plan.toml").write_text(tomli_w.dumps(plan))
-    return load_plan(
-        directory / "system.toml", directory / "plan.toml", expected_policy=policy.version
-    )
+    return load_plan(directory / "system.toml", directory / "plan.toml")

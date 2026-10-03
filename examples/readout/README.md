@@ -65,15 +65,13 @@ in the lab frame and 0.892 with the RWA. The leading dispersive estimate
 not an exact reference or a `1e-6` acceptance condition.
 
 The [CPU Purcell protocol](purcell.toml) uses the lab frame. The
-[CUDA protocol](purcell-cuda.toml) declares cuDensityMat and the RWA studied below,
-with additional full-trajectory approximation bounds of `0.005` in excited population
-and `0.008` in photon number. These qualify the combined lab-reference comparison;
-they do not change physicality or output-consistency checks. Its endpoint population
-metric explicitly declares its own `rwa_bound = 0.005`. The common frame frequency
-`7.002760675881172 GHz` is the dressed readout midpoint at `EJ = 15 GHz` from the
-frame study. With no drive present, the RWA depends on excitation conservation,
-rather than this particular frequency. CPU and CUDA protocols use the same model,
-initial state, 1600 ns window, and refinement to 6 × 8 retained levels.
+[CUDA protocol](purcell-cuda.toml) declares cuDensityMat and the RWA studied below.
+The common frame frequency `7.002760675881172 GHz` is the dressed readout midpoint
+at `EJ = 15 GHz` from the frame study. With no drive, the RWA depends on excitation
+conservation rather than this particular frequency. Both protocols use the same
+model, initial state, 1600 ns window, and refinement to 6 × 8 retained levels.
+No check runs automatically. Request `integrity`, `segments`, or `diagnostics` after
+completion; segment tolerances default to `1e-6` and do not bound the RWA error.
 
 ```sh
 export ENTANGLIX_RUNNER_EXTRAS=cuquantum,differentiable-cuda12
@@ -82,16 +80,16 @@ uv run --locked --exact entanglix simulate examples/readout/purcell-cuda.toml
 ```
 
 See the [protocol reference](../../docs/operations/protocols.md) for results, plots,
-verification semantics, cancellation, and replay. CUDA execution makes no performance
+requested checks, cancellation, and replay. CUDA execution makes no performance
 claim; the engine's crossover and workspace costs remain unmeasured.
 
 The [retained CPU simulation/replay](../../tests/probes/m2_simulation_cpu.json)
-and [CUDA simulation/replay](../../tests/probes/m2_simulation_cuda.json) are
-`VERIFIED` over the complete window, with identical stored numerical outputs on
-replay. Their final excited populations are approximately `0.888246` (lab CPU) and
-`0.892140` (RWA CUDA). The CUDA population/reference difference is about `0.003894`,
-within its declared approximation bound; this is scoped RWA acceptance, not numerical
-agreement at `1e-6` between the two models. Both replays reuse reference solves.
+and [CUDA simulation/replay](../../tests/probes/m2_simulation_cuda.json) record
+requested integrity, local segments and diagnostics, with identical numerical
+outputs on replay. The CPU summary also includes a 6 × 8, dimension-48 `simulate`
+and its requested integrity check as a more-levels comparison. Reports retain
+coverage and work time. Lab CPU and RWA CUDA outputs are two different models:
+passing local checks establishes neither their whole-window error nor RWA accuracy.
 The [acceptance command](../../docs/environment.md#simulation-acceptance) regenerates
 the records and summaries.
 
@@ -111,7 +109,8 @@ These are same-engine QuTiP refinement checks at the sampled evidence points, no
 independent-engine acceptance of the grid or arbitrary models and windows. The
 [independent-engine study below](#independent-engine-frame-acceptance) passes the
 lab-frame 5 × 6 fixture, including Purcell, against CPU dynamiqs at tightened
-tolerances and 6 × 8 levels. Lab-frame references remain required.
+tolerances and 6 × 8 levels. Another model or window needs its own lab-frame
+comparison run; no built-in check supplies one.
 
 The RWA is a separate model approximation. Maximum combined rotating-production
 versus refined-lab residuals are approximately `0.00193` in normalized coherence,
@@ -120,11 +119,11 @@ trajectory diagnostic bounds are respectively `0.003`, `0.005`, and `0.008`.
 For the reported readout metric `C(100 ns)`, use a separate candidate absolute bound
 of `5e-4`: the largest sampled endpoint error is `3.96e-4`. The
 [independent-engine study below](#independent-engine-frame-acceptance) accepts these
-bounds at its sampled points; their use in protocol verification remains pending.
+bounds at its sampled points; they are not segment tolerances or a built-in RWA accuracy check.
 It additionally covers `EJ = 12, A = 0.001 GHz`; the other intermediate-drive
 points remain unreferenced, so this is not an accepted bound across the whole grid.
-The current corrector's `1e-6` numerical comparison
-limit remains unchanged; these RWA cases would not pass that limit as frame comparisons.
+These differences are far above the `1e-6` default segment tolerance, which applies
+only to local comparisons in the run's own frame.
 
 Two endpoints with absolute error bound `5e-4` give a conservative `1e-3` uncertainty
 on their difference. The measured adjacent endpoint decreases are:
@@ -139,8 +138,7 @@ The first `EJ = 12` step is unresolved at this candidate frame resolution, and t
 second is only about 3.1 times the difference bound. Keep the 100 ns window and grid
 for a qualitative study; do not claim precise low-drive effects there. At maximum
 drive, the rotating-frame loss from baseline differs from the refined-lab result
-by about 13% at `EJ = 12`, versus 0.64% at `EJ = 15`. A future `VERIFIED` verdict
-within declared metric bounds would not imply that every sweep increment is resolved.
+by about 13% at `EJ = 12`, versus 0.64% at `EJ = 15`. Agreement within a stated metric bound would not imply that every sweep increment is resolved.
 
 Use `vern9`, production `rtol/atol = 1e-10/1e-12`, refined `1e-11/1e-13`, and
 100,000 maximum steps per output interval. Step counts in the probe exclude rejected
@@ -154,7 +152,7 @@ is about 10–22 s per checked readout point. The Purcell rotating solve takes a
 instrumentation and exclude model construction, environment setup, and runner overhead.
 These are CPU feasibility measurements;
 they make no GPU performance claim. Reference cost dominates and must be included
-in later run estimates and reused when matching retained evidence is available.
+in later run estimates when requesting comparison solves. No full-window reference is run automatically.
 
 ## Independent-engine frame acceptance
 
@@ -172,8 +170,7 @@ The shared RWA implementation passes the trajectory diagnostic bounds and the
 `5e-4` endpoint-coherence bound against these independent lab references. Maximum
 readout endpoint error remains about `3.96e-4`; at the additional `EJ = 12` low-drive
 point it is `8.89e-5`. This acceptance covers those sampled points and windows,
-preserving the unresolved-increment qualification above. Metric-specific protocol
-verification follows separately; no corrector threshold has been relaxed.
+preserving the unresolved-increment qualification above. These measurements do not establish accuracy for an untested run.
 
 On this run, independent dynamiqs readout references took about 45–77 s, including
 JAX compilation and device synchronization; the Purcell reference took about 385 s.

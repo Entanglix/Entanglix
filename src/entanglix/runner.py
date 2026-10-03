@@ -20,12 +20,9 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from importlib.metadata import distributions, version
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal
+from typing import Literal
 
 import tomli_w
-
-if TYPE_CHECKING:
-    from entanglix.engines.selection import EngineSelection
 
 TERMINATION_GRACE_SECONDS = 2.0
 
@@ -57,7 +54,45 @@ def capture_environment(
     return record
 
 
-def check_gpu_environment(device_uuid: str, selection: "EngineSelection") -> dict:
+def failure_message(exc: Exception) -> str:
+    """Identify observed allocation failures without guessing at signal causes."""
+    if "out of memory:" in str(exc).lower():
+        return str(exc)
+    detail = f"{type(exc).__name__}: {exc}"
+    if (
+        isinstance(exc, MemoryError)
+        or "out of memory" in detail.lower()
+        or "ALLOC_FAILED" in detail
+    ):
+        return f"out of memory: {detail}"
+    return str(exc)
+
+
+def _signal_failure(code: int) -> str:
+    """Describe raw signals or uncertain shell-encoded exits consistently."""
+    encoded_signal = next((sig for sig in signal.Signals if code == 128 + sig), None)
+    if code < 0 or encoded_signal is not None:
+        observed = (
+            f"terminated by {signal.Signals(-code).name}"
+            if code < 0
+            else f"exited {code} ({encoded_signal.name} encoding)"
+        )
+        detail = f"{observed}; cause unknown"
+        if code in {-signal.SIGKILL, 128 + signal.SIGKILL}:
+            detail += "; exhausted memory is a possible cause"
+        return detail
+    return ""
+
+
+def process_failure(process, context: str) -> str:
+    detail = process.stderr.strip()
+    observed = _signal_failure(process.returncode)
+    if observed:
+        detail += f"\n{context}: {observed}"
+    return detail.strip() or context
+
+
+def check_gpu_environment(device_uuid: str) -> dict:
     """Check a selected device in the caller's exact job environment before dispatch."""
     try:
         import ctypes
@@ -96,18 +131,10 @@ def check_gpu_environment(device_uuid: str, selection: "EngineSelection") -> dic
             native.cudensitymatGetVersion.restype = ctypes.c_size_t
             native.cudensitymatGetVersion.argtypes = []
             library_version = native.cudensitymatGetVersion()
-            free, _ = cp.cuda.runtime.memGetInfo()
             del work
-        if free < selection.estimated_device_bytes:
-            raise ValueError(
-                f"GPU free memory {free} bytes is below selection estimate "
-                f"{selection.estimated_device_bytes} bytes"
-            )
         return {
             "device_uuid": device_uuid,
             "device_id": device_id,
-            "free_memory_bytes": free,
-            "required_memory_bytes": selection.estimated_device_bytes,
             "gpu": {
                 "driver": driver,
                 "cuda": f"{cuda // 1000}.{cuda % 1000 // 10}.{cuda % 10}",
@@ -643,7 +670,6 @@ def _execute_job(
     gpu: GpuLease | None = None,
     job_input: str = "script.py",
     validate_result: Callable[[Path], dict] | None = None,
-    cleanup: Callable[[], None] | None = None,
 ) -> dict:
     """Supervise the local job and its process group while retaining allocation ownership."""
     run = owner.path
@@ -694,6 +720,10 @@ def _execute_job(
                     break
                 time.sleep(0.01)
             code = child.wait()
+            observed = _signal_failure(code)
+            if observed and not stopped and not (run / "runner/abort.toml").exists():
+                log.write(f"entanglix: job {observed}\n")
+                log.flush()
             code = 128 - code if code < 0 else code
             if (run / "runner/abort.toml").exists():
                 stopped = "abort"
@@ -714,12 +744,6 @@ def _execute_job(
                 _signal_group(child.pid, signal.SIGKILL)
                 child.wait()
             code = 64
-        if cleanup is not None:
-            try:
-                cleanup()
-            except Exception as exc:
-                log.write(f"entanglix: nested job cleanup failed: {exc}\n")
-                code = 64
         if child is not None:
             while _group_alive(child.pid):
                 time.sleep(0.01)
@@ -745,8 +769,6 @@ def _execute_job(
 
 def _script_result(run: Path) -> dict:
     result = _load_record(run / "result.toml")
-    if "verdict" in result:
-        raise ValueError("authored scripts cannot publish verification verdicts")
     if not isinstance(result.get("engine"), str) or not result["engine"]:
         raise ValueError("script result must name its actual engine")
     if not isinstance(result.get("metrics"), dict):
@@ -848,7 +870,7 @@ def run_script(
         env=environment,
     )
     if check.returncode:
-        raise ValueError(check.stderr.strip() or "locked-environment launch validation failed")
+        raise ValueError(process_failure(check, "locked-environment launch validation failed"))
     gate = json.loads(check.stdout)
     with create_run(
         system_id=gate["system_id"],
@@ -923,7 +945,7 @@ def run_plan(
     parent_run_ids: tuple[str, ...] = (),
     timeout_seconds: float | None = None,
 ) -> dict:
-    """Execute a validated built-in computation or named CPU reference plan."""
+    """Execute an internal validated computation plan."""
     repository = (repository or Path(__file__).resolve().parents[2]).resolve()
     if timeout_seconds is not None and (not math.isfinite(timeout_seconds) or timeout_seconds <= 0):
         raise ValueError("timeout_seconds must be finite and positive")
@@ -943,11 +965,11 @@ def run_plan(
         env=environment,
     )
     if check.returncode:
-        raise ValueError(check.stderr.strip() or "locked-environment plan validation failed")
+        raise ValueError(process_failure(check, "locked-environment plan validation failed"))
     gate = json.loads(check.stdout)
     with create_run(
         system_id=gate["system_id"],
-        protocol="reference" if gate["purpose"] == "reference" else "plan",
+        protocol="plan",
         inputs={name: Path(path) for name, path in gate["inputs"].items()},
         environment=gate["environment"],
         code=capture_code(repository),
@@ -959,7 +981,6 @@ def run_plan(
         launch={
             "kind": gate["kind"],
             "plan_sha256": gate["plan_sha256"],
-            "policy_version": gate["policy_version"],
             **({"timeout_seconds": timeout_seconds} if timeout_seconds is not None else {}),
         },
     ) as owner:
@@ -993,7 +1014,7 @@ def list_capabilities(repository: Path | None = None) -> dict:
             "abort_run",
             "reconcile_run",
             "rerun_script",
-            "compare_reference",
+            "check",
             "simulate",
             "rerun_simulation",
         ],
@@ -1072,14 +1093,18 @@ def _read_attempt(run: Path) -> dict:
     return record
 
 
-def read_run(run: Path, *, policy_version: str | None = None) -> dict:
-    """Inspect an attempt and its policy-bound scientific verification history."""
+def read_run(run: Path) -> dict:
+    """Read retained records and check history, even if the frozen plan is obsolete."""
     run = run.resolve()
     record = _read_attempt(run)
     if record["manifest"]["protocol"] in {"plan", "reference", "simulate"}:
-        from entanglix.corrector.verification import verification_history
+        from entanglix.corrector.verification import check_run, verification_history
 
-        record["verification"] = verification_history(run, policy_version=policy_version)
+        record["verification"] = verification_history(run)
+        try:
+            record["check_listing"] = check_run(run)
+        except (OSError, ValueError, RuntimeError, KeyError, MemoryError) as exc:
+            record["check_listing"] = {"checks": [], "reason": failure_message(exc)}
     return record
 
 

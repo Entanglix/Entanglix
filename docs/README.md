@@ -27,10 +27,10 @@ This index supports project planning and implementation. Operational entry point
 
 - [../README.md](../README.md) — User entry point, available commands, and compatibility.
 - [research-agent.md](research-agent.md) — Draft research conduct for user agents; instruction delivery is decided before Block 6b. It avoids an auto-load filename and is not repository development guidance.
-- [../HARNESS_CONTRACT.md](../HARNESS_CONTRACT.md) — Shared interfaces, permissions, evidence requirements, and execution guarantees.
-- [operations/system-spec.md](operations/system-spec.md) — Implemented system syntax, units, operators, evolution, drive gradients, numerical checks, and engine-selection limits. Other usage guides may be added under `operations/` as capabilities arrive. Runtime skills will be introduced in the root `skills/` directory with agent integration.
+- [../HARNESS_CONTRACT.md](../HARNESS_CONTRACT.md) — Shared interfaces, permissions, checks, and execution guarantees.
+- [operations/system-spec.md](operations/system-spec.md) — Implemented system syntax, units, operators, evolution, drive gradients, numerical checks, and engine selection. Other usage guides may be added under `operations/` as capabilities arrive. Runtime skills will be introduced in the root `skills/` directory with agent integration.
 - [operations/runs.md](operations/runs.md) — Authored CPU jobs, listing and inspection, frozen inputs, environment and code provenance, record ownership, and execution outcomes.
-- [operations/protocols.md](operations/protocols.md) — Simulation specifications, metrics, CPU/CUDA dispatch, independent verification, and frozen-input replay.
+- [operations/protocols.md](operations/protocols.md) — Simulation specifications, metrics, CPU/CUDA dispatch, checks on request, and frozen-input replay.
 - [environment.md](environment.md) — Observed GPU compatibility, tested package versions, limitations, and reproduction commands.
 
 ## Decision records
@@ -38,7 +38,7 @@ This index supports project planning and implementation. Operational entry point
 - [adr/](adr/) — Public decision records, kept current and retained during operation.
 - [adr/0001-mandate.md](adr/0001-mandate.md) — Accepted foundation mandate and constraints. Future decisions add records as implementation proceeds.
 - [adr/0002-system-model-representation.md](adr/0002-system-model-representation.md) — Accepted system model representation: model kinds, units, circuit coordinates, cutoffs, biases, operator names, and composite basis.
-- [adr/0003-runs-verification-and-dispatch.md](adr/0003-runs-verification-and-dispatch.md) — Accepted run records, requirement-based verification, engine dispatch by declared needs, and drives and frames.
+- [adr/0003-runs-verification-and-dispatch.md](adr/0003-runs-verification-and-dispatch.md) — Accepted run records, verification checks on request, engine dispatch by declared needs, and drives and frames.
 
 ## Sharing rule
 

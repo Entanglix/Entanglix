@@ -1,27 +1,26 @@
 """Validated CPU computation plans with numeric inputs kept in adjacent NPZ files."""
 
 import hashlib
+import io
 import json
 import math
 import tomllib
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal
+from typing import Annotated, Literal
 
 import numpy as np
 from pydantic import Field, model_validator
 
-from entanglix.corrector import load_policy, validate_refinement
 from entanglix.corrector.metrics import EndpointMetric, Population, observable_operator
 from entanglix.engines.frames import prepare_dynamics
-from entanglix.engines.selection import selection_table
 from entanglix.evolution import Carrier, EvolutionInput, RotatingFrame, normalize_input
 from entanglix.models import ConstructedSystem, StrictModel, load_system
 
 
 class Refinement(StrictModel):
     retained_levels_step: int = Field(strict=True, gt=0)
-    cutoff_steps: dict[str, int] = Field(default_factory=dict)
+    cutoff_steps: dict[str, Annotated[int, Field(strict=True, gt=0)]] = Field(default_factory=dict)
 
 
 class CarrierSpec(StrictModel):
@@ -53,12 +52,11 @@ class ExecutionPlan(StrictModel):
     kind: Literal["lindblad", "spectrum"]
     engine: Literal["qutip-cpu", "dynamiqs", "cudensitymat"] = "qutip-cpu"
     device: Literal["cpu", "cuda"] = "cpu"
-    purpose: Literal["computation", "reference"] = "computation"
     levels: int | None = Field(default=None, strict=True, gt=0)
     evolution: EvolutionSpec | None = None
     refinement: dict[str, Refinement] = Field(default_factory=dict)
     metrics: dict[str, EndpointMetric] = Field(default_factory=dict)
-    rwa_bounds: dict[str, float] = Field(default_factory=dict)
+    segment_tolerances: dict[str, float] = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def check_kind(self):
@@ -72,24 +70,20 @@ class ExecutionPlan(StrictModel):
             raise ValueError("cudensitymat requires device cuda")
         if self.engine == "qutip-cpu" and self.device != "cpu":
             raise ValueError("qutip-cpu requires device cpu")
-        if self.purpose == "reference" and self.device != "cpu":
-            raise ValueError("reference plans require device cpu")
         if self.metrics and self.evolution is None:
             raise ValueError("endpoint metrics require evolution")
         if self.evolution is not None:
             names = self.evolution.observables.keys()
             if any(metric.observable not in names for metric in self.metrics.values()):
                 raise ValueError("metrics must name declared observables")
-        if (self.rwa_bounds or any(metric.rwa_bound for metric in self.metrics.values())) and (
-            self.evolution is None or self.evolution.frame is None
+        if any(
+            not math.isfinite(value) or value <= 0 for value in self.segment_tolerances.values()
         ):
-            raise ValueError("rwa_bounds require a rotating frame")
-        if any(not math.isfinite(value) or value <= 0 for value in self.rwa_bounds.values()):
-            raise ValueError("rwa_bounds must be finite and positive")
-        if self.rwa_bounds.keys() - (
+            raise ValueError("segment_tolerances must be finite and positive")
+        if self.segment_tolerances.keys() - (
             self.evolution.observables.keys() if self.evolution else set()
         ):
-            raise ValueError("rwa_bounds must name declared observables")
+            raise ValueError("segment_tolerances must name declared observables")
         return self
 
 
@@ -98,33 +92,20 @@ class LoadedPlan:
     definition: ExecutionPlan
     system: ConstructedSystem
     request: EvolutionInput | None
-    version: str
     digest: str
     inputs: dict[str, Path]
     input_digests: dict[str, str]
 
 
-def load_plan(
-    system_path: Path, plan_path: Path, *, expected_policy: str | None = None
-) -> LoadedPlan:
+def load_plan(system_path: Path, plan_path: Path) -> LoadedPlan:
     from entanglix.runner import _system_inputs
 
     content = plan_path.read_bytes()
     plan = ExecutionPlan.model_validate(tomllib.loads(content.decode("utf-8")))
-    policy = load_policy(expected_policy)
     system = load_system(system_path)
     paths, hashes = _system_inputs(system_path.resolve(), system, reserved={"plan.toml"})
     paths["plan.toml"] = plan_path.resolve()
     hashes["plan.toml"] = hashlib.sha256(content).hexdigest()
-    document = tomllib.loads(system_path.read_text())
-    validate_refinement(plan, document, system_path.parent, policy)
-    limit = (
-        policy.thresholds["reference"]["max_dimension"]
-        if plan.purpose == "reference"
-        else selection_table()["engines"][plan.engine]["max_dimension"]
-    )
-    if math.prod(system.dimensions) > limit:
-        raise ValueError(f"plan dimension exceeds validated {plan.purpose} limit {limit}")
     if plan.levels is not None and plan.levels > math.prod(system.dimensions):
         raise ValueError("spectrum levels exceed the model dimension")
     request = None
@@ -140,8 +121,6 @@ def load_plan(
             raise ValueError("evolution.array_file must stay beside the plan")
         data = path.read_bytes()
         # Hash the same bytes that are decoded, so gate/freezing detects input changes.
-        import io
-
         with np.load(io.BytesIO(data), allow_pickle=False) as archive:
             state = np.array(archive[spec.initial_state])
         if state.dtype.kind not in "iufc":
@@ -174,4 +153,4 @@ def load_plan(
         "inputs": {name: value for name, value in hashes.items() if name != "plan.toml"},
     }
     digest = hashlib.sha256(json.dumps(identity, sort_keys=True).encode()).hexdigest()
-    return LoadedPlan(plan, system, request, policy.version, digest, paths, hashes)
+    return LoadedPlan(plan, system, request, digest, paths, hashes)

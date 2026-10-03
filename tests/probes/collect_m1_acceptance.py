@@ -90,9 +90,8 @@ def collect(payload, runs, root):
     payload["interpretation"] = (
         "Numerical acceptance for the included models and regimes. Cross-engine agreement "
         "is bounded via independent exponential references. Each run identifies its retained "
-        "source snapshot; earlier measurements are not relabeled as new runs. Dimension caps "
-        "are functional bounds. Non-gradient selection defaults to CPU; known array storage "
-        "excludes solver workspace, allocator overhead, and autodiff storage."
+        "source snapshot; earlier measurements are not relabeled as new runs. Non-gradient "
+        "selection defaults to CPU."
     )
     return payload
 

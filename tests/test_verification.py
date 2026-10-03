@@ -1,33 +1,24 @@
-"""Scoped scientific verdicts, independent refinement, reuse, and visible failures."""
+"""On-request checks, immutable binding, scoped outcomes, and failure history."""
 
 import os
 import shutil
 import subprocess
 import sys
-import time
-from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 import pytest
 import tomli_w
 
 from entanglix.corrector import load_policy, select_evidence
-from entanglix.corrector.checks import coverage_report, output_checks, series_checks, series_verdict
-from entanglix.corrector.reference import embed_state, prepare_reference
-from entanglix.corrector.verification import compare_reference
+from entanglix.corrector.checks import coverage_report, output_checks, series_checks
+from entanglix.corrector.reference import embed_state, prepare_refinement
+from entanglix.corrector.verification import check_run
 from entanglix.models import load_system
 from entanglix.protocols.plans import load_plan
-from entanglix.runner import (
-    _digest,
-    _group_alive,
-    _read_attempt,
-    abort_run,
-    publish_toml,
-    read_run,
-    run_plan,
-)
+from entanglix.runner import _digest, _load_record, publish_toml, read_run, run_plan
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -62,13 +53,6 @@ def source_run(directory, repository):
     return Path(job["path"])
 
 
-def verified(source, repository):
-    job = compare_reference(source, repository=repository)
-    record = read_run(Path(job["path"]))
-    assert job["exit_code"] == 0, record["log_tail"]
-    return record
-
-
 def test_output_checks_cover_all_times_and_warning_is_not_a_gate():
     states = np.array([np.diag([1.0, 0.0]), np.diag([0.0, 1.0])], dtype=complex)
     checks, warnings = output_checks(states, (2,))
@@ -90,314 +74,6 @@ def test_coverage_reports_uncovered_warnings_without_extra_solves():
     assert not report["complete"]
     assert report["uncovered_points"]
     assert set(report["output_checked_points"]).isdisjoint(report["evidence_points"])
-    passed = [{"outcome": "pass"}]
-    assert (
-        series_verdict(
-            [passed] * 12, {point: passed for point in selection.points}, selection, point_count=12
-        )
-        == "UNVERIFIED"
-    )
-    selection = select_evidence((2,))
-    assert (
-        series_verdict([passed] * 2, {0: passed, 1: passed}, selection, point_count=2) == "VERIFIED"
-    )
-    assert series_verdict([passed] * 2, {0: passed}, selection, point_count=2) == "UNVERIFIED"
-    assert (
-        series_verdict([passed], {0: passed, 1: passed}, selection, point_count=2) == "UNVERIFIED"
-    )
-    assert (
-        series_verdict([[], []], {0: passed, 1: passed}, selection, point_count=2) == "UNVERIFIED"
-    )
-
-
-def test_series_checks_add_to_trusted_point_definitions():
-    checks = series_checks("lindblad", [0, 1, 2], monotonic_direction="increasing")
-    assert checks[0]["outcome"] == "inapplicable"
-    assert checks[1]["outcome"] == "pass"
-    checks = series_checks(
-        "spectrum",
-        [0, 2, 1],
-        monotonic_direction="increasing",
-    )
-    assert checks[0]["outcome"] == "inapplicable"
-    assert checks[1]["outcome"] == "fail"
-    assert series_checks("spectrum", [1, 2])[1]["outcome"] == "inapplicable"
-    with pytest.raises(ValueError, match="unknown or inconsistent"):
-        series_checks("spectral-label", [0, 1])
-
-
-def test_spectral_verification_and_cli_inspection(tmp_path, runner_repository):
-    files(tmp_path, kind="spectrum")
-    source = source_run(tmp_path, repository=runner_repository)
-    launched = subprocess.run(
-        [sys.executable, "-m", "entanglix", "compare-reference", str(source)],
-        capture_output=True,
-        text=True,
-        env=os.environ | {"PYTHONPATH": str(runner_repository / "src")},
-    )
-    assert launched.returncode == 0, launched.stderr
-    current = read_run(source)["verification"]["current"]
-    record = read_run(Path(current["path"]))
-    assert current["verdict_available"]
-    assert record["result"]["verdict"] == "VERIFIED"
-    checks = {item["name"]: item for item in record["result"]["report"]["checks"]}
-    assert checks["spectral_consistency"]["outcome"] == "pass"
-    assert checks["spectral_reference"]["outcome"] == "inapplicable"
-    assert checks["truncation_convergence"]["outcome"] == "inapplicable"
-    assert "reference" not in record["result"]["report"]
-    command = subprocess.run(
-        [
-            sys.executable,
-            "-m",
-            "entanglix",
-            "read-run",
-            str(source),
-            "--policy-version",
-            load_policy().version,
-        ],
-        capture_output=True,
-        text=True,
-        env=os.environ | {"PYTHONPATH": str(runner_repository / "src")},
-    )
-    assert command.returncode == 0, command.stderr
-    assert '"verdict_available": true' in command.stdout
-
-
-def test_dynamiqs_combined_reference_reuse_and_visible_new_failure(
-    tmp_path, differentiable_repository
-):
-    files(tmp_path)
-    source = source_run(tmp_path, differentiable_repository)
-    before = {
-        name: (source / name).read_bytes() for name in ("result.toml", "run.toml", "FINISHED")
-    }
-    first = verified(source, differentiable_repository)
-    assert first["result"]["verdict"] == "VERIFIED"
-    report = first["result"]["report"]
-    assert report["reference"]["engine"] == "dynamiqs"
-    assert not report["reference"]["reused"]
-    second = verified(source, differentiable_repository)
-    assert second["result"]["report"]["reference"]["reused"]
-    assert second["result"]["report"]["reference"]["run_id"] == report["reference"]["run_id"]
-    assert {name: (source / name).read_bytes() for name in before} == before
-    from entanglix.corrector import create_verification_run
-    from entanglix.runner import CodeSnapshot, capture_environment, record_finish
-
-    with create_verification_run(
-        source,
-        environment=capture_environment(ROOT / "uv.lock"),
-        code=CodeSnapshot("test", b"", {}),
-        runs_root=source.parent.parent,
-    ) as owner:
-        record_finish(owner, status="failed", exit_code=64, wall_seconds=0, gpu_seconds=0)
-    history = read_run(source)["verification"]
-    assert history["latest"]["run_id"] == owner.path.name
-    assert history["current"]["status"] == "failed"
-    assert not history["current"]["verdict_available"]
-    assert history["history"][0]["verdict"] == "VERIFIED"
-    assert read_run(source, policy_version="other-policy")["verification"]["current"] == {}
-    # Matching semantic plans are not enough when a retained artifact has changed.
-    reference = source.parent / report["reference"]["run_id"]
-    (reference / "artifacts/output.npz").write_bytes(b"damaged")
-    third = verified(source, differentiable_repository)
-    assert not third["result"]["report"]["reference"]["reused"]
-    # Different sources can reuse identical tightened reference plans.
-    plan = files(tmp_path)
-    plan["evolution"]["rtol"] = 1e-9
-    (tmp_path / "plan.toml").write_text(tomli_w.dumps(plan))
-    changed = verified(source_run(tmp_path, differentiable_repository), differentiable_repository)
-    assert changed["result"]["report"]["reference"]["reused"]
-    assert (
-        changed["result"]["report"]["reference"]["run_id"]
-        == third["result"]["report"]["reference"]["run_id"]
-    )
-
-
-def test_missing_reference_engine_leaves_failed_verification_without_verdict(
-    tmp_path, runner_repository
-):
-    files(tmp_path)
-    source = source_run(tmp_path, runner_repository)
-    job = compare_reference(source, repository=runner_repository)
-    record = read_run(Path(job["path"]))
-    assert job["exit_code"] == 64
-    assert "differentiable" in record["log_tail"]
-    assert "result" not in record
-    assert not read_run(source)["verification"]["current"]["verdict_available"]
-
-
-@pytest.mark.parametrize("failure", ["truncation", "tolerance"])
-def test_dynamiqs_underconverged_run_is_unverified(tmp_path, differentiable_repository, failure):
-    plan = files(tmp_path)
-    if failure == "truncation":
-        system = {
-            "format_version": 1,
-            "id": "driven_oscillator",
-            "units": {"energy": "GHz", "time": "ns"},
-            "model": {
-                "kind": "composite",
-                "subsystems": [
-                    {
-                        "id": "r",
-                        "kind": "oscillator",
-                        "frequency": {"value": 0.2, "unit": "GHz"},
-                        "retained_levels": 2,
-                    },
-                    {
-                        "id": "s",
-                        "kind": "oscillator",
-                        "frequency": {"value": 0.3, "unit": "GHz"},
-                        "retained_levels": 2,
-                    },
-                ],
-            },
-            "drives": [{"id": "drive", "factors": ["r.position"]}],
-        }
-        (tmp_path / "system.toml").write_text(tomli_w.dumps(system))
-        np.savez(tmp_path / "state.npz", initial=np.array([1, 0, 0, 0]))
-        plan["refinement"] = {"r": {"retained_levels_step": 1}, "s": {"retained_levels_step": 1}}
-        plan["evolution"].update(
-            times_ns=[0, 1, 2],
-            observables={"occupation": "r.number"},
-            drive_amplitudes_ghz={"drive": 0.15},
-        )
-    else:
-        plan["evolution"].update(rtol=0.1, atol=0.1, times_ns=list(range(11)))
-    (tmp_path / "plan.toml").write_text(tomli_w.dumps(plan))
-    source = source_run(tmp_path, differentiable_repository)
-    record = verified(source, differentiable_repository)
-    assert record["result"]["verdict"] == "UNVERIFIED"
-    assert any(
-        item["name"] == "cpu_reference" and item["outcome"] == "fail"
-        for item in record["result"]["report"]["checks"]
-    )
-    assert record["result"]["report"]["recommendations"]
-
-
-def test_spectral_refinement_detects_small_cutoff(tmp_path, runner_repository):
-    files(tmp_path, kind="spectrum")
-    shutil.copyfile(ROOT / "examples/fluxonium/system.toml", tmp_path / "system.toml")
-    text = (tmp_path / "system.toml").read_text().replace("theta1 = 60", "theta1 = 20")
-    (tmp_path / "system.toml").write_text(text)
-    plan = {
-        "format_version": 1,
-        "kind": "spectrum",
-        "levels": 4,
-        "refinement": {
-            "fluxonium_circuit": {"retained_levels_step": 1, "cutoff_steps": {"theta1": 20}}
-        },
-    }
-    (tmp_path / "plan.toml").write_text(tomli_w.dumps(plan))
-    record = verified(
-        source_run(tmp_path, repository=runner_repository), repository=runner_repository
-    )
-    assert record["result"]["verdict"] == "UNVERIFIED"
-    assert record["result"]["report"]["reference"]["dimensions"] == [7]
-
-
-def test_lc_spectrum_has_analytic_and_refinement_evidence(tmp_path, runner_repository):
-    files(tmp_path, kind="spectrum")
-    shutil.copyfile(ROOT / "examples/lc-circuit/system.toml", tmp_path / "system.toml")
-    plan = {
-        "format_version": 1,
-        "kind": "spectrum",
-        "levels": 4,
-        "refinement": {"lc_circuit": {"retained_levels_step": 1, "cutoff_steps": {"theta1": 2}}},
-    }
-    (tmp_path / "plan.toml").write_text(tomli_w.dumps(plan))
-    record = verified(
-        source_run(tmp_path, repository=runner_repository), repository=runner_repository
-    )
-    assert record["result"]["verdict"] == "VERIFIED"
-    checks = record["result"]["report"]["checks"]
-    assert any(
-        item["name"] == "spectral_reference"
-        and item.get("reference_engine") == "analytic-LC"
-        and item["outcome"] == "pass"
-        for item in checks
-    )
-
-
-def test_policy_mismatch_fails_real_verifier_without_verdict(
-    tmp_path, monkeypatch, runner_repository
-):
-    from entanglix.corrector import verification
-
-    files(tmp_path, kind="spectrum")
-    source = source_run(tmp_path, repository=runner_repository)
-    execute = verification._execute_job
-
-    def mismatch(owner, *args, **kwargs):
-        manifest = read_run(owner.path)["manifest"]
-        manifest["launch"]["policy_version"] = "changed-policy"
-        publish_toml(owner.path / "run.toml", manifest, replace=True)
-        return execute(owner, *args, **kwargs)
-
-    monkeypatch.setattr(verification, "_execute_job", mismatch)
-    job = compare_reference(source, repository=runner_repository)
-    record = read_run(Path(job["path"]))
-    assert job["exit_code"] == 64
-    assert "policy changed" in record["log_tail"]
-    assert "result" not in record
-    assert read_run(source)["verification"]["latest"]["status"] == "failed"
-
-
-def test_verification_timeout_is_retained_and_produces_no_verdict(tmp_path, runner_repository):
-    files(tmp_path, kind="spectrum")
-    source = source_run(tmp_path, repository=runner_repository)
-    job = compare_reference(source, timeout_seconds=0.0001, repository=runner_repository)
-    record = read_run(Path(job["path"]))
-    assert job["exit_code"] == 130
-    assert record["manifest"]["launch"]["timeout_seconds"] == 0.0001
-    assert "result" not in record
-    assert "timeout" in record["log_tail"]
-
-
-@pytest.mark.parametrize("target", ["verification", "reference"])
-def test_dynamiqs_cancelling_verification_stops_nested_reference(
-    tmp_path, differentiable_repository, target
-):
-    files(tmp_path)
-    source = source_run(tmp_path, differentiable_repository)
-    # Slow only the reference execution in this isolated checkout, after admission.
-    worker = differentiable_repository / "src/entanglix/protocols/_plan_job.py"
-    worker.write_text(
-        worker.read_text().replace(
-            "result = integrator.evolve",
-            "import time\n        time.sleep(30)\n        result = integrator.evolve",
-        )
-    )
-    with ThreadPoolExecutor(max_workers=1) as pool:
-        future = pool.submit(compare_reference, source, repository=differentiable_repository)
-        deadline = time.monotonic() + 20
-        reference = None
-        while time.monotonic() < deadline:
-            paths = list((tmp_path / "runs").glob("*/*/runner/started.toml"))
-            references = [
-                _read_attempt(path.parent.parent)
-                for path in paths
-                if _read_attempt(path.parent.parent)["manifest"]["protocol"] == "reference"
-            ]
-            if references:
-                reference = references[0]
-                break
-            time.sleep(0.02)
-        try:
-            assert reference is not None, "reference did not start"
-            active = read_run(source)["verification"]["latest"]
-            abort_run(Path(reference["path"] if target == "reference" else active["path"]))
-            job = future.result(timeout=10)
-            assert job["exit_code"] == 130
-            assert not _group_alive(reference["start"]["process_group"])
-            record = read_run(Path(job["path"]))
-            assert record["status"] == "aborted"
-            assert "Traceback" not in record["log_tail"]
-            assert not record.get("result", {}).get("verdict")
-        finally:
-            if not future.done():
-                active = read_run(source)["verification"]["latest"]
-                abort_run(Path(active["path"]))
-                future.result(timeout=10)
 
 
 def test_initial_state_embedding_preserves_complex_operator_gauge(tmp_path):
@@ -443,10 +119,10 @@ def test_reference_refines_every_subsystem_and_keeps_tensor_order(tmp_path):
     loaded = load_plan(tmp_path / "system.toml", tmp_path / "plan.toml")
     target = tmp_path / "refined"
     target.mkdir()
-    reference = prepare_reference(loaded, target, load_policy())
+    reference = prepare_refinement(loaded, target, load_policy())
     assert reference.system.dimensions == (7, 6)
     assert abs(reference.request.initial_state.reshape(7, 6)[1, 2]) == pytest.approx(1)
-    assert reference.definition.engine == "dynamiqs"
+    assert reference.definition.engine == "qutip-cpu"
     assert reference.definition.evolution.rtol <= 1e-11
 
 
@@ -484,161 +160,308 @@ def test_reference_does_not_overwrite_another_leaf_with_a_generated_name(tmp_pat
     loaded = load_plan(tmp_path / "system.toml", tmp_path / "plan.toml")
     target = tmp_path / "refined"
     target.mkdir()
-    reference = prepare_reference(loaded, target, load_policy())
+    reference = prepare_refinement(loaded, target, load_policy())
     assert reference.system.dimensions == (4, 5)
     assert reference.system.provenance["subsystems"]["q"]["cutoffs"]["theta1"] == 32
     assert reference.system.provenance["subsystems"]["p"]["cutoffs"]["theta1"] == 34
 
 
-@pytest.mark.parametrize("source_engine", ["qutip-cpu", "dynamiqs"])
-def test_dynamiqs_composite_complex_state_has_combined_reference(
-    tmp_path, differentiable_repository, source_engine
-):
-    for name in ("system.toml", "qubit.toml"):
-        shutil.copyfile(ROOT / "examples/qubit-resonator" / name, tmp_path / name)
-    ket = np.zeros(30, dtype=complex)
-    ket[0], ket[5] = 1 / np.sqrt(2), 1j / np.sqrt(2)
-    np.savez(tmp_path / "state.npz", initial=ket)
-    plan = {
-        "format_version": 1,
-        "kind": "lindblad",
-        "refinement": {
-            "q": {"retained_levels_step": 1, "cutoff_steps": {"theta1": 2}},
-            "r": {"retained_levels_step": 1},
-        },
-        "evolution": {
-            "array_file": "state.npz",
-            "initial_state": "initial",
-            "times_ns": [0, 0.005, 0.01],
-            "observables": {"charge": "q.charge", "number": "r.number"},
-        },
-    }
-    plan["engine"] = source_engine
-    (tmp_path / "plan.toml").write_text(tomli_w.dumps(plan))
-    record = verified(source_run(tmp_path, differentiable_repository), differentiable_repository)
-    assert record["result"]["verdict"] == "VERIFIED", record["result"]["report"]
-    assert record["result"]["report"]["reference"]["dimensions"] == [7, 6]
+def checked(source, repository, names=("integrity", "segments", "diagnostics"), **kwargs):
+    job = check_run(source, names, repository=repository, **kwargs)
+    record = read_run(Path(job["path"]))
+    assert job["exit_code"] == 0, record["log_tail"]
+    assert "verdict" not in record["result"]
+    return record
 
 
-def test_refinement_above_reference_cap_does_not_launch_a_solve(tmp_path, runner_repository):
-    for name in ("system.toml", "qubit.toml"):
-        shutil.copyfile(ROOT / "examples/qubit-resonator" / name, tmp_path / name)
-    plan = {
-        "format_version": 1,
-        "kind": "spectrum",
-        "levels": 4,
-        "refinement": {
-            "q": {"retained_levels_step": 2, "cutoff_steps": {"theta1": 2}},
-            "r": {"retained_levels_step": 2},
-        },
-    }
-    (tmp_path / "plan.toml").write_text(tomli_w.dumps(plan))
-    record = verified(
-        source_run(tmp_path, repository=runner_repository), repository=runner_repository
+def test_no_checks_without_request_and_named_cli_report(tmp_path, runner_repository):
+    files(tmp_path)
+    source = source_run(tmp_path, runner_repository)
+    assert read_run(source)["verification"] == []
+    count = len(list((tmp_path / "runs").glob("*/*/run.toml")))
+    listing = check_run(source)
+    assert {item["name"] for item in listing["checks"]} == {"integrity", "segments", "diagnostics"}
+    assert "whole-window" in listing["limit"]
+    command = [sys.executable, "-m", "entanglix", "check", str(source)]
+    env = os.environ | {"PYTHONPATH": str(runner_repository / "src")}
+    listed = subprocess.run(command, env=env, capture_output=True, text=True)
+    assert listed.returncode == 0, listed.stderr
+    assert len(list((tmp_path / "runs").glob("*/*/run.toml"))) == count
+    ran = subprocess.run(
+        command + ["integrity", "spectral_refinement"], env=env, capture_output=True, text=True
     )
-    assert record["result"]["verdict"] == "UNVERIFIED"
-    assert "reference" not in record["result"]["report"]
-    assert any(item.get("dimension_limit") == 48 for item in record["result"]["report"]["checks"])
-    assert not any(
-        read_run(path.parent)["manifest"]["protocol"] == "reference"
-        for path in (tmp_path / "runs").glob("*/*/run.toml")
-    )
-
-
-@pytest.mark.parametrize("spoof", ["kind", "metrics"])
-def test_changed_source_invalidates_inspected_verdict_and_cannot_spoof_kind(
-    tmp_path, spoof, runner_repository
-):
-    files(tmp_path, kind="spectrum")
-    source = source_run(tmp_path, repository=runner_repository)
-    verified(source, repository=runner_repository)
-    result = read_run(source)["result"]
-    if spoof == "kind":
-        result["kind"] = "lindblad"
-    else:
-        result["metrics"] = {"undeclared_fidelity": 1.0}
-    publish_toml(source / "result.toml", result, replace=True)
-    assert not read_run(source)["verification"]["current"]["verdict_available"]
-    with pytest.raises(ValueError, match="inconsistent"):
-        compare_reference(source, repository=runner_repository)
-
-
-def test_output_label_cannot_waive_physical_checks(tmp_path, runner_repository):
-    files(tmp_path, kind="spectrum")
-    source = source_run(tmp_path, repository=runner_repository)
-    result = read_run(source)["result"]
-    result["checks"] = []
-    result["exemptions"] = ["spectral_reference"]
-    output = source / "artifacts/output.npz"
-    np.savez(output, energies_ghz=[0, 1])
-    result["artifacts"]["output"]["sha256"] = _digest(output.read_bytes())
-    publish_toml(source / "result.toml", result, replace=True)
-    record = verified(source, repository=runner_repository)
-    assert record["result"]["verdict"] == "UNVERIFIED"
-    assert record["result"]["report"]["checks"][0]["outcome"] == "fail"
-
-
-def test_composite_low_spectrum_and_evidence_survive_relocation(
-    tmp_path, monkeypatch, runner_repository
-):
-    from entanglix.corrector import load_verification, verification
-
-    for name in ("system.toml", "qubit.toml"):
-        shutil.copyfile(ROOT / "examples/qubit-resonator" / name, tmp_path / name)
-    plan = {
-        "format_version": 1,
-        "kind": "spectrum",
-        "levels": 4,
-        "refinement": {
-            "q": {"retained_levels_step": 1, "cutoff_steps": {"theta1": 2}},
-            "r": {"retained_levels_step": 1},
-        },
-    }
-    (tmp_path / "plan.toml").write_text(tomli_w.dumps(plan))
-    source = source_run(tmp_path, repository=runner_repository)
-    first = verified(source, repository=runner_repository)
-    assert first["result"]["verdict"] == "VERIFIED", first["result"]["report"]
-    with np.load(source / "artifacts/output.npz") as arrays:
-        assert arrays["energies_ghz"].shape == (4,)
-    checks = {item["name"]: item for item in first["result"]["report"]["checks"]}
-    assert checks["spectral_consistency"]["outcome"] == "pass"
-    assert checks["spectral_reference"]["outcome"] == "inapplicable"
-    assert checks["truncation_convergence"]["outcome"] == "pass"
-    reference = first["result"]["report"]["reference"]
-    assert not {"rtol", "atol", "max_steps", "path"} & reference.keys()
-    assert reference["dimensions"] == [7, 6]
-
-    relocated = tmp_path / "moved-runs"
-    shutil.move(tmp_path / "runs", relocated)
-    source = relocated / source.parent.name / source.name
-    first_path = source.parent / Path(first["path"]).name
-    load_verification(first_path)
-    assert read_run(source)["verification"]["current"]["verdict_available"]
-    second = verified(source, repository=runner_repository)
-    assert second["result"]["report"]["reference"]["reused"]
-    assert second["result"]["report"]["reference"]["run_id"] == reference["run_id"]
-
-    # A different system directory must not be inspected. Multiple verification
-    # reports sharing evidence must not each rehash the retained output archives.
-    other = relocated / "other-system" / "not-an-attempt"
-    other.mkdir(parents=True)
-    (other / "run.toml").write_text('protocol = "plan"\n')
-    inspected, hashed = [], []
-    read_attempt, script_result = verification._read_attempt, verification._script_result
-
-    def inspect(path):
-        inspected.append(path)
-        return read_attempt(path)
-
-    def hash_result(path):
-        hashed.append(path)
-        return script_result(path)
-
-    monkeypatch.setattr(verification, "_read_attempt", inspect)
-    monkeypatch.setattr(verification, "_script_result", hash_result)
+    assert ran.returncode == 0, ran.stderr
     history = read_run(source)["verification"]
-    assert len(history["history"]) == 2
-    assert all(entry["verdict_available"] for entry in history["history"])
-    assert all(path.parent == source.parent for path in inspected)
-    assert hashed.count(source) == 1
-    assert hashed.count(source.parent / reference["run_id"]) == 1
+    assert len(history) == 1
+    outcomes = history[0]["checks"]
+    assert outcomes[0]["name"] == "integrity" and outcomes[0]["outcome"] == "pass"
+    assert outcomes[1]["outcome"] == "inapplicable"
+    assert len(list((tmp_path / "runs").glob("*/*/run.toml"))) == count + 1
+
+
+def test_unknown_checks_rejected_and_authored_runs_have_no_checks(tmp_path, runner_repository):
+    files(tmp_path)
+    source = source_run(tmp_path, runner_repository)
+    with pytest.raises(ValueError, match="known check"):
+        check_run(source, ("fake",), repository=runner_repository)
+    manifest = read_run(source)["manifest"]
+    manifest["protocol"] = "script"
+    publish_toml(source / "run.toml", manifest, replace=True)
+    assert check_run(source)["checks"] == []
+    with pytest.raises(ValueError, match="completed built-in"):
+        check_run(source, ("integrity",), repository=runner_repository)
+
+
+@pytest.mark.parametrize("protocol", ["plan", "simulate", "reference"])
+def test_inspection_preserves_records_and_history_for_obsolete_plan(
+    tmp_path, runner_repository, protocol
+):
+    files(tmp_path)
+    source = source_run(tmp_path, runner_repository)
+    checked(source, runner_repository, ("integrity",))
+    original = read_run(source)
+    manifest = original["manifest"]
+    manifest["protocol"] = protocol
+    publish_toml(source / "run.toml", manifest, replace=True)
+    plan = source / "spec/plan.toml"
+    definition = _load_record(plan)
+    definition["purpose"] = "reference"  # An older internal plan field.
+    plan.chmod(0o644)
+    plan.write_text(tomli_w.dumps(definition))
+    manifest["spec_sha256"]["plan.toml"] = _digest(plan.read_bytes())
+    publish_toml(source / "run.toml", manifest, replace=True)
+    record = read_run(source)
+    assert record["status"] == original["status"] == "completed"
+    assert record["result"] == original["result"]
+    assert record["verification"] == original["verification"]
+    assert record["check_listing"]["checks"] == []
+    if protocol != "reference":
+        assert "purpose" in record["check_listing"]["reason"]
+        with pytest.raises(ValueError, match="purpose"):
+            check_run(source, ("integrity",), repository=runner_repository)
+    else:
+        assert "no trusted built-in" in record["check_listing"]["reason"]
+
+
+def test_check_gate_preserves_signal_diagnostic(tmp_path, monkeypatch, runner_repository):
+    from entanglix.corrector import verification
+
+    monkeypatch.setattr(
+        verification.subprocess,
+        "run",
+        lambda *args, **kwargs: SimpleNamespace(returncode=137, stderr="", stdout=""),
+    )
+    with pytest.raises(ValueError, match="SIGKILL encoding.*cause unknown") as error:
+        check_run(tmp_path, ("integrity",), repository=runner_repository)
+    assert "exhausted memory is a possible cause" in str(error.value)
+
+
+@pytest.mark.parametrize("change", ["initial", "physicality", "observable", "metric"])
+def test_integrity_detects_stored_faults(tmp_path, runner_repository, change):
+    files(tmp_path)
+    source = source_run(tmp_path, runner_repository)
+    result = read_run(source)["result"]
+    archive = source / "artifacts/output.npz"
+    with np.load(archive) as data:
+        arrays = {name: np.array(data[name]) for name in data.files}
+    if change == "initial":
+        arrays["states"][0] = np.diag([1, 0])
+        arrays["observable.coherence"][0] = 0
+    elif change == "physicality":
+        arrays["states"][1] = np.diag([-0.1, 1.1])
+    elif change == "observable":
+        arrays["observable.coherence"][1] += 0.1
+    else:
+        result["metrics"] = {"invented": 1.0}
+    np.savez(archive, **arrays)
+    result["artifacts"]["output"]["sha256"] = _digest(archive.read_bytes())
+    result["exemptions"] = ["integrity"]  # Candidate labels never change trusted relevance.
+    publish_toml(source / "result.toml", result, replace=True)
+    record = checked(source, runner_repository, ("integrity",))
+    outcome = record["result"]["report"]["checks"][0]
+    assert outcome["outcome"] == "fail"
+    if change == "initial":
+        assert (
+            next(item for item in outcome["checks"] if item["name"] == "initial_state")["outcome"]
+            == "fail"
+        )
+        assert (
+            next(item for item in outcome["checks"] if item["name"] == "trace")["outcome"] == "pass"
+        )
+
+
+def test_complex_nonzero_start_frame_initial_state_agrees(tmp_path, runner_repository):
+    definition = files(tmp_path)
+    definition["evolution"].update(
+        times_ns=[0.23, 0.73, 1.23],
+        drive_amplitudes_ghz={"x_drive": 0.02},
+        carriers={"x_drive": {"frequency_ghz": 0.2}},
+        frame={
+            "frequencies_ghz": {"two_level_reference": 0.2},
+            "rwa": True,
+            "excitation_numbers": {"two_level_reference": [0, 1]},
+        },
+    )
+    (tmp_path / "plan.toml").write_text(tomli_w.dumps(definition))
+    record = checked(source_run(tmp_path, runner_repository), runner_repository, ("integrity",))
+    assert record["result"]["report"]["checks"][0]["outcome"] == "pass"
+
+
+def test_spectral_refinement_detects_cutoff_and_reports_only_requested_check(
+    tmp_path, runner_repository
+):
+    files(tmp_path, kind="spectrum")
+    shutil.copyfile(ROOT / "examples/fluxonium/system.toml", tmp_path / "system.toml")
+    (tmp_path / "system.toml").write_text(
+        (tmp_path / "system.toml").read_text().replace("theta1 = 60", "theta1 = 20")
+    )
+    plan = {
+        "format_version": 1,
+        "kind": "spectrum",
+        "levels": 4,
+        "refinement": {
+            "fluxonium_circuit": {"retained_levels_step": 1, "cutoff_steps": {"theta1": 20}}
+        },
+    }
+    (tmp_path / "plan.toml").write_text(tomli_w.dumps(plan))
+    record = checked(
+        source_run(tmp_path, runner_repository), runner_repository, ("spectral_refinement",)
+    )
+    report = record["result"]["report"]
+    assert [item["name"] for item in report["checks"]] == ["spectral_refinement"]
+    assert report["checks"][0]["outcome"] == "fail"
+
+
+def test_replacement_refinement_runs_without_repeating_source_and_binds_request(
+    tmp_path, runner_repository
+):
+    from test_simulate import protocol_files
+
+    from entanglix.corrector import create_verification_run, load_verification
+    from entanglix.protocols.simulate import simulate
+    from entanglix.runner import CodeSnapshot, capture_environment
+
+    path, spec = protocol_files(tmp_path, kind="spectrum")
+    declaration = spec.pop("refinement")
+    path.write_text(tomli_w.dumps(spec))
+    source = Path(simulate(path, runs_root=tmp_path / "runs", repository=runner_repository)["path"])
+    before = {file: file.read_bytes() for file in source.rglob("*") if file.is_file()}
+    original = checked(source, runner_repository, ("spectral_refinement",))
+    assert original["result"]["report"]["checks"][0]["outcome"] == "inapplicable"
+    override = tmp_path / "refinement.toml"
+    override.write_text(tomli_w.dumps({"refinement": declaration}))
+    updated = checked(source, runner_repository, ("spectral_refinement",), refinement=override)
+    assert updated["result"]["report"]["checks"][0]["outcome"] == "pass"
+    assert updated["result"]["report"]["refinement_origin"] == "request"
+    assert {file: file.read_bytes() for file in before} == before
+    with create_verification_run(
+        source,
+        checks=("spectral_refinement",),
+        refinement=override,
+        environment=capture_environment(ROOT / "uv.lock"),
+        code=CodeSnapshot("test", b"", {}),
+        runs_root=tmp_path / "runs",
+    ) as owner:
+        _, binding, request = load_verification(owner.path)
+        frozen = owner.path / "spec" / binding["request_file"]
+        frozen.chmod(0o644)
+        frozen.write_text(frozen.read_text() + "\n# tampered\n")
+        with pytest.raises(ValueError, match="input digest mismatch"):
+            load_verification(owner.path)
+        assert request["checks"] == ["spectral_refinement"]
+
+
+def test_failed_newer_attempt_remains_visible_and_relocation_preserves_binding(
+    tmp_path, runner_repository
+):
+    from entanglix.corrector import load_verification
+
+    files(tmp_path)
+    source = source_run(tmp_path, runner_repository)
+    first = checked(source, runner_repository, ("integrity",))
+    job = check_run(source, ("segments",), repository=runner_repository, timeout_seconds=0.0001)
+    assert job["exit_code"] == 130
+    failed = read_run(Path(job["path"]))
+    assert "result" not in failed
+    history = read_run(source)["verification"]
+    assert len(history) == 2 and history[-1]["status"] == "aborted"
+    assert "checks" not in history[-1]
+    assert history[0]["checks"][0]["outcome"] == "pass"
+    destination = tmp_path / "moved-runs"
+    shutil.move(tmp_path / "runs", destination)
+    moved = destination / source.parent.name / source.name
+    load_verification(moved.parent / Path(first["path"]).name)
+    assert all(entry["source_matches"] for entry in read_run(moved)["verification"])
+
+
+def test_policy_mismatch_fails_verifier_without_outcomes(tmp_path, monkeypatch, runner_repository):
+    from entanglix.corrector import verification
+
+    files(tmp_path)
+    source = source_run(tmp_path, runner_repository)
+    execute = verification._execute_job
+
+    def mismatch(owner, *args, **kwargs):
+        manifest = read_run(owner.path)["manifest"]
+        manifest["launch"]["policy_version"] = "changed-policy"
+        publish_toml(owner.path / "run.toml", manifest, replace=True)
+        return execute(owner, *args, **kwargs)
+
+    monkeypatch.setattr(verification, "_execute_job", mismatch)
+    job = check_run(source, ("integrity",), repository=runner_repository)
+    record = read_run(Path(job["path"]))
+    assert job["exit_code"] == 64 and "policy changed" in record["log_tail"]
+    assert "result" not in record
+
+
+def test_declared_expectation_is_an_additive_check():
+    report = series_checks("lindblad", [0, 2, 1], monotonic_direction="increasing")
+    assert len(report) == 1 and report[0]["outcome"] == "fail"
+    assert report[0]["failure_meaning"] == "declared expectation violated"
+
+
+@pytest.mark.parametrize("step", [0, -1, True, 1.5, "2"])
+def test_malformed_cutoff_steps_are_schema_errors(tmp_path, step):
+    plan = files(tmp_path)
+    plan["refinement"] = {"unused": {"retained_levels_step": 1, "cutoff_steps": {"theta1": step}}}
+    (tmp_path / "plan.toml").write_text(tomli_w.dumps(plan))
+    with pytest.raises(ValueError, match="cutoff_steps"):
+        load_plan(tmp_path / "system.toml", tmp_path / "plan.toml")
+
+
+def test_below_policy_refinement_is_reported_and_does_not_restrict_plan(tmp_path):
+    from entanglix.corrector.dynamics import check_listing
+
+    for name in ("system.toml", "qubit.toml"):
+        shutil.copyfile(ROOT / "examples/qubit-resonator" / name, tmp_path / name)
+    plan = {
+        "format_version": 1,
+        "kind": "spectrum",
+        "levels": 4,
+        "refinement": {
+            "q": {"retained_levels_step": 1, "cutoff_steps": {"theta1": 1}},
+            "r": {"retained_levels_step": 1},
+        },
+    }
+    (tmp_path / "plan.toml").write_text(tomli_w.dumps(plan))
+    loaded = load_plan(tmp_path / "system.toml", tmp_path / "plan.toml")
+    entry = check_listing(loaded)["checks"][0]
+    assert not entry["available"] and "policy minimum" in entry["reason"]
+
+
+def test_drive_change_windows_spread_and_report_uncovered_events(tmp_path):
+    from entanglix.corrector.dynamics import check_listing
+
+    plan = files(tmp_path)
+    plan["evolution"].update(
+        times_ns=list(np.linspace(0, 10, 21)), drive_amplitudes_ghz={"x_drive": [0.02, 0.01] * 10}
+    )
+    (tmp_path / "plan.toml").write_text(tomli_w.dumps(plan))
+    listing = check_listing(load_plan(tmp_path / "system.toml", tmp_path / "plan.toml"))
+    segments = next(item for item in listing["checks"] if item["name"] == "segments")
+    windows = segments["windows"]
+    assert len(windows) == 8
+    assert windows[0]["start_ns"] == 0 and windows[2]["end_ns"] == 10
+    assert windows[3]["start_ns"] < 2 and windows[-1]["end_ns"] > 8
+    assert segments["coverage"]["uncovered_drive_changes"]["count"] > 0
+    assert segments["refined_dimension"] == 2 and segments["engine"] == "qutip-cpu"

@@ -12,7 +12,7 @@ import numpy as np
 import pytest
 import tomli_w
 
-from entanglix.corrector.verification import compare_reference
+from entanglix.corrector.verification import check_run
 from entanglix.protocols.plans import load_plan
 from entanglix.protocols.simulate import compile_simulation, rerun_simulation, simulate
 from entanglix.runner import (
@@ -99,7 +99,7 @@ def test_spectral_simulation_cli_and_frozen_replay(tmp_path, runner_repository):
     result = json.loads(command.stdout)
     first = Path(result["path"])
     record = read_run(first)
-    assert record["verification"]["current"]["verdict"] == "VERIFIED"
+    assert record["verification"] == []
     assert (first / "spec/simulate.toml").exists()
     assert (first / "artifacts/observables.png").stat().st_size > 100
     (tmp_path / "system.toml").unlink()
@@ -108,7 +108,7 @@ def test_spectral_simulation_cli_and_frozen_replay(tmp_path, runner_repository):
     record = read_run(Path(replay["path"]))
     assert record["manifest"]["parent_run_ids"] == [first.name]
     assert record["manifest"]["env_hash"] == read_run(first)["manifest"]["env_hash"]
-    assert record["verification"]["current"]["verdict"] == "VERIFIED"
+    assert record["verification"] == []
     with (
         np.load(first / "artifacts/output.npz") as old,
         np.load(Path(replay["path"]) / "artifacts/output.npz") as new,
@@ -146,7 +146,7 @@ def test_replay_reports_changed_code_and_environment(tmp_path, runner_repository
         assert replay["replay"] == {"code_matches": False, "environment_matches": False}
         repeated = read_run(Path(replay["path"]))
         assert repeated["manifest"]["parent_run_ids"] == [run.name]
-        assert repeated["verification"]["current"]["verdict"] == "VERIFIED"
+        assert repeated["verification"] == []
         with (
             np.load(run / "artifacts/output.npz") as old,
             np.load(Path(replay["path"]) / "artifacts/output.npz") as new,
@@ -160,9 +160,10 @@ def test_replay_reports_changed_code_and_environment(tmp_path, runner_repository
         "basis",
         "path",
         "metric",
-        "frame",
-        "metric_frame",
-        "metric_bound",
+        "segment_zero",
+        "segment_infinite",
+        "segment_name",
+        "metric_tolerance",
         "gpu_uuid",
         "timeout",
         "parameter",
@@ -176,12 +177,14 @@ def test_invalid_protocol_rejects_before_admission(tmp_path, bad, runner_reposit
         spec["system"] = "../system.toml"
     elif bad == "metric":
         spec["metrics"]["excited_population"]["kind"] = "fidelity"
-    elif bad == "frame":
-        spec["rwa_bounds"] = {"number": 0.01}
-    elif bad == "metric_frame":
-        spec["metrics"]["excited_population"]["rwa_bound"] = 0.001
-    elif bad == "metric_bound":
-        spec["metrics"]["excited_population"]["rwa_bound"] = -0.001
+    elif bad == "segment_zero":
+        spec["segment_tolerances"] = {"excited": 0}
+    elif bad == "segment_infinite":
+        spec["segment_tolerances"] = {"excited": float("inf")}
+    elif bad == "segment_name":
+        spec["segment_tolerances"] = {"unknown": 0.001}
+    elif bad == "metric_tolerance":
+        spec["metrics"]["excited_population"]["segment_tolerance"] = -0.001
     elif bad == "gpu_uuid":
         spec["needs"]["gpu_uuid"] = "GPU-machine-specific"
     elif bad == "timeout":
@@ -189,8 +192,18 @@ def test_invalid_protocol_rejects_before_admission(tmp_path, bad, runner_reposit
     else:
         spec["parameters"] = {"unknown": 1}
     path.write_text(tomli_w.dumps(spec))
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError) as error:
         simulate(path, runs_root=tmp_path / "runs", repository=runner_repository)
+    if bad.startswith("segment_"):
+        expected = (
+            "segment_tolerances must name declared observables"
+            if bad == "segment_name"
+            else "segment_tolerances must be finite and positive"
+        )
+        assert expected in str(error.value)
+    elif bad == "metric_tolerance":
+        assert "segment_tolerance" in str(error.value)
+        assert "greater than 0" in str(error.value)
     assert not (tmp_path / "runs").exists()
 
 
@@ -210,17 +223,17 @@ def test_dynamiqs_simulation_verifies_metrics_and_replays(tmp_path, differentiab
     first = simulate(path, runs_root=tmp_path / "runs", repository=differentiable_repository)
     run = Path(first["path"])
     record = read_run(run)
-    assert record["verification"]["current"]["verdict"] == "VERIFIED"
+    assert record["verification"] == []
     assert record["result"]["metrics"]["excited_population"] == pytest.approx(
         np.exp(-0.1), abs=1e-9
     )
     replay = rerun_simulation(run, repository=differentiable_repository)
-    assert read_run(Path(replay["path"]))["verification"]["current"]["verdict"] == "VERIFIED"
+    assert read_run(Path(replay["path"]))["verification"] == []
     result = record["result"]
     result["metrics"]["excited_population"] = 1.0
     publish_toml(run / "result.toml", result, replace=True)
-    with pytest.raises(ValueError, match="inconsistent"):
-        compare_reference(run, repository=differentiable_repository)
+    checking = check_run(run, ("integrity",), repository=differentiable_repository)
+    assert read_run(Path(checking["path"]))["result"]["report"]["checks"][0]["outcome"] == "fail"
     state = run / "spec/initial-state.npz"
     state.chmod(0o644)
     np.savez(state, initial_state=np.array([1, 0, 0]))
@@ -228,27 +241,26 @@ def test_dynamiqs_simulation_verifies_metrics_and_replays(tmp_path, differentiab
         rerun_simulation(run, repository=differentiable_repository)
 
 
-@pytest.mark.parametrize("metric_bound", [0, 5e-4])
-def test_dynamiqs_declared_rwa_bounds_are_reported_without_relaxing_physicality(
+@pytest.mark.parametrize("metric_bound", [None, 5e-4])
+def test_dynamiqs_segment_tolerances_do_not_relax_physicality(
     tmp_path, differentiable_repository, metric_bound
 ):
     path, spec = protocol_files(tmp_path)
     spec["evolution"]["frame"] = {"frequencies_ghz": {"r": 0.2}, "rwa": True}
-    spec["rwa_bounds"] = {"excited": 0.003}
+    spec["segment_tolerances"] = {"excited": 0.003}
     if metric_bound:
-        spec["metrics"]["excited_population"]["rwa_bound"] = metric_bound
+        spec["metrics"]["excited_population"]["segment_tolerance"] = metric_bound
     path.write_text(tomli_w.dumps(spec))
     job = simulate(path, runs_root=tmp_path / "runs", repository=differentiable_repository)
-    report = read_run(Path(job["verification"]["path"]))["result"]["report"]
-    checks = report["checks"]
-    assert any(
-        item["name"] == "cpu_reference" and item.get("declared_rwa_bound") == 0.003
-        for item in checks
+    checking = check_run(
+        Path(job["path"]), ("integrity", "segments"), repository=differentiable_repository
     )
-    endpoint = next(item for item in checks if item["name"] == "metric_reference")
-    assert endpoint["tolerance"] == pytest.approx(1e-6 + metric_bound)
-    assert endpoint["declared_rwa_bound"] == metric_bound
-    assert next(item for item in checks if item["name"] == "trace")["tolerance"] == 1e-8
+    report = read_run(Path(checking["path"]))["result"]["report"]
+    checks = report["checks"][1]["segments"][0]["checks"]
+    assert any(item["name"] == "observable" and item.get("tolerance") == 0.003 for item in checks)
+    endpoint = next(item for item in checks if item["name"] == "metric")
+    assert endpoint["tolerance"] == pytest.approx(metric_bound or 1e-6)
+    assert report["checks"][0]["checks"][0]["tolerance"] == 1e-8
 
 
 def test_complex_array_state_and_parameter_override_compile(tmp_path):
@@ -274,7 +286,7 @@ def test_gpu_autoselection_reports_missing_cupy_extra(tmp_path, monkeypatch):
     path, _ = protocol_files(tmp_path, device="cuda")
     target = tmp_path / "compiled"
     target.mkdir()
-    monkeypatch.setattr("importlib.metadata.version", lambda package: "installed")
+    monkeypatch.setattr("entanglix.protocols.simulate.version", lambda package: "installed")
     monkeypatch.setitem(sys.modules, "cupy", None)
     with pytest.raises(ValueError, match="cuquantum extra"):
         compile_simulation(path, target, [], ROOT)
@@ -291,7 +303,7 @@ def gpu_repository(tmp_path, monkeypatch):
 
 
 @pytest.mark.gpu
-def test_gpu_simulation_uses_prelaunch_reference_and_replays(tmp_path, gpu_repository):
+def test_gpu_simulation_verifies_after_execution_and_replays(tmp_path, gpu_repository):
     path, _ = protocol_files(tmp_path, device="cuda")
     job = simulate(path, runs_root=tmp_path / "runs", repository=gpu_repository)
     run = Path(job["path"])
@@ -302,91 +314,14 @@ def test_gpu_simulation_uses_prelaunch_reference_and_replays(tmp_path, gpu_repos
     assert "gpu_uuid" not in _load_record(run / "spec/simulate.toml")["needs"]
     assert record["start"]["gpu_devices"]
     assert record["finished"]["usage"]["gpu_seconds"] > 0
-    verification = read_run(Path(job["verification"]["path"]))
-    assert verification["result"]["verdict"] == "VERIFIED"
-    reference = run.parent / verification["result"]["report"]["reference"]["run_id"]
-    assert verification["result"]["report"]["reference"]["reused"]
-    assert read_run(reference)["manifest"]["parent_run_ids"] == [run.name]
-    assert read_run(reference)["finished"]["ended_at"] <= record["start"]["started_at"]
+    assert record["verification"] == []
+    checking = check_run(run, ("integrity", "segments"), repository=gpu_repository)
+    verification = read_run(Path(checking["path"]))
+    assert all(item["outcome"] == "pass" for item in verification["result"]["report"]["checks"])
+    assert record["finished"]["ended_at"] <= verification["start"]["started_at"]
     assert record["manifest"]["environment"]["gpu"]["cuda"] != "unobserved"
     replay = rerun_simulation(run, repository=gpu_repository)
-    assert read_run(Path(replay["path"]))["verification"]["current"]["verdict"] == "VERIFIED"
-
-
-@pytest.mark.gpu
-def test_failed_prelaunch_reference_prevents_gpu_start(tmp_path, gpu_repository):
-    path, spec = protocol_files(tmp_path, device="cuda")
-    spec["evolution"]["max_steps"] = 1
-    spec["evolution"]["times_ns"] = {"start": 0, "stop": 100, "count": 3}
-    path.write_text(tomli_w.dumps(spec))
-    job = simulate(path, runs_root=tmp_path / "runs", repository=gpu_repository)
-    record = read_run(Path(job["path"]))
-    assert job["exit_code"] == 64
-    assert "start" not in record
-    assert record["finished"]["usage"]["gpu_seconds"] == 0
-    assert "reference solve failed" in record["log_tail"]
-    assert not record["verification"]["current"]
-
-
-@pytest.mark.gpu
-@pytest.mark.parametrize("stop", ["interrupt", "abort"])
-def test_prelaunch_reference_cancellation_aborts_simulation(tmp_path, gpu_repository, stop):
-    path, _ = protocol_files(tmp_path, device="cuda")
-    worker = gpu_repository / "src/entanglix/protocols/_plan_job.py"
-    worker.write_text(
-        worker.read_text().replace(
-            "            execute(plan)",
-            "            execute(plan)\n"
-            "            import time\n"
-            "            (Path(os.environ['ENTANGLIX_RUN_DIR']) / 'artifacts/ready').touch()\n"
-            "            time.sleep(30)",
-        )
-    )
-    runs = tmp_path / "runs"
-    supervisor = subprocess.Popen(
-        [sys.executable, "-m", "entanglix", "simulate", str(path), "--runs-root", str(runs)],
-        env=os.environ | {"PYTHONPATH": str(gpu_repository / "src")},
-        cwd=gpu_repository,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-    )
-    reference = None
-    try:
-        reference = wait_for(
-            lambda: next((p.parent.parent for p in runs.glob("*/*/artifacts/ready")), None)
-        )
-        reference_record = read_run(reference)
-        run = reference.parent / reference_record["manifest"]["parent_run_ids"][0]
-        assert "start" not in read_run(run)
-        with pytest.raises(ValueError, match="started attempt"):
-            abort_run(run)
-        if stop == "interrupt":
-            supervisor.send_signal(signal.SIGINT)
-        else:
-            abort_run(reference)
-        stdout, stderr = supervisor.communicate(timeout=20)
-        assert supervisor.returncode == 130, stderr
-        assert json.loads(stdout)["status"] == "aborted"
-        record = read_run(run)
-        assert record["status"] == "aborted"
-        assert record["finished"]["exit_code"] == 130
-        assert record["finished"]["usage"] == {
-            "wall_seconds": 0,
-            "gpu_seconds": 0,
-            "uncertain": False,
-        }
-        assert "start" not in record
-        assert read_run(reference)["status"] == "aborted"
-        with pytest.raises(ProcessLookupError):
-            os.killpg(reference_record["start"]["process_group"], 0)
-        assert not list((tmp_path / "state").rglob("*.toml"))
-    finally:
-        if reference is not None and read_run(reference)["status"] == "active":
-            abort_run(reference)
-        if supervisor.poll() is None:
-            supervisor.kill()
-        supervisor.communicate(timeout=10)
+    assert read_run(Path(replay["path"]))["verification"] == []
 
 
 def wait_for(predicate, timeout=45):
@@ -454,13 +389,50 @@ def test_gpu_simulation_lifecycle_and_interrupted_replay(tmp_path, gpu_repositor
             assert read_run(run)["status"] == "aborted"
         with pytest.raises(ProcessLookupError):
             os.killpg(group, 0)
-        assert not read_run(run)["verification"]["current"]
+        assert read_run(run)["verification"] == []
         replay = rerun_simulation(run, repository=gpu_repository)
         assert replay["exit_code"] == 0, read_run(Path(replay["path"]))["log_tail"]
-        assert read_run(Path(replay["path"]))["verification"]["current"]["verdict"] == "VERIFIED"
+        assert read_run(Path(replay["path"]))["verification"] == []
     finally:
         if run is not None and read_run(run)["status"] == "active":
             os.killpg(read_run(run)["start"]["process_group"], signal.SIGKILL)
         if supervisor.poll() is None:
             supervisor.kill()
         supervisor.communicate(timeout=10)
+
+
+@pytest.mark.parametrize("declaration", ["missing", "below_policy"])
+def test_launch_dry_run_and_inspection_list_unavailable_checks(
+    tmp_path, runner_repository, capsys, declaration
+):
+    import shutil
+
+    path, spec = protocol_files(tmp_path)
+    shutil.copyfile(ROOT / "examples/readout/system.toml", tmp_path / "system.toml")
+    if declaration == "missing":
+        spec.pop("refinement")
+    else:
+        spec["refinement"] = {
+            "q": {"retained_levels_step": 1, "cutoff_steps": {"cutoff": 1}},
+            "r": {"retained_levels_step": 2},
+        }
+    path.write_text(tomli_w.dumps(spec))
+    runs = tmp_path / "runs"
+    dry = simulate(path, dry_run=True, runs_root=runs, repository=runner_repository)["preview"]
+    assert not runs.exists()
+    assert dry["model"]["dimensions"] == [5, 6] and dry["execution"]["output_count"] == 3
+    segments = next(check for check in dry["checks"] if check["name"] == "segments")
+    assert not segments["available"] and segments["reason"]
+    job = simulate(path, runs_root=runs, repository=runner_repository)
+    emitted = json.loads(capsys.readouterr().err)["preview"]
+    run = Path(job["path"])
+    record = read_run(run)
+    assert job["exit_code"] == 0 and record["verification"] == []
+    listing = check_run(run)
+    for field in ("model", "checks", "limit"):
+        assert emitted[field] == dry[field] == listing[field] == record["check_listing"][field]
+    checked = check_run(run, ("segments", "diagnostics"), repository=runner_repository)
+    assert checked["exit_code"] == 0
+    reports = read_run(Path(checked["path"]))["result"]["report"]["checks"]
+    assert reports[0]["outcome"] == "inapplicable" and reports[0]["reason"]
+    assert "outcome" not in reports[1] and reports[1]["values"]["refined_cutoff_omitted"]

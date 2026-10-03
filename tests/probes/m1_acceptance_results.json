@@ -65,7 +65,7 @@
   },
   "format_version": 1,
   "generated_at_utc": "2026-09-30T08:46:29.762461+00:00",
-  "interpretation": "Numerical acceptance for the included models and regimes. Cross-engine agreement is bounded via independent exponential references. Each run identifies its retained source snapshot; earlier measurements are not relabeled as new runs. Dimension caps are functional bounds. Non-gradient selection defaults to CPU; known array storage excludes solver workspace, allocator overhead, and autodiff storage.",
+  "interpretation": "Numerical acceptance for the included models and regimes. Cross-engine agreement is bounded via independent exponential references. Each run identifies its retained source snapshot; earlier measurements are not relabeled as new runs. Non-gradient selection defaults to CPU.",
   "limits": {
     "cross_engine_frobenius": 1e-06,
     "gradient_absolute_expectation_per_ghz": 1e-06,

@@ -61,7 +61,6 @@ def test_plan_job_records_and_replays_frozen_complex_inputs(plan_files, runner_r
     assert record["start"]["process_group"] > 0
     assert record["finished"]["usage"]["wall_seconds"] > 0
     assert "verdict" not in record["result"]
-    assert record["manifest"]["launch"]["policy_version"] == load_policy().version
     (root / "plan.toml").write_text("invalid original")
     replay = run_plan(
         run / "spec/system.toml",
@@ -78,10 +77,8 @@ def test_plan_job_records_and_replays_frozen_complex_inputs(plan_files, runner_r
         assert abs(output["states"][0, 0, 1].imag) > 0.4
 
 
-def test_carrier_frame_plan_freezes_settings_and_reference_uses_lab_frame(
-    plan_files, runner_repository
-):
-    from entanglix.corrector.reference import prepare_reference
+def test_carrier_frame_plan_and_refinement_preserve_frame(plan_files, runner_repository):
+    from entanglix.corrector.reference import prepare_refinement
     from entanglix.engines import QuTiPIntegrator
     from entanglix.models import load_system
 
@@ -113,42 +110,10 @@ def test_carrier_frame_plan_freezes_settings_and_reference_uses_lab_frame(
     assert read_run(run)["result"]["diagnostics"]["frame"]["rwa"]
     target = root / "reference"
     target.mkdir()
-    reference = prepare_reference(loaded, target, load_policy())
-    assert reference.request.frame is None
+    reference = prepare_refinement(loaded, target, load_policy())
+    assert reference.request.frame == loaded.request.frame
     assert reference.request.carriers == loaded.request.carriers
     np.testing.assert_array_equal(reference.request.times_ns, loaded.request.times_ns)
-
-
-@pytest.mark.parametrize("engine", ["qutip-cpu", "dynamiqs"])
-@pytest.mark.parametrize("controls", [{}, {"x_drive": 0.02}, {"x_drive": [0.02, 0.01]}])
-def test_reference_step_allowance_matches_solver_scope(plan_files, engine, controls):
-    from entanglix.corrector.reference import prepare_reference
-    from entanglix.models import load_system
-
-    root, definition = plan_files
-    system_id = load_system(root / "system.toml").id
-    definition["engine"] = engine
-    definition["evolution"]["drive_amplitudes_ghz"] = controls
-    definition["evolution"].update(
-        carriers={"x_drive": {"frequency_ghz": 0.2}},
-        frame={
-            "frequencies_ghz": {system_id: 0.2},
-            "rwa": True,
-            "excitation_numbers": {system_id: [0, 1]},
-        },
-    )
-    (root / "plan.toml").write_text(tomli_w.dumps(definition))
-    source = load_plan(root / "system.toml", root / "plan.toml")
-    target = root / "reference"
-    target.mkdir()
-    reference = prepare_reference(source, target, load_policy())
-    multiplier = (
-        len(source.request.times_ns) - 1
-        if engine == "qutip-cpu" and not any(np.ndim(value) for value in controls.values())
-        else 1
-    )
-    assert reference.request.max_steps == source.request.max_steps * multiplier
-    assert reference.request.frame is None
 
 
 def test_verification_admission_binds_source_and_leaves_source_unchanged(
@@ -169,6 +134,7 @@ def test_verification_admission_binds_source_and_leaves_source_unchanged(
     }
     with create_verification_run(
         source,
+        checks=("integrity",),
         environment=capture_environment(ROOT / "uv.lock"),
         code=CodeSnapshot("test", b"", {}),
         runs_root=root / "verification-runs",
@@ -190,7 +156,7 @@ def test_verification_admission_binds_source_and_leaves_source_unchanged(
         assert "source-result.toml" not in verification["manifest"]["spec_sha256"]
         assert verification["status"] == "active"
         assert "result" not in verification
-        loaded, retained_binding = load_verification(owner.path)
+        loaded, retained_binding, _ = load_verification(owner.path)
         assert loaded.digest == retained_binding["plan_sha256"]
         manifest = verification["manifest"]
         manifest["launch"]["policy_version"] = "changed-policy"
@@ -206,6 +172,7 @@ def test_verification_admission_binds_source_and_leaves_source_unchanged(
     with pytest.raises(ValueError, match="inconsistent"):
         create_verification_run(
             source,
+            checks=("integrity",),
             environment=capture_environment(ROOT / "uv.lock"),
             code=CodeSnapshot("test", b"", {}),
             runs_root=root / "runs",
@@ -234,33 +201,6 @@ def test_invalid_plan_is_rejected_before_admission(plan_files, change, runner_re
     assert not (root / "runs").exists()
 
 
-def test_policy_mismatch_fails_job_without_a_verdict(plan_files, monkeypatch, runner_repository):
-    import entanglix.runner as runner
-
-    root, _ = plan_files
-    execute = runner._execute_job
-
-    def changed_policy(owner, command, environment, **kwargs):
-        # Supply a launch/load mismatch in an admitted attempt, without editing policy files.
-        manifest = read_run(owner.path)["manifest"]
-        manifest["launch"]["policy_version"] = "different-policy"
-        publish_toml(owner.path / "run.toml", manifest, replace=True)
-        return execute(owner, command, environment, **kwargs)
-
-    monkeypatch.setattr(runner, "_execute_job", changed_policy)
-    job = run_plan(
-        root / "system.toml",
-        root / "plan.toml",
-        runs_root=root / "runs",
-        repository=runner_repository,
-    )
-    record = read_run(Path(job["path"]))
-    assert job["exit_code"] == 64
-    assert record["status"] == "failed"
-    assert "policy changed" in record["log_tail"]
-    assert "result" not in record
-
-
 def test_policy_mismatch_fails_verification_execution_without_a_verdict(
     plan_files, runner_repository
 ):
@@ -275,6 +215,7 @@ def test_policy_mismatch_fails_verification_execution_without_a_verdict(
     )
     with create_verification_run(
         source,
+        checks=("integrity",),
         environment=capture_environment(ROOT / "uv.lock"),
         code=CodeSnapshot("test", b"", {}),
         runs_root=root / "runs",
@@ -321,9 +262,10 @@ def test_verification_rejects_untrusted_or_incomplete_source(plan_files, change,
         (source / "FINISHED").unlink()
     else:
         (source / "artifacts/output.npz").write_bytes(b"changed output")
-    with pytest.raises(ValueError, match="completed built-in plan|digest mismatch"):
+    with pytest.raises(ValueError, match="completed built-in computation|digest mismatch"):
         create_verification_run(
             source,
+            checks=("integrity",),
             environment=capture_environment(ROOT / "uv.lock"),
             code=CodeSnapshot("test", b"", {}),
             runs_root=root / "runs",
@@ -346,6 +288,7 @@ def test_verification_rechecks_retained_source_after_admission(
     )
     with create_verification_run(
         source,
+        checks=("integrity",),
         environment=capture_environment(ROOT / "uv.lock"),
         code=CodeSnapshot("test", b"", {}),
         runs_root=root / "verification-runs",
@@ -378,86 +321,6 @@ def test_plan_identity_ignores_toml_formatting_but_tracks_inputs_and_settings(pl
     )
     np.savez(root / "state.npz", initial_state=np.array([0, 1]))
     assert load_plan(root / "system.toml", path).digest != first.digest
-
-
-def test_reference_plan_limit_is_separate_and_refinement_cannot_be_waived(
-    tmp_path, monkeypatch, runner_repository
-):
-    system = {
-        "format_version": 1,
-        "id": "oscillator",
-        "units": {"energy": "GHz", "time": "ns"},
-        "model": {
-            "kind": "composite",
-            "subsystems": [
-                {
-                    "id": "r",
-                    "kind": "oscillator",
-                    "frequency": {"value": 0.1, "unit": "GHz"},
-                    "retained_levels": 6,
-                },
-                {
-                    "id": "q",
-                    "kind": "oscillator",
-                    "frequency": {"value": 0.15, "unit": "GHz"},
-                    "retained_levels": 8,
-                },
-            ],
-        },
-    }
-    (tmp_path / "system.toml").write_text(tomli_w.dumps(system))
-    definition = {
-        "format_version": 1,
-        "kind": "spectrum",
-        "levels": 4,
-        "purpose": "reference",
-        "refinement": {"r": {"retained_levels_step": 1}, "q": {"retained_levels_step": 1}},
-    }
-    plan = tmp_path / "plan.toml"
-    plan.write_text(tomli_w.dumps(definition))
-    job = run_plan(
-        tmp_path / "system.toml", plan, runs_root=tmp_path / "runs", repository=runner_repository
-    )
-    assert job["exit_code"] == 0
-    assert read_run(Path(job["path"]))["manifest"]["protocol"] == "reference"
-    definition["purpose"] = "computation"
-    plan.write_text(tomli_w.dumps(definition))
-    with pytest.raises(ValueError, match="limit 30"):
-        load_plan(tmp_path / "system.toml", plan)
-    from entanglix.protocols import plans
-
-    table = plans.selection_table()
-    table["engines"]["qutip-cpu"]["max_dimension"] = 48
-    monkeypatch.setattr(plans, "selection_table", lambda: table)
-    assert load_plan(tmp_path / "system.toml", plan).system.dimensions == (6, 8)
-    definition["purpose"] = "reference"
-    definition["refinement"] = {}
-    plan.write_text(tomli_w.dumps(definition))
-    with pytest.raises(ValueError, match="truncated subsystems"):
-        load_plan(tmp_path / "system.toml", plan)
-
-
-def test_cutoff_refinement_must_meet_the_corrector_minimum(tmp_path):
-    for name in ("system.toml", "qubit.toml"):
-        shutil.copyfile(ROOT / "examples/qubit-resonator" / name, tmp_path / name)
-    definition = {
-        "format_version": 1,
-        "kind": "spectrum",
-        "levels": 4,
-        "refinement": {
-            "q": {"retained_levels_step": 1, "cutoff_steps": {"theta1": 1}},
-            "r": {"retained_levels_step": 1},
-        },
-    }
-    path = tmp_path / "plan.toml"
-    path.write_text(tomli_w.dumps(definition))
-    with pytest.raises(ValueError, match="cutoff steps.*policy minimum"):
-        load_plan(tmp_path / "system.toml", path)
-    definition["refinement"]["q"]["cutoff_steps"]["theta1"] = load_policy().thresholds["reference"][
-        "min_cutoff_step"
-    ]
-    path.write_text(tomli_w.dumps(definition))
-    assert load_plan(tmp_path / "system.toml", path).system.dimensions == (6, 5)
 
 
 def test_plan_timeout_uses_runner_lifecycle(plan_files, runner_repository):

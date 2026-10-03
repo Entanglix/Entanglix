@@ -1,24 +1,21 @@
 format_version = 1
-table_id = "declared-device-engines-v2"
+table_id = "declared-needs-engines-v3"
 
-# Functional validation caps, not measured performance crossovers.
+# Declared needs and implemented capabilities; no performance crossover policy.
 [engines.qutip-cpu]
 device_kind = "cpu"
-max_dimension = 30
 open_system = true
 differentiable = false
 batched = false
 
 [engines.cudensitymat]
 device_kind = "cuda"
-max_dimension = 30
 open_system = true
 differentiable = false
 batched = false
 
 [engines.dynamiqs]
 device_kind = "cuda"
-max_dimension = 30
 open_system = true
 differentiable = true
 batched = false

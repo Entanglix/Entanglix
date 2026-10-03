@@ -9,12 +9,10 @@ from types import SimpleNamespace
 
 import pytest
 
-from entanglix.engines.selection import EngineSelection
 from entanglix.runner import capture_environment, check_gpu_environment
 
 ROOT = Path(__file__).resolve().parents[1]
 DEVICE = "GPU-f2a6e8aa-b32b-ae8e-6dc6-03612dd6b829"
-SELECTION = EngineSelection("cudensitymat", "fixture", 100, 100)
 
 
 @pytest.fixture
@@ -23,7 +21,6 @@ def gpu_runtime(monkeypatch):
         getDeviceCount=lambda: 1,
         getDeviceProperties=lambda _: {"uuid": uuid.UUID(DEVICE[4:]).bytes},
         runtimeGetVersion=lambda: 12090,
-        memGetInfo=lambda: (1000, 2000),
     )
     monkeypatch.setitem(
         sys.modules,
@@ -46,32 +43,26 @@ def gpu_runtime(monkeypatch):
     return runtime
 
 
-def test_gpu_observations_feed_identity_without_hashing_available_memory(gpu_runtime):
-    observed = check_gpu_environment(DEVICE, SELECTION)
+def test_gpu_observations_feed_identity(gpu_runtime):
+    observed = check_gpu_environment(DEVICE)
     assert observed["device_uuid"] == DEVICE
     assert observed["gpu"] == {"driver": "595.91.07", "cuda": "12.9.0", "cuquantum": "0.7.0"}
     identity = capture_environment(ROOT / "uv.lock", extras=("cuquantum",), gpu=observed["gpu"])
-    gpu_runtime.memGetInfo = lambda: (100, 2000)
-    less_free = check_gpu_environment(DEVICE, SELECTION)
-    assert less_free["free_memory_bytes"] == SELECTION.estimated_device_bytes
-    assert (
-        capture_environment(ROOT / "uv.lock", extras=("cuquantum",), gpu=less_free["gpu"])
-        == identity
-    )
+    assert "free_memory_bytes" not in observed
+    assert identity["gpu"] == observed["gpu"]
 
 
 @pytest.mark.parametrize(
     "change,message",
     [
         ({"getDeviceCount": lambda: 0}, "not visible to CUDA"),
-        ({"memGetInfo": lambda: (99, 2000)}, "below selection estimate 100"),
     ],
 )
 def test_gpu_gate_rejections_are_actionable(gpu_runtime, change, message):
     for key, value in change.items():
         setattr(gpu_runtime, key, value)
     with pytest.raises(ValueError, match=message) as error:
-        check_gpu_environment(DEVICE, SELECTION)
+        check_gpu_environment(DEVICE)
     assert "GPU environment rejected" in str(error.value)
 
 
@@ -83,13 +74,13 @@ def test_driver_and_native_library_failures_reject(gpu_runtime, monkeypatch):
         with monkeypatch.context() as patch:
             patch.setattr(boundary, fail)
             with pytest.raises(ValueError, match="driver or library unavailable"):
-                check_gpu_environment(DEVICE, SELECTION)
+                check_gpu_environment(DEVICE)
 
 
 def test_missing_gpu_extra_rejects_without_loading_gpu_stack(monkeypatch):
     monkeypatch.setitem(sys.modules, "cupy", None)
     with pytest.raises(ValueError, match="cuquantum extra"):
-        check_gpu_environment(DEVICE, SELECTION)
+        check_gpu_environment(DEVICE)
 
 
 @pytest.mark.gpu
@@ -98,7 +89,7 @@ def test_workstation_gpu_environment(record_property):
     pytest.importorskip("cuquantum.densitymat")
     import numpy as np
 
-    from entanglix.engines.selection import EngineLimits, select_engine
+    from entanglix.engines.selection import select_engine
     from entanglix.evolution import EvolutionInput
     from entanglix.models import load_system
 
@@ -108,16 +99,14 @@ def test_workstation_gpu_environment(record_property):
     selection = select_engine(
         model,
         EvolutionInput(np.array([0, 1]), np.array([0, 1])),
-        limits=EngineLimits(10**8, 10**8),
         available_engines={"cudensitymat"},
         fallbacks=("cudensitymat",),
     )
-    observed = check_gpu_environment(device, selection)
+    observed = check_gpu_environment(device)
     environment = capture_environment(
         ROOT / "uv.lock", extras=("cuquantum", "differentiable-cuda12"), gpu=observed["gpu"]
     )
-    with pytest.raises(ValueError, match="below selection estimate"):
-        check_gpu_environment(device, EngineSelection("cudensitymat", "fixture", 1, 2**63))
+    assert selection.engine == "cudensitymat"
     record_property("gpu_environment", json.dumps(observed, sort_keys=True))
     record_property("env_hash", environment["env_hash"])
     record_property("device_name", properties["name"].decode())

@@ -1,6 +1,5 @@
 """Selection refuses unavailable, oversized, and incompatible requests explicitly."""
 
-from dataclasses import replace
 from pathlib import Path
 
 import numpy as np
@@ -10,7 +9,6 @@ from entanglix.engines import EvolutionInput, QuTiPIntegrator
 from entanglix.engines.cudensitymat import CuQuantumIntegrator
 from entanglix.engines.dynamiqs_jax import DynamiqsIntegrator
 from entanglix.engines.selection import (
-    EngineLimits,
     EngineSelectionError,
     select_engine,
     selection_table,
@@ -18,7 +16,6 @@ from entanglix.engines.selection import (
 from entanglix.models import load_system
 
 ROOT = Path(__file__).resolve().parents[1] / "examples"
-LIMITS = EngineLimits(1 << 30, 1 << 30)
 
 
 def inputs(name):
@@ -52,24 +49,20 @@ def test_selection_follows_declared_needs(system_name, gradients, selected):
     result = select_engine(
         system,
         request,
-        limits=LIMITS,
         available_engines={"qutip-cpu", "cudensitymat", "dynamiqs"},
         needs_gradients=gradients,
     )
-    assert result.engine == selected and result.table_id == "declared-device-engines-v2"
+    assert result.engine == selected and result.table_id == "declared-needs-engines-v3"
     assert result.fallback_from is None
-    assert 0 < result.estimated_host_bytes <= LIMITS.host_memory_bytes
-    assert result.estimated_device_bytes <= LIMITS.device_memory_bytes
 
 
 def test_missing_cpu_requires_explicit_compatible_gpu_fallback():
     system, request = inputs("qubit-resonator")
     with pytest.raises(EngineSelectionError, match="unavailable"):
-        select_engine(system, request, limits=LIMITS, available_engines={"cudensitymat"})
+        select_engine(system, request, available_engines={"cudensitymat"})
     result = select_engine(
         system,
         request,
-        limits=LIMITS,
         available_engines={"cudensitymat"},
         fallbacks=("cudensitymat",),
     )
@@ -79,7 +72,6 @@ def test_missing_cpu_requires_explicit_compatible_gpu_fallback():
         select_engine(
             system,
             request,
-            limits=LIMITS,
             available_engines={"qutip-cpu"},
             needs_gradients=True,
             fallbacks=("qutip-cpu",),
@@ -100,67 +92,16 @@ def test_explicit_device_dispatch_and_storage(device, gradients, engine):
     selection = select_engine(
         system,
         request,
-        limits=LIMITS,
         available_engines={"qutip-cpu", "dynamiqs", "cudensitymat"},
         device=device,
         needs_gradients=gradients,
     )
     assert selection.engine == engine
-    assert (selection.estimated_device_bytes > 0) == (device == "cuda")
 
 
-def test_size_memory_and_batch_requirements_cannot_be_waived():
+def test_large_model_dispatch_and_unsupported_batch():
     system, request = inputs("three-subsystem")
-    with pytest.raises(EngineSelectionError, match="validated cap"):
-        select_engine(
-            system,
-            request,
-            limits=LIMITS,
-            available_engines={"qutip-cpu", "cudensitymat"},
-            fallbacks=("cudensitymat",),
-        )
-    system, request = inputs("two-level")
+    selection = select_engine(system, request, available_engines={"qutip-cpu"})
+    assert selection.engine == "qutip-cpu"
     with pytest.raises(EngineSelectionError, match="capabilities"):
-        select_engine(system, request, limits=LIMITS, available_engines={"qutip-cpu"}, batched=True)
-    with pytest.raises(EngineSelectionError, match="estimated host/device bytes"):
-        select_engine(system, request, limits=EngineLimits(1, 1), available_engines={"qutip-cpu"})
-    with pytest.raises(EngineSelectionError, match="capabilities"):
-        select_engine(
-            system,
-            request,
-            limits=EngineLimits(1 << 30, 1),
-            available_engines={"dynamiqs", "qutip-cpu"},
-            needs_gradients=True,
-            fallbacks=("qutip-cpu",),
-        )
-    short = select_engine(
-        system, request, limits=LIMITS, available_engines={"dynamiqs"}, needs_gradients=True
-    )
-    long = select_engine(
-        system,
-        replace(request, times_ns=np.linspace(0, 1, 101)),
-        limits=LIMITS,
-        available_engines={"dynamiqs"},
-        needs_gradients=True,
-    )
-    assert long.estimated_host_bytes > short.estimated_host_bytes
-    assert long.estimated_device_bytes > short.estimated_device_bytes
-
-
-def test_long_output_grid_exceeds_known_array_storage_budget():
-    system, request = inputs("two-level")
-    limits = EngineLimits(1 << 20, 1 << 20)
-    select_engine(system, request, limits=limits, available_engines={"qutip-cpu"})
-    with pytest.raises(EngineSelectionError, match="estimated host/device bytes"):
-        select_engine(
-            system,
-            replace(request, times_ns=np.linspace(0, 1, 100_001)),
-            limits=limits,
-            available_engines={"qutip-cpu"},
-        )
-
-
-@pytest.mark.parametrize("value", [0, -1, True, 1.5])
-def test_limits_require_explicit_positive_integer_bytes(value):
-    with pytest.raises(EngineSelectionError, match="positive integer"):
-        EngineLimits(value, 1 << 30)
+        select_engine(system, request, available_engines={"qutip-cpu"}, batched=True)

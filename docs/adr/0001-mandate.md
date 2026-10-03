@@ -1,6 +1,6 @@
 # ADR-0001: Mandate and Constraints
 
-**Date:** 2026-09-28
+**Date:** 2026-09-28, revised 2026-10-03
 **Status:** Accepted — Decision 0 closed on 2026-09-28. The agreed modeling mandate, local target, numerical conventions, and audience/license policy are recorded in §3; concrete model schemas, supported representation details, and fixtures follow during Block 1.
 **Purpose:** record the foundation choices needed by Blocks 0–2. Implementation starting points are distinguished from mandate decisions. Sweep metrics, investigation design, and deployment mechanisms are decided when their prerequisites are available (§4).
 
@@ -22,11 +22,11 @@ Entanglix supports expert-guided superconducting-circuit research through indepe
 | Private solvers | Entry-point plugins; repo code never imports them directly; verification remains open | contract §1, §3 |
 | amicode's role | Contracts and an open second-opinion solver (Piccolo via `amico-run`); never the dynamics substrate | Accepted foundation mandate |
 | Research direction | Expert-guided formulation, bounded autonomy, independent entry points, professional quality | Accepted foundation mandate |
-| Preferred sequence | Verified local sweep → bounded exploration → control → co-design; technical dependencies govern availability | Accepted foundation mandate |
+| Preferred sequence | Local sweep with checks → bounded exploration → control → co-design; technical dependencies govern availability | Accepted foundation mandate |
 | Initial exploration | Runner investigations (6a), then cooperative agent integration (6b); progress-based continuation/stopping; calibration and cluster execution are independently scheduled | Accepted foundation mandate |
 | Execution environments | Development and testing on the owner's workstation; research runs may also use a cluster through its scheduler. One coordinating agent, one active GPU job by default on the workstation; usage recorded, limits optional, progress checkpoints govern continuation; stronger authorization/isolation follows an explicit deployment need | Accepted foundation mandate; contract §4, §7 |
 | First end-to-end sweep | Open-system dynamics on the local GPU; exact metric remains open | Accepted foundation mandate |
-| Posture | Stage-never-promote; supported tools enforce scope/review checks, configured limits, verification, and run ownership under a cooperative trust model | contract §3–§7 |
+| Posture | Stage-never-promote; supported tools enforce scope/review checks, configured limits, and run ownership, and run verification checks on request, under a cooperative trust model | contract §3–§7 |
 | Out of scope | Gate-model algorithms, circuit compilation, hardware drivers, UI | Accepted foundation mandate |
 
 ## 3. Decision 0 — foundation choices

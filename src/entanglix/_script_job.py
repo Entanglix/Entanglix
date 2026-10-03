@@ -14,7 +14,9 @@ def main() -> int:
         try:
             print(json.dumps(_script_gate(**json.load(sys.stdin))))
         except Exception as exc:
-            print(f"launch rejected: {exc}", file=sys.stderr)
+            from entanglix.runner import failure_message
+
+            print(f"launch rejected: {failure_message(exc)}", file=sys.stderr)
             return 64
         return 0
     script = Path(sys.argv[2])
@@ -23,7 +25,13 @@ def main() -> int:
         return 64
     sys.argv = [str(script)]
     sys.path[0] = str(script.parent)
-    runpy.run_path(str(script), run_name="__main__")
+    try:
+        runpy.run_path(str(script), run_name="__main__")
+    except MemoryError as exc:
+        from entanglix.runner import failure_message
+
+        print(f"job failed: {failure_message(exc)}", file=sys.stderr)
+        return 1
     return 0
 
 

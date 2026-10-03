@@ -52,8 +52,9 @@ Every milestone must demonstrate these qualities for the capabilities it introdu
 - Lean by default. Reuse process, scheduler, and agent-runtime facilities for timeouts, GPU allocation, accounting, and permissions; build only what they cannot provide. Professional quality with infrastructure proportional to demonstrated needs.
 - Stage, never promote. Agents write candidates and results; humans promote into the catalog and the device model.
 - Every attempted run contributes to research history, including failed and unpromoted attempts. Human promotion records endorsement; run lineage exists from execution onward.
-- Cheap-to-expensive funnel. Spec validation → environment and memory checks → GPU run → corrector. Nothing skips a stage.
-- Truncation and convergence are reported on every run, never assumed.
+- Run what the user requests. A protocol run computes and stores its results; built-in checks run on request, and the harness lists the ones relevant to a run. The harness imposes no cap on the systems a user can model.
+- Cheap-to-expensive funnel. Spec validation → environment check → GPU run. Nothing skips a stage.
+- Truncation and solver settings are recorded on every run; convergence is checked on request, never assumed.
 
 ---
 
@@ -66,7 +67,7 @@ Protocol plane   simulate │ sweep │ calibrate │ control        (each: spec
 Workflow plane   problem formulation │ bounded sweep/search │ device–control co-design
 Solver plane     open GRAPE baseline │ Piccolo via amico-run │ private plugins (entry points)
 Run plane        research_runs/<system_id>/<run_id>/ … FINISHED   (amicode run-dir shape)
-Verify plane     corrector: cross-engine, cross-solver, convergence, positivity, holdout   (versioned, outside candidate workspace)
+Verify plane     corrector, on request: integrity, convergence, cross-solver, holdout    (versioned, outside candidate workspace)
 Evidence plane   run ledger (all attempts, lineage, trial counts) + human-promoted results catalog
 Harness plane    entanglix CLI  ⇄  MCP server  ⇄  skills + research instructions  ⇄  Codex (or any runtime)
 Executors        local GPU │ Slurm │ Kubernetes   (artifacts mirrored back; large arrays stay on the cluster)
@@ -82,7 +83,7 @@ The workflow plane composes available protocols around a research question. Swee
 
 No calendar. A block is done when its functional criteria and the applicable quality criteria in §4 hold. Dependencies below govern what must be available; numbering does not impose additional dependencies.
 
-The core capability progression is **foundation → verified local sweep → bounded agent-assisted exploration → control → device–control co-design**. Cluster execution, calibration, catalog, and interoperability are supporting capabilities with their own dependencies. This is the preferred sequence; technical prerequisites are listed separately. Sweep/search must meet its own quality gates independently of control.
+The core capability progression is **foundation → local sweep with checks → bounded agent-assisted exploration → control → device–control co-design**. Cluster execution, calibration, catalog, and interoperability are supporting capabilities with their own dependencies. This is the preferred sequence; technical prerequisites are listed separately. Sweep/search must meet its own quality gates independently of control.
 
 ### Decision 0 — Mandate ADR
 
@@ -126,7 +127,7 @@ The [M1 guide](m1-guide.md) covers the joint implementation of Blocks 1–2. Its
 The [M2 guide](m2-guide.md) covers the joint implementation of Blocks 3–5. [ADR-0003](adr/0003-runs-verification-and-dispatch.md) records the run-record, verification, dispatch, and frame decisions.
 
 - **Depends on:** Blocks 0–2.
-- `entanglix` gate + launch: spec validation, static import scan of any authored script, environment check (driver, cuQuantum, memory), run-dir creation (`run.toml` first), job spawn in its own process group, `FINISHED` last, exit-code contract.
+- `entanglix` gate + launch: spec validation, static import scan of any authored script, environment check (driver, cuQuantum), run-dir creation (`run.toml` first), job spawn in its own process group, `FINISHED` last, exit-code contract.
 - Capture and retain a minimal run environment record and `env_hash` from the lockfile digest, Python/platform, and observed GPU driver/CUDA/cuQuantum versions. Execute jobs in an exactly synced environment through `uv run --locked --exact`, with the same declared extras for all jobs sharing it. Record code provenance separately, including the Git revision and dirty state plus frozen authored inputs and a patch of uncommitted code; a dirty flag or digest alone cannot reproduce changes.
 - Local executor only in this block; distinct run directories and frozen inputs, a GPU lock with one active job by default, held by the job so runner loss cannot release it, runner-owned history writes, per-run timeouts, and cancellation of the intended process group. Reconcile unknown process state before reusing the GPU; no custom scheduler is required.
 - `read_run` shows the live trace of running jobs so a stalled run can be aborted mid-way.
@@ -138,23 +139,23 @@ The [M2 guide](m2-guide.md) covers the joint implementation of Blocks 3–5. [AD
 ### Block 4 — Corrector v0
 
 - **Depends on:** Blocks 1–3.
-- Physicality checks at every point and, at a bounded set of evidence points, one comparison with an independent CPU engine at tightened tolerances and refined truncation, as a separate package with hashed code and a versioned thresholds file; `compare_reference` verb. Verification is a linked run whose report states each point's coverage. Block 5 replaces the per-point full-window comparison with requirement-based evidence ([ADR-0003 §2.4](adr/0003-runs-verification-and-dispatch.md#24-requirement-based-dynamics-verification)).
+- Built-in checks as a separate package with hashed code and a versioned thresholds file: physicality of stored states, spectral truncation refinement, and shared sweep-check functions, with a deterministic, bounded evidence-point selection. Verification is a linked run whose report states each check's outcome and each point's coverage. Block 4 first shipped verdicts, a full-window reference comparison, and spectral cross-checks; Block 5 removes them and makes every check run on request ([ADR-0003 §2.3–§2.4](adr/0003-runs-verification-and-dispatch.md#23-verification-runs-and-checks-on-request)).
 - Block 4 owns trusted computation definitions and shared check functions; Block 5 protocols supply metric definitions and sweep application.
-- The corrector derives applicable checks from trusted computation definitions and the validated execution plan. Agent-written labels cannot waive checks; design-sweep checks add to the applicable dynamics or spectral checks.
+- The corrector derives the checks relevant to a run from trusted computation definitions and the validated execution plan, not from labels in specs or results.
 - CPU plan jobs use the runner's existing gate, records, and lifecycle; linked verification runs integrate with history and `read_run` before this block closes.
-- **Done when:** a deliberately under-converged run is flagged `UNVERIFIED`; a hash mismatch fails the run; mislabeled studies cannot evade required checks. Verification is available before completion of Block 5.
+- **Done when:** a requested check fails a deliberately under-converged run; a hash mismatch fails the verification run; labels cannot change which checks are relevant. Verification is available before completion of Block 5.
 
 ### Block 5 — Protocols `simulate` and `sweep` (first end-to-end)
 
 - **Depends on:** Blocks 1–4.
 - Standalone simulation and static and dynamic grid sweeps over scqubits parameters against declared observables or a simulated metric (for example dispersive shift, T1 limit from a noise model, gate error under a fixed pulse).
 - The first end-to-end example exercises open-system dynamics on the local GPU; this class of metric is settled. The CPU feasibility probe settles the exact observable, drive, parameter region, and candidate evidence thresholds; these are recorded in the [readout example](../examples/readout/README.md). Independent-engine acceptance of the candidate frame bounds belongs to 5B. Spectral-only studies remain useful supported workflows.
-- Lab-frame carrier drives and rotating frames with an explicit rotating-wave approximation; the approximation is checked by a requested lab-frame reference. A declared `device = "cuda"` runs non-gradient work on cuDensityMat without a performance claim.
-- Verification at a small fraction of an expensive run's cost, before the first sweep. Verdicts follow evidence requirements and include `INCONCLUSIVE` for unresolved ones. Automatic checks are integrity of stored states and segments in the source run's frame; they detect failures, and static shifts are diagnostics. Whole-window accuracy is established only by the full-window reference, which runs on request. Metric accuracy targets replace declared rotating-wave bounds. Waivers are human actions, automatic work is bounded by an allowance, and a launch preview lists the planned checks.
+- Lab-frame carrier drives and rotating frames with an explicit rotating-wave approximation; no built-in check measures the approximation, and a user compares against a lab-frame run. A declared `device = "cuda"` runs non-gradient work on cuDensityMat without a performance claim. The harness imposes no dimension cap: Block 5 removes the caps and the pre-launch memory estimates. An allocation failure is reported as out of memory, and an unexplained signal death as its signal.
+- Verification on request, before the first sweep. A run computes and stores its results, and checks run only when the user asks: integrity of stored states, refined segments in the source run's frame as local evidence, diagnostics, and spectral refinement. Each check reports its own outcome, and there is no verdict. A check's prerequisites, such as a refinement declaration, never restrict a run. A launch, its dry-run preview, and `read_run` list the relevant checks. Segment tolerances replace declared rotating-wave bounds.
 - Built-in protocols integrate the runner's gate, environment identity, GPU ownership, usage, and recovery facilities. Freeze protocol/plan inputs, record seeds and solver settings, and validate reproduction and interrupted-attempt history on CPU and GPU.
-- Protocols supply trusted metric definitions and accuracy targets to the corrector; sweep verification applies bounded evidence selection and monotonicity checks to actual grids.
+- Protocols supply trusted metric definitions and segment tolerances to the corrector; sweep checks apply bounded evidence selection and declared expectations to actual grids.
 - Plots and `result.toml` summaries with enough evidence for a user to inspect results and choose a refined sweep.
-- **Done when:** a documented simulation and one agreed dynamics sweep run end to end through `entanglix`, the sweep exercises the local GPU, verification reports its verdicts with stated requirements and no check fails, and a user can inspect and refine the sweep without control or calibration.
+- **Done when:** a documented simulation and one agreed dynamics sweep run end to end through `entanglix`, the sweep exercises the local GPU, the requested checks pass and report their scope, and a user can inspect and refine the sweep without control or calibration.
 
 ### Investigation decisions — after M2, before Blocks 6a–6b
 
@@ -181,7 +182,7 @@ The evaluation protocol names a scripted experiment-selection policy, comparable
 - Support expert–agent formulation and bounded execution once the next investigation is defined. Broad ambitions are refined before expensive work.
 - Introduce `entanglix.mcp` behind an optional `mcp` dependency extra and add `skills/`; MCP over stdio exposing available CLI capabilities; tool-call audit and per-session runtime/model/skill records; initial skills (`system-modeler`, `simulate`, `design-sweep`, `gpu-budget`); refresh the research-agent draft and deliver its conduct and workflow entry points through the selected mechanism in the user's research workspace, independently of repository development instructions. The resource skill covers measured usage and optional limits. Control and calibration tools and skills arrive with their capabilities.
 - One coordinating agent uses the local runner: separate run directories, frozen inputs, controlled history writes, one GPU job at a time by default, and cancellation of owned jobs. Research tools stage model/catalog changes; human actions remain separate in the supported workflow. The runtime's permission settings block human-action commands for the agent, and the agent session sees no GPU. Document the cooperative trust assumption.
-- Verify research instructions reach the selected runtime in a research workspace without repository development guidance. Tests reject agent-supplied approval claims, skipped verification, out-of-scope tool requests, and changes to configured ceilings through research tools. Pin the runtime in CI. OS-level escape resistance and device/credential isolation are deferred deployment work.
+- Verify research instructions reach the selected runtime in a research workspace without repository development guidance. Tests reject agent-supplied approval claims, out-of-scope tool requests, and changes to configured ceilings through research tools. Pin the runtime in CI. OS-level escape resistance and device/credential isolation are deferred deployment work.
 - **Done when:** the agent completes the declared sweep/search investigation through logged tools with evidence-driven refinement, recorded continuation decisions, and a supported final report or review handoff; the declared evidence/reporting criteria and independent usability pass. A stagnation case produces a supported early report with available results and next experiments. Execution protections and any configured limits hold through supported interfaces.
 - **M3 evaluation:** compare against the Block 6a baseline, including scientific outcome, cost, human intervention, and the evidence supporting continuation/stopping decisions. Report worse performance or inconclusive benefit. M3 requires correct execution, declared evidence, local execution reliability, independent usability, and completion of the comparison; outperforming the baseline is not required. Claims of acceleration require measured comparative benefit.
 
@@ -234,7 +235,7 @@ The evaluation protocol names a scripted experiment-selection policy, comparable
 
 Multi-GPU cuDensityMat; cuTensorNet engine for lattice-scale systems; multistart and continuation for control; longer scheduled unattended campaigns after bounded workflows demonstrate reliability; hardware-in-the-loop via an external device bridge behind the same run contract.
 
-A cuDensityMat usage study reviews open-system operator construction and solver usage, measures CPU/GPU crossover and peak memory with setup separated from repeated execution, checks batch-versus-serial agreement member by member, and validates dispatch caps above 30 and reduced reference problems. It is a prerequisite for automatic performance-based dispatch and for advertising batching.
+A cuDensityMat usage study reviews open-system operator construction and solver usage, measures CPU/GPU crossover and peak memory with setup separated from repeated execution, and checks batch-versus-serial agreement member by member. It is a prerequisite for automatic performance-based dispatch and for advertising batching.
 
 Stronger authorization and isolation are conditional deployment work. Before a deployment requires containment of untrusted code, resistance to shell bypass, or stronger separation between users, define its threat model and reuse suitable runtime/OS controls. Grant issuers, isolated administrative credentials, restricted filesystem/network/device access, and adversarial escape tests belong to that scope; they do not gate M3. Parallel development or batching alone does not require that security model.
 
@@ -277,7 +278,7 @@ Core progression (capability development; users may enter or stop at any support
 |---|---|---|
 | M0 — Mandate + foundation | Decision 0, Block 0 | mandate ADR accepted; CPU tests green; setup and compatibility guidance available |
 | M1 — Model + engines | Blocks 1–2 | spectra match scqubits; engines agree at reference size |
-| M2 — Verified local sweep | Blocks 3–5 | documented local GPU sweep, verified and reproducible; run history and interruption diagnostics available |
+| M2 — Local sweep with checks | Blocks 3–5 | documented local GPU sweep, reproducible, with its requested checks passing; run history and interruption diagnostics available |
 | M3 — Bounded agent-assisted exploration | Blocks 6a–6b | declared evidence, progress-based continuation/stopping, reliable local execution, configured-limit enforcement, independent usability, and baseline comparison pass Block 6b criteria; no performance advantage required |
 | M4 — Control | Block 7 | standalone control workflow; open baseline and Piccolo solve the same gate problem, both verified; agent integration demonstrated when Block 6b is available |
 | M5 — Device–control co-design | Block 8 | joint device/control investigation produces a verified comparison and supported findings under declared constraints and uncertainty |

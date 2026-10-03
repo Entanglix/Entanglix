@@ -36,7 +36,7 @@ The [probe](../tests/probes/m1_gpu.py) evolves an initially excited two-level sy
 
 The [cuDensityMat](../tests/test_engine_cuquantum.py) and [dynamiqs](../tests/test_engine_dynamiqs.py) adapter suites passed on the RTX 5090. The [acceptance matrix](../tests/test_engine_acceptance.py) adds two-level, oscillator, and populated qubit–resonator evolution with constant and interval-valued controls, loss-disabled comparisons, independent Lindblad exponentials, and integration refinement. CPU QuTiP, CPU dynamiqs, and both CUDA adapters pass the same numerical limits. Separate oscillator/composite truncation refinements and scalar/piecewise nonzero drive gradients also pass. Complex coherences and seeded random complex initial states exercise state layout.
 
-[Retained acceptance results](../tests/probes/m1_acceptance_results.json) contain exact commands, test counts, per-case residuals, package/device observations, lockfile digest, and source snapshots identified by each run. The largest state-reference residual is approximately `3.7e-8`, and the largest integration-refinement change is `3.4e-8`, below the `1e-7` limits. The lowest tested density-matrix eigenvalue is approximately `-7.1e-10`, above the `-1e-8` floor. [The numerical reference](operations/system-spec.md#numerical-checks-for-the-bundled-models) owns thresholds and rationale; [the selection policy](operations/system-spec.md#engine-selection-policy) owns size/known-array storage bounds and explicit fallback behavior. Storage accounting excludes solver workspace and autodiff storage.
+[Retained acceptance results](../tests/probes/m1_acceptance_results.json) contain exact commands, test counts, per-case residuals, package/device observations, lockfile digest, and source snapshots identified by each run. The largest state-reference residual is approximately `3.7e-8`, and the largest integration-refinement change is `3.4e-8`, below the `1e-7` limits. The lowest tested density-matrix eigenvalue is approximately `-7.1e-10`, above the `-1e-8` floor. [The numerical reference](operations/system-spec.md#numerical-checks-for-the-bundled-models) owns thresholds and rationale; [the selection policy](operations/system-spec.md#engine-selection-policy) owns declared-needs dispatch and explicit fallback behavior. No harness dimension cap or pre-launch memory estimate is imposed.
 
 After a test run, the [results collector](../tests/probes/collect_m1_acceptance.py) appends its JUnit counts and properties while retaining earlier runs and source snapshots. Run it before changing the tested sources: `python tests/probes/collect_m1_acceptance.py --junit new-run /tmp/report.xml 'exact test command'`. Generate the XML with `-o junit_family=legacy --junitxml=/tmp/report.xml` to retain numerical properties. Repeated `--junit` arguments collect multiple runs.
 
@@ -74,57 +74,66 @@ JAX_PLATFORMS=cuda,cpu XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exa
 
 The [readout example](../examples/readout/README.md#independent-engine-frame-acceptance)
 records the full-window CPU dynamiqs refinement, approximation bounds, resolution
-limits, truncation warning, and measured reference costs. GPU scientific runner
-dispatch and metric-specific protocol verification remain unavailable.
+limits, truncation warning, and measured reference costs. These fixture measurements do not replace checks requested on a new run.
 
 ## Runner GPU environment check
 
-On 2026-10-01 the [runner environment test](../tests/test_gpu_environment.py) passed on the RTX 5090 using a separate exact test environment with both GPU extras. It matched device UUID `GPU-f2a6e8aa-b32b-ae8e-6dc6-03612dd6b829`, observed driver `595.91.07`, loaded CUDA `12.9.0` and native cuDensityMat `0.7.0`, compared available memory against the existing selection estimate for the two-level fixture, and rejected an oversized request. [The retained JUnit report](../tests/probes/block3_gpu_environment.xml) contains the device/memory observations and environment hash. This validates pre-dispatch environment facilities; scientific GPU dispatch is still unavailable.
+The [runner environment test](../tests/test_gpu_environment.py) passes on the RTX 5090 in a separate exact test environment with both GPU extras. It matches device UUID `GPU-f2a6e8aa-b32b-ae8e-6dc6-03612dd6b829` and observes driver `595.91.07`, loaded CUDA `12.9.0` and native cuDensityMat `0.7.0`, with no memory estimate. The [GPU report](../tests/probes/m2_simulation_gpu.xml) from the simulation acceptance below retains the device observations and environment hash. This records pre-dispatch environment compatibility.
 
-Reproduce this check in a separate exact environment without reshaping the development or CPU runner environment:
+Run this check alone in a separate exact environment without reshaping the development or CPU runner environment:
 
 ```sh
-UV_PROJECT_ENVIRONMENT=/tmp/entanglix-block3-gpu uv run --locked --exact --extra cuquantum --extra differentiable-cuda12 pytest -q tests/test_gpu_environment.py -m gpu --require-gpu -o junit_family=legacy --junitxml=tests/probes/block3_gpu_environment.xml
+UV_PROJECT_ENVIRONMENT=/tmp/entanglix-block3-gpu uv run --locked --exact --extra cuquantum --extra differentiable-cuda12 pytest -q tests/test_gpu_environment.py -m gpu --require-gpu
 ```
 
-The CPU cases in the same test file exercise missing dependencies, driver/library failures, invisible devices, memory rejection, and memory-independent environment identity. The [run reference](operations/runs.md#environment-and-code-provenance) defines the API and recorded fields.
+The CPU cases in the same test file exercise missing dependencies, driver/library failures, invisible devices, and environment identity independent of memory availability. The [run reference](operations/runs.md#environment-and-code-provenance) defines the API and recorded fields.
 
 ## Simulation acceptance
 
 The [simulation integration tests](../tests/test_simulate.py) cover CLI spectra,
-CPU dynamics, trusted endpoint metrics, declared RWA bounds, frozen-input replay,
+CPU dynamics, trusted endpoint metrics, segment tolerances, frozen-input replay,
 and rejected inputs. The [GPU report](../tests/probes/m2_simulation_gpu.xml) covers
-actual cuDensityMat dispatch, pre-launch reference reuse, reference failure and cancellation before GPU start,
-timeout/cancellation, runner loss with a surviving job, exclusion until reconciliation,
-and linked replay. Core CPU tests need no CUDA dependencies; optional dynamics tests
-need `differentiable`.
+cuDensityMat dispatch, requested post-run checks, timeout/cancellation, runner loss
+with a surviving job, exclusion until reconciliation, and linked replay. Core CPU
+tests need no CUDA dependencies. The [same-engine regression cases](../tests/test_verification_cost.py)
+exercise insufficient truncation, strong drive, two-photon dynamics, a delayed pulse,
+and false alarms. The [allocation/signal cases](../tests/test_memory_failures.py)
+use a small process address-space limit and deliberate signal death.
 
-With CUDA extras installed and GPU visibility disabled for a CPU reference, JAX's
-plugin discovery may log `CUDA_ERROR_NO_DEVICE` before selecting CPU. The retained
-execution outcome and reported reference device identify whether the solve succeeded.
+The [Purcell acceptance probe](../tests/probes/m2_simulation.py) runs the
+[CPU and CUDA protocols](../examples/readout/README.md), requests integrity, local
+segments and diagnostics, and replays frozen inputs with a `1e-7` output residual
+limit. No check follows computation automatically. The CPU study also runs a 6 × 8,
+dimension-48 lab-frame simulation and requests integrity. Its
+[CPU summary](../tests/probes/m2_simulation_cpu.json) and
+[CUDA summary](../tests/probes/m2_simulation_cuda.json) retain IDs, provenance,
+metrics, usage, reports, local coverage and work time. Full attempts remain under
+`research_runs/` on the workstation; arrays and plots are not shipped. Passing
+segments establishes local convergence, not whole-window or RWA accuracy.
 
-The [full-window acceptance probe](../tests/probes/m2_simulation.py) runs the
-[CPU and CUDA Purcell protocols](../examples/readout/README.md), checks their linked
-verification, and replays frozen inputs with an output residual limit of `1e-7`.
-Its [CPU record summary](../tests/probes/m2_simulation_cpu.json) and
-[CUDA record summary](../tests/probes/m2_simulation_cuda.json) retain run IDs,
-provenance, metrics, usage, and corrector reports. Both source/replay pairs use matching
-code and environment provenance. Full attempt directories remain
-under `research_runs/` on the workstation; generated arrays and plots are not shipped.
-CUDA acceptance uses the declared RWA bounds, while CPU acceptance uses the lab-frame
-numerical limit. Neither is a performance measurement or a blanket model-accuracy claim.
+The [larger-engine test](../tests/test_engine_acceptance.py) compares an 8 × 8,
+dimension-64 complex-state dissipative evolution across QuTiP, dynamiqs and
+cuDensityMat. The [CPU dynamiqs report](../tests/probes/m2_checks_cpu.xml) and
+[GPU dynamiqs report](../tests/probes/m2_checks_dynamiqs.xml), together with the
+cuDensityMat GPU report above, retain agreement properties. Tested sizes are
+acceptance evidence, not a ceiling.
 
 ```sh
 export ENTANGLIX_RUNNER_EXTRAS=cuquantum,differentiable-cuda12
-JAX_PLATFORMS=cpu XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact --extra differentiable python tests/probes/m2_simulation.py --device cpu --output /tmp/m2_simulation_cpu.json
-JAX_PLATFORMS=cpu XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact --extra differentiable python tests/probes/m2_simulation.py --device cuda --output /tmp/m2_simulation_cuda.json
-UV_PROJECT_ENVIRONMENT=/tmp/entanglix-simulation-tests uv run --locked --exact --extra cuquantum --extra differentiable-cuda12 pytest -q tests/test_simulate.py -m gpu --require-gpu --junitxml=tests/probes/m2_simulation_gpu.xml
+JAX_PLATFORMS=cpu XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact python tests/probes/m2_simulation.py --device cpu --output /tmp/m2_simulation_cpu.json
+JAX_PLATFORMS=cpu XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact python tests/probes/m2_simulation.py --device cuda --output /tmp/m2_simulation_cuda.json
+UV_PROJECT_ENVIRONMENT=/tmp/entanglix-simulation-tests XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact --extra cuquantum --extra differentiable-cuda12 pytest -q tests/test_simulate.py tests/test_gpu_environment.py tests/test_engine_acceptance.py tests/test_memory_failures.py -k 'not dynamiqs' -m gpu --require-gpu -o junit_family=legacy --junitxml=/tmp/m2_simulation_gpu.xml
+UV_PROJECT_ENVIRONMENT=/tmp/entanglix-simulation-tests JAX_PLATFORMS=cuda,cpu XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact --extra cuquantum --extra differentiable-cuda12 pytest -q tests/test_engine_acceptance.py -k 'dimension_64 and dynamiqs' -m gpu --require-gpu -o junit_family=legacy --junitxml=/tmp/m2_checks_dynamiqs.xml
+JAX_PLATFORMS=cpu XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact --extra differentiable pytest -q tests/test_engine_dynamiqs.py tests/test_engine_acceptance.py tests/test_carriers_frames.py tests/test_corrector.py tests/test_plans.py tests/test_verification.py tests/test_simulate.py tests/test_verification_cost.py -m 'not gpu' -k 'dynamiqs or gradient' -o junit_family=legacy --junitxml=/tmp/m2_checks_cpu.xml
 ```
 
-Keep code, documentation, and the runner profile unchanged through both studies.
-Write reports outside the checkout, as above, and copy them into `tests/probes/`
-only after both studies finish. The retained provenance describes the tree before
-the generated reports are replaced.
+With CUDA extras installed and GPU visibility disabled for CPU checks, JAX plugin
+discovery may log `CUDA_ERROR_NO_DEVICE` before selecting CPU. Recorded outcomes
+and devices identify whether execution succeeded.
+
+Keep the code, docs and runner profile unchanged through the acceptance studies.
+Write reports outside the checkout and copy them into `tests/probes/` after all
+studies finish. Recorded provenance describes the tree before replacing the reports.
 
 ## Reproduce GPU compatibility from a source checkout
 

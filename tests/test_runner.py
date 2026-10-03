@@ -321,13 +321,6 @@ def test_spawn_failure_finishes_admitted_attempt(launch, monkeypatch):
         (
             "import os\nfrom pathlib import Path\n"
             "from entanglix.runner import publish_toml\n"
-            "publish_toml(Path(os.environ['ENTANGLIX_RUN_DIR']) / 'result.toml', "
-            "{'engine': 'numpy', 'metrics': {}, 'verdict': 'VERIFIED'}, replace=True)",
-            "cannot publish verification",
-        ),
-        (
-            "import os\nfrom pathlib import Path\n"
-            "from entanglix.runner import publish_toml\n"
             "Path('data.txt').write_text('changed')\n"
             "publish_toml(Path(os.environ['ENTANGLIX_RUN_DIR']) / 'result.toml', {'engine': 'numpy', 'metrics': {}, "
             "'artifacts': {'data': {'path': 'artifacts/data.txt', 'sha256': 'wrong'}}}, replace=True)",
@@ -342,6 +335,20 @@ def test_invalid_result_preserves_failed_execution(launch, source, reason):
     record = read_run(Path(job["path"]))
     assert record["status"] == "failed"
     assert reason in record["log_tail"]
+
+
+def test_authored_checks_table_is_data_without_trusted_check_history(launch):
+    execute, _, _, _ = launch
+    job = execute(
+        "import os\nfrom pathlib import Path\n"
+        "from entanglix.runner import publish_toml\n"
+        "publish_toml(Path(os.environ['ENTANGLIX_RUN_DIR']) / 'result.toml', "
+        "{'engine': 'numpy', 'metrics': {}, 'checks': {'custom': 'pass'}}, replace=True)"
+    )
+    record = read_run(Path(job["path"]))
+    assert job["exit_code"] == 0 and record["status"] == "completed"
+    assert record["result"]["checks"] == {"custom": "pass"}
+    assert "verification" not in record
 
 
 def test_active_inspection_is_read_only(launch):

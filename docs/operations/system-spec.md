@@ -86,19 +86,22 @@ gradients are supported by dynamiqs with a fixed frame.
 
 ### Engine-selection policy
 
-The bundled [TOML table](../../src/entanglix/engines/selection.toml) has `format_version = 1` and `table_id = "declared-device-engines-v2"`. `entanglix.engines.selection.select_engine(system, request, limits=..., available_engines=..., needs_gradients=..., device=..., batched=..., fallbacks=...)` evaluates it without launching a job. The caller supplies verified engine availability and `EngineLimits(host_memory_bytes=..., device_memory_bytes=...)`; units are bytes and both limits are positive integers. The validated dimension cap is 30.
+The bundled [TOML table](../../src/entanglix/engines/selection.toml) has `format_version = 1` and `table_id = "declared-needs-engines-v3"`. `entanglix.engines.selection.select_engine(system, request, available_engines=..., needs_gradients=..., device=..., batched=..., fallbacks=...)` evaluates declared needs without launching a job. The caller supplies verified engine availability.
 
 | Declared need | Current eligible engine |
 |---|---|
-| No gradients, CPU or undeclared device, dimension ≤ 30 | QuTiP CPU |
-| No gradients, declared CUDA device, dimension ≤ 30 | cuDensityMat |
-| No gradients, dimension ≤ 30, CPU unavailable, explicit compatible fallback | cuDensityMat or dynamiqs on CUDA |
-| Gradients, dimension ≤ 30 | dynamiqs on the declared CPU or CUDA device |
-| Batching, dimension > 30, or known array storage exceeds every eligible engine's limits | Refuse |
+| No gradients, CPU or undeclared device | QuTiP CPU |
+| No gradients, declared CUDA device | cuDensityMat |
+| No gradients, CPU unavailable, explicit compatible fallback | cuDensityMat or dynamiqs on CUDA |
+| Gradients | dynamiqs on the declared CPU or CUDA device |
+| Batching | Refuse until an engine advertises it |
 
-The dimension caps are functional validation bounds, not measured performance crossovers. All validated non-gradient requests default to CPU. Adapter calls used to construct larger CPU convergence references or compare GPU engines are separate from policy eligibility. No engine currently advertises batching. Missing engines or exceeded limits cause `EngineSelectionError`. A fallback must be explicitly named and satisfy the same capabilities, size cap, and storage limits; the returned decision records `fallback_from` and its reason. QuTiP cannot satisfy a gradient request. [Simulation dispatch](protocols.md) records the decision and checks the actual job environment.
-
-The `estimated_host_bytes`/`estimated_device_bytes` fields account for model arrays and local factors, normalized inputs and controls, sampled complex128 density matrices (`16 × dimension²` bytes each), and complex128 expectation arrays; CUDA decisions also budget these payloads on the device. This is known array storage, excluding solver workspace, allocator overhead, and autodiff storage, so it cannot guarantee total execution memory or enforce an allocation quota.
+There is no harness-imposed dimension cap or pre-launch memory estimate. Missing
+engines or unsupported capabilities cause `EngineSelectionError`. A fallback must
+be explicitly named and satisfy the same needs; the decision records `fallback_from`
+and its reason. QuTiP cannot satisfy a gradient request. [Simulation dispatch](protocols.md)
+records the decision and checks the actual job environment. Allocation failures and
+unexplained signal deaths follow the [run outcome rules](runs.md#execution-outcomes).
 
 ## Numerical checks for the bundled models
 
@@ -110,7 +113,7 @@ Carrier-gradient comparisons use QuTiP finite differences at `1e-3` and `1e-4 GH
 with relative limits `1e-3` and `1e-4`, respectively, and absolute `1e-6`. The
 [readout example](../../examples/readout/README.md) owns full-window frame bounds
 and their metric-resolution limits. These limits are specific to that fixture;
-the corrector's numerical `1e-6` threshold is unchanged. Simulation protocols can declare additional RWA approximation bounds, reported separately.
+segment tolerances do not bound whole-window or RWA error.
 
 The CPU fixture tests compare constructed circuits with independently configured scqubits or analytic references. For the LC circuit at a fixed basis and shared eigenvector gauge, projected operator matrices use a relative Frobenius residual limit of `1e-12`, with an absolute floor of `1e-12` in the operator's units. Across separately constructed models, phase-invariant operator diagonals or magnitudes use absolute limits of `1e-8` for the junction, two-mode circuit, and transmon offset checks; the direct fluxonium constructor phase check uses `2e-8`. The fluxonium circuit/constructor signed `phase` and `sin_phase` checks use `1e-7`, above observed residuals of about `3.6e-8` and `2.2e-8`. Excitation energies compared with a direct reference use an absolute limit of `2e-8 GHz`; the fluxonium fixture's observed residual is about `1.55e-8 GHz` between separate circuit and constructor calculations. These limits check representation agreement at the same cutoff, not physical convergence.
 
@@ -121,3 +124,5 @@ The qubit–resonator evolution regression uses a seeded random complex initial 
 The [dynamics acceptance matrix](../../tests/test_engine_acceptance.py) covers two-level decay/coherence/drives, oscillator decay/drives, and populated qubit–resonator decay/drives on all three engines. Dissipative cases use populated initial states and `γT = 0.1–1`; lossy outputs must differ from loss-disabled evolution by a Frobenius norm above `0.02`. Independent Lindblad exponentials use the authored constant or interval-valued drives. Each engine must agree with that reference below `1e-7` in density-matrix Frobenius norm and `1e-6` in dimensionless observables; pairwise engine differences are therefore bounded below the `1e-6` comparison limit. Trace and Hermiticity residuals must be below `1e-8`, and minimum density-matrix eigenvalues at least `-1e-8`, including loss-disabled outputs. Tightening `rtol/atol` from `1e-9/1e-11` to `1e-10/1e-12` and increasing the step ceiling from `200_000` to `400_000` must change states by less than `1e-7`.
 
 Driven oscillator population changes must remain below `1e-6` when increasing from 6 to 8 Fock states; the intentionally insufficient 2-state basis exceeds that limit. Driven coupled-system photon populations must change by less than `1e-6` when refining the circuit cutoff, qubit levels, and resonator levels separately. The [gradient tests](../../tests/test_engine_dynamiqs.py) check nonzero derivatives against QuTiP central differences at `1e-3` and `1e-4 GHz`, plus the analytic closed-system Rabi derivative; accepted derivative differences use `rtol = 1e-4`, `atol = 1e-6 expectation/GHz`. These limits apply to the bundled fixtures and do not establish accuracy for a physical device or an arbitrary new system.
+
+The [dimension-64 agreement case](../../tests/test_engine_acceptance.py) compares a short 8 × 8 composite evolution with a complex initial state and active loss across the engines at `1e-7` in state Frobenius norm and `1e-6` in observable values. The dimension-48 exact regression remains a separate engine test. These tested sizes do not impose a ceiling.

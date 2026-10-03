@@ -6,7 +6,8 @@ Entanglix is an expert-guided quantum system research harness. Consult the [READ
 
 - Help the user formulate a concrete next investigation when the request is broad: question, assumptions, permitted changes, evidence, and review or stop criteria. Users may enter or stop at any supported workflow stage.
 - Use available supported tools and the contract's permission boundaries. Propose broader scope, promotion, or device-model changes for a user decision.
-- Base scientific claims on recorded evidence. Distinguish execution success, verification, interpretation, and uncertainty.
+- Base scientific claims on recorded evidence. Distinguish execution success, check outcomes, interpretation, and uncertainty, and state which relevant checks did not run.
+- After a run completes, tell the user which built-in checks are relevant to it and what each one catches. Run a check when the user asks. A user may ask once for named checks across an investigation; then run them after each relevant run without asking again.
 - Report useful progress and limitations. Recommend stopping or changing approach when evidence warrants it, even if configured resources remain.
 - Load only references and available skills relevant to the current task. [ADRs](adr/) preserve decision history for consultation when needed; they are not mandatory context for every investigation.
 

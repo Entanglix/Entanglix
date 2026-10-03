@@ -54,7 +54,7 @@ def validate_refinement(plan, document: dict, root: Path, policy: Policy) -> Non
         raise ValueError(
             f"refinement must declare exactly the truncated subsystems: {sorted(required)}"
         )
-    minimum = policy.thresholds["reference"]
+    minimum = policy.thresholds["refinement"]
     for name in required:
         leaf = subsystems[name]
         cutoffs = set(leaf.get("truncation", {}).get("cutoffs", {}))
@@ -64,27 +64,30 @@ def validate_refinement(plan, document: dict, root: Path, policy: Policy) -> Non
         if step.retained_levels_step < minimum["min_retained_levels_step"]:
             raise ValueError(f"refinement.{name}: retained-level step below policy minimum")
         if step.cutoff_steps.keys() != cutoffs or any(
-            type(value) is not int or value < minimum["min_cutoff_step"]
-            for value in step.cutoff_steps.values()
+            value < minimum["min_cutoff_step"] for value in step.cutoff_steps.values()
         ):
             raise ValueError(
                 f"refinement.{name}: cutoff steps must cover {sorted(cutoffs)} and meet policy minimum"
             )
 
 
-def required_checks(kind: str, *, point_kind: str | None = None) -> tuple[str, ...]:
-    """Definitions are code, not result labels or candidate-authored exemptions."""
-    if kind != "parameter_series" and point_kind is not None:
-        raise ValueError(
-            "inconsistent computation definition: only a parameter series has a point kind"
-        )
+CHECK_DEFINITIONS = {
+    "integrity": "Corrupted or unphysical stored states, wrong initial state, or inconsistent reported values",
+    "segments": "Local integration or truncation disagreement over sampled windows",
+    "diagnostics": "Top-level population and static shifts; descriptive only, with no pass/fail outcome",
+    "spectral_refinement": "Truncation sensitivity of the reported excitation energies",
+    "declared_expectation": "A result contradicting the expectation declared in the sweep spec",
+}
+
+
+def relevant_checks(kind: str) -> tuple[str, ...]:
     if kind == "lindblad":
-        return ("trace", "hermiticity", "positivity", "cpu_reference")
+        return ("integrity", "segments", "diagnostics")
     if kind == "spectrum":
-        return ("spectral_consistency", "spectral_reference", "truncation_convergence")
-    if kind == "parameter_series" and point_kind in {"lindblad", "spectrum"}:
-        return (*required_checks(point_kind), "seed_reproducibility", "declared_monotonicity")
-    raise ValueError(f"unknown or inconsistent computation definition: {kind!r}, {point_kind!r}")
+        return ("spectral_refinement",)
+    if kind == "parameter_series":
+        return ("declared_expectation",)
+    raise ValueError(f"unknown computation definition: {kind!r}")
 
 
 @dataclass(frozen=True)
@@ -151,31 +154,41 @@ def select_evidence(
 
 
 def create_verification_run(
-    source: Path, *, environment: dict, code, runs_root: Path, timeout_seconds: float | None = None
+    source: Path,
+    *,
+    checks: tuple[str, ...],
+    environment: dict,
+    code,
+    runs_root: Path,
+    timeout_seconds: float | None = None,
+    refinement: Path | None = None,
 ):
-    """Admit linked verification records; the caller owns their execution and finish."""
-    from entanglix.protocols.plans import load_plan
+    """Freeze a named request and bind its linked attempt to the unchanged source."""
+    import tempfile
+
+    import tomli_w
+    from pydantic import TypeAdapter
+
+    from entanglix.protocols.plans import Refinement, load_plan
     from entanglix.runner import _digest, _read_attempt, _relative_file, _script_result, create_run
 
-    source = source.resolve()
+    if not checks or set(checks) - CHECK_DEFINITIONS.keys():
+        raise ValueError("name at least one known check")
     if timeout_seconds is not None and (not math.isfinite(timeout_seconds) or timeout_seconds <= 0):
         raise ValueError("timeout_seconds must be finite and positive")
+    source = source.resolve()
     record = _read_attempt(source)
     if record["status"] != "completed" or record["manifest"]["protocol"] not in {
         "plan",
-        "reference",
         "simulate",
     }:
-        raise ValueError("verification requires a completed built-in plan run")
+        raise ValueError("checks require a completed built-in computation run")
     manifest = record["manifest"]
     for name, digest in manifest["spec_sha256"].items():
         if _digest((source / "spec" / _relative_file(name)).read_bytes()) != digest:
             raise ValueError(f"source input digest mismatch: {name}")
     result = _script_result(source)
     loaded = load_plan(source / "spec/system.toml", source / "spec/plan.toml")
-    from entanglix.corrector.metrics import metric_values
-    from entanglix.corrector.verification import _output
-
     if (
         loaded.digest != manifest["launch"]["plan_sha256"]
         or result.get("plan_sha256") != loaded.digest
@@ -184,47 +197,63 @@ def create_verification_run(
         or result.get("engine") != loaded.definition.engine
         or manifest["engine"] != loaded.definition.engine
         or result.get("dimensions") != list(loaded.system.dimensions)
-        or result["metrics"] != metric_values(loaded.definition.metrics, _output(source))
     ):
         raise ValueError("source result is inconsistent with its trusted execution plan")
-    output = result["artifacts"]["output"]
+    declaration = loaded.definition.refinement
+    if refinement is not None:
+        document = tomllib.loads(refinement.read_text())
+        if set(document) != {"refinement"}:
+            raise ValueError("replacement file must contain only [refinement.*] tables")
+        declaration = TypeAdapter(dict[str, Refinement]).validate_python(document["refinement"])
+    request = {
+        "checks": list(dict.fromkeys(checks)),
+        "refinement": {name: value.model_dump() for name, value in declaration.items()},
+        "refinement_origin": "request" if refinement is not None else "source spec",
+    }
+    policy = load_policy()
     binding = {
         "source_run_id": manifest["run_id"],
         "source_path": os.path.relpath(source, runs_root.resolve() / loaded.system.id),
         "source_result_sha256": _digest((source / "result.toml").read_bytes()),
-        "source_artifact_sha256": output["sha256"],
+        "source_artifact_sha256": result["artifacts"]["output"]["sha256"],
         "plan_sha256": loaded.digest,
-        "policy_version": loaded.version,
+        "policy_version": policy.version,
         **({"timeout_seconds": timeout_seconds} if timeout_seconds is not None else {}),
     }
-    owner = create_run(
-        system_id=loaded.system.id,
-        protocol="verification",
-        inputs=loaded.inputs,
-        environment=environment,
-        code=code,
-        engine="corrector",
-        device="cpu",
-        needs={"gradients": False, "device": "cpu"},
-        runs_root=runs_root,
-        parent_run_ids=(manifest["run_id"],),
-        launch=binding,
-    )
-    # Bind the frozen copy to the validated source, including edits during preparation.
+    name = "check-request.toml"
+    while name in loaded.inputs:
+        name = "check-" + name
+    binding["request_file"] = name
+    with tempfile.TemporaryDirectory(prefix="entanglix-check-request-") as directory:
+        path = Path(directory) / name
+        path.write_text(tomli_w.dumps(request))
+        owner = create_run(
+            system_id=loaded.system.id,
+            protocol="verification",
+            inputs={**loaded.inputs, name: path},
+            environment=environment,
+            code=code,
+            engine="corrector",
+            device="cpu",
+            needs={"gradients": False, "device": "cpu"},
+            runs_root=runs_root,
+            parent_run_ids=(manifest["run_id"],),
+            launch=binding,
+        )
     frozen = _read_attempt(owner.path)["manifest"]["spec_sha256"]
-    if frozen != loaded.input_digests:
+    if any(frozen.get(key) != value for key, value in loaded.input_digests.items()):
         from entanglix.runner import record_finish
 
         try:
             record_finish(owner, status="failed", exit_code=64, wall_seconds=0, gpu_seconds=0)
         finally:
             owner.close()
-        raise ValueError(f"source changed during verification preparation: {owner.path}")
+        raise ValueError(f"source changed during check preparation: {owner.path}")
     return owner
 
 
 def load_verification(run: Path):
-    """Load a linked verification and recheck its retained source under the pinned policy."""
+    """Recheck request/input digests, policy, and the recorded completed parent."""
     from entanglix.protocols.plans import load_plan
     from entanglix.runner import (
         _digest,
@@ -238,13 +267,11 @@ def load_verification(run: Path):
     if manifest["protocol"] != "verification":
         raise ValueError("attempt is not a verification run")
     binding = manifest["launch"]
-    policy = load_policy(binding["policy_version"])
+    load_policy(binding["policy_version"])
     for name, digest in manifest["spec_sha256"].items():
         if _digest((run / "spec" / _relative_file(name)).read_bytes()) != digest:
             raise ValueError(f"verification input digest mismatch: {name}")
-    loaded = load_plan(
-        run / "spec/system.toml", run / "spec/plan.toml", expected_policy=policy.version
-    )
+    loaded = load_plan(run / "spec/system.toml", run / "spec/plan.toml")
     if loaded.digest != binding["plan_sha256"] or manifest["parent_run_ids"] != [
         binding["source_run_id"]
     ]:
@@ -259,4 +286,7 @@ def load_verification(run: Path):
         or result["artifacts"]["output"]["sha256"] != binding["source_artifact_sha256"]
     ):
         raise ValueError("verification source digest mismatch")
-    return loaded, binding
+    request = _load_record(run / "spec" / _relative_file(binding["request_file"]))
+    if not request["checks"] or set(request["checks"]) - CHECK_DEFINITIONS.keys():
+        raise ValueError("invalid frozen check request")
+    return loaded, binding, request

@@ -17,7 +17,7 @@ class Population(StrictModel):
 class EndpointMetric(StrictModel):
     kind: Literal["endpoint_real"]
     observable: str
-    rwa_bound: float = Field(default=0, ge=0, allow_inf_nan=False)
+    segment_tolerance: float | None = Field(default=None, gt=0, allow_inf_nan=False)
 
 
 def observable_operator(system, definition):
@@ -49,3 +49,8 @@ def metric_values(definitions, arrays):
             raise ValueError(f"metric {name}: nonfinite endpoint")
         values[name] = float(value)
     return values
+
+
+def metric_tolerance(definition, policy):
+    """Absolute local endpoint tolerance in the metric's units."""
+    return definition.segment_tolerance or policy.thresholds["refinement"]["observable_atol"]

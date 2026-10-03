@@ -1,12 +1,15 @@
-"""One public simulation, compiled to a frozen plan and independently verified."""
+"""One public simulation, compiled to a frozen plan with checks available on request."""
 
 import json
 import math
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 import tomllib
+import uuid
+from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from typing import Annotated, Literal
 
@@ -14,10 +17,9 @@ import numpy as np
 import tomli_w
 from pydantic import Field
 
-from entanglix.corrector import load_policy
-from entanglix.corrector.checks import output_checks
+from entanglix.corrector.dynamics import check_listing
 from entanglix.corrector.metrics import EndpointMetric
-from entanglix.engines.selection import EngineLimits, select_engine
+from entanglix.engines.selection import select_engine
 from entanglix.models import StrictModel, load_system
 from entanglix.protocols.plans import EvolutionSpec, Refinement, load_plan
 from entanglix.runner import (
@@ -32,6 +34,7 @@ from entanglix.runner import (
     capture_environment,
     check_gpu_environment,
     create_run,
+    process_failure,
     record_finish,
 )
 
@@ -63,7 +66,7 @@ class SimulationSpec(StrictModel):
     evolution: SimulationEvolution | None = None
     refinement: dict[str, Refinement] = Field(default_factory=dict)
     metrics: dict[str, EndpointMetric] = Field(default_factory=dict)
-    rwa_bounds: dict[str, float] = Field(default_factory=dict)
+    segment_tolerances: dict[str, float] = Field(default_factory=dict)
     timeout_seconds: float | None = None
 
 
@@ -102,8 +105,10 @@ def compile_simulation(protocol: Path, directory: Path, extras: list[str], repos
         "kind": spec.kind,
         "engine": "qutip-cpu",
         "refinement": {name: step.model_dump() for name, step in spec.refinement.items()},
-        "metrics": {name: metric.model_dump() for name, metric in spec.metrics.items()},
-        "rwa_bounds": spec.rwa_bounds,
+        "metrics": {
+            name: metric.model_dump(exclude_none=True) for name, metric in spec.metrics.items()
+        },
+        "segment_tolerances": spec.segment_tolerances,
     }
     if spec.levels is not None:
         definition["levels"] = spec.levels
@@ -144,8 +149,6 @@ def compile_simulation(protocol: Path, directory: Path, extras: list[str], repos
             raise ValueError("spectrum requires device cpu without gradients")
         selection = None
     else:
-        from importlib.metadata import PackageNotFoundError, version
-
         available = {"qutip-cpu"}
         for engine, package in (("dynamiqs", "dynamiqs"), ("cudensitymat", "qutip-cuquantum")):
             try:
@@ -156,9 +159,6 @@ def compile_simulation(protocol: Path, directory: Path, extras: list[str], repos
         selection = select_engine(
             loaded.system,
             loaded.request,
-            limits=EngineLimits(
-                os.sysconf("SC_AVPHYS_PAGES") * os.sysconf("SC_PAGE_SIZE"), 2**63 - 1
-            ),
             available_engines=available,
             needs_gradients=spec.needs.gradients,
             device=spec.needs.device,
@@ -171,8 +171,6 @@ def compile_simulation(protocol: Path, directory: Path, extras: list[str], repos
     (directory / "simulate.toml").write_text(tomli_w.dumps(canonical))
     gpu_check = None
     if spec.needs.device == "cuda":
-        import uuid
-
         try:
             import cupy as cp
         except ImportError as exc:
@@ -184,9 +182,19 @@ def compile_simulation(protocol: Path, directory: Path, extras: list[str], repos
             raise ValueError("CUDA simulation requires exactly one visible GPU")
         properties = cp.cuda.runtime.getDeviceProperties(0)
         device = f"GPU-{uuid.UUID(bytes=properties['uuid'])}"
-        gpu_check = check_gpu_environment(device, selection)
+        gpu_check = check_gpu_environment(device)
     paths = {**loaded.inputs, "simulate.toml": directory / "simulate.toml"}
+    selection_details = (
+        {key: value for key, value in selection.__dict__.items() if value is not None}
+        if selection
+        else {}
+    )
     return {
+        "preview": check_listing(
+            loaded,
+            timeout_seconds=spec.timeout_seconds,
+            selection=selection_details,
+        ),
         "system_id": loaded.system.id,
         "inputs": {name: str(path) for name, path in paths.items()},
         "spec_sha256": {name: _digest(path.read_bytes()) for name, path in paths.items()},
@@ -195,10 +203,7 @@ def compile_simulation(protocol: Path, directory: Path, extras: list[str], repos
         "needs": canonical["needs"],
         "kind": loaded.definition.kind,
         "plan_sha256": loaded.digest,
-        "policy_version": loaded.version,
-        "selection": {key: value for key, value in selection.__dict__.items() if value is not None}
-        if selection
-        else {},
+        "selection": selection_details,
         "gpu_check": gpu_check,
         "timeout_seconds": spec.timeout_seconds,
         "protocol_sha256": _digest(content),
@@ -216,11 +221,9 @@ def simulate(
     runs_root: Path = Path("research_runs"),
     repository: Path | None = None,
     parent_run_ids: tuple[str, ...] = (),
+    dry_run: bool = False,
 ) -> dict:
-    """Launch one simulation and retain its automatic verification separately."""
-    from entanglix.corrector.reference import prepare_reference
-    from entanglix.corrector.verification import _reference, compare_reference
-
+    """Launch one simulation without unrequested scientific checks."""
     repository = (repository or Path(__file__).resolve().parents[3]).resolve()
     command, environment, extras = _cpu_job_context(repository, "entanglix.protocols._simulate_job")
     gate_environment = environment.copy()
@@ -244,12 +247,12 @@ def simulate(
             capture_output=True,
         )
         if check.returncode:
-            raise ValueError(check.stderr.strip() or "simulation launch rejected")
+            raise ValueError(process_failure(check, "simulation launch rejected"))
         gate = json.loads(check.stdout)
-        launch = {
-            key: gate[key]
-            for key in ("kind", "plan_sha256", "policy_version", "selection", "protocol_sha256")
-        }
+        if dry_run:
+            return {"exit_code": 0, "preview": gate["preview"]}
+        print(json.dumps({"preview": gate["preview"]}, indent=2), file=sys.stderr, flush=True)
+        launch = {key: gate[key] for key in ("kind", "plan_sha256", "selection", "protocol_sha256")}
         if gate["timeout_seconds"] is not None:
             launch["timeout_seconds"] = gate["timeout_seconds"]
         with create_run(
@@ -271,17 +274,6 @@ def simulate(
                 if _load_record(run / "run.toml")["spec_sha256"] != gate["spec_sha256"]:
                     raise ValueError("inputs changed after simulation validation")
                 if gate["device"] == "cuda":
-                    loaded = load_plan(run / "spec/system.toml", run / "spec/plan.toml")
-                    with tempfile.TemporaryDirectory(prefix="entanglix-prelaunch-") as target:
-                        expected = prepare_reference(loaded, Path(target), load_policy())
-                        reference, arrays, _ = _reference(
-                            expected, run, repository, timeout_seconds=gate["timeout_seconds"]
-                        )
-                    checks, _ = output_checks(arrays["states"], expected.system.dimensions)
-                    if any(item["outcome"] != "pass" for item in checks):
-                        raise ValueError(
-                            f"pre-launch CPU reference failed physicality checks: {reference}"
-                        )
                     gpu = acquire_gpu(gate["gpu_check"]["device_uuid"], owner)
                     environment.update(
                         CUDA_VISIBLE_DEVICES=gpu.device,
@@ -311,10 +303,6 @@ def simulate(
             finally:
                 if gpu is not None:
                     gpu.close()
-    if result["exit_code"] == 0:
-        result["verification"] = compare_reference(
-            run, repository=repository, timeout_seconds=gate["timeout_seconds"]
-        )
     return result
 
 

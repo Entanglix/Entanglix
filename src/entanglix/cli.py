@@ -113,16 +113,20 @@ def main(argv: list[str] | None = None) -> int:
     )
     reading = subcommands.add_parser("read-run", help="read an attempt's records and log tail")
     reading.add_argument("run", type=Path, help="attempt directory")
-    reading.add_argument("--policy-version", help="verification policy digest; default: current")
-    comparison = subcommands.add_parser(
-        "compare-reference", help="verify a completed computation independently"
+    checking = subcommands.add_parser("check", help="list relevant checks, or run named checks")
+    checking.add_argument("run", type=Path, help="source attempt directory")
+    checking.add_argument(
+        "names", nargs="*", help="integrity, segments, diagnostics, spectral_refinement"
     )
-    comparison.add_argument("run", type=Path, help="source attempt directory")
-    comparison.add_argument("--timeout", type=float, help="verification time limit in seconds")
-    simulation = subcommands.add_parser("simulate", help="run and verify one simulation protocol")
+    checking.add_argument("--timeout", type=float, help="check time limit in seconds")
+    checking.add_argument("--refinement", type=Path, help="replacement [refinement.*] declarations")
+    simulation = subcommands.add_parser("simulate", help="run one simulation protocol")
     simulation.add_argument("protocol", type=Path, help="path to simulate.toml")
     simulation.add_argument("--runs-root", type=Path, default=Path("research_runs"))
     simulation.add_argument("--parent-run", action="append", default=[])
+    simulation.add_argument(
+        "--dry-run", action="store_true", help="preview without launching or creating a run"
+    )
     replay = subcommands.add_parser(
         "rerun-simulation", help="replay a frozen simulation with linked lineage"
     )
@@ -131,11 +135,15 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if args.command == "validate":
         from entanglix.models import SpecError, load_system
+        from entanglix.runner import failure_message
 
         try:
             system = load_system(args.system)
         except SpecError as exc:
-            print(f"entanglix: invalid system: {exc}", file=sys.stderr)
+            print(f"entanglix: invalid system: {failure_message(exc)}", file=sys.stderr)
+            return 64
+        except MemoryError as exc:
+            print(f"entanglix: {failure_message(exc)}", file=sys.stderr)
             return 64
         print(f"valid system: {system.id} ({system.basis}, dimensions {system.dimensions})")
         print("operators:")
@@ -151,12 +159,13 @@ def main(argv: list[str] | None = None) -> int:
         "abort-run",
         "reconcile-run",
         "rerun-script",
-        "compare-reference",
+        "check",
         "simulate",
         "rerun-simulation",
     }:
         from entanglix.runner import (
             abort_run,
+            failure_message,
             list_capabilities,
             list_runs,
             read_run,
@@ -168,7 +177,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command in {
             "run-script",
             "rerun-script",
-            "compare-reference",
+            "check",
             "simulate",
             "rerun-simulation",
         }:
@@ -202,10 +211,15 @@ def main(argv: list[str] | None = None) -> int:
                 )
             elif args.command == "capabilities":
                 result = list_capabilities()
-            elif args.command == "compare-reference":
-                from entanglix.corrector.verification import compare_reference
+            elif args.command == "check":
+                from entanglix.corrector.verification import check_run
 
-                result = compare_reference(args.run, timeout_seconds=args.timeout)
+                result = check_run(
+                    args.run,
+                    tuple(args.names),
+                    timeout_seconds=args.timeout,
+                    refinement=args.refinement,
+                )
             elif args.command in {"simulate", "rerun-simulation"}:
                 from entanglix.protocols.simulate import rerun_simulation, simulate
 
@@ -214,6 +228,7 @@ def main(argv: list[str] | None = None) -> int:
                         args.protocol,
                         runs_root=args.runs_root,
                         parent_run_ids=tuple(args.parent_run),
+                        dry_run=args.dry_run,
                     )
                     if args.command == "simulate"
                     else rerun_simulation(args.run, runs_root=args.runs_root)
@@ -221,15 +236,15 @@ def main(argv: list[str] | None = None) -> int:
             elif args.command == "list-runs":
                 result = list_runs(args.runs_root)
             else:
-                result = read_run(args.run, policy_version=args.policy_version)
-        except (OSError, ValueError, RuntimeError, KeyError) as exc:
-            print(f"entanglix: {exc}", file=sys.stderr)
+                result = read_run(args.run)
+        except (OSError, ValueError, RuntimeError, KeyError, MemoryError) as exc:
+            print(f"entanglix: {failure_message(exc)}", file=sys.stderr)
             return 64
         print(json.dumps(result, default=str, indent=2))
         return (
-            result["exit_code"]
+            result.get("exit_code", 0)
             if args.command
-            in {"run-script", "rerun-script", "compare-reference", "simulate", "rerun-simulation"}
+            in {"run-script", "rerun-script", "check", "simulate", "rerun-simulation"}
             else 0
         )
     parser.print_help()

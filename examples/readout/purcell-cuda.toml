@@ -29,13 +29,8 @@ retained_levels_step = 2
 [metrics.excited_population]
 kind = "endpoint_real"
 observable = "excited"
-rwa_bound = 0.005
 
 [evolution.frame]
 # Dressed readout midpoint from the EJ = 15 GHz frame study; no drive is present.
 frequencies_ghz = { q = 7.002760675881172, r = 7.002760675881172 }
 rwa = true
-
-[rwa_bounds]
-excited = 0.005
-photons = 0.008

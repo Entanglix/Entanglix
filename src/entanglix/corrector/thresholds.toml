@@ -4,12 +4,11 @@ format_version = 1
 trace_atol = 1e-8
 hermiticity_atol = 1e-8
 minimum_eigenvalue = -1e-8
+initial_state_atol = 1e-8
 top_level_population_warning = 1e-6
 
-[reference]
-max_dimension = 48
+[refinement]
 observable_atol = 1e-6
-spectral_atol_ghz = 2e-8
 excitation_convergence_atol_ghz = 1e-5
 rtol = 1e-11
 atol = 1e-13
@@ -19,3 +18,7 @@ min_cutoff_step = 2
 
 [evidence]
 max_points = 8
+
+[segments]
+max_segments = 8
+segment_intervals = 2

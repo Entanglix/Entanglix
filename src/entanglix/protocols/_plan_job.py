@@ -29,9 +29,7 @@ def gate(system: str, plan: str, repository: str, extras: list[str]) -> dict:
         "spec_sha256": loaded.input_digests,
         "engine": loaded.definition.engine,
         "kind": loaded.definition.kind,
-        "purpose": loaded.definition.purpose,
         "plan_sha256": loaded.digest,
-        "policy_version": loaded.version,
         "environment": capture_environment(Path(repository) / "uv.lock", extras=tuple(extras)),
     }
 
@@ -39,7 +37,7 @@ def gate(system: str, plan: str, repository: str, extras: list[str]) -> dict:
 def execute(plan: Path) -> None:
     run = Path(os.environ["ENTANGLIX_RUN_DIR"])
     launch = _load_record(run / "run.toml")["launch"]
-    loaded = load_plan(run / "spec/system.toml", plan, expected_policy=launch["policy_version"])
+    loaded = load_plan(run / "spec/system.toml", plan)
     if loaded.digest != launch["plan_sha256"]:
         raise ValueError("frozen execution plan digest changed")
     if loaded.definition.kind == "spectrum":
@@ -114,7 +112,6 @@ def execute(plan: Path) -> None:
             "device": loaded.definition.device,
             "dimensions": list(loaded.system.dimensions),
             "plan_sha256": loaded.digest,
-            "policy_version": loaded.version,
             "metrics": metric_values(loaded.definition.metrics, arrays),
             "summary": summary,
             "diagnostics": diagnostics,
@@ -135,7 +132,9 @@ def main() -> int:
                 return 64
             execute(plan)
     except Exception as exc:
-        print(f"plan rejected: {exc}", file=sys.stderr)
+        from entanglix.runner import failure_message
+
+        print(f"plan rejected: {failure_message(exc)}", file=sys.stderr)
         return 64
     return 0
 

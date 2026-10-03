@@ -10,7 +10,7 @@ from entanglix.runner import capture_environment
 
 
 def main():
-    # Termination during a nested reference invokes that plan runner's cleanup.
+    # Interruptions return through the worker's normal shutdown path.
     signal.signal(signal.SIGTERM, signal.default_int_handler)
     signal.signal(signal.SIGHUP, signal.default_int_handler)
     try:
@@ -29,14 +29,14 @@ def main():
                 return 64
             from entanglix.corrector.verification import execute_verification
 
-            execute_verification(
-                Path(os.environ["ENTANGLIX_RUN_DIR"]), Path(os.environ["ENTANGLIX_REPOSITORY"])
-            )
+            execute_verification(Path(os.environ["ENTANGLIX_RUN_DIR"]))
     except KeyboardInterrupt:
         print("verification aborted", file=sys.stderr)
         return 130
     except Exception as exc:
-        print(f"verification failed: {exc}", file=sys.stderr)
+        from entanglix.runner import failure_message
+
+        print(f"verification failed: {failure_message(exc)}", file=sys.stderr)
         return 64
     return 0
 

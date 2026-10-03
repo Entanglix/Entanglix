@@ -1,6 +1,6 @@
 # Run records
 
-`entanglix.runner` launches authored CPU scripts with optional timeouts, cancellation, live inspection, recovery, and linked reruns. It freezes inputs and code provenance and publishes records atomically. The [simulation protocol](protocols.md) runs built-in CPU/CUDA computations with independent linked verification. Per-device GPU allocation locks protect scientific dispatch; grid sweeps are not yet available. Reconciliation checks ownership and recorded process-group liveness itself.
+`entanglix.runner` launches authored CPU scripts with optional timeouts, cancellation, live inspection, recovery, and linked reruns. It freezes inputs and code provenance and publishes records atomically. The [simulation protocol](protocols.md) runs built-in CPU/CUDA computations with linked checks on request. Per-device GPU allocation locks protect scientific dispatch; grid sweeps are not yet available. Reconciliation checks ownership and recorded process-group liveness itself.
 
 ## Authored CPU jobs
 
@@ -17,7 +17,7 @@ Commands print JSON. `run-script` waits for the job and returns its exit code. U
 
 Before admission, a subprocess in the locked, exactly synced environment constructs the CPU model, checks script syntax and imports, and records the environment identity. Referenced subsystem specs and numeric archives are collected automatically; the standalone script is frozen as `spec/script.py`. Additional Python inputs receive the same static import check. Relative imports are unsupported for standalone scripts. The allowlist lives in the project's import-boundary configuration; scanning is preflight under the cooperative trust model, not containment. Changed inputs between validation and freezing fail preparation before computation.
 
-Jobs sharing the checkout use the same extras set, configured once in `pyproject.toml` as `[tool.entanglix.runner]` with `extras = [...]`; the default is empty. The workstation-local `ENTANGLIX_RUNNER_EXTRAS` comma-separated list overrides this setting for all jobs, including CPU references. Each check and job uses `uv run --locked --exact` with that set and an absolute `UV_PROJECT_ENVIRONMENT` pointing to the ignored `.venv-runner/` in the checkout. The first launch installs this environment; exact synchronization leaves the development `.venv` and its extras alone. CPU jobs receive `CUDA_VISIBLE_DEVICES=""` and `JAX_PLATFORMS=cpu`. Keep the checkout and configuration stable while jobs run; use a separate checkout when reconstructing an earlier code revision.
+Jobs sharing the checkout use the same extras set, configured once in `pyproject.toml` as `[tool.entanglix.runner]` with `extras = [...]`; the default is empty. The workstation-local `ENTANGLIX_RUNNER_EXTRAS` comma-separated list overrides this setting for all jobs, including CPU checks. Each check and job uses `uv run --locked --exact` with that set and an absolute `UV_PROJECT_ENVIRONMENT` pointing to the ignored `.venv-runner/` in the checkout. The first launch installs this environment; exact synchronization leaves the development `.venv` and its extras alone. CPU jobs receive `CUDA_VISIBLE_DEVICES=""` and `JAX_PLATFORMS=cpu`. Keep the checkout and configuration stable while jobs run; use a separate checkout when reconstructing an earlier code revision.
 
 The ignored `.venv-runner-extras.toml` records the pinned extras as one sorted,
 duplicate-free list, for example `extras = ["cuquantum", "differentiable-cuda12"]`.
@@ -33,46 +33,60 @@ profile. Keep one extras set in the shell override or project configuration.
 
 The job runs noninteractively in its own process group, with `artifacts/` as its working directory so ordinary relative outputs land in the job's area. It inherits the owner's descriptor and waits until `runner/started.toml` has been published before executing the frozen script. Output and diagnostics go to `run.log`. `ENTANGLIX_RUN_DIR` names the attempt and `ENTANGLIX_SYSTEM_SPEC` its frozen system spec; additional data is under `<ENTANGLIX_RUN_DIR>/spec/`.
 
-Publish `<ENTANGLIX_RUN_DIR>/result.toml` atomically with `publish_toml(path, result, replace=True)`. An authored result requires an actual `engine` name and a `metrics` table; solver settings belong in the result when applicable. Optional `[artifacts.<name>]` entries supply `path` and `sha256`; paths are relative to the attempt directory, must stay inside `artifacts/`, and their digests are checked before completion. See [the recorded decay example](../../examples/recorded_decay.py). A missing or malformed result, a digest mismatch, or a script-written `verdict` fails orchestration with code `64`. Nonzero job exits retain their code and logs.
+Publish `<ENTANGLIX_RUN_DIR>/result.toml` atomically with `publish_toml(path, result, replace=True)`. An authored result requires an actual `engine` name and a `metrics` table; solver settings belong in the result when applicable. Optional `[artifacts.<name>]` entries supply `path` and `sha256`; paths are relative to the attempt directory, must stay inside `artifacts/`, and their digests are checked before completion. See [the recorded decay example](../../examples/recorded_decay.py). A missing or malformed result or a digest mismatch fails orchestration with code `64`. Additional authored fields, including a `checks` table, are data and do not create trusted check outcomes. Nonzero job exits retain their code and logs; [execution outcomes](#execution-outcomes) covers allocation failures and signal deaths.
 
-An arbitrary script has no structured evolution request for engine selection. Its manifest uses `engine = "authored-script"`; the result names the engine actually used. Scripts have no trusted verification definition and cannot produce verified evidence. Structured simulations use declared needs for engine selection.
+An arbitrary script has no structured evolution request for engine selection. Its manifest uses `engine = "authored-script"`; the result names the engine actually used. Scripts have no trusted computation definition for built-in checks. Structured simulations use declared needs for engine selection.
 
-Inspection is read-only. `read_run` includes records and the last 8 KiB of `run.log`; it does not determine scientific verification. Malformed results appear as `result_error`; listing retains malformed runner records with a diagnostic. Without `FINISHED`, ownership or a live recorded group means `active`, absence of both means `interrupted`, and indeterminate group liveness means `unknown`. After the main process exits, the supervisor retains ownership and waits for the whole process group to disappear before validating the result and writing `FINISHED`.
+Inspection is read-only. `read_run` includes records and the last 8 KiB of `run.log`; it does not determine scientific verification. Malformed results appear as `result_error`; listing retains malformed runner records with a diagnostic. If the current code cannot load a frozen plan or construct its model, inspection still returns the retained records and check history; `check_listing` contains no checks and explains why it is unavailable. Requesting checks still requires a valid plan. Without `FINISHED`, ownership or a live recorded group means `active`, absence of both means `interrupted`, and indeterminate group liveness means `unknown`. After the main process exits, the supervisor retains ownership and waits for the whole process group to disappear before validating the result and writing `FINISHED`.
 
-## Computation and reference records
+## Computation records
 
-Internal computation jobs appear as `protocol = "plan"` or `"reference"`. Their `spec/` contains `system.toml`, `plan.toml`, referenced model files, and numeric inputs. The manifest records the computation kind, plan digest, policy version, named CPU engine, environment, and code provenance. The plan digest covers normalized content and model/numeric input digests; separate `spec_sha256` entries preserve raw-file integrity. The plan format is internal and is not a public authoring interface.
+Simulations appear as `protocol = "simulate"`. Internal plan jobs, which no command launches, appear as `"plan"`; historical `"reference"` records remain readable. Their `spec/` contains `system.toml`, `plan.toml`, referenced model files, and numeric inputs, and a simulation also keeps its `simulate.toml`. The manifest records the computation kind, plan digest, selected engine, environment, and code provenance. The plan digest covers normalized content and model/numeric input digests; separate `spec_sha256` entries preserve raw-file integrity. The plan format is internal and is not a public authoring interface.
 
-The result records the actual engine, method, dimensions, device, and solver diagnostics. `artifacts/output.npz` holds `states`, `times_ns`, and `observable.<name>` arrays for dynamics, or `energies_ghz` for spectra; its digest is checked before completion. A completed reference job supplies numerical evidence, not a verification verdict.
+The result records the actual engine, method, dimensions, device, and solver diagnostics. `artifacts/output.npz` holds `states`, `times_ns`, and `observable.<name>` arrays for dynamics, or `energies_ghz` for spectra; its digest is checked before completion. Computation completion describes execution only; checks run separately on request.
 
-CPU dynamiqs references require `extras = ["differentiable"]` in `[tool.entanglix.runner]` in `pyproject.toml`. Installing an extra only in the development environment does not configure the job environment. Keep one extras set for all jobs sharing `.venv-runner/`; no CUDA extra is needed for CPU references.
+CPU dynamiqs jobs require `extras = ["differentiable"]` in `[tool.entanglix.runner]` in `pyproject.toml`. Installing an extra only in the development environment does not configure the job environment. Keep one extras set for all jobs sharing `.venv-runner/`; no CUDA extra is needed for CPU jobs.
 
 ## Corrector policy and verification records
 
-The corrector ships with [versioned thresholds](../../src/entanglix/corrector/thresholds.toml). The policy version hashes the corrector code and thresholds; a change between launch and load fails execution without a verdict. The CPU reference limit is 48, validated on both engines by the [reference regression](../../tests/test_corrector.py).
-
-Evidence selection is deterministic and capped at 8 points: distinct grid corners, the first global minimum and maximum, the first endpoint in grid order of the steepest adjacent edge, then truncation warnings ranked by severity. Ties use grid order; duplicate points merge reasons. Grids exceeding the corner bound are rejected. Uncovered candidates are reported without expanding the bound. Top retained-level population is a warning, not a required pass check.
-
-Verification attempts identify their source as a parent and retain its relative location, result/artifact digests, and policy version in the manifest. They freeze the plan and model inputs, while the original result and outputs remain in the source run. Missing or changed source evidence fails verification.
+The corrector ships with [versioned thresholds](../../src/entanglix/corrector/thresholds.toml).
+Its policy version hashes the code and thresholds; a change between admission and
+load fails execution without check outcomes. There is no harness-imposed dimension
+cap. The [dimension-48 exact regression](../../tests/test_corrector.py) and
+[dimension-64 cross-engine case](../../tests/test_engine_acceptance.py) are engine
+acceptance evidence, not ceilings.
 
 ```sh
-uv run --locked --exact entanglix compare-reference research_runs/<system_id>/<run_id>
+uv run --locked --exact entanglix check research_runs/<system_id>/<run_id>
+uv run --locked --exact entanglix check research_runs/<system_id>/<run_id> integrity segments diagnostics --timeout 60
 uv run --locked --exact entanglix read-run research_runs/<system_id>/<run_id>
 ```
 
-`compare-reference` verifies completed built-in computation records; authored scripts cannot verify. It creates a new verification attempt and returns its execution code. Code `0` means the checks ran successfully; the scientific verdict in that attempt's result may still be `UNVERIFIED`. `--timeout SECONDS` covers verification execution, including reference preparation and solves. Cancellation stops nested reference jobs too. A failed or interrupted verification supplies no usable verdict.
+With no names, `check` lists relevant checks and computes nothing. Named checks run
+as one linked verification attempt with per-check pass, fail, or inapplicable outcomes;
+diagnostics have no pass/fail outcome. There is no run-level verdict. Code `0` means
+execution completed, even when a check failed. Authored scripts have no built-in
+checks. The [protocol reference](protocols.md#requested-checks-and-segment-tolerances)
+describes each check, prerequisites, segment tolerances, and replacement refinement.
 
-Dynamics checks cover trace, Hermiticity and minimum eigenvalue at every stored time, and consistency of reported expectations with stored states. One independent CPU solve covers the full window at tightened integration tolerances and combined cutoff/retained-level refinement. Reference tolerances are the smaller of one tenth of the source tolerance and the policy's `rtol = 1e-11` / `atol = 1e-13`; the step ceiling is retained and reported for QuTiP and interval-valued dynamiqs controls. For a dynamiqs reference with scalar envelopes, it is multiplied by the number of output intervals to convert the per-interval allowance into a whole-solve allowance. QuTiP sources use CPU dynamiqs references; dynamiqs sources use QuTiP. Initial states occupy the same ordered low-level subspace of the refined tensor product, aligning independently constructed eigenstate phases through local operators. Comparisons use each reported observable in its declared units, rather than density matrices of different dimensions. No reported observables or a refinement exceeding dimension 48 yields `UNVERIFIED` with a recommendation; a missing engine fails verification without a verdict. Top-level population above `1e-6` is a warning and never a pass requirement.
+Verification attempts identify the source as a parent and retain its relative
+location, result/artifact digests, and policy version. They freeze the plan, model
+inputs, requested names, and effective refinement. Original results and arrays stay
+in the source attempt; missing or changed evidence fails the check execution. A
+replacement supplied with `--refinement FILE` leaves the source and its plan digest
+unchanged. Reports record its origin; a check attempt whose frozen inputs were
+altered fails without outcomes.
 
-Rotating-frame simulations use lab-frame references. Declared trajectory and endpoint-metric RWA approximation bounds add independently to the numerical `1e-6` limit and are reported separately; without a declared bound, approximation error can yield `UNVERIFIED`. Physicality and output-consistency thresholds are unchanged. See the [protocol reference](protocols.md#gpu-configuration-and-verification).
+Reports identify scopes, tolerances, residuals, sampled windows and coverage, refined
+engine/dimensions/settings, and inapplicable reasons. `--timeout SECONDS` and
+`abort-run` bound execution. Failed, timed-out, aborted or interrupted check attempts
+report no outcomes. A passing segment establishes only local agreement: no built-in
+check measures whole-window error or the rotating-wave approximation.
 
-Spectral records contain the declared number of lowest energies. `spectral_consistency` checks those energies against a NumPy eigensolver of the same declared Hamiltonian; it establishes output/model consistency. Single-mode junction circuits also use independent transmon or fluxonium constructors where that topology applies. The supported one-capacitor/one-inductor circuit has an analytic excitation reference from its supplied component values; `spectral_reference` uses these constructor or analytic comparisons and is marked inapplicable when neither is available. Combined refinement compares every reported excitation energy with the refined spectrum at `1e-5 GHz`; finite explicit matrices have no truncation check. The consistency/constructor/analytic comparisons use `2e-8 GHz`, following the bundled model representation limits. These checks establish numerical agreement for the declared model, not device-model accuracy.
-
-Reports give check scopes, tolerances, residuals, warnings, reference engine/dimensions/settings, coverage and inapplicable reasons. A single computation is its own evidence point. Matching reference plan digests and policy versions allow reuse only after checking completion and retained input/output integrity; the report identifies reused evidence. No successful verification changes its source records.
-
-Verification history is found within the source system directory by parent run ID; reference reports identify evidence by run ID in that directory. Moving the runs tree preserves these links.
-
-`read-run` includes the latest linked verification attempt and history with policy/source digests. Its `current` entry is the newest attempt for the requested policy (default: the installed policy); failed or incomplete attempts expose diagnostics without substituting an earlier verdict. `--policy-version DIGEST` requests historical policy evidence. Missing or changed source/reference artifacts make a verdict unavailable. Automatic protocol verification and sweep integration follow with the public protocols.
+`read-run` lists linked verification attempts with status, policy version, source
+identity match, and completed check reports. Earlier reports remain history under
+their recorded policy. A newer failure does not erase earlier outcomes or substitute
+them for its missing report.
 
 ## Limits, interruption, and recovery
 
@@ -130,7 +144,7 @@ Runner records are published once and made read-only. Jobs own `result.toml` and
 | `runner/abort.toml` | UTC `requested_at`, published once by the abort operation; a request, not a terminal outcome |
 | `FINISHED` | `record_version`, `status`, `exit_code`, UTC `ended_at`, and `usage`: nonnegative finite `wall_seconds`, `gpu_seconds`, and `uncertain = false` |
 | `runner/reconciled.toml` | `record_version`, UTC `observed_at`, `last_observed_state`, and `usage.uncertain = true`. When a start record exists, includes its `started_at`, `process_group`, and `gpu_devices`; otherwise these fields are absent. Unknown usage is not replaced with zero |
-| `result.toml` | A protocol-specific TOML table containing metrics, actual engine/solver information, and artifact references with digests. Protocol results carry no verification verdict; independent verification results carry the bound verdict and report |
+| `result.toml` | A protocol-specific TOML table containing metrics, actual engine/solver information, and artifact references with digests. Trusted check outcomes come only from linked verification results, which carry the bound per-check report |
 
 `run.toml` is the first published file. Inputs are then frozen before the caller may start computation. UTF-8 serialization, missing-input errors, normalized-path duplicates, and file/directory conflicts are checked before creating the attempt directory. On a handled failure before manifest publication, the exclusively created attempt directory is removed because no run was admitted. If preparation fails after publication, `create_run` publishes `FINISHED` with `failed/64` and zero job usage while holding ownership, then raises `RunCreationError` carrying the attempt path in `.run`. If storage prevents that terminal write, the original error retains the path and an explanatory note; the attempt remains incomplete and can be reconciled without a start record. Creation failures close the owner handle before raising.
 
@@ -148,9 +162,9 @@ For process launch, pass `handle.fileno()` to the job through `subprocess.Popen(
 
 `env_hash` is SHA-256 of the environment table before the hash is added, serialized as UTF-8 JSON with sorted keys and compact separators. Lockfile, Python, platform, extras, and GPU observations therefore participate in the identity. Supported execution must use `uv run --locked --exact` with the same extras set for all jobs sharing an environment; the record API itself does not sync or certify that environment.
 
-`check_gpu_environment(device_uuid, selection)` checks a selected GPU in the caller's exact environment with the `cuquantum` extra. It matches NVIDIA-SMI's canonical UUID to a CUDA-visible device, observes the driver and loaded CUDA/native cuDensityMat versions, initializes the native library on that device, and rejects insufficient free memory against `selection.estimated_device_bytes`. Failures explain device visibility, driver, extra, or memory requirements. CPU execution does not call this function or import GPU packages.
+`check_gpu_environment(device_uuid)` checks a selected GPU in the caller's exact environment with the `cuquantum` extra. It matches NVIDIA-SMI's canonical UUID to a CUDA-visible device, observes the driver and loaded CUDA/native cuDensityMat versions, and initializes the native library on that device. Failures explain device visibility, driver or extra requirements. CPU execution does not call this function or import GPU packages.
 
-Pass the returned `gpu` table to `capture_environment(..., gpu=observations["gpu"])` and retain the resulting identity in the run manifest. The `cuquantum` identity field names the loaded native cuDensityMat library version. The returned device UUID/index and memory observations are dispatch data; fluctuating free memory does not enter `env_hash`. The estimate covers the [known arrays](system-spec.md#engine-selection-policy), not solver peak workspace. Simulation dispatch connects this check to pre-launch CPU reference evidence and inherited allocation ownership.
+Pass the returned `gpu` table to `capture_environment(..., gpu=observations["gpu"])` and retain the resulting identity in the run manifest. The `cuquantum` identity field names the loaded native cuDensityMat library version. The returned device UUID/index are dispatch data, separate from `env_hash`. There is no pre-launch memory estimate. Simulation dispatch connects this check to inherited allocation ownership; CPU checks run only on request after completed execution.
 
 `capture_code(repository)` requires a Git repository with a committed `HEAD`. The code table records `revision`, `dirty`, `patch_sha256`, and `untracked_sha256`. `changes.patch` contains the combined staged and unstaged diff from `HEAD`, including binary changes, with color disabled and fixed `a/` and `b/` prefixes regardless of Git configuration; `code/untracked/` retains all non-ignored untracked files. Untracked symlinks are rejected rather than silently copied as regular files. Ignored scripts and data must be supplied explicitly as inputs. Capture a stable working tree before dispatch.
 
@@ -165,6 +179,7 @@ The record API and CPU launcher distinguish pre-start failure, observed job outc
 - The launcher returns `64` with a diagnostic for invalid arguments or a failed pre-launch gate before `run.toml` exists, without creating a run. The Python API raises exceptions for invalid inputs.
 - After creation, a supervising caller records known failures rather than deleting the attempt. Before a start record exists, `failed/64` or cancellation as `aborted/130` with zero job wall time is valid; any GPU allocation time is still charged, including a failed spawn. Job outcomes require a start record.
 - Observed successful execution uses `completed` and code `0`; a job exiting `130`, a timeout, or runner-triggered cancellation is `aborted/130`. Other job failures preserve exit codes in `0–255`. For signal death outside a requested cancellation, the launcher converts Python's negative subprocess return code to `128 + signal` (for example, `SIGKILL` becomes `137`); `record_finish` requires the normalized code and rejects inconsistent status/code pairs.
+- An observed allocation failure is identified as out of memory in the diagnostic, including a launch-gate failure before an attempt exists. A signal death the runner did not request is reported as that signal with its cause unknown; for `SIGKILL` the diagnostic names exhausted memory as a possible cause only. A positive shell-encoded status alone cannot distinguish a signal from an explicit job exit with that code, and the diagnostic states that uncertainty. If the supervisor also dies, the interruption and reconciliation rules apply.
 - `wall_seconds` is elapsed job time from publication of the start record until the supervisor observes the whole process group's termination, measured once with a monotonic clock. Input preparation and result validation are excluded; a known pre-start preparation failure or cancellation records zero. Allocated `gpu_seconds` means allocated devices multiplied by allocation duration, including failed work; CPU jobs record zero. The caller supplies these observations; the record API does not measure them.
 - Runner loss leaves no `FINISHED`, and a surviving job may still own the attempt and GPU. Reconciliation, described above, records uncertainty without fabricating completion.
 

@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from entanglix.corrector import load_policy, policy_digest, required_checks, select_evidence
+from entanglix.corrector import load_policy, policy_digest, relevant_checks, select_evidence
 
 
 @pytest.mark.parametrize("name", ["__init__.py", "thresholds.toml"])
@@ -25,20 +25,12 @@ def test_policy_changed_after_launch_is_rejected(tmp_path, monkeypatch, name):
         load_policy(expected)
 
 
-def test_trusted_check_definitions_stack_and_reject_unknown_labels():
-    dynamics = required_checks("lindblad")
-    series = required_checks("parameter_series", point_kind="lindblad")
-    assert set(dynamics) <= set(series)
-    assert {"trace", "hermiticity", "positivity", "cpu_reference"} <= set(dynamics)
-    assert "truncation_convergence" in required_checks("spectrum")
-    assert "top_level_population" not in dynamics
-    for kind, point_kind in [
-        ("authored-script", None),
-        ("spectral", None),
-        ("parameter_series", "unknown"),
-    ]:
-        with pytest.raises(ValueError, match="unknown or inconsistent"):
-            required_checks(kind, point_kind=point_kind)
+def test_trusted_check_definitions_reject_unknown_labels():
+    assert relevant_checks("lindblad") == ("integrity", "segments", "diagnostics")
+    assert relevant_checks("spectrum") == ("spectral_refinement",)
+    for kind in ("authored-script", "spectral", "unknown"):
+        with pytest.raises(ValueError, match="unknown computation"):
+            relevant_checks(kind)
 
 
 def test_evidence_is_bounded_reports_uncovered_warnings_and_breaks_ties_by_grid_order():
@@ -65,15 +57,15 @@ def test_evidence_uses_grid_edges_instead_of_flattening_across_rows():
     assert "steepest_change" not in selected.reasons[3]
 
 
-def test_corner_bound_is_enforced_before_launch():
+def test_corner_bound_is_a_check_prerequisite():
     with pytest.raises(ValueError, match="corners exceed"):
         select_evidence((2, 2, 2, 2))
     assert select_evidence((1,)).points == (0,)
 
 
 @pytest.mark.parametrize("engine_name", ["qutip-cpu", "dynamiqs"])
-def test_reference_limit_exact_liouvillian(tmp_path, engine_name, record_property):
-    """Regression at the CPU reference cap, independent of production dispatch."""
+def test_dimension_48_exact_liouvillian(tmp_path, engine_name, record_property):
+    """Numerical evidence at dimension 48, without a policy admission ceiling."""
     from engine_cases import exact_states
 
     from entanglix.engines import QuTiPIntegrator
@@ -101,8 +93,8 @@ def test_reference_limit_exact_liouvillian(tmp_path, engine_name, record_propert
     (tmp_path / "system.toml").write_text(text)
     (tmp_path / "qubit.toml").write_text(leaf)
     system = load_system(tmp_path / "system.toml")
-    thresholds = load_policy().thresholds["reference"]
-    dimension = thresholds["max_dimension"]
+    thresholds = load_policy().thresholds["refinement"]
+    dimension = 48
     assert np.prod(system.dimensions) == dimension
     rng = np.random.default_rng(42)
     state = rng.normal(size=dimension) + 1j * rng.normal(size=dimension)

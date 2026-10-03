@@ -13,6 +13,78 @@ from entanglix.models import load_system
 
 
 @pytest.mark.parametrize(
+    "engine_name",
+    [
+        "dynamiqs-cpu",
+        pytest.param("cudensitymat", marks=pytest.mark.gpu),
+        pytest.param("dynamiqs", marks=pytest.mark.gpu),
+    ],
+)
+def test_dimension_64_complex_dissipative_agreement(tmp_path, engine_name, record_property):
+    import tomli_w
+
+    from entanglix.evolution import EvolutionInput
+
+    document = {
+        "format_version": 1,
+        "id": "larger_agreement",
+        "units": {"energy": "GHz", "time": "ns"},
+        "model": {
+            "kind": "composite",
+            "subsystems": [
+                {
+                    "id": name,
+                    "kind": "oscillator",
+                    "retained_levels": 8,
+                    "frequency": {"value": frequency, "unit": "GHz"},
+                }
+                for name, frequency in (("a", 0.1), ("b", 0.15))
+            ],
+            "interactions": [
+                {
+                    "coefficient": {"value": 0.01, "unit": "GHz"},
+                    "factors": ["a.position", "b.position"],
+                }
+            ],
+        },
+        "dissipators": [
+            {"id": "loss", "factors": ["a.annihilation"], "rate": {"value": 0.1, "unit": "1/ns"}}
+        ],
+    }
+    source = tmp_path / "system.toml"
+    source.write_text(tomli_w.dumps(document))
+    system = load_system(source)
+    state = np.zeros(64, dtype=complex)
+    state[1], state[8] = 1 / np.sqrt(2), 1j / np.sqrt(2)
+    request = EvolutionInput(
+        initial_state=state,
+        times_ns=np.linspace(0, 1, 5),
+        observables={"number": system.operators["a.number"]},
+        rtol=1e-10,
+        atol=1e-12,
+        max_steps=400_000,
+    )
+    reference = QuTiPIntegrator().evolve(system, request)
+    if engine_name.startswith("dynamiqs"):
+        pytest.importorskip("dynamiqs")
+        engine = DynamiqsIntegrator(device_kind="cpu" if engine_name.endswith("cpu") else "gpu")
+    else:
+        pytest.importorskip("qutip_cuquantum")
+        engine = CuQuantumIntegrator()
+    actual = engine.evolve(system, request)
+    residual = max(np.linalg.norm(a - b) for a, b in zip(reference.states, actual.states))
+    assert residual < 1e-7, residual
+    assert reference.expectations["number"][-1].real < 0.49
+    np.testing.assert_allclose(
+        actual.expectations["number"], reference.expectations["number"], rtol=0, atol=1e-6
+    )
+    record_property("dimension", 64)
+    record_property("engine", actual.engine)
+    record_property("device", actual.device)
+    record_property("reference_error", float(residual))
+
+
+@pytest.mark.parametrize(
     "case_name",
     [
         "two-level-loss",
