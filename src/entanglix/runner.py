@@ -297,6 +297,7 @@ def create_run(
     base: str | None = None,
     base_inputs: dict[str, str] | None = None,
     values: list[dict[str, float]] | None = None,
+    gpu: "GpuLease | None" = None,
 ) -> RunHandle:
     """Admit standalone or investigation work and retain ownership of the attempt."""
     arguments = dict(
@@ -311,6 +312,7 @@ def create_run(
         runs_root=runs_root,
         parent_run_ids=parent_run_ids,
         launch=launch,
+        gpu=gpu,
     )
     if protocol == "verification" and parent_run_ids:
         source_path = (
@@ -361,6 +363,7 @@ def _create_run(
     parent_run_ids: tuple[str, ...] = (),
     launch: dict | None = None,
     investigation: dict | None = None,
+    gpu: "GpuLease | None" = None,
 ) -> RunHandle:
     """Create an admitted attempt with its manifest first and its inputs frozen."""
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", system_id):
@@ -420,6 +423,8 @@ def _create_run(
         owner = RunHandle(run, os.open(run, os.O_RDONLY | os.O_DIRECTORY))
         fcntl.flock(owner.fileno(), fcntl.LOCK_EX)
         publish_toml(run / "run.toml", record)
+        if gpu is not None:
+            gpu.bind_run(owner)
         for name in ("runner", "spec", "artifacts"):
             (run / name).mkdir()
         for name, data in files.items():
@@ -431,7 +436,13 @@ def _create_run(
         error = RunCreationError(run, exc)
         if (run / "run.toml").exists():
             try:
-                record_finish(owner, status="failed", exit_code=64, wall_seconds=0, gpu_seconds=0)
+                record_finish(
+                    owner,
+                    status="failed",
+                    exit_code=64,
+                    wall_seconds=0,
+                    gpu_seconds=time.monotonic() - gpu.allocated_at if gpu else 0,
+                )
             except Exception as finish_error:
                 error.add_note(f"could not record creation failure: {finish_error}")
         else:
@@ -643,7 +654,7 @@ class GpuLease:
     """A device lock inherited by the job; a lost owner leaves its allocation record."""
 
     device: str
-    run: Path
+    run: Path | None
     descriptor: int | None
     record_path: Path
     allocated_at: float
@@ -653,8 +664,19 @@ class GpuLease:
             raise ValueError("GPU lease is closed")
         return self.descriptor
 
+    def bind_run(self, owner: RunHandle) -> None:
+        self.fileno()
+        owner.fileno()
+        if self.run is not None:
+            raise ValueError("GPU lease already names an attempt")
+        run = owner.path.resolve()
+        publish_toml(self.record_path, {"device": self.device, "run": str(run)}, replace=True)
+        self.run = run
+
     def bind_process(self, group: int) -> None:
         self.fileno()
+        if self.run is None:
+            raise ValueError("GPU lease has no admitted attempt")
         if group <= 0:
             raise ValueError("process_group must be positive")
         publish_toml(
@@ -667,7 +689,7 @@ class GpuLease:
         # Never unlink the lock file or explicitly unlock an inherited descriptor.
         if self.descriptor is not None:
             try:
-                if (self.run / "FINISHED").exists():
+                if self.run is not None and (self.run / "FINISHED").exists():
                     self.record_path.unlink(missing_ok=True)
             finally:
                 os.close(self.descriptor)
@@ -680,12 +702,30 @@ class GpuLease:
         self.close()
 
 
-def acquire_gpu(device: str, owner: RunHandle) -> GpuLease:
+def select_gpu() -> str:
+    """Resolve the configured single device without creating a CUDA context."""
+    visible = os.environ.get("CUDA_VISIBLE_DEVICES")
+    if visible == "":
+        raise ValueError("CUDA simulation requires exactly one visible GPU")
+    command = ["nvidia-smi", "--query-gpu=uuid", "--format=csv,noheader"]
+    if visible is not None:
+        command.append(f"--id={visible}")
+    try:
+        query = subprocess.run(command, check=True, capture_output=True, text=True, timeout=10)
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise ValueError(
+            f"GPU selection failed: {exc}; check device visibility and driver access"
+        ) from exc
+    devices = query.stdout.split()
+    if len(devices) != 1:
+        raise ValueError("CUDA simulation requires exactly one visible GPU")
+    return devices[0]
+
+
+def acquire_gpu(device: str) -> GpuLease:
     """Acquire a canonical device UUID outside all runs roots, without waiting."""
     if not re.fullmatch(r"GPU-[A-Za-z0-9-]+", device):
         raise ValueError("GPU lock requires a canonical GPU-... device identifier")
-    owner.fileno()
-    run = owner.path.resolve()
     state = Path(os.environ.get("XDG_STATE_HOME", str(Path.home() / ".local/state")))
     root = state / "entanglix/gpu"
     root.mkdir(parents=True, exist_ok=True)
@@ -705,8 +745,7 @@ def acquire_gpu(device: str, owner: RunHandle) -> GpuLease:
                 (previous_run / name).exists() for name in ("FINISHED", "runner/reconciled.toml")
             ):
                 raise ValueError(f"GPU {device} requires reconciliation of {previous_run}")
-        publish_toml(record_path, {"device": device, "run": str(run)}, replace=True)
-        return GpuLease(device, run, descriptor, record_path, time.monotonic())
+        return GpuLease(device, None, descriptor, record_path, time.monotonic())
     except BaseException:
         os.close(descriptor)
         raise

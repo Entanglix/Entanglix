@@ -239,3 +239,14 @@ XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact python tests/probes/
 XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact python tests/probes/m3_investigation.py --case early-stop --workspace research_runs/m3-threshold-early-stop-client --runs-root research_runs/m3-threshold-early-stop --output tests/probes/m3_investigation_early_stop.json
 TMPDIR=/var/tmp uv run --locked --exact pytest -q tests/test_investigations.py tests/test_investigation_admission.py tests/test_investigation_lifecycle.py tests/test_readout_investigation.py -m 'not gpu'
 ```
+
+## Busy-device admission acceptance
+
+The [device admission tests](../tests/test_gpu_admission.py) and
+[workstation GPU report](../tests/probes/m3_busy_gpu.xml) retain ownership and
+launch evidence. Regenerate them with an isolated test environment:
+
+```sh
+uv run --locked --exact pytest -q tests/test_gpu_admission.py tests/test_lifecycle.py -m 'not gpu'
+TMPDIR=/var/tmp UV_PROJECT_ENVIRONMENT=/var/tmp/entanglix-6b0-gpu-test XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact --extra cuquantum --extra differentiable-cuda12 pytest -q tests/test_simulate.py tests/test_sweep.py tests/test_investigation_admission.py -m gpu --require-gpu -o junit_family=legacy --junitxml=tests/probes/m3_busy_gpu.xml
+```

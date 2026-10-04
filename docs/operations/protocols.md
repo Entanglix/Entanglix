@@ -97,9 +97,15 @@ uv run --locked --exact entanglix simulate examples/readout/purcell-cuda.toml
 
 CPU jobs and requested checks use the same pinned extras with CUDA hidden. A different
 extras list is rejected before synchronization; the [run reference](runs.md)
-explains the environment profile. CUDA jobs see only the allocated UUID, and JAX
-preallocation is disabled before initialization. The gate probes the exact job
-environment, records native runtime versions, and initializes the selected device.
+explains the environment profile. Numeric indices in `CUDA_VISIBLE_DEVICES` are
+resolved in `nvidia-smi` order, which may differ from CUDA's order on a multi-GPU
+machine; use a GPU UUID to select a device unambiguously. CUDA jobs see only the
+allocated UUID, and JAX preallocation is disabled before initialization. The gate
+probes the exact job environment, records native runtime versions, and initializes
+the selected device.
+Device ownership is taken before the probe and admission. A busy device refuses
+the launch without creating an attempt or using investigation allowance; the
+[ownership reference](runs.md#local-gpu-ownership) covers reconciliation and dry runs.
 GPU ownership persists through runner loss while an inheriting job survives;
 reconcile a lost attempt before reusing that GPU. No scientific check precedes a
 GPU launch. Requested checks run afterwards on CPU.

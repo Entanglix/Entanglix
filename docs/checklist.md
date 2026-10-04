@@ -218,13 +218,13 @@ The [M2 guide](m2-guide.md) records the implementation approach; [ADR-0003](adr/
 - [x] Applicable quality evidence recorded ([worked scientific example and limits](../examples/readout/README.md#scripted-investigation-baseline), [operational reference](operations/investigations.md), [normal baseline](../tests/probes/m3_investigation_normal.json), [early-stop baseline](../tests/probes/m3_investigation_early_stop.json), [client tests](../tests/test_readout_investigation.py))
 - [x] **Done:** scripted investigation reaches declared evidence or a supported stop/review handoff; progress/history survive resume; optional limits, review gates, cancellation, and local execution protections work through supported interfaces ([baseline evidence and policy](../examples/readout/README.md#scripted-investigation-baseline), [session recovery](../tests/test_readout_investigation.py))
 
-### [ ] Block 6b — Agent Integration
+### [-] Block 6b — Agent Integration
 
 **Depends on:** Block 6a and the local runtime integration decision.
 
 - [ ] Formulation workflow refines broad ambitions into bounded next investigations; partial workflows and exploratory questions are supported
 - [ ] Agent assesses evidence, constraints, convergence, observed cost, and learning before continuing/refining/stopping; roles of numerical search and agent reasoning documented
-- [ ] A launch on a busy GPU is refused before an attempt exists and uses no investigation allowance
+- [x] A launch on a busy GPU is refused before an attempt exists and uses no investigation allowance; ownership spans the CUDA launch check and execution, and launch failures release it ([admission and failure tests](../tests/test_gpu_admission.py), [workstation lifecycle report](../tests/probes/m3_busy_gpu.xml), [ownership reference](operations/runs.md#local-gpu-ownership))
 - [ ] `entanglix.mcp` behind an optional `mcp` extra, introduced with `skills/`; MCP over stdio uses CLI backing operations, advertises available capabilities, and distinguishes research requests from runtime user-input events (contract §5)
 - [ ] Tool-call audit log, with client-reported request metadata, and per-connection session records with unknown fields labelled (contract §6), including scope revisions and linked run IDs
 - [ ] A launch whose connection or response is lost is recovered as pending, admitted, or refused, without a second attempt

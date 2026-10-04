@@ -19,6 +19,7 @@ from entanglix.runner import (
     _cpu_job_context,
     _load_record,
     abort_run,
+    acquire_gpu,
     publish_toml,
     read_run,
     record_reconciliation,
@@ -288,8 +289,12 @@ def test_gpu_autoselection_reports_missing_cupy_extra(tmp_path, monkeypatch):
     target.mkdir()
     monkeypatch.setattr("entanglix.protocols.simulate.version", lambda package: "installed")
     monkeypatch.setitem(sys.modules, "cupy", None)
-    with pytest.raises(ValueError, match="cuquantum extra"):
-        compile_simulation(path, target, [], ROOT)
+    monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path / "state"))
+    with acquire_gpu("GPU-test-device") as gpu:
+        monkeypatch.setenv("CUDA_VISIBLE_DEVICES", gpu.device)
+        monkeypatch.setenv("ENTANGLIX_GPU_LOCK_FD", str(gpu.fileno()))
+        with pytest.raises(ValueError, match="cuquantum extra"):
+            compile_simulation(path, target, [], ROOT)
 
 
 @pytest.fixture
@@ -370,14 +375,14 @@ def test_gpu_simulation_lifecycle_and_interrupted_replay(tmp_path, gpu_repositor
             assert read_run(run)["status"] == "active"
             with pytest.raises(ValueError, match="still owned"):
                 record_reconciliation(run, last_observed_state="runner killed")
-            blocked = simulate(path, runs_root=runs, repository=gpu_repository)
-            assert blocked["exit_code"] == 64
-            assert "still owned" in read_run(Path(blocked["path"]))["log_tail"]
+            with pytest.raises(ValueError, match="still owned"):
+                simulate(path, runs_root=runs, repository=gpu_repository)
+            assert len(list(runs.glob("*/*/run.toml"))) == 1
             abort_run(run)
             wait_for(lambda: read_run(run)["status"] == "interrupted")
-            blocked = simulate(path, runs_root=runs, repository=gpu_repository)
-            assert blocked["exit_code"] == 64
-            assert "requires reconciliation" in read_run(Path(blocked["path"]))["log_tail"]
+            with pytest.raises(ValueError, match="requires reconciliation"):
+                simulate(path, runs_root=runs, repository=gpu_repository)
+            assert len(list(runs.glob("*/*/run.toml"))) == 1
             record_reconciliation(run, last_observed_state="runner lost; job terminated")
             assert not (run / "FINISHED").exists()
             assert read_run(run)["reconciliation"]["usage"]["uncertain"]

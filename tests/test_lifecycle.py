@@ -286,7 +286,8 @@ from pathlib import Path
 from entanglix.runner import RunHandle, _execute_job, acquire_gpu
 run = Path(os.environ['TEST_RUN'])
 owner = RunHandle(run, int(os.environ['TEST_OWNER_FD']))
-with acquire_gpu('GPU-test-device', owner) as gpu:
+with acquire_gpu('GPU-test-device') as gpu:
+    gpu.bind_run(owner)
     _execute_job(owner, [os.environ['TEST_PYTHON'], '-m', 'entanglix._script_job'], os.environ.copy(), timeout_seconds=None, gpu=gpu)
 """
     supervisor = subprocess.Popen(
@@ -305,18 +306,19 @@ with acquire_gpu('GPU-test-device', owner) as gpu:
     try:
         wait_for(lambda: (run / "artifacts/ready").exists())
         with pytest.raises(ValueError, match="still owned"):
-            acquire_gpu(DEVICE, second)
+            acquire_gpu(DEVICE)
         supervisor.kill()
         supervisor.wait(timeout=5)
         assert read_run(run)["status"] == "active"
         with pytest.raises(ValueError, match="still owned"):
-            acquire_gpu(DEVICE, second)
+            acquire_gpu(DEVICE)
         abort_run(run)
         wait_for(lambda: read_run(run)["status"] == "interrupted")
         with pytest.raises(ValueError, match="requires reconciliation"):
-            acquire_gpu(DEVICE, second)
+            acquire_gpu(DEVICE)
         record_reconciliation(run, last_observed_state="runner killed; group gone")
-        with acquire_gpu(DEVICE, second):
+        with acquire_gpu(DEVICE) as gpu:
+            gpu.bind_run(second)
             assert read_run(run)["reconciliation"]["usage"]["uncertain"]
         assert not (run / "FINISHED").exists()
     finally:
@@ -334,19 +336,19 @@ with acquire_gpu('GPU-test-device', owner) as gpu:
 
 def test_gpu_remains_owned_after_job_exit_until_finish(allocation, tmp_path):
     owner = allocation(tmp_path / "one")
-    second = allocation(tmp_path / "two")
-    with owner, second, acquire_gpu(DEVICE, owner) as gpu:
+    with owner, acquire_gpu(DEVICE) as gpu:
+        gpu.bind_run(owner)
         child = subprocess.Popen([sys.executable, "-c", "pass"], start_new_session=True)
         record_start(owner, process_group=child.pid, gpu_devices=(DEVICE,))
         gpu.bind_process(child.pid)
         child.wait(timeout=5)
         with pytest.raises(ValueError, match="still owned"):
-            acquire_gpu(DEVICE, second)
+            acquire_gpu(DEVICE)
         with pytest.raises(ValueError, match="still owned"):
             record_reconciliation(owner.path, last_observed_state="job exited; runner paused")
         record_finish(owner, status="completed", exit_code=0, wall_seconds=0.1, gpu_seconds=0.1)
-    with allocation(tmp_path / "three") as third, acquire_gpu(DEVICE, third):
-        pass
+    with allocation(tmp_path / "three") as third, acquire_gpu(DEVICE) as gpu:
+        gpu.bind_run(third)
 
 
 def test_executor_accounts_allocation_and_releases_finished_gpu(allocation, tmp_path):
@@ -358,7 +360,8 @@ from pathlib import Path
 from entanglix.runner import publish_toml
 publish_toml(Path(os.environ['ENTANGLIX_RUN_DIR']) / 'result.toml', {'engine': 'fixture', 'metrics': {'value': 1}}, replace=True)
 """)
-    with owner, acquire_gpu(DEVICE, owner) as gpu:
+    with owner, acquire_gpu(DEVICE) as gpu:
+        gpu.bind_run(owner)
         result = _execute_job(
             owner,
             [sys.executable, "-m", "entanglix._script_job"],
@@ -373,7 +376,8 @@ publish_toml(Path(os.environ['ENTANGLIX_RUN_DIR']) / 'result.toml', {'engine': '
 
 
 def test_failed_spawn_records_allocated_gpu_time_without_job_start(allocation, tmp_path):
-    with allocation(tmp_path / "one") as owner, acquire_gpu(DEVICE, owner) as gpu:
+    with allocation(tmp_path / "one") as owner, acquire_gpu(DEVICE) as gpu:
+        gpu.bind_run(owner)
         result = _execute_job(
             owner,
             [str(tmp_path / "missing-python")],
@@ -391,13 +395,14 @@ def test_failed_spawn_records_allocated_gpu_time_without_job_start(allocation, t
 
 def test_unstarted_attempt_is_queryable_and_gpu_needs_reconciliation(allocation, tmp_path):
     owner = allocation(tmp_path / "one")
-    with acquire_gpu(DEVICE, owner):
+    with acquire_gpu(DEVICE) as gpu:
+        gpu.bind_run(owner)
         assert read_run(owner.path)["status"] == "active"
     owner.close()
     assert read_run(owner.path)["status"] == "interrupted"
     with allocation(tmp_path / "two") as second:
         with pytest.raises(ValueError, match="requires reconciliation"):
-            acquire_gpu(DEVICE, second)
+            acquire_gpu(DEVICE)
         response = subprocess.run(
             ["entanglix", "reconcile-run", str(owner.path), "--state", "runner died before start"],
             capture_output=True,
@@ -406,13 +411,14 @@ def test_unstarted_attempt_is_queryable_and_gpu_needs_reconciliation(allocation,
         )
         assert response.returncode == 0, response.stderr
         assert json.loads(response.stdout)["reconciliation"]["usage"] == {"uncertain": True}
-        with acquire_gpu(DEVICE, second):
-            pass
+        with acquire_gpu(DEVICE) as gpu:
+            gpu.bind_run(second)
 
 
 def test_unknown_group_liveness_blocks_gpu_reuse(allocation, tmp_path, monkeypatch):
     owner = allocation(tmp_path / "one")
-    with acquire_gpu(DEVICE, owner) as gpu:
+    with acquire_gpu(DEVICE) as gpu:
+        gpu.bind_run(owner)
         gpu.bind_process(12345)
     owner.close()
 
@@ -423,10 +429,9 @@ def test_unknown_group_liveness_blocks_gpu_reuse(allocation, tmp_path, monkeypat
         raise PermissionError("process state unavailable")
 
     monkeypatch.setattr("entanglix.runner.os.killpg", unknown)
-    with allocation(tmp_path / "two") as second:
-        with pytest.raises(PermissionError, match="state unavailable"):
-            acquire_gpu(DEVICE, second)
-        assert gpu.record_path.read_bytes() == retained
+    with pytest.raises(PermissionError, match="state unavailable"):
+        acquire_gpu(DEVICE)
+    assert gpu.record_path.read_bytes() == retained
 
 
 @pytest.mark.parametrize("timeout", [0, -1, float("nan"), float("inf")])
@@ -444,7 +449,8 @@ def test_invalid_timeout_rejected_without_attempt(tmp_path, timeout):
 
 def test_live_group_blocks_gpu_reuse_even_after_descriptors_close(allocation, tmp_path):
     owner = allocation(tmp_path / "one")
-    gpu = acquire_gpu(DEVICE, owner)
+    gpu = acquire_gpu(DEVICE)
+    gpu.bind_run(owner)
     child = subprocess.Popen(
         [sys.executable, "-c", "import time; time.sleep(30)"], start_new_session=True
     )
@@ -452,11 +458,9 @@ def test_live_group_blocks_gpu_reuse_even_after_descriptors_close(allocation, tm
     gpu.bind_process(child.pid)
     gpu.close()
     owner.close()
-    second = allocation(tmp_path / "two")
     try:
         with pytest.raises(ValueError, match="live recorded process group"):
-            acquire_gpu(DEVICE, second)
+            acquire_gpu(DEVICE)
     finally:
         child.kill()
         child.wait(timeout=5)
-        second.close()

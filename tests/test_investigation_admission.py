@@ -641,7 +641,8 @@ def test_workstation_gpu_usage_refuses_next_job(study, tmp_path, monkeypatch, re
     record = read_run(Path(first["path"]))
     assert record["result"]["engine"] == "cudensitymat" and record["result"]["device"] == "cuda"
     usage = read_investigation(path)["usage"]
-    assert 0 < usage["gpu_seconds"] < 20.0 and usage["committed_job_seconds"] == 0
+    assert usage["gpu_seconds"] >= usage["job_seconds"] > 0
+    assert usage["committed_job_seconds"] == 0
     assert usage["job_seconds"] == record["finished"]["usage"]["wall_seconds"]
     assert record["manifest"]["investigation_commitment"]["job_seconds"] == 20.0
     with pytest.raises(ValueError, match="job_seconds limit"):

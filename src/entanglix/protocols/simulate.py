@@ -7,8 +7,9 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import tomllib
-import uuid
+from contextlib import nullcontext
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from typing import Annotated, Literal
@@ -36,6 +37,7 @@ from entanglix.runner import (
     create_run,
     process_failure,
     record_finish,
+    select_gpu,
 )
 
 
@@ -218,18 +220,11 @@ def compile_simulation(
     (directory / "simulate.toml").write_text(tomli_w.dumps(canonical))
     gpu_check = None
     if spec.needs.device == "cuda" and probe_device:
-        try:
-            import cupy as cp
-        except ImportError as exc:
-            raise ValueError(
-                "GPU environment rejected: install the cuquantum extra for CuPy"
-            ) from exc
-
-        if cp.cuda.runtime.getDeviceCount() != 1:
-            raise ValueError("CUDA simulation requires exactly one visible GPU")
-        properties = cp.cuda.runtime.getDeviceProperties(0)
-        device = f"GPU-{uuid.UUID(bytes=properties['uuid'])}"
-        gpu_check = check_gpu_environment(device)
+        descriptor = os.environ.get("ENTANGLIX_GPU_LOCK_FD")
+        if descriptor is None:
+            raise ValueError("GPU launch check requires the inherited device lock")
+        os.fstat(int(descriptor))
+        gpu_check = check_gpu_environment(os.environ["CUDA_VISIBLE_DEVICES"])
     paths = {**loaded.inputs, "simulate.toml": directory / "simulate.toml", **base_paths}
     selection_details = (
         {key: value for key, value in selection.__dict__.items() if value is not None}
@@ -309,108 +304,124 @@ def _launch_protocol(
     command, environment, extras = _cpu_job_context(
         repository, f"entanglix.protocols._{operation}_job"
     )
-    gate_environment = environment.copy()
-    if "CUDA_VISIBLE_DEVICES" in os.environ:
-        gate_environment["CUDA_VISIBLE_DEVICES"] = os.environ["CUDA_VISIBLE_DEVICES"]
-    else:
-        gate_environment.pop("CUDA_VISIBLE_DEVICES", None)
-    with tempfile.TemporaryDirectory(prefix=f"entanglix-{operation}-") as scratch:
-        check = subprocess.run(
-            [*command, "check"],
-            input=json.dumps(
-                {
-                    "protocol": str(protocol.resolve()),
-                    "directory": scratch,
-                    "repository": str(repository),
-                    "extras": extras,
-                    "retain_base": investigation_id is not None,
-                    **({"values": values} if operation == "simulate" else {}),
-                }
-            ),
-            env=gate_environment,
-            text=True,
-            capture_output=True,
-        )
-        if check.returncode:
-            raise ValueError(process_failure(check, f"{operation} launch rejected"))
-        gate = json.loads(check.stdout)
-        if dry_run and investigation_id is not None:
-            from entanglix.investigations import admit, investigation_path
-            from entanglix.runner import _scope_defaults
+    try:
+        source = protocol
+        if operation == "sweep":
+            from entanglix.protocols.sweep import SweepSpec
 
-            path = investigation_path(runs_root, investigation_id)
-            with admit(
-                path,
-                operation=operation,
-                base_name=base,
-                hashes=gate["base_inputs"],
-                points=gate["scope_values"],
-                defaults=_scope_defaults(
-                    {name: Path(path) for name, path in gate["inputs"].items()}
+            spec = SweepSpec.model_validate(_load_record(protocol))
+            source = _adjacent(protocol.parent, spec.base)
+        device = Needs.model_validate(_load_record(source).get("needs", {})).device
+    except (OSError, ValueError) as exc:
+        raise ValueError(f"{operation} rejected: {exc}") from exc
+    with acquire_gpu(select_gpu()) if device == "cuda" else nullcontext() as gpu:
+        gate_environment = environment.copy()
+        if gpu is not None:
+            gate_environment.update(
+                CUDA_VISIBLE_DEVICES=gpu.device, ENTANGLIX_GPU_LOCK_FD=str(gpu.fileno())
+            )
+        with tempfile.TemporaryDirectory(prefix=f"entanglix-{operation}-") as scratch:
+            check = subprocess.run(
+                [*command, "check"],
+                input=json.dumps(
+                    {
+                        "protocol": str(protocol.resolve()),
+                        "directory": scratch,
+                        "repository": str(repository),
+                        "extras": extras,
+                        "retain_base": investigation_id is not None,
+                        **({"values": values} if operation == "simulate" else {}),
+                    }
                 ),
-                timeout_seconds=gate["timeout_seconds"],
-            ):
-                pass
-        if dry_run:
-            return {"exit_code": 0, "preview": gate["preview"]}
-        print(json.dumps({"preview": gate["preview"]}, indent=2), file=sys.stderr, flush=True)
-        launch = {key: gate[key] for key in ("kind", "plan_sha256", "selection", "protocol_sha256")}
-        if investigation_id is not None:
-            launch["varied_values"] = values or {}
-        if gate["timeout_seconds"] is not None:
-            launch["timeout_seconds"] = gate["timeout_seconds"]
-        with create_run(
-            system_id=gate["system_id"],
-            protocol=operation,
-            investigation_id=investigation_id,
-            base=base,
-            base_inputs=gate["base_inputs"] if investigation_id is not None else None,
-            values=gate["scope_values"] if investigation_id is not None else None,
-            inputs={name: Path(path) for name, path in gate["inputs"].items()},
-            environment=gate["environment"],
-            code=capture_code(repository),
-            engine=gate["engine"],
-            device=gate["device"],
-            needs=gate["needs"],
-            runs_root=runs_root.resolve(),
-            parent_run_ids=parent_run_ids,
-            launch=launch,
-        ) as owner:
-            run = owner.path
-            gpu = None
-            try:
-                if _load_record(run / "run.toml")["spec_sha256"] != gate["spec_sha256"]:
-                    raise ValueError(f"inputs changed after {operation} validation")
-                if gate["device"] == "cuda":
-                    gpu = acquire_gpu(gate["gpu_check"]["device_uuid"], owner)
-                    environment.update(
-                        CUDA_VISIBLE_DEVICES=gpu.device,
-                        JAX_PLATFORMS="cuda,cpu",
-                        XLA_PYTHON_CLIENT_PREALLOCATE="false",
-                        ENTANGLIX_GPU_LOCK_FD=str(gpu.fileno()),
-                    )
-                environment.update(ENTANGLIX_RUN_DIR=str(run))
-                result = _execute_job(
-                    owner,
-                    command,
-                    environment,
+                env=gate_environment,
+                text=True,
+                capture_output=True,
+                pass_fds=(gpu.fileno(),) if gpu is not None else (),
+            )
+            if check.returncode:
+                raise ValueError(process_failure(check, f"{operation} launch rejected"))
+            gate = json.loads(check.stdout)
+            if gate["device"] != device:
+                raise ValueError("device request changed during launch validation")
+            if dry_run and investigation_id is not None:
+                from entanglix.investigations import admit, investigation_path
+                from entanglix.runner import _scope_defaults
+
+                path = investigation_path(runs_root, investigation_id)
+                with admit(
+                    path,
+                    operation=operation,
+                    base_name=base,
+                    hashes=gate["base_inputs"],
+                    points=gate["scope_values"],
+                    defaults=_scope_defaults(
+                        {name: Path(path) for name, path in gate["inputs"].items()}
+                    ),
                     timeout_seconds=gate["timeout_seconds"],
-                    gpu=gpu,
-                    job_input="sweep-manifest.toml" if operation == "sweep" else "plan.toml",
-                )
-            except (Exception, KeyboardInterrupt) as exc:
-                status, exit_code = (
-                    ("aborted", 130) if isinstance(exc, KeyboardInterrupt) else ("failed", 64)
-                )
-                if not (run / "FINISHED").exists():
-                    (run / "run.log").write_text(f"{operation} launch failed: {exc}\n")
-                    record_finish(
-                        owner, status=status, exit_code=exit_code, wall_seconds=0, gpu_seconds=0
+                ):
+                    pass
+            if dry_run:
+                return {"exit_code": 0, "preview": gate["preview"]}
+            print(json.dumps({"preview": gate["preview"]}, indent=2), file=sys.stderr, flush=True)
+            launch = {
+                key: gate[key] for key in ("kind", "plan_sha256", "selection", "protocol_sha256")
+            }
+            if investigation_id is not None:
+                launch["varied_values"] = values or {}
+            if gate["timeout_seconds"] is not None:
+                launch["timeout_seconds"] = gate["timeout_seconds"]
+            with create_run(
+                system_id=gate["system_id"],
+                protocol=operation,
+                investigation_id=investigation_id,
+                base=base,
+                base_inputs=gate["base_inputs"] if investigation_id is not None else None,
+                values=gate["scope_values"] if investigation_id is not None else None,
+                inputs={name: Path(path) for name, path in gate["inputs"].items()},
+                environment=gate["environment"],
+                code=capture_code(repository),
+                engine=gate["engine"],
+                device=gate["device"],
+                needs=gate["needs"],
+                runs_root=runs_root.resolve(),
+                parent_run_ids=parent_run_ids,
+                launch=launch,
+                gpu=gpu,
+            ) as owner:
+                run = owner.path
+                try:
+                    if _load_record(run / "run.toml")["spec_sha256"] != gate["spec_sha256"]:
+                        raise ValueError(f"inputs changed after {operation} validation")
+                    if gpu is not None:
+                        environment.update(
+                            CUDA_VISIBLE_DEVICES=gpu.device,
+                            JAX_PLATFORMS="cuda,cpu",
+                            XLA_PYTHON_CLIENT_PREALLOCATE="false",
+                            ENTANGLIX_GPU_LOCK_FD=str(gpu.fileno()),
+                        )
+                    environment.update(ENTANGLIX_RUN_DIR=str(run))
+                    result = _execute_job(
+                        owner,
+                        command,
+                        environment,
+                        timeout_seconds=gate["timeout_seconds"],
+                        gpu=gpu,
+                        job_input="sweep-manifest.toml" if operation == "sweep" else "plan.toml",
                     )
-                result = {"path": str(run), "exit_code": exit_code, "status": status}
-            finally:
-                if gpu is not None:
-                    gpu.close()
+                except (Exception, KeyboardInterrupt) as exc:
+                    status, exit_code = (
+                        ("aborted", 130) if isinstance(exc, KeyboardInterrupt) else ("failed", 64)
+                    )
+                    if not (run / "FINISHED").exists():
+                        (run / "run.log").write_text(f"{operation} launch failed: {exc}\n")
+                        record_finish(
+                            owner,
+                            status=status,
+                            exit_code=exit_code,
+                            wall_seconds=0,
+                            gpu_seconds=time.monotonic() - gpu.allocated_at if gpu else 0,
+                        )
+                    result = {"path": str(run), "exit_code": exit_code, "status": status}
     return result
 
 
