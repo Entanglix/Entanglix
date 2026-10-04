@@ -326,8 +326,9 @@ produces an additional endpoint-coherence loss of `0.01` at 100 ns. The loss is
 `ΔC(A) = C(0) − C(A)` for the endpoint coherence defined above. It characterizes this
 model; coherence alone does not establish readout quality or an optimal setting.
 
-It is the question of the first investigation. Investigations are not yet available:
-the [retained probe](../../tests/probes/m3_readout.py) ran the plan on CPU with the
+The [scripted client](investigate.py) runs this question as a human-started CPU
+investigation with scoped admission, assessments, and a retained report. The
+[retained probe](../../tests/probes/m3_readout.py) ran the plan on CPU with the
 existing `sweep`, `simulate`, and `check` operations, and its
 [results](../../tests/probes/m3_readout_results.json) name every run.
 [Commands](../../docs/environment.md#threshold-characterization-probe) regenerate them.
@@ -384,7 +385,72 @@ The stated limits are:
   rotating-frame run here, so the failure does not show that the search would be
   uneconomic.
 
-When this study runs as an investigation, its user declares the checkpoint and any
-limit. The planned declarations are a checkpoint every 10 finished attempts and, for
-the baseline comparison, a job count of 60 at the agreed width and 100 at the tighter
-request.
+### Scripted investigation baseline
+
+The client drafts five bases: rotating frame, lab frame, and one refined lab-frame
+base per `EJ`, binding each embedded state to that value. It waits for an operator
+start; the client never approves, starts, releases a review, or resumes an
+investigation itself. Declare the checkpoint and, optionally, a job-count limit:
+
+```sh
+uv run --locked --exact python examples/readout/investigate.py draft research_runs/threshold-client --runs-root research_runs/threshold --case normal --checkpoint 10 --job-count 60
+INVESTIGATION=$(uv run --locked --exact python -c 'import json; print(json.load(open("research_runs/threshold-client/client.json"))["investigation"])')
+uv run --locked --exact entanglix read-investigation "$INVESTIGATION"
+uv run --locked --exact entanglix investigation-decision "$INVESTIGATION" start --revision 1
+uv run --locked --exact python examples/readout/investigate.py run research_runs/threshold-client
+```
+
+Runner extras must match its existing environment, as described in the
+[protocol reference](../../docs/operations/protocols.md#gpu-configuration-and-checks).
+Omit `--job-count` for no investigation limit. Use a new workspace and runs root
+with `--case early-stop --job-count 100` for the tighter request. The checkpoint of
+10 and limits of 60/100 are these evaluations' explicit declarations, not harness
+defaults.
+
+The draft terms state the normal `1.25e-4 GHz` resolution and, for the tighter
+case, the subsequent `1.5625e-5 GHz` request. The selection policy runs the seed,
+bisects each crossing to `1.25e-4 GHz`, and
+confirms both normal-width brackets before any tighter search. The tighter case
+then bisects in ascending `EJ` order to `1.5625e-5 GHz`, stopping at the first failed
+lab confirmation. It preserves the confirmed normal results, opens the named
+`precision` review, proposes a lab-frame search, and marks remaining tighter work
+unattempted. It does not extend the range or consume the remaining allowance.
+Bayesian search adds nothing to this one-dimensional midpoint policy.
+
+Check requests on the seed and final rotating-frame endpoints are conditional on
+their role in this procedure, recorded in the evidence requirements. Integrity is
+also a standing request on every refined lab base. Intermediate rotating-frame
+points and coarse lab runs are retained without additional checks; findings list
+relevant checks not run. Loss differences and brackets are client interpretations,
+not trusted metrics: reports retain baseline and endpoint values with source IDs.
+
+[Normal acceptance](../../tests/probes/m3_investigation_normal.json) and
+[early-stop acceptance](../../tests/probes/m3_investigation_early_stop.json) record
+the real investigation IDs, source runs, checks, job time and elapsed time. The
+[acceptance driver](../../tests/probes/m3_investigation.py) acts as the operator for
+these declared fixtures; [commands](../../docs/environment.md#scripted-investigation-acceptance)
+regenerate the summaries.
+
+| Case | Outcome | Jobs / points | Job time / elapsed | Assessments | Decisions after start |
+|---|---|---|---|---|---|
+| Normal | Both normal brackets confirmed | 30 / 27 | 178 s / 195 s | 2 | 0 |
+| Early stop | Precision review at `EJ = 13.5` | 41 / 34 | 243 s / 267 s | 4 | 0 |
+
+These are separately executed baselines. Elapsed time runs from the operator start
+to final report preparation; summaries separate computation, checks, and time
+outside jobs. Both reproduce the probe's normal brackets. The tighter `EJ = 13.5`
+confirmation fails because the refined lab loss at the lower end is `3.6e-6` above
+the target; `EJ = 15`'s tighter case stays unattempted. All requested checks with
+pass/fail outcomes passed, and diagnostics are retained. The 100-job limit still
+has 59 jobs available at handoff.
+
+Continue with the same `run` command after a session ends. The workspace stores
+base files and a locator; progress is recovered from retained member runs and
+findings. Completed simulations and matching checks under the current policy are
+reused. A failed or aborted attempt is retried under a new linked ID and counts
+again. An outstanding attempt must first finish, or be aborted and reconciled
+through the [run operations](../../docs/operations/runs.md). An investigation stop
+requires the operator to release its reviews and resume it. The
+[session tests](../../tests/test_readout_investigation.py) cover a killed client
+between jobs and an interrupt during a solve. Jobs are blocking in this client;
+it does not supply connection-independent supervision.

@@ -1,0 +1,822 @@
+{
+  "case": "normal",
+  "brackets": [
+    {
+      "ej_ghz": 13.5,
+      "stage": "normal",
+      "width_ghz": 0.0001249999999999999,
+      "baselines": {
+        "rwa": {
+          "amplitude_ghz": 0.0,
+          "coherence": 0.9956350928868742,
+          "source_run_id": "r20261004T123401285531Z-15f2a83b",
+          "point_index": 3
+        },
+        "lab": {
+          "amplitude_ghz": 0.0,
+          "coherence": 0.9953883982962349,
+          "source_run_id": "r20261004T123415487128Z-ff433b20"
+        },
+        "lab_refined": {
+          "amplitude_ghz": 0.0,
+          "coherence": 0.9953883687966544,
+          "source_run_id": "r20261004T123421586301Z-ee06dbb5"
+        }
+      },
+      "endpoints": [
+        {
+          "amplitude_ghz": 0.00175,
+          "coherences": {
+            "rwa": 0.9861309331027577,
+            "lab": 0.9857895899003107,
+            "lab_refined": 0.9857893917891621
+          },
+          "source_runs": {
+            "rwa": "r20261004T123409585075Z-cb4dd7bf",
+            "lab": "r20261004T123438974429Z-fc441820",
+            "lab_refined": "r20261004T123446814915Z-284afa44"
+          },
+          "additional_loss": {
+            "rwa": 0.009504159784116561,
+            "lab": 0.009598808395924197,
+            "lab_refined": 0.009598977007492238
+          },
+          "observed_lab_refinement_change": 1.6861156804104382e-07
+        },
+        {
+          "amplitude_ghz": 0.001875,
+          "coherences": {
+            "rwa": 0.9850138122627116,
+            "lab": 0.9846935588768568,
+            "lab_refined": 0.9846932870845303
+          },
+          "source_runs": {
+            "rwa": "r20261004T123411504633Z-c075e97f",
+            "lab": "r20261004T123510697738Z-8705a144",
+            "lab_refined": "r20261004T123518684001Z-1664e806"
+          },
+          "additional_loss": {
+            "rwa": 0.010621280624162677,
+            "lab": 0.0106948394193781,
+            "lab_refined": 0.010695081712124077
+          },
+          "observed_lab_refinement_change": 2.4229274597775685e-07
+        }
+      ],
+      "target_margins": [
+        -0.0004010229925077626,
+        0.0006950817121240769
+      ],
+      "confirmed": true
+    },
+    {
+      "ej_ghz": 15.0,
+      "stage": "normal",
+      "width_ghz": 0.0001250000000000001,
+      "baselines": {
+        "rwa": {
+          "amplitude_ghz": 0.0,
+          "coherence": 0.9938897829198705,
+          "source_run_id": "r20261004T123401285531Z-15f2a83b",
+          "point_index": 6
+        },
+        "lab": {
+          "amplitude_ghz": 0.0,
+          "coherence": 0.9941557609380876,
+          "source_run_id": "r20261004T123550550537Z-3752e03c"
+        },
+        "lab_refined": {
+          "amplitude_ghz": 0.0,
+          "coherence": 0.9941555704817382,
+          "source_run_id": "r20261004T123556771983Z-8dbe8da6"
+        }
+      },
+      "endpoints": [
+        {
+          "amplitude_ghz": 0.001375,
+          "coherences": {
+            "rwa": 0.984718080156232,
+            "lab": 0.9849329916975901,
+            "lab_refined": 0.9849328806225055
+          },
+          "source_runs": {
+            "rwa": "r20261004T123546545812Z-e95fe4db",
+            "lab": "r20261004T123614863882Z-e6341309",
+            "lab_refined": "r20261004T123622484160Z-db039933"
+          },
+          "additional_loss": {
+            "rwa": 0.009171702763638545,
+            "lab": 0.009222769240497475,
+            "lab_refined": 0.009222689859232691
+          },
+          "observed_lab_refinement_change": 7.938126478368446e-08
+        },
+        {
+          "amplitude_ghz": 0.0015,
+          "coherences": {
+            "rwa": 0.9832934516250205,
+            "lab": 0.9835318225733475,
+            "lab_refined": 0.9835317113361379
+          },
+          "source_runs": {
+            "rwa": "r20261004T123542766501Z-ec9bed8c",
+            "lab": "r20261004T123644814678Z-5178a6b8",
+            "lab_refined": "r20261004T123652653411Z-c88eee7d"
+          },
+          "additional_loss": {
+            "rwa": 0.010596331294850048,
+            "lab": 0.010623938364740071,
+            "lab_refined": 0.010623859145600267
+          },
+          "observed_lab_refinement_change": 7.921913980357687e-08
+        }
+      ],
+      "target_margins": [
+        -0.0007773101407673091,
+        0.0006238591456002671
+      ],
+      "confirmed": true
+    }
+  ],
+  "no_crossing": [
+    {
+      "ej_ghz": 12.0,
+      "samples": [
+        {
+          "amplitude_ghz": 0.0,
+          "coherence": 0.9972711950660182,
+          "source_run_id": "r20261004T123401285531Z-15f2a83b",
+          "point_index": 0
+        },
+        {
+          "amplitude_ghz": 0.001,
+          "coherence": 0.996449281801343,
+          "source_run_id": "r20261004T123401285531Z-15f2a83b",
+          "point_index": 1
+        },
+        {
+          "amplitude_ghz": 0.002,
+          "coherence": 0.993326563210737,
+          "source_run_id": "r20261004T123401285531Z-15f2a83b",
+          "point_index": 2
+        }
+      ],
+      "additional_losses": [
+        0.0,
+        0.0008219132646752891,
+        0.0039446318552812665
+      ],
+      "proposal": "Ask for wider scope; do not extend the range."
+    }
+  ],
+  "unattempted": [],
+  "limits": [
+    "One crossing assumes decreasing coherence; only sampled amplitudes are checked.",
+    "Bracket width describes the RWA crossing; lab confirmation is separate.",
+    "Coarse/refined differences are convergence evidence, not an error bound.",
+    "No check bounds whole-window or accumulated RWA error."
+  ],
+  "investigation_id": "i20261004T123400445267Z-c44f548c",
+  "usage": {
+    "jobs": 30,
+    "evaluated_points": 27,
+    "job_seconds": 177.57628942286829,
+    "gpu_seconds": 0.0,
+    "committed_job_seconds": 0.0,
+    "unsettled_jobs": 0,
+    "unbounded_jobs": 0
+  },
+  "elapsed_seconds": 194.786529,
+  "user_decisions_after_start": 0,
+  "outcome": "evidence_completion",
+  "question": "Which amplitude adds endpoint-coherence loss 0.01 at 100 ns for each EJ? Establish RWA brackets of width 0.000125 GHz with lab-frame confirmation.",
+  "evidence_requirements": {
+    "requirements": [
+      "Seed integrity, diagnostics and sampled decreasing expectation.",
+      "Final RWA ends: integrity, segments, diagnostics; refined lab runs: integrity.",
+      "Lab confirmation at zero and both ends; target margins exceed observed refinement changes.",
+      "No crossing: propose wider scope; failed confirmation: retain best bracket and hand off."
+    ],
+    "checks": {
+      "refined-12": [
+        "integrity"
+      ],
+      "refined-13_5": [
+        "integrity"
+      ],
+      "refined-15": [
+        "integrity"
+      ]
+    }
+  },
+  "provenance": {
+    "env_hash": "293787ba24fdcde06809255e21895ae686c77cae28ac0829c0a6555d53da96f6",
+    "code": {
+      "revision": "0e8f3b7a0a6efd7f074c27cf090f787a5eb8b393",
+      "dirty": true,
+      "patch_sha256": "64711915fc5b407180ab082d610d49e463708969c4a7de733f1639e204be8b0f",
+      "untracked_sha256": {}
+    }
+  },
+  "computation_seconds": 168.90967819280922,
+  "check_seconds": 8.666611230059061,
+  "time_outside_jobs_seconds": 17.210239577131716,
+  "assessments": 2,
+  "checks": [
+    {
+      "run_id": "r20261004T123405971745Z-a2465a87",
+      "status": "completed",
+      "job_seconds": 0.8931154950405471,
+      "base": "rwa",
+      "revision": 1,
+      "sources": [
+        "r20261004T123401285531Z-15f2a83b"
+      ],
+      "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
+      "checks": [
+        {
+          "name": "integrity",
+          "outcome": "pass",
+          "scope": "all retained points"
+        },
+        {
+          "name": "diagnostics",
+          "scope": "every retained point; quantities are descriptive only"
+        },
+        {
+          "name": "declared_expectation",
+          "outcome": "pass",
+          "scope": "all grid lines along the declared axis, ordered by its numeric value"
+        }
+      ]
+    },
+    {
+      "run_id": "r20261004T123412861378Z-8d7f9b93",
+      "status": "completed",
+      "job_seconds": 0.8422128230449744,
+      "base": "rwa",
+      "revision": 1,
+      "sources": [
+        "r20261004T123409585075Z-cb4dd7bf"
+      ],
+      "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
+      "checks": [
+        {
+          "name": "integrity",
+          "outcome": "pass",
+          "scope": "every stored state and reported value"
+        },
+        {
+          "name": "segments",
+          "outcome": "pass",
+          "scope": "local convergence comparison in the source frame; inherits accumulated error"
+        },
+        {
+          "name": "diagnostics",
+          "scope": "top-level populations at stored times; ordered static shifts and weights, not dynamics error estimates"
+        }
+      ]
+    },
+    {
+      "run_id": "r20261004T123413844014Z-fb49b544",
+      "status": "completed",
+      "job_seconds": 0.830668844981119,
+      "base": "rwa",
+      "revision": 1,
+      "sources": [
+        "r20261004T123411504633Z-c075e97f"
+      ],
+      "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
+      "checks": [
+        {
+          "name": "integrity",
+          "outcome": "pass",
+          "scope": "every stored state and reported value"
+        },
+        {
+          "name": "segments",
+          "outcome": "pass",
+          "scope": "local convergence comparison in the source frame; inherits accumulated error"
+        },
+        {
+          "name": "diagnostics",
+          "scope": "top-level populations at stored times; ordered static shifts and weights, not dynamics error estimates"
+        }
+      ]
+    },
+    {
+      "run_id": "r20261004T123437411548Z-13b51fa5",
+      "status": "completed",
+      "job_seconds": 0.7232928869780153,
+      "base": "refined-13_5",
+      "revision": 1,
+      "sources": [
+        "r20261004T123421586301Z-ee06dbb5"
+      ],
+      "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
+      "checks": [
+        {
+          "name": "integrity",
+          "outcome": "pass",
+          "scope": "every stored state and reported value"
+        }
+      ]
+    },
+    {
+      "run_id": "r20261004T123509154479Z-59d71abc",
+      "status": "completed",
+      "job_seconds": 0.7944927089847624,
+      "base": "refined-13_5",
+      "revision": 1,
+      "sources": [
+        "r20261004T123446814915Z-284afa44"
+      ],
+      "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
+      "checks": [
+        {
+          "name": "integrity",
+          "outcome": "pass",
+          "scope": "every stored state and reported value"
+        }
+      ]
+    },
+    {
+      "run_id": "r20261004T123541099306Z-db96083e",
+      "status": "completed",
+      "job_seconds": 0.7330838090274483,
+      "base": "refined-13_5",
+      "revision": 1,
+      "sources": [
+        "r20261004T123518684001Z-1664e806"
+      ],
+      "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
+      "checks": [
+        {
+          "name": "integrity",
+          "outcome": "pass",
+          "scope": "every stored state and reported value"
+        }
+      ]
+    },
+    {
+      "run_id": "r20261004T123547825873Z-fbb9c8ff",
+      "status": "completed",
+      "job_seconds": 0.8130014140042476,
+      "base": "rwa",
+      "revision": 1,
+      "sources": [
+        "r20261004T123546545812Z-e95fe4db"
+      ],
+      "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
+      "checks": [
+        {
+          "name": "integrity",
+          "outcome": "pass",
+          "scope": "every stored state and reported value"
+        },
+        {
+          "name": "segments",
+          "outcome": "pass",
+          "scope": "local convergence comparison in the source frame; inherits accumulated error"
+        },
+        {
+          "name": "diagnostics",
+          "scope": "top-level populations at stored times; ordered static shifts and weights, not dynamics error estimates"
+        }
+      ]
+    },
+    {
+      "run_id": "r20261004T123548980403Z-8886086b",
+      "status": "completed",
+      "job_seconds": 0.8232092089601792,
+      "base": "rwa",
+      "revision": 1,
+      "sources": [
+        "r20261004T123542766501Z-ec9bed8c"
+      ],
+      "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
+      "checks": [
+        {
+          "name": "integrity",
+          "outcome": "pass",
+          "scope": "every stored state and reported value"
+        },
+        {
+          "name": "segments",
+          "outcome": "pass",
+          "scope": "local convergence comparison in the source frame; inherits accumulated error"
+        },
+        {
+          "name": "diagnostics",
+          "scope": "top-level populations at stored times; ordered static shifts and weights, not dynamics error estimates"
+        }
+      ]
+    },
+    {
+      "run_id": "r20261004T123613329321Z-1737a8a3",
+      "status": "completed",
+      "job_seconds": 0.7547978479997255,
+      "base": "refined-15",
+      "revision": 1,
+      "sources": [
+        "r20261004T123556771983Z-8dbe8da6"
+      ],
+      "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
+      "checks": [
+        {
+          "name": "integrity",
+          "outcome": "pass",
+          "scope": "every stored state and reported value"
+        }
+      ]
+    },
+    {
+      "run_id": "r20261004T123643310405Z-002e7c41",
+      "status": "completed",
+      "job_seconds": 0.7115629930049181,
+      "base": "refined-15",
+      "revision": 1,
+      "sources": [
+        "r20261004T123622484160Z-db039933"
+      ],
+      "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
+      "checks": [
+        {
+          "name": "integrity",
+          "outcome": "pass",
+          "scope": "every stored state and reported value"
+        }
+      ]
+    },
+    {
+      "run_id": "r20261004T123714124359Z-2347d7ef",
+      "status": "completed",
+      "job_seconds": 0.7471731980331242,
+      "base": "refined-15",
+      "revision": 1,
+      "sources": [
+        "r20261004T123652653411Z-c88eee7d"
+      ],
+      "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
+      "checks": [
+        {
+          "name": "integrity",
+          "outcome": "pass",
+          "scope": "every stored state and reported value"
+        }
+      ]
+    }
+  ],
+  "computations": [
+    {
+      "run_id": "r20261004T123401285531Z-15f2a83b",
+      "status": "completed",
+      "job_seconds": 4.457409663009457,
+      "base": "rwa",
+      "revision": 1,
+      "protocol": "sweep",
+      "values": {},
+      "metrics": {
+        "coherence": [
+          [
+            0.9972711950660182,
+            0.996449281801343,
+            0.993326563210737
+          ],
+          [
+            0.9956350928868742,
+            0.9916079011592847,
+            0.9838385701820759
+          ],
+          [
+            0.9938897829198705,
+            0.9884011658641786,
+            0.9766143119146952
+          ]
+        ]
+      }
+    },
+    {
+      "run_id": "r20261004T123407648176Z-f67bad7c",
+      "status": "completed",
+      "job_seconds": 1.1860304599977098,
+      "base": "rwa",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.0015,
+        "parameters.EJ": 13.5,
+        "evolution.carriers.readout.frequency_ghz": 7.002206406997239,
+        "evolution.frame.frequencies_ghz.q": 7.002206406997239,
+        "evolution.frame.frequencies_ghz.r": 7.002206406997239
+      },
+      "metrics": {
+        "coherence": 0.9881903623787446
+      }
+    },
+    {
+      "run_id": "r20261004T123409585075Z-cb4dd7bf",
+      "status": "completed",
+      "job_seconds": 1.1789222419611178,
+      "base": "rwa",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.00175,
+        "parameters.EJ": 13.5,
+        "evolution.carriers.readout.frequency_ghz": 7.002206406997239,
+        "evolution.frame.frequencies_ghz.q": 7.002206406997239,
+        "evolution.frame.frequencies_ghz.r": 7.002206406997239
+      },
+      "metrics": {
+        "coherence": 0.9861309331027577
+      }
+    },
+    {
+      "run_id": "r20261004T123411504633Z-c075e97f",
+      "status": "completed",
+      "job_seconds": 1.199119429977145,
+      "base": "rwa",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.001875,
+        "parameters.EJ": 13.5,
+        "evolution.carriers.readout.frequency_ghz": 7.002206406997239,
+        "evolution.frame.frequencies_ghz.q": 7.002206406997239,
+        "evolution.frame.frequencies_ghz.r": 7.002206406997239
+      },
+      "metrics": {
+        "coherence": 0.9850138122627116
+      }
+    },
+    {
+      "run_id": "r20261004T123415487128Z-ff433b20",
+      "status": "completed",
+      "job_seconds": 5.336738376994617,
+      "base": "lab",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.0,
+        "parameters.EJ": 13.5,
+        "evolution.carriers.readout.frequency_ghz": 7.002206406997239
+      },
+      "metrics": {
+        "coherence": 0.9953883982962349
+      }
+    },
+    {
+      "run_id": "r20261004T123421586301Z-ee06dbb5",
+      "status": "completed",
+      "job_seconds": 15.677353617968038,
+      "base": "refined-13_5",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.0
+      },
+      "metrics": {
+        "coherence": 0.9953883687966544
+      }
+    },
+    {
+      "run_id": "r20261004T123438974429Z-fc441820",
+      "status": "completed",
+      "job_seconds": 7.093578048981726,
+      "base": "lab",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.00175,
+        "parameters.EJ": 13.5,
+        "evolution.carriers.readout.frequency_ghz": 7.002206406997239
+      },
+      "metrics": {
+        "coherence": 0.9857895899003107
+      }
+    },
+    {
+      "run_id": "r20261004T123446814915Z-284afa44",
+      "status": "completed",
+      "job_seconds": 22.18419413000811,
+      "base": "refined-13_5",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.00175
+      },
+      "metrics": {
+        "coherence": 0.9857893917891621
+      }
+    },
+    {
+      "run_id": "r20261004T123510697738Z-8705a144",
+      "status": "completed",
+      "job_seconds": 7.231951213965658,
+      "base": "lab",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.001875,
+        "parameters.EJ": 13.5,
+        "evolution.carriers.readout.frequency_ghz": 7.002206406997239
+      },
+      "metrics": {
+        "coherence": 0.9846935588768568
+      }
+    },
+    {
+      "run_id": "r20261004T123518684001Z-1664e806",
+      "status": "completed",
+      "job_seconds": 22.271710448956583,
+      "base": "refined-13_5",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.001875
+      },
+      "metrics": {
+        "coherence": 0.9846932870845303
+      }
+    },
+    {
+      "run_id": "r20261004T123542766501Z-ec9bed8c",
+      "status": "completed",
+      "job_seconds": 1.1258125259773806,
+      "base": "rwa",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.0015,
+        "parameters.EJ": 15.0,
+        "evolution.carriers.readout.frequency_ghz": 7.002760675881172,
+        "evolution.frame.frequencies_ghz.q": 7.002760675881172,
+        "evolution.frame.frequencies_ghz.r": 7.002760675881172
+      },
+      "metrics": {
+        "coherence": 0.9832934516250205
+      }
+    },
+    {
+      "run_id": "r20261004T123544647039Z-bb54afe8",
+      "status": "completed",
+      "job_seconds": 1.1550659679924138,
+      "base": "rwa",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.00125,
+        "parameters.EJ": 15.0,
+        "evolution.carriers.readout.frequency_ghz": 7.002760675881172,
+        "evolution.frame.frequencies_ghz.q": 7.002760675881172,
+        "evolution.frame.frequencies_ghz.r": 7.002760675881172
+      },
+      "metrics": {
+        "coherence": 0.9860443044599069
+      }
+    },
+    {
+      "run_id": "r20261004T123546545812Z-e95fe4db",
+      "status": "completed",
+      "job_seconds": 1.1341480920091271,
+      "base": "rwa",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.001375,
+        "parameters.EJ": 15.0,
+        "evolution.carriers.readout.frequency_ghz": 7.002760675881172,
+        "evolution.frame.frequencies_ghz.q": 7.002760675881172,
+        "evolution.frame.frequencies_ghz.r": 7.002760675881172
+      },
+      "metrics": {
+        "coherence": 0.984718080156232
+      }
+    },
+    {
+      "run_id": "r20261004T123550550537Z-3752e03c",
+      "status": "completed",
+      "job_seconds": 5.4685890870168805,
+      "base": "lab",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.0,
+        "parameters.EJ": 15.0,
+        "evolution.carriers.readout.frequency_ghz": 7.002760675881172
+      },
+      "metrics": {
+        "coherence": 0.9941557609380876
+      }
+    },
+    {
+      "run_id": "r20261004T123556771983Z-8dbe8da6",
+      "status": "completed",
+      "job_seconds": 16.37378876202274,
+      "base": "refined-15",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.0
+      },
+      "metrics": {
+        "coherence": 0.9941555704817382
+      }
+    },
+    {
+      "run_id": "r20261004T123614863882Z-e6341309",
+      "status": "completed",
+      "job_seconds": 6.813606240961235,
+      "base": "lab",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.001375,
+        "parameters.EJ": 15.0,
+        "evolution.carriers.readout.frequency_ghz": 7.002760675881172
+      },
+      "metrics": {
+        "coherence": 0.9849329916975901
+      }
+    },
+    {
+      "run_id": "r20261004T123622484160Z-db039933",
+      "status": "completed",
+      "job_seconds": 20.64243433298543,
+      "base": "refined-15",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.001375
+      },
+      "metrics": {
+        "coherence": 0.9849328806225055
+      }
+    },
+    {
+      "run_id": "r20261004T123644814678Z-5178a6b8",
+      "status": "completed",
+      "job_seconds": 7.082122946041636,
+      "base": "lab",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.0015,
+        "parameters.EJ": 15.0,
+        "evolution.carriers.readout.frequency_ghz": 7.002760675881172
+      },
+      "metrics": {
+        "coherence": 0.9835318225733475
+      }
+    },
+    {
+      "run_id": "r20261004T123652653411Z-c88eee7d",
+      "status": "completed",
+      "job_seconds": 21.297102605982218,
+      "base": "refined-15",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.0015
+      },
+      "metrics": {
+        "coherence": 0.9835317113361379
+      }
+    }
+  ],
+  "client_sha256": "aebe6d9d9452397be83792692b42cc77803bd565ab8b2da8b20417727f4824ad",
+  "driver_sha256": "fe52a14c19ec047ce019ced812700170957b3131f84f26180c4869dbe58a3a54",
+  "source_sha256": {
+    "src/entanglix/__init__.py": "d77804ece126364195813d429a120f0a8ddd7b98a83d3c9993c4eef566476fc8",
+    "src/entanglix/__main__.py": "59d02666708d36aa051f55b0cae80c3afc6069bdaa07beac86785363d27e66bb",
+    "src/entanglix/_script_job.py": "1fb14eda7b64873ea95309f5643402eacb5208c21fd1bcc1f6d4b4f5a8de38a4",
+    "src/entanglix/cli.py": "11158e383234bd5bbb1854ea708707b3402e159c9fc875e29a3b5f4ec080d04c",
+    "src/entanglix/corrector/__init__.py": "e42f075942ec92252272e278a07ab589cf3b725432c3afaf00bdc3ec07289ced",
+    "src/entanglix/corrector/_job.py": "03ede891278ae5696d67d87b0067da5336d64947f7dd3a47276a3bd207624ba9",
+    "src/entanglix/corrector/checks.py": "e9d1cccfa6a952824843b80a77e701bc0298e23ceb8813d6a4bdf11061a3d5cc",
+    "src/entanglix/corrector/dynamics.py": "f39007cf9ccf9bf833f8fc12d7205104b6ce904139e90d89208cf5567e52e3f6",
+    "src/entanglix/corrector/metrics.py": "ee25e25c6762f18e849013643f5be97c83a4fe3b512980a1fda8ee494df71393",
+    "src/entanglix/corrector/reference.py": "b744e3e9f20f0db0daee87ea81050917c2bb845bf3845464455a86515510a8cb",
+    "src/entanglix/corrector/sweeps.py": "9ba0b7501c7ae1b71916ea26649cb9b232cb72c2dc0ae4276337d7c4069f3d2d",
+    "src/entanglix/corrector/verification.py": "76f02a9fe5013b464ade044c8e860bf6adcb646183da4db203e6f612f4a956b8",
+    "src/entanglix/engines/__init__.py": "384d79114ef6ed775dd8b26aafdec353ba4c9e8f1e1cbc2682b5adb7904e90bf",
+    "src/entanglix/engines/cudensitymat.py": "ff8f2ae493e6e8d53cf9af27dae335044cdc0efd3c4e19885d87678b82995597",
+    "src/entanglix/engines/dynamiqs_jax.py": "1f07e91a92ea9097ab95e4b92265e61718e5a8d80e203e682ca05248361a448c",
+    "src/entanglix/engines/frames.py": "048228cf3d6577628676aa6c03ed62c03b715d27a6f5414f4b3b21a19d757ade",
+    "src/entanglix/engines/qutip_cpu.py": "9949ac309a7246edf2c3710d7a8497e76aa45a7d778c97bc33f356e186f849ee",
+    "src/entanglix/engines/selection.py": "a022d68c8e7920d2e4e655675fe233f585273315f827dbc28fd8fa4439fdf6b3",
+    "src/entanglix/evolution.py": "6999daea4956e205109c251eeb6a1cdcae6a5bbee437aad0d6b3ca27e38d9611",
+    "src/entanglix/imports.py": "0dc3784cd6f5d462be1bf71b594790ec02c2cba481accd411d13c77f53b2eaef",
+    "src/entanglix/investigations.py": "b335b9eb952adc16323b45e84e77808d5f236e7d3e1da00d78389de70cf0bb23",
+    "src/entanglix/models.py": "c67adcf1a53521ac742e63bb74051cf649a1a613dc55853a025710220b3a9b57",
+    "src/entanglix/protocols/__init__.py": "953c69547412c1537f2d0ece6e148b9c484e5efd3acb1a3dec6d7ca5601b0e7c",
+    "src/entanglix/protocols/_plan_job.py": "62450d22f91201cacb7dced98d845cfa1e2f570f7f4ccab61fd918aa51e4ae2e",
+    "src/entanglix/protocols/_simulate_job.py": "4ad4c75650aed3239ea9af8572803c0da20c0d26bd8a107cbb47952a3d44c939",
+    "src/entanglix/protocols/_sweep_job.py": "3dcedcbc7de6c91a30b8d7e988fe8202ca24e14df39a9ee38d301e8dfa69b890",
+    "src/entanglix/protocols/plans.py": "8b40a27342ac776495993999bac1f0e13c81b56c0d4747b853a1022408dd0ca5",
+    "src/entanglix/protocols/simulate.py": "8ea392cd95663d737736c2509286ccda36715f3d145418e0f0ff59b9acad70f5",
+    "src/entanglix/protocols/sweep.py": "68c3dbe38bd300a74ca19cf438ce3df6413dff35f1b0270431361ed2dfac8ce1",
+    "src/entanglix/runner.py": "d613b35d336f70d7e9a266db4fc7c9dd0bb617ed817874f9361595a199be1d46"
+  }
+}

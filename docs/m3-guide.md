@@ -178,7 +178,7 @@ Limit accounting is tested in CPU CI with short CPU jobs and crafted records. On
 
 A checkpoint is a required scope field with no implicit default: a count of finished attempts or an elapsed interval. Every finished run linked to the investigation counts, including verification runs and failed or aborted attempts. An interrupted attempt counts once it is reconciled. When one is due, admission is refused until an assessment is recorded.
 
-The first investigation declares 10, which gives three assessments in the normal case. A count of two, one computation and its check run, would have meant 26 assessments in the probe.
+The first investigation declares 10. The 30-job normal case then records two assessments, at 10 and 20 finished attempts; the third falls due only when the work is complete, and the client writes its final report instead. A count of two, one computation and its check run, would have meant 26 assessments in the probe.
 
 One finding record serves assessments, interpretations, and final reports:
 
@@ -204,7 +204,7 @@ Requested checks are part of the evidence plan, and a standing request among the
 
 ### Scripted client
 
-The probe already implements the selection policy without the investigation API. Step 6a-4 turns it into a client beside the readout example that works only through the investigation operations. It drafts the scope, waits for the user's start, launches through admission, records an assessment when a checkpoint is due, and ends with a report or a handoff. It establishes the normal-width results before any tighter request and need not repeat every measurement the probe collected.
+The [scripted client](../examples/readout/investigate.py) beside the readout example uses the investigation operations. Its selection policy, usage, and retained baseline evidence live in the [worked example](../examples/readout/README.md#scripted-investigation-baseline). It establishes normal-width results before any tighter request.
 
 The client computes the loss and the brackets from several runs' metrics. These are not trusted metrics, so each finding lists its source runs and values. Bayesian search does not suit a one-dimensional monotone crossing and is not built in M3.
 
@@ -257,7 +257,7 @@ Suggested locations, created as code arrives:
 src/entanglix/investigations.py     # records, decisions, admission, findings, stop and resume
 src/entanglix/mcp/                  # optional extra: stdio server over the backing operations, audit
 skills/                             # system-modeler, simulate, design-sweep, gpu-budget
-examples/readout/threshold.py       # scripted client and M3 baseline
+examples/readout/investigate.py     # scripted client and M3 baseline
 docs/operations/investigations.md   # records, commands, limits, recovery
 tests/probes/m3_readout.py          # D1 probe and its retained results
 ```
@@ -269,7 +269,7 @@ uv run --locked --exact pytest -m "not gpu"
 uv run --locked --exact --extra mcp pytest -m "not gpu" -k "mcp"
 uv run --locked --exact ruff check .
 uv run --locked --exact ruff format --check .
-uv run --locked --exact python examples/readout/threshold.py --investigation <investigation_id>
+uv run --locked --exact python examples/readout/investigate.py run <workspace>
 ```
 
 ## 7. Settled decisions

@@ -221,3 +221,21 @@ this workstation `/tmp` is a quota-limited tmpfs: one session of the runner test
 took about 15 GB there and failed with `Disk quota exceeded` when less was free, and
 took under 0.5 GB with `TMPDIR=/var/tmp`. Set `TMPDIR` to a disk-backed directory
 when `/tmp` is a tmpfs.
+
+## Scripted investigation acceptance
+
+The [operator acceptance driver](../tests/probes/m3_investigation.py) drafts and
+starts each declared CPU fixture, then runs the
+[readout client](../examples/readout/README.md#scripted-investigation-baseline).
+An existing workspace continues its investigation; choose fresh workspace and
+runs-root paths for a new measurement. Full inputs, arrays, check reports and
+findings stay in `research_runs/`; summaries retain source identities and costs.
+These commands use this workstation's existing runner extras, without changing
+its shared environment profile:
+
+```sh
+export ENTANGLIX_RUNNER_EXTRAS=cuquantum,differentiable-cuda12
+XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact python tests/probes/m3_investigation.py --case normal --workspace research_runs/m3-threshold-normal-client --runs-root research_runs/m3-threshold-normal --output tests/probes/m3_investigation_normal.json
+XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact python tests/probes/m3_investigation.py --case early-stop --workspace research_runs/m3-threshold-early-stop-client --runs-root research_runs/m3-threshold-early-stop --output tests/probes/m3_investigation_early_stop.json
+TMPDIR=/var/tmp uv run --locked --exact pytest -q tests/test_investigations.py tests/test_investigation_admission.py tests/test_investigation_lifecycle.py tests/test_readout_investigation.py -m 'not gpu'
+```
