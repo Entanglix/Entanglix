@@ -318,3 +318,73 @@ Whole-job execution takes about `5 s` on CPU and `8 min` on CUDA in these
 retained runs, excluding validation and checks. These timings describe this small
 fixture and backend, not a general crossover. The static `χ` values are
 `−0.434875`, `−0.559116`, and `−0.733591 MHz`; requested refinement passes.
+
+## Threshold characterization
+
+This study asks, at each of the three `EJ` values, which readout drive amplitude
+produces an additional endpoint-coherence loss of `0.01` at 100 ns. The loss is
+`ΔC(A) = C(0) − C(A)` for the endpoint coherence defined above. It characterizes this
+model; coherence alone does not establish readout quality or an optimal setting.
+
+It is the question of the first investigation. Investigations are not yet available:
+the [retained probe](../../tests/probes/m3_readout.py) ran the plan on CPU with the
+existing `sweep`, `simulate`, and `check` operations, and its
+[results](../../tests/probes/m3_readout_results.json) name every run.
+[Commands](../../docs/environment.md#threshold-characterization-probe) regenerate them.
+
+- **Fixed:** the model, initial state, 100 ns window, and tolerances above, and
+  `EJ = 12, 13.5, 15 GHz`, each with its paired carrier and frame frequency.
+- **Varied:** the drive amplitude in `[0, 0.002] GHz`.
+- **Search:** the 3 × 3 grid above as the seed, then midpoint bisection in the
+  rotating frame between the seed amplitudes that bracket the target.
+- **Confirmation:** lab-frame runs at zero amplitude and at both bracket ends, one at
+  5 × 6 levels and one refined at 6 × 8 levels, cutoff 32, and tolerances
+  `1e-11/1e-13`. The refined initial state is embedded in the refined basis, so its
+  array differs between `EJ` values.
+- **Claim rule:** a bracket is confirmed when the refined lab-frame loss is below the
+  target at the lower end and above it at the upper end, each by more than the
+  observed change between the two lab-frame runs.
+- **Requested checks:** integrity, diagnostics, and the declared expectation on the
+  seed sweep; integrity, segments, and diagnostics at the rotating-frame bracket ends;
+  integrity on the refined lab-frame runs. All checks with pass/fail outcomes passed;
+  diagnostics were recorded.
+
+| `EJ` (GHz) | Width (GHz) | Rotating-frame bracket (GHz) | Refined lab minus rotating-frame loss | Lab-frame confirmation |
+|---|---|---|---|---|
+| 13.5 | `1.25e-4` | 0.001750–0.001875 | `7.4e-5` to `9.5e-5` | Confirmed |
+| 13.5 | `1.5625e-5` | 0.001796875–0.001812500 | `8.5e-5` to `8.7e-5` | Not confirmed: the lower end is `3.6e-6` above the target |
+| 15 | `1.25e-4` | 0.001375–0.001500 | `2.8e-5` to `5.1e-5` | Confirmed |
+| 15 | `1.5625e-5` | 0.001437500–0.001453125 | `3.7e-5` to `4.0e-5` | Confirmed |
+
+At `EJ = 12` the largest sampled loss is `0.0039`, so no crossing lies in range under
+the monotonic assumption. The two lab-frame runs differ in loss by at most `2.4e-7`.
+
+Job time is about 1.1 s for a rotating-frame point, 6.6 s for a lab-frame run, 20 s
+for a refined lab-frame run, and 0.8 s for a check run. The probe's full run, both
+widths at both crossing `EJ` values, is 52 jobs and 41 evaluated points in 301 s of
+job time within 329 s elapsed. The agreed width alone accounts for 30 jobs, 27 points,
+and 176 s of job time. Establishing both agreed-width brackets and then stopping at
+the first failed tighter confirmation accounts for 41 jobs, 34 points, and 240 s.
+The last two figures are sums over the probe's runs; the probe did not run those
+shorter sequences separately.
+
+The stated limits are:
+
+- Coherence is assumed to decrease with amplitude at fixed `EJ`, which gives one
+  crossing per line. The declared expectation checks this at sampled amplitudes only.
+- The bracket width describes the rotating-frame crossing. Lab-frame confirmation is
+  reported separately.
+- The change between the two lab-frame runs is observed convergence evidence, not an
+  error bound. No check bounds whole-window error.
+- The failed confirmation at `EJ = 13.5` rests on a `3.6e-6` margin: 19 times the
+  observed refinement change and about four times the `1e-6` cross-engine agreement
+  above.
+- When confirmation fails, more rotating-frame bisection cannot settle the bracket,
+  and a lab-frame search is the next experiment. A lab-frame run costs six times a
+  rotating-frame run here, so the failure does not show that the search would be
+  uneconomic.
+
+When this study runs as an investigation, its user declares the checkpoint and any
+limit. The planned declarations are a checkpoint every 10 finished attempts and, for
+the baseline comparison, a job count of 60 at the agreed width and 100 at the tighter
+request.

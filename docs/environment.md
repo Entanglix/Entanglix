@@ -164,6 +164,24 @@ UV_PROJECT_ENVIRONMENT=/tmp/entanglix-simulation-tests XLA_PYTHON_CLIENT_PREALLO
 Keep the tree and runner profile fixed until all studies finish, then copy summaries
 and reports into `tests/probes/`. Full attempts and arrays stay in `research_runs/`.
 
+## Threshold characterization probe
+
+The [threshold probe](../tests/probes/m3_readout.py) runs the readout example's
+[threshold study](../examples/readout/README.md#threshold-characterization) on CPU
+with the existing `sweep`, `simulate`, and `check` operations: the seed grid,
+rotating-frame bisection, lab-frame and refined lab-frame confirmation, and the
+requested checks. Its [results](../tests/probes/m3_readout_results.json) retain every
+run's identity, metrics, job time, and check outcomes, with each bracket and its
+lab-frame confirmation. The retained run used the shared runner profile and took
+about 329 s.
+
+```sh
+export ENTANGLIX_RUNNER_EXTRAS=cuquantum,differentiable-cuda12
+MPLCONFIGDIR=/tmp/entanglix-m3-matplotlib uv run --locked --exact python tests/probes/m3_readout.py --output /tmp/m3_readout_results.json
+```
+
+Full attempts and arrays stay in `research_runs/m3-readout/`.
+
 ## Reproduce GPU compatibility from a source checkout
 
 Run where the NVIDIA driver and GPU device are accessible.
