@@ -171,6 +171,18 @@ def main(argv: list[str] | None = None) -> int:
     decision.add_argument("action", choices=["start", "approve-revision"])
     decision.add_argument("--revision", required=True, type=int)
     decision.add_argument("--note", default="")
+    for launch_parser in (script, simulation, grid):
+        launch_parser.add_argument(
+            "--investigation", help="started investigation ID under the runs root"
+        )
+        launch_parser.add_argument("--base", help="permitted investigation base name")
+    simulation.add_argument(
+        "--vary",
+        action="append",
+        default=[],
+        metavar="TARGET=VALUE",
+        help="varied value within the investigation scope; repeat as needed",
+    )
     args = parser.parse_args(argv)
     if args.command in {
         "create-investigation",
@@ -280,6 +292,8 @@ def main(argv: list[str] | None = None) -> int:
                     runs_root=args.runs_root,
                     parent_run_ids=tuple(args.parent_run),
                     timeout_seconds=args.timeout,
+                    investigation_id=args.investigation,
+                    base=args.base,
                 )
             elif args.command == "abort-run":
                 result = abort_run(args.run)
@@ -304,12 +318,23 @@ def main(argv: list[str] | None = None) -> int:
             elif args.command in {"simulate", "rerun-simulation"}:
                 from entanglix.protocols.simulate import rerun_simulation, simulate
 
+                values = None
+                if args.command == "simulate" and args.vary:
+                    values = {}
+                    for item in args.vary:
+                        target, separator, value = item.partition("=")
+                        if not separator or not target or target in values:
+                            raise ValueError("--vary requires a unique TARGET=VALUE")
+                        values[target] = float(value)
                 result = (
                     simulate(
                         args.protocol,
+                        values=values,
                         runs_root=args.runs_root,
                         parent_run_ids=tuple(args.parent_run),
                         dry_run=args.dry_run,
+                        investigation_id=args.investigation,
+                        base=args.base,
                     )
                     if args.command == "simulate"
                     else rerun_simulation(args.run, runs_root=args.runs_root)
@@ -323,6 +348,8 @@ def main(argv: list[str] | None = None) -> int:
                         runs_root=args.runs_root,
                         parent_run_ids=tuple(args.parent_run),
                         dry_run=args.dry_run,
+                        investigation_id=args.investigation,
+                        base=args.base,
                     )
                     if args.command == "sweep"
                     else rerun_sweep(args.run, runs_root=args.runs_root)

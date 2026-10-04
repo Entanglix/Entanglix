@@ -275,6 +275,11 @@ class RunHandle:
         self.close()
 
 
+def _scope_defaults(inputs):
+    path = inputs.get("base/simulate.toml")
+    return _load_record(path) if path is not None else None
+
+
 def create_run(
     *,
     system_id: str,
@@ -288,6 +293,74 @@ def create_run(
     runs_root: Path = Path("research_runs"),
     parent_run_ids: tuple[str, ...] = (),
     launch: dict | None = None,
+    investigation_id: str | None = None,
+    base: str | None = None,
+    base_inputs: dict[str, str] | None = None,
+    values: list[dict[str, float]] | None = None,
+) -> RunHandle:
+    """Admit standalone or investigation work and retain ownership of the attempt."""
+    arguments = dict(
+        system_id=system_id,
+        protocol=protocol,
+        inputs=inputs,
+        environment=environment,
+        code=code,
+        engine=engine,
+        device=device,
+        needs=needs,
+        runs_root=runs_root,
+        parent_run_ids=parent_run_ids,
+        launch=launch,
+    )
+    if protocol == "verification" and parent_run_ids:
+        source_path = (
+            runs_root.resolve() / system_id / (launch or {}).get("source_path", parent_run_ids[0])
+        ).resolve()
+        source = _load_record(source_path / "run.toml")
+        investigation_id = source.get("investigation_id")
+        if investigation_id and source_path.parent.parent != runs_root.resolve():
+            raise ValueError("investigation checks must retain their source runs root")
+        base = source.get("investigation_base")
+    if investigation_id is None:
+        if base is not None or base_inputs is not None or values is not None:
+            raise ValueError("base and varied values require an investigation")
+        return _create_run(**arguments)
+    from entanglix.investigations import admit, investigation_path
+
+    path = investigation_path(runs_root, investigation_id)
+    if protocol not in {"simulate", "sweep", "script", "verification"}:
+        raise ValueError("unsupported investigation operation")
+    hashes = (
+        base_inputs
+        if base_inputs is not None
+        else {name: _digest(source.read_bytes()) for name, source in inputs.items()}
+    )
+    with admit(
+        path,
+        operation={"script": "run_script", "verification": "check"}.get(protocol, protocol),
+        base_name=base,
+        hashes=hashes,
+        points=values or [{}],
+        defaults=_scope_defaults(inputs),
+        timeout_seconds=(launch or {}).get("timeout_seconds"),
+    ) as binding:
+        return _create_run(**arguments, investigation=binding)
+
+
+def _create_run(
+    *,
+    system_id: str,
+    protocol: str,
+    inputs: dict[str, Path],
+    environment: dict,
+    code: CodeSnapshot,
+    engine: str,
+    device: Literal["cpu", "cuda"],
+    needs: dict,
+    runs_root: Path = Path("research_runs"),
+    parent_run_ids: tuple[str, ...] = (),
+    launch: dict | None = None,
+    investigation: dict | None = None,
 ) -> RunHandle:
     """Create an admitted attempt with its manifest first and its inputs frozen."""
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", system_id):
@@ -332,6 +405,8 @@ def create_run(
         "env_hash": environment["env_hash"],
         "environment": environment,
     }
+    if investigation is not None:
+        record.update(investigation)
     if launch is not None:
         record["launch"] = launch
     # Serialization and input errors must happen before the attempt directory exists.
@@ -415,18 +490,28 @@ def record_finish(
             raise ValueError(
                 "without a start record only failed/64 or aborted/130 with zero wall time is valid"
             )
+    ended = datetime.now(UTC)
+    usage = {"wall_seconds": wall_seconds, "gpu_seconds": gpu_seconds, "uncertain": False}
+    manifest = _load_record(run / "run.toml")
+    if "investigation_id" in manifest:
+        deadline = manifest["investigation_limits"].get("deadline")
+        commitment = manifest["investigation_commitment"]
+        usage["deadline_overrun_seconds"] = (
+            max(0.0, (ended - deadline).total_seconds()) if deadline else 0.0
+        )
+        usage["job_seconds_overrun"] = (
+            max(0.0, wall_seconds - commitment["job_seconds"])
+            if not commitment.get("unbounded")
+            else 0.0
+        )
     publish_toml(
         run / "FINISHED",
         {
             "record_version": 1,
             "status": status,
             "exit_code": exit_code,
-            "ended_at": datetime.now(UTC),
-            "usage": {
-                "wall_seconds": wall_seconds,
-                "gpu_seconds": gpu_seconds,
-                "uncertain": False,
-            },
+            "ended_at": ended,
+            "usage": usage,
         },
     )
 
@@ -672,7 +757,15 @@ def _execute_job(
     validate_result: Callable[[Path], dict] | None = None,
 ) -> dict:
     """Supervise the local job and its process group while retaining allocation ownership."""
+    from entanglix.investigations import CancelledStart, start_permission
+
     run = owner.path
+    manifest = _load_record(run / "run.toml")
+    job_seconds = (
+        manifest["investigation_commitment"]["job_seconds"]
+        if timeout_seconds is None and "job_seconds" in manifest.get("investigation_limits", {})
+        else None
+    )
     try:
         log_stream = (run / "run.log").open("w")
     except OSError:
@@ -690,27 +783,34 @@ def _execute_job(
         stopped = None
         try:
             descriptors = (owner.fileno(),) + ((gpu.fileno(),) if gpu is not None else ())
-            child = subprocess.Popen(
-                [*command, "run", str(run / "spec" / job_input), str(owner.fileno())],
-                cwd=run / "artifacts",
-                env=environment,
-                stdin=subprocess.PIPE,
-                stdout=log,
-                stderr=subprocess.STDOUT,
-                start_new_session=True,
-                pass_fds=descriptors,
-            )
-            record_start(owner, process_group=child.pid, gpu_devices=(gpu.device,) if gpu else ())
-            clock = time.monotonic()
-            if gpu is not None:
-                gpu.bind_process(child.pid)
-            child.stdin.write(b"1")
-            child.stdin.close()
+            with start_permission(run) as deadline:
+                child = subprocess.Popen(
+                    [*command, "run", str(run / "spec" / job_input), str(owner.fileno())],
+                    cwd=run / "artifacts",
+                    env=environment,
+                    stdin=subprocess.PIPE,
+                    stdout=log,
+                    stderr=subprocess.STDOUT,
+                    start_new_session=True,
+                    pass_fds=descriptors,
+                )
+                record_start(
+                    owner, process_group=child.pid, gpu_devices=(gpu.device,) if gpu else ()
+                )
+                clock = time.monotonic()
+                if gpu is not None:
+                    gpu.bind_process(child.pid)
+                child.stdin.write(b"1")
+                child.stdin.close()
             while child.poll() is None or _group_alive(child.pid):
                 if (run / "runner/abort.toml").exists():
                     stopped = "abort"
                 elif timeout_seconds is not None and time.monotonic() - clock >= timeout_seconds:
                     stopped = "timeout"
+                elif job_seconds is not None and time.monotonic() - clock >= job_seconds:
+                    stopped = "job_seconds limit"
+                if deadline is not None and datetime.now(UTC) >= deadline:
+                    stopped = "deadline"
                 if stopped:
                     log.write(f"entanglix: {stopped}; terminating job process group\n")
                     log.flush()
@@ -727,6 +827,11 @@ def _execute_job(
             code = 128 - code if code < 0 else code
             if (run / "runner/abort.toml").exists():
                 stopped = "abort"
+        except CancelledStart as exc:
+            stopped = "abort"
+            log.write(f"entanglix: {exc}; aborting job\n")
+            log.flush()
+            code = 130
         except KeyboardInterrupt:
             stopped = "abort" if (run / "runner/started.toml").exists() else None
             if child is not None:
@@ -849,8 +954,10 @@ def run_script(
     repository: Path | None = None,
     parent_run_ids: tuple[str, ...] = (),
     timeout_seconds: float | None = None,
+    investigation_id: str | None = None,
+    base: str | None = None,
 ) -> dict:
-    """Validate and synchronously execute one standalone CPU script."""
+    """Validate and synchronously execute one CPU script."""
     repository = (repository or Path(__file__).resolve().parents[2]).resolve()
     if timeout_seconds is not None and (not math.isfinite(timeout_seconds) or timeout_seconds <= 0):
         raise ValueError("timeout_seconds must be finite and positive")
@@ -875,6 +982,8 @@ def run_script(
     with create_run(
         system_id=gate["system_id"],
         protocol="script",
+        investigation_id=investigation_id,
+        base=base,
         inputs={name: Path(path) for name, path in gate["inputs"].items()},
         environment=gate["environment"],
         code=capture_code(repository),
@@ -923,6 +1032,12 @@ def rerun_script(
         if _digest((run / "spec" / _relative_file(name)).read_bytes()) != digest:
             raise ValueError(f"frozen input digest mismatch: {name}")
     launch = manifest["launch"]
+    if (
+        manifest.get("investigation_id")
+        and runs_root is not None
+        and runs_root.resolve() != run.parent.parent
+    ):
+        raise ValueError("investigation reruns must retain their runs root")
     return run_script(
         run / "spec/system.toml",
         run / "spec/script.py",
@@ -930,6 +1045,8 @@ def rerun_script(
         runs_root=runs_root if runs_root is not None else run.parent.parent,
         repository=repository,
         parent_run_ids=(manifest["run_id"],),
+        investigation_id=manifest.get("investigation_id"),
+        base=manifest.get("investigation_base"),
         timeout_seconds=timeout_seconds
         if timeout_seconds is not None
         else launch.get("timeout_seconds"),

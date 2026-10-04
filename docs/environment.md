@@ -199,3 +199,25 @@ XLA_PYTHON_CLIENT_PREALLOCATE=false \
 ```
 
 Allow CPU devices for JAX host callbacks while explicitly checking GPU placement of the simulated states. `JAX_PLATFORMS=cuda` alone failed a dynamiqs callback in this probe. Disable JAX preallocation before initialization; each engine process releases its allocations when it exits. The Matplotlib cache uses a writable temporary directory.
+
+## Investigation admission acceptance
+
+The [admission tests](../tests/test_investigation_admission.py) cover scope and
+linked checks/reruns, concurrent job-count/execution-time commitments, retained
+uncertain usage, jobs without timeouts ending at their allowance, and deadlines
+before start and during execution. The workstation
+[GPU report](../tests/probes/m3_admission_gpu.xml) records one linked CUDA job's
+actual GPU-seconds, execution time counted toward `job_seconds`, and refusal of a
+second job whose commitment would exceed the
+remaining allowance. Use an isolated test environment with the workstation extras:
+
+```sh
+uv run --locked --exact pytest -q tests/test_investigations.py tests/test_investigation_admission.py -m 'not gpu'
+UV_PROJECT_ENVIRONMENT=/var/tmp/entanglix-6a2-gpu-test XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact --extra cuquantum --extra differentiable-cuda12 pytest -q tests/test_investigation_admission.py -m gpu --require-gpu -o junit_family=legacy --junitxml=tests/probes/m3_admission_gpu.xml
+```
+
+Tests that launch jobs build runner environments under the temporary directory. On
+this workstation `/tmp` is a quota-limited tmpfs: one session of the runner tests
+took about 15 GB there and failed with `Disk quota exceeded` when less was free, and
+took under 0.5 GB with `TMPDIR=/var/tmp`. Set `TMPDIR` to a disk-backed directory
+when `/tmp` is a tmpfs.

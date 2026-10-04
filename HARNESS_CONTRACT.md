@@ -119,10 +119,10 @@ Usage is always recorded from executor reports (§7). Limits are optional, and t
 |---|---|---|
 | `timeout_seconds` | Run | Executor-native timeout: a process timer on the workstation, the scheduler time limit on a cluster |
 | `deadline` | Investigation | Absolute calendar timestamp enforced by the executor, including queued jobs: no new dispatch or job start after it; cancel pending jobs and terminate active jobs at expiry. Cap each run's timeout at the time remaining when it starts |
-| `gpu_seconds` | Investigation | Allocated GPUs × allocation time, including verification, retries, and failed work |
+| `job_seconds` | Investigation | Total execution time of admitted jobs, CPU and GPU alike, including verification, retries, and failed work |
 | `job_count` | Investigation | Admitted submissions, including queued jobs, retries, and verification jobs |
 
-Before dispatch, the runner compares recorded usage with any limits. When `gpu_seconds` is limited, every job needs a timeout. Admission includes the proposed job and all admitted but unsettled jobs, including queued and running jobs, at their maximum commitment (timeout × requested GPUs). The runner atomically checks allowances and records the commitment before submitting the job, using its existing records rather than a separate reservation service. Confirmed final usage replaces the commitment; usage the executor cannot confirm remains uncertain and never returns allowance. Lost contact never permits conflicting GPU dispatch.
+Before dispatch, the runner compares recorded usage with any limits. A timeout is optional on every job, and no limit requires one. When `job_seconds` is limited, admission includes the proposed job and all admitted but unsettled jobs, including queued and running jobs, at their maximum commitment: the job's timeout, or, for a job without a timeout, the allowance remaining at its admission. The executor ends a job without a timeout when that allowance is used up. The runner atomically checks allowances and records the commitment before submitting the job, using its existing records rather than a separate reservation service. Confirmed final usage replaces the commitment; usage the executor cannot confirm remains uncertain and never returns allowance. Lost contact never permits conflicting GPU dispatch.
 
 Executors document timeout resolution and termination grace, and record actual usage and any overrun. A submission-time duration alone does not enforce an investigation deadline across queueing; unsupported deadline enforcement is rejected.
 

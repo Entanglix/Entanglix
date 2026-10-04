@@ -135,11 +135,11 @@ def load_sweep(root):
     )
 
 
-def compile_sweep(protocol, directory, extras, repository):
+def compile_sweep(protocol, directory, extras, repository, *, retain_base=False):
     content = protocol.read_bytes()
     spec = SweepSpec.model_validate(tomllib.loads(content.decode()))
     base_path = _adjacent(protocol.parent, spec.base)
-    gate = compile_simulation(base_path, directory, extras, repository)
+    gate = compile_simulation(base_path, directory, extras, repository, retain_base=retain_base)
     base = tomllib.loads((directory / "simulate.toml").read_text())
     if (spec.evidence_metric is not None and spec.evidence_metric not in base["metrics"]) or (
         spec.expectation and spec.expectation.metric not in base["metrics"]
@@ -151,12 +151,17 @@ def compile_sweep(protocol, directory, extras, repository):
             _set_target(copy.deepcopy(base), target, axis.values[0])
     shape = [len(axis.values) for axis in spec.axes]
     points = []
+    scope_values = []
     for index, coordinate in enumerate(itertools.product(*(range(n) for n in shape))):
         point_spec = copy.deepcopy(base)
+        varied = {}
         for axis, offset in zip(spec.axes, coordinate):
+            varied[axis.target] = axis.values[offset]
             _set_target(point_spec, axis.target, axis.values[offset])
             for target, values in axis.linked_values.items():
+                varied[target] = values[offset]
                 _set_target(point_spec, target, values[offset])
+        scope_values.append(varied)
         point_path = directory / "point-source.toml"
         point_path.write_text(tomli_w.dumps(point_spec))
         target = directory / "points" / f"{index:06d}"
@@ -185,12 +190,22 @@ def compile_sweep(protocol, directory, extras, repository):
             }
         )
     )
+    base_paths = {}
+    if retain_base:
+        replay = spec.model_dump(exclude_none=True)
+        replay["base"] = "simulate.toml"
+        (directory / "base/sweep.toml").write_text(tomli_w.dumps(replay))
+        base_paths["base/sweep.toml"] = directory / "base/sweep.toml"
     loaded = load_sweep(directory)
     from entanglix.corrector.sweeps import sweep_listing
 
     gate.update(
-        inputs={name: str(path) for name, path in loaded.inputs.items()},
-        spec_sha256=loaded.input_digests,
+        inputs={name: str(path) for name, path in {**loaded.inputs, **base_paths}.items()},
+        spec_sha256={
+            **loaded.input_digests,
+            **{name: _digest(path.read_bytes()) for name, path in base_paths.items()},
+        },
+        scope_values=scope_values,
         plan_sha256=loaded.digest,
         protocol_sha256=_digest(content),
         timeout_seconds=spec.timeout_seconds,
@@ -200,7 +215,14 @@ def compile_sweep(protocol, directory, extras, repository):
 
 
 def sweep(
-    protocol, *, runs_root=Path("research_runs"), repository=None, parent_run_ids=(), dry_run=False
+    protocol,
+    *,
+    runs_root=Path("research_runs"),
+    repository=None,
+    parent_run_ids=(),
+    dry_run=False,
+    investigation_id=None,
+    base=None,
 ):
     return _launch_protocol(
         protocol,
@@ -209,6 +231,8 @@ def sweep(
         parent_run_ids=parent_run_ids,
         dry_run=dry_run,
         operation="sweep",
+        investigation_id=investigation_id,
+        base=base,
     )
 
 

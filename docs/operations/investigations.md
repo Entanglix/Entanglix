@@ -1,12 +1,13 @@
-# Investigation records and user decisions
+# Investigations, admission, and user decisions
 
 An investigation records a research question, agreed terms, and findings. Its
 revisions and events are retained under `research_runs/_investigations/`, or the
 root passed to `--runs-root`. Reads and listings reconstruct state from these files.
 
-The available commands manage drafts, starts, revision approvals, and findings.
-`simulate`, `sweep`, and `check` currently run as standalone operations: they do not
-yet link jobs to these investigations or enforce their scope, checkpoints, or limits.
+The available commands manage drafts, starts, revision approvals, findings, and
+job admission. `simulate`, `sweep`, and authored scripts can link jobs to an
+investigation; checks and reruns inherit that membership. Scope and optional limits
+are enforced. Checkpoint/review gates and stop/resume commands are not available yet.
 
 ## Declare the terms
 
@@ -53,7 +54,10 @@ finished_attempts = 10
 ```
 
 Each base has a unique name and relative input filenames with lowercase SHA-256
-digests. Every base includes `system.toml`. A variation declares either a closed
+digests. Every base includes `system.toml`. Use the runner's fixed names for the
+system (`system.toml`), simulation protocol (`simulate.toml`, even when authored as
+`readout.toml`), and script (`script.py`); subsystem and data filenames are retained.
+A variation declares either a closed
 `range = [lower, upper]` or unique `values = [...]`. The supported targets are
 `parameters.<name>`, `evolution.drive_amplitudes_ghz.<drive>`,
 `evolution.carriers.<drive>.frequency_ghz`, and
@@ -68,7 +72,7 @@ recorded terms, rather than machine-certified judgments.
 
 For an elapsed checkpoint use `elapsed_seconds = 60.0` instead of a count.
 Optional named review points use `[review_points]` with a positive finished-attempt
-count per name. Accepted resource limit names are `job_count`, `gpu_seconds`, and
+count per name. Accepted resource limit names are `job_count`, `job_seconds`, and
 `deadline`, an absolute TOML timestamp with a UTC offset, such as
 `2026-10-05T18:00:00Z`. Positive counts must be integers; seconds must be finite and
 positive. Unknown fields, limit names, or check names are rejected.
@@ -105,6 +109,78 @@ from the research operations advertised by `capabilities`. This separation follo
 the cooperative workflow in the [harness contract](../../HARNESS_CONTRACT.md);
 it is not OS authentication. Resume and named review release are not available yet.
 
+## Launch work within scope
+
+Supply the started investigation ID and a permitted base name. For a simulation,
+the protocol argument is the unchanged base file; pass varied values separately:
+
+```sh
+entanglix simulate simulate.toml --runs-root research_runs --investigation <investigation_id> --base rwa --vary evolution.drive_amplitudes_ghz.readout=0.001
+entanglix simulate simulate.toml --runs-root research_runs --investigation <investigation_id> --base rwa --vary evolution.drive_amplitudes_ghz.readout=0.001 --dry-run
+entanglix sweep sweep.toml --runs-root research_runs --investigation <investigation_id> --base rwa
+```
+
+A sweep's `base` field points to the permitted simulation file; its axes supply the
+varied values. The declaration binds that simulation file and its model/data inputs,
+while the sweep supplies the grid, evidence metric, and declared expectation.
+The runner verifies the complete base bundle against its digests, then checks every
+varied value at every point. Targets must already exist in the base protocol.
+Values omitted from a simulation retain the base's values and still pass scope
+checks. Linked targets must match their declared pairings. No other base input can
+change. Dry runs perform the same scope and limit checks without admitting a job.
+
+The run freezes the original base files under `spec/base/` as well as the compiled
+inputs, and records its investigation ID, revision, base name, limits, and resource
+commitment. Reruns use those original bases and varied values, keep membership, and
+pass admission under the current approved revision. Investigation reruns retain
+the same runs root.
+
+An authored script uses `run-script ... --investigation <investigation_id> --base
+<base_name>` and must match an exact bundle, including the script, system, and data.
+A named check on a linked source automatically belongs to its investigation:
+
+```sh
+entanglix check research_runs/<system_id>/<run_id> integrity segments --timeout 60
+entanglix rerun-simulation research_runs/<system_id>/<run_id>
+```
+
+Check names and replacement refinements follow the standalone rules. A check is a
+separate admitted job; the harness does not issue standing requested checks itself.
+It may check an older source even when that source's base is absent from the current
+revision, provided `check` remains permitted and the limits allow the job.
+
+## Usage and optional limits
+
+Admission is serialized with user decisions and records its commitment in the new
+run manifest. `job_count` counts every admitted job, including checks, failed work,
+and reruns. Rejected launches create no attempt and consume no job allowance.
+`job_seconds` limits total execution time for CPU and GPU jobs alike, using each
+job's `FINISHED.usage.wall_seconds` on the same clock as its timeout. A timeout is
+optional on every job. Admission commits its timeout, or, without one, the remaining
+allowance, and refuses when nothing remains. The supervisor ends a job without a
+timeout when that commitment is used up. Each unsettled attempt counts at its
+commitment; confirmed `FINISHED` usage replaces it. An interrupted or reconciled
+attempt retains its commitment because reconciliation cannot confirm usage. A new
+limit refuses admission while an earlier unsettled job admitted without a limit or
+timeout remains, and names that run. `gpu_seconds` is recorded usage, not a limit.
+
+An absolute `deadline` refuses admission after expiry. Immediately before computing,
+the runner rechecks the admitted attempt's deadline under the investigation lock
+and publishes its start record before releasing the lock. Expiry before start ends
+the attempt as aborted with no computation; expiry during execution terminates its
+process group. Admitted jobs retain their original revision and deadline when a
+new revision is approved. The local executor polls at 10 ms and gives termination
+2 seconds before escalating to SIGKILL. `FINISHED` records actual wall/GPU seconds
+and deadline and job-commitment overruns; termination and cleanup can extend past
+a ceiling. Overruns compare completion time with the deadline, and execution time
+with the admitted commitment, which is the timeout when the job has one.
+
+`read-investigation` reports jobs, completed computation points, confirmed execution
+time as `job_seconds`, recorded GPU-seconds, outstanding job commitments, and
+unsettled jobs. Sweep points count when
+their result record is published, including partial sweeps. Usage is retained
+across sessions and approved revisions. Standalone runs still need no investigation.
+
 ## Findings and retained history
 
 Findings record assessments, interpretations, or final reports without changing
@@ -127,8 +203,19 @@ entanglix record-finding research_runs/_investigations/<investigation_id> findin
 An empty run list is useful before the first experiment. Nonempty lists must name
 run IDs whose manifests link them to this investigation; standalone runs cannot be
 claimed as members. The runner checks membership from the manifests and binds the
-finding to the effective revision. Findings currently retain authored reasoning and
-run references; they do not summarize execution, checks, or usage.
+finding to the effective revision. It fills total usage and the usage since the
+previous assessment from run records. For each referenced run it lists execution
+status, checks run with their policy version and any outcome, and requested check
+names not yet run. Requests for a computation come from its base in the effective
+revision, so newly requested checks can appear as missing on older runs. A
+verification run retains its own frozen check request. Earlier findings remain
+unchanged.
+For each computation it also lists relevant checks not run, using names from the
+corrector's own listing, whether or not those checks were requested. If a run's
+frozen plan cannot be loaded, the finding records why that list is unavailable.
+Diagnostics have no pass/fail outcome. Full check reports remain with their linked
+verification runs; available-check listings are not copied into findings. Authors
+cannot supply usage or evidence summaries.
 
 The decision is `continue`, `refine`, `stop`, or `review`. A `review` finding requires
 `review_name`; other decisions omit it. These currently record recommendations;

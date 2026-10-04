@@ -124,7 +124,8 @@ def test_draft_start_proposal_and_approval_preserve_history(terms, tmp_path):
         ("checkpoint", {"finished_attempts": True}, "valid integer"),
         ("checkpoint", {"finished_attempts": 0}, "greater than 0"),
         ("limits", {"cpu_seconds": 10}, "Extra inputs"),
-        ("limits", {"gpu_seconds": float("inf")}, "finite number"),
+        ("limits", {"job_seconds": float("inf")}, "finite number"),
+        ("limits", {"gpu_seconds": 10}, "Extra inputs"),
         ("limits", {"deadline": "2026-10-04T12:00:00"}, "UTC offset"),
         ("limits", {"deadline": 100}, "absolute timestamp"),
         ("limits", {"deadline": "1700000000"}, "absolute timestamp"),
@@ -225,11 +226,15 @@ def test_finding_membership_comes_from_manifests(terms, tmp_path):
             "run_id": run.name,
             "protocol": "script",
             "investigation_id": path.name,
+            "investigation_revision": 1,
+            "investigation_base": "rwa",
+            "investigation_commitment": {"job_seconds": 0.0},
         },
     )
     event = record_finding(path, finding(runs=[run.name]))
     assert event["finding"]["runs"] == [run.name]
-    assert "evidence" not in event
+    assert event["evidence"][0]["checks"] == []
+    assert event["evidence"][0]["requested_checks_not_run"] == ["integrity", "segments"]
     for supplied in ("revision", "evidence", "usage"):
         with pytest.raises(ValueError, match="Extra inputs"):
             record_finding(path, finding(**{supplied: {}}))
@@ -250,6 +255,59 @@ def test_finding_membership_comes_from_manifests(terms, tmp_path):
     with pytest.raises(ValueError, match="does not belong"):
         record_finding(path, finding(runs=[foreign.name]))
     assert len(read_investigation(path)["events"]) == 2
+
+    original_finding = (path / "events/00000002.toml").read_bytes()
+    terms["evidence_requirements"]["checks"]["rwa"].append("diagnostics")
+    revise_investigation(path, terms)
+    record_user_decision(path, "approve-revision", revision=2)
+    updated = record_finding(path, finding(runs=[run.name]))
+    assert updated["revision"] == 2
+    assert updated["evidence"][0]["requested_checks_not_run"] == [
+        "diagnostics",
+        "integrity",
+        "segments",
+    ]
+    assert (path / "events/00000002.toml").read_bytes() == original_finding
+    assert investigations._load_record(run / "run.toml")["investigation_revision"] == 1
+
+
+def test_finding_survives_an_unloadable_frozen_plan(terms, tmp_path):
+    path = started(terms, tmp_path)
+    run = tmp_path / "system/r-unloadable"
+    run.mkdir(parents=True)
+    publish_toml(
+        run / "run.toml",
+        {
+            "record_version": 1,
+            "run_id": run.name,
+            "protocol": "simulate",
+            "investigation_id": path.name,
+            "investigation_revision": 1,
+            "investigation_base": "rwa",
+            "investigation_commitment": {"job_seconds": 0.0},
+        },
+    )
+    evidence = record_finding(path, finding(runs=[run.name]))["evidence"][0]
+    assert evidence["relevant_checks_unavailable"]
+    assert "relevant_checks_not_run" not in evidence
+    assert evidence["requested_checks_not_run"] == ["integrity", "segments"]
+
+
+def test_listing_does_not_scan_runs_for_usage(terms, tmp_path, monkeypatch):
+    path = started(terms, tmp_path)
+
+    def unexpected_scan(path):
+        raise AssertionError("listing should not scan run records")
+
+    monkeypatch.setattr(investigations, "_runs", unexpected_scan)
+    assert list_investigations(tmp_path) == [
+        {
+            "path": str(path),
+            "investigation_id": path.name,
+            "state": "active",
+            "active_revision": 1,
+        }
+    ]
 
 
 def _concurrent_append(arguments):
