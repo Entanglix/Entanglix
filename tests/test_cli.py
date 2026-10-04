@@ -21,7 +21,7 @@ def test_import_without_loading_gpu_engines(tmp_path):
         [
             sys.executable,
             "-c",
-            "import sys, entanglix; "
+            "import sys, entanglix, entanglix.investigations; "
             "assert not {'jax', 'cupy', 'qutip', 'scqubits'} & set(sys.modules)",
         ],
         cwd=tmp_path,

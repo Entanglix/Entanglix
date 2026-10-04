@@ -145,7 +145,71 @@ def main(argv: list[str] | None = None) -> int:
     )
     grid_replay.add_argument("run", type=Path)
     grid_replay.add_argument("--runs-root", type=Path)
+    draft = subcommands.add_parser("create-investigation", help="record a draft investigation")
+    draft.add_argument("spec", type=Path, help="investigation terms TOML")
+    draft.add_argument("--runs-root", type=Path, default=Path("research_runs"))
+    revision = subcommands.add_parser("revise-investigation", help="propose complete revised terms")
+    revision.add_argument("investigation", type=Path, help="investigation directory")
+    revision.add_argument("spec", type=Path, help="complete replacement terms TOML")
+    investigations = subcommands.add_parser(
+        "list-investigations", help="list retained investigations"
+    )
+    investigations.add_argument("--runs-root", type=Path, default=Path("research_runs"))
+    investigation = subcommands.add_parser(
+        "read-investigation", help="read terms and event history"
+    )
+    investigation.add_argument("investigation", type=Path)
+    finding = subcommands.add_parser(
+        "record-finding", help="append research reasoning and references"
+    )
+    finding.add_argument("investigation", type=Path)
+    finding.add_argument("finding", type=Path, help="authored finding TOML")
+    decision = subcommands.add_parser(
+        "investigation-decision", help="operator action: start or approve investigation terms"
+    )
+    decision.add_argument("investigation", type=Path)
+    decision.add_argument("action", choices=["start", "approve-revision"])
+    decision.add_argument("--revision", required=True, type=int)
+    decision.add_argument("--note", default="")
     args = parser.parse_args(argv)
+    if args.command in {
+        "create-investigation",
+        "revise-investigation",
+        "list-investigations",
+        "read-investigation",
+        "record-finding",
+        "investigation-decision",
+    }:
+        from entanglix.investigations import (
+            create_investigation,
+            list_investigations,
+            read_investigation,
+            record_finding,
+            record_user_decision,
+            revise_investigation,
+        )
+        from entanglix.runner import failure_message
+
+        try:
+            if args.command == "create-investigation":
+                result = create_investigation(args.spec, runs_root=args.runs_root)
+            elif args.command == "revise-investigation":
+                result = revise_investigation(args.investigation, args.spec)
+            elif args.command == "list-investigations":
+                result = list_investigations(args.runs_root)
+            elif args.command == "read-investigation":
+                result = read_investigation(args.investigation)
+            elif args.command == "record-finding":
+                result = record_finding(args.investigation, args.finding)
+            else:
+                result = record_user_decision(
+                    args.investigation, args.action, revision=args.revision, note=args.note
+                )
+        except (OSError, ValueError, RuntimeError, KeyError, MemoryError) as exc:
+            print(f"entanglix: {failure_message(exc)}", file=sys.stderr)
+            return 64
+        print(json.dumps(result, default=str, indent=2))
+        return 0
     if args.command == "validate":
         from entanglix.models import SpecError, load_system
         from entanglix.runner import failure_message

@@ -197,14 +197,14 @@ The [M2 guide](m2-guide.md) records the implementation approach; [ADR-0003](adr/
 - [x] Before Block 6a: evaluation protocol defines the scripted selection policy, comparable benchmark allowances, evidence thresholds, and outcome/time/compute/human-intervention measures; include supported early stopping after insufficient progress ([ADR-0004 §2.6](adr/0004-investigations-and-agent-sessions.md#26-evaluation-protocol), [readout example](../examples/readout/README.md#threshold-characterization))
 - [ ] Before Block 6b: runtime integration and research-agent instruction delivery (MCP instructions, skills, or a generated research-workspace instruction file); user-input event handling, progress reporting, runtime permission settings, and execution checks under the cooperative trust model; no separate grant issuer or OS security boundary required
 
-### [ ] Block 6a — Investigation Execution
+### [-] Block 6a — Investigation Execution
 
 **Depends on:** Blocks 3–5 and the decisions identified above as required before Block 6a.
 
-- [ ] Investigation records with immutable revisions: question, scope, assumptions, permitted changes/protocols, evidence requirements, progress checkpoints, review/stop criteria, and optional limits (contract §4)
-- [ ] Human-started investigations; user-input events for broader scope changes, review releases, and configured-limit changes are distinct from agent proposals
-- [ ] `create_investigation`, `revise_investigation`, `list_investigations`, `read_investigation`, `record_finding`, and `stop_investigation`; drafts cannot self-approve or start through research-tool fields
-- [ ] Findings and progress assessments link investigation revisions, evidence, verification status, constraints/convergence, observed cost, learning/uncertainty, and continue/refine/stop rationale
+- [x] Investigation records with immutable revisions: question, scope, assumptions, permitted changes/protocols, evidence requirements, progress checkpoints, review/stop criteria, and optional limits (contract §4; [reference](operations/investigations.md), [implementation](../src/entanglix/investigations.py), [tests](../tests/test_investigations.py); `uv run --locked --exact pytest -q tests/test_investigations.py tests/test_cli.py`)
+- [-] Human-started investigations; user-input events for broader scope changes, review releases, and configured-limit changes are distinct from agent proposals ([start and approval evidence](../tests/test_investigations.py))
+- [-] `create_investigation`, `revise_investigation`, `list_investigations`, `read_investigation`, `record_finding`, and `stop_investigation`; drafts cannot self-approve or start through research-tool fields ([record-operation evidence](../tests/test_investigations.py))
+- [-] Findings and progress assessments link investigation revisions, evidence, verification status, constraints/convergence, observed cost, learning/uncertainty, and continue/refine/stop rationale ([finding authority and run membership](../tests/test_investigations.py))
 - [ ] Usage recorded from executor reports across protocol runs, nested work, verification, retries, and failures
 - [ ] Optional limits per contract §4 (run timeout; investigation deadline, GPU-seconds, job count); absence is explicit; unknown limit names are rejected
 - [ ] Admission checks and commitment records are atomic; proposed and admitted-but-unsettled jobs, including queued/running jobs, count at their maximum when GPU-seconds are limited; uncertain usage never returns allowance

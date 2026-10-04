@@ -40,7 +40,7 @@ Steps complete in order. D3 needs nothing from Block 6a and can be taken at any 
 | D1 — First investigation | Question, scope, evidence plan, resolution, early-stop case, and measured costs (§3) | Probe and results retained; choices recorded in the readout example |
 | D2 — ADR-0004 | The decisions in §7, including the evaluation protocol | Accepted, with matching contract, roadmap, and checklist edits |
 | 6a-1 — Records and user decisions | Revisions, decision events, findings; `create_investigation`, `revise_investigation`, `list_investigations`, `read_investigation`, `record_finding`; the operator decision command | Records and their meanings written in an operational investigation reference; a draft cannot start or approve itself; a proposed revision takes effect only on a user decision; concurrent events are neither lost nor overwritten |
-| 6a-2 — Admission, usage, and limits | Investigation ID on job operations; scope checks per operation; atomic admission and the check before a job computes; usage from run records; `job_count`, `gpu_seconds`, `deadline`, and run timeouts | Out-of-scope launches and unknown limit names are refused; checks, reruns, and scripts are admitted by their own rules; no-limit and limit cases pass; two concurrent launches cannot both pass a limit that one exhausts; uncertain usage never returns allowance; an absolute deadline ends a running job and refuses later starts; an approved revision leaves attempts already admitted under their dispatch revision; one workstation GPU job records its GPU-seconds and a `gpu_seconds` limit refuses the next |
+| 6a-2 — Admission, usage, and limits | Investigation ID on job operations; scope checks per operation; atomic admission and the check before a job computes; usage and finding check summaries from linked run records; `job_count`, `gpu_seconds`, `deadline`, and run timeouts | Out-of-scope launches and unknown limit names are refused; checks, reruns, and scripts are admitted by their own rules; no-limit and limit cases pass; two concurrent launches cannot both pass a limit that one exhausts; uncertain usage never returns allowance; an absolute deadline ends a running job and refuses later starts; an approved revision leaves attempts already admitted under their dispatch revision; one workstation GPU job records its GPU-seconds and a `gpu_seconds` limit refuses the next |
 | 6a-3 — Checkpoints, reviews, stop, and resume | Checkpoint gating, assessments, review opening and release, `stop_investigation`, resume | A due checkpoint refuses admission until an assessment is recorded, counting failed and aborted attempts; an open review refuses admission until released by name; a stop cancels active jobs and records its reason; delayed-start tests show that a run admitted but not yet computing does not start after a stop, after a stop followed by a resume, or past the deadline; a new session continues from records with accounting intact |
 | 6a-4 — Scripted client and 6a acceptance | The readout threshold client, its documented selection policy, and baseline runs of both cases | The client reproduces the probe's outcomes: the declared evidence in the normal case and a supported handoff in the early-stop case; history survives an interrupted session; Block 6a exit criteria pass |
 | D3 — Agent-session decisions | Instruction delivery, user-input path, job-tool form, and permission settings (§5) | Recorded as a section of ADR-0004; instruction delivery demonstrated in a research workspace |
@@ -117,7 +117,7 @@ The expected result is the same outcome at a higher elapsed time: on a smooth on
 <runs_root>/_investigations/<investigation_id>/
   revisions/0001.toml   # runner: question, assumptions, scope, evidence plan, checkpoint,
                         # review points, limits with absence explicit, stop and review criteria
-  events/               # runner: one immutable file per event, published by rename
+  events/               # runner: one immutable file per event, published atomically, never replaced
                         #   decision: start, resume, approve a revision, release a review
                         #   finding:  assessment, interpretation, or report
                         #   stop:     reason and cancelled runs
@@ -147,6 +147,8 @@ Each operation is admitted by its own rule:
 | `check` | Its source run belongs to the investigation; the check then belongs to it too. The check names and any replacement refinement are validated as for a standalone check |
 | Reruns | The earlier run belongs to the investigation. The rerun keeps that membership and passes admission under the current revision |
 | Authored scripts | The script, its data, and its system spec match a permitted base exactly. The runner cannot infer a script's physical parameter restrictions from its system spec |
+
+A revision records each base by digest only, so the runner cannot rebuild a base from the record. A `simulate` or `sweep` launch therefore names its base, supplies the base files, and gives its varied values separately; a sweep's axes are its varied values. The runner verifies the files against the recorded digests, checks each value against its set or range, and applies the values with the sweep's target setter before freezing the inputs. The run's manifest records the base name with the investigation ID and revision, which is how a finding later tells which requested checks apply to a run.
 
 The first investigation permits `simulate`, `sweep`, and `check`, with five bases: RWA, lab frame, and one refined lab-frame base per `EJ` value. The refined initial state is embedded in the refined basis, which depends on `EJ`, so its array differs between `EJ` values. Each refined base therefore binds its own state file to its `EJ` and paired frequency, and varies only the amplitude. The scope is agreed before the seed sweep shows which lines cross, so every `EJ` gets one. The RWA and lab-frame bases set `EJ` through the spec parameter, which keeps one system file and one state file for all three values.
 
@@ -247,7 +249,7 @@ The server writes one record per tool call and one per session under `<runs_root
 
 ## 6. Dependencies, layout, and validation
 
-Investigations use the standard library, as the runner does. The `mcp` extra adds the MCP Python SDK and nothing else.
+Investigations need no new dependency. The `mcp` extra adds the MCP Python SDK and nothing else.
 
 Suggested locations, created as code arrives:
 

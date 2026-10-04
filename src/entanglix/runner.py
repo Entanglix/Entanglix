@@ -1005,6 +1005,7 @@ def list_capabilities(repository: Path | None = None) -> dict:
     return {
         "version": version("entanglix"),
         "run_record_version": 1,
+        "investigation_record_version": 1,
         "operations": [
             "validate_system",
             "run_script",
@@ -1019,6 +1020,11 @@ def list_capabilities(repository: Path | None = None) -> dict:
             "rerun_simulation",
             "sweep",
             "rerun_sweep",
+            "create_investigation",
+            "revise_investigation",
+            "list_investigations",
+            "read_investigation",
+            "record_finding",
         ],
         "protocols": ["simulate", "sweep"],
         "runner_devices": ["cpu", "cuda"],
