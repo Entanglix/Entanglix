@@ -346,7 +346,9 @@ def create_run(
         defaults=_scope_defaults(inputs),
         timeout_seconds=(launch or {}).get("timeout_seconds"),
     ) as binding:
-        return _create_run(**arguments, investigation=binding)
+        return _create_run(
+            **arguments, investigation={**binding, "investigation_values": values or [{}]}
+        )
 
 
 def _create_run(
@@ -412,6 +414,11 @@ def _create_run(
         record.update(investigation)
     if launch is not None:
         record["launch"] = launch
+    from entanglix.launches import current_launch
+
+    launch_path = current_launch.get()
+    if launch_path is not None:
+        record["launch_id"] = launch_path.name
     # Serialization and input errors must happen before the attempt directory exists.
     tomli_w.dumps(record).encode("utf-8")
     parent = runs_root / system_id
@@ -422,6 +429,18 @@ def _create_run(
     try:
         owner = RunHandle(run, os.open(run, os.O_RDONLY | os.O_DIRECTORY))
         fcntl.flock(owner.fileno(), fcntl.LOCK_EX)
+        if launch_path is not None:
+            publish_toml(
+                launch_path / "attempt.toml",
+                {
+                    "run_path": str(run.relative_to(runs_root)),
+                    **(
+                        {"investigation_revision": record["investigation_revision"]}
+                        if "investigation_revision" in record
+                        else {}
+                    ),
+                },
+            )
         publish_toml(run / "run.toml", record)
         if gpu is not None:
             gpu.bind_run(owner)
@@ -1199,9 +1218,24 @@ def _read_attempt(run: Path) -> dict:
     return record
 
 
-def read_run(run: Path) -> dict:
+def read_run(run: Path, *, wait_seconds: float = 0) -> dict:
     """Read retained records and check history, even if the frozen plan is obsolete."""
     run = run.resolve()
+    from entanglix.launches import read_launch, validate_wait
+
+    validate_wait(wait_seconds)
+    expires = time.monotonic() + wait_seconds
+    if run.parent.name == "_launches":
+        while True:
+            launch = read_launch(run)
+            if launch["status"] != "pending" or time.monotonic() >= expires:
+                return launch
+            time.sleep(min(0.25, max(0, expires - time.monotonic())))
+    while True:
+        state = _read_attempt(run)["status"]
+        if state != "active" or time.monotonic() >= expires:
+            break
+        time.sleep(min(0.25, max(0, expires - time.monotonic())))
     record = _read_attempt(run)
     if record["manifest"]["protocol"] in {"plan", "reference", "simulate", "sweep"}:
         from entanglix.corrector.verification import check_run, verification_history
@@ -1239,4 +1273,6 @@ def list_runs(runs_root: Path = Path("research_runs")) -> list[dict]:
                     "diagnostic": str(exc),
                 }
             )
-    return attempts
+    from entanglix.launches import unresolved_launches
+
+    return attempts + unresolved_launches(runs_root)

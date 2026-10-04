@@ -784,6 +784,24 @@ def read_investigation(path: Path) -> dict:
         runs = _runs(path)
         record["usage"] = _usage(runs)
         record.update(_lifecycle(record, runs))
+        from entanglix.launches import unresolved_launches
+
+        record["attempts"] = [
+            {
+                "run_id": manifest["run_id"],
+                "path": str(run),
+                "status": _read_attempt(run)["status"],
+                "base": manifest["investigation_base"],
+                "varied_values": manifest.get(
+                    "investigation_values", [manifest.get("launch", {}).get("varied_values", {})]
+                ),
+                "revision": manifest["investigation_revision"],
+            }
+            for run, manifest, _ in runs
+        ]
+        record["unresolved_launches"] = unresolved_launches(
+            path.parent.parent, investigation_id=path.name
+        )
         return record
 
 

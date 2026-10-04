@@ -250,3 +250,17 @@ launch evidence. Regenerate them with an isolated test environment:
 uv run --locked --exact pytest -q tests/test_gpu_admission.py tests/test_lifecycle.py -m 'not gpu'
 TMPDIR=/var/tmp UV_PROJECT_ENVIRONMENT=/var/tmp/entanglix-6b0-gpu-test XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact --extra cuquantum --extra differentiable-cuda12 pytest -q tests/test_simulate.py tests/test_sweep.py tests/test_investigation_admission.py -m gpu --require-gpu -o junit_family=legacy --junitxml=tests/probes/m3_busy_gpu.xml
 ```
+
+## Detached supervision
+
+Shared-operation tests cover admission recovery, ownership handoff, requesting-process loss, concurrent reads and cancellation, linked checks/replays, and finite waits. The workstation report retains CUDA deadline and continuous-ownership cases before computation and while the adapter is executing.
+
+Use disk-backed temporary storage for these commands: the full suite creates isolated job environments, which can exceed this workstation's `/tmp` quota.
+
+```sh
+TMPDIR=/var/tmp uv run --locked --exact pytest -m "not gpu" -q
+TMPDIR=/var/tmp uv run --locked --exact pytest tests/test_detached_launches.py -m "not gpu" -q
+TMPDIR=/var/tmp UV_PROJECT_ENVIRONMENT=/var/tmp/entanglix-6b-supervision-tests XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact --extra cuquantum --extra differentiable-cuda12 pytest tests/test_detached_launches.py -m gpu --require-gpu -q -o junit_family=legacy --junitxml=tests/probes/m3_supervision_gpu.xml
+```
+
+The GPU command uses its own test environment. Each fixture also has a separate, exact runner environment; neither changes the checkout's runner extras.

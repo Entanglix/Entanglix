@@ -201,3 +201,20 @@ The record API and CPU launcher distinguish pre-start failure, observed job outc
 Without a valid `FINISHED`, artifacts cannot substantiate a completed scientific result. With `FINISHED`, successful execution still does not establish verification. A sweep is one run with per-point artifacts; interrupted partial results are retained, and a new linked rerun recomputes the grid.
 
 See the [harness contract](../../HARNESS_CONTRACT.md) for execution and verification guarantees as the corresponding capabilities become available.
+
+## Detached launches and waiting
+
+Job commands accept `--detach`: `simulate`, `sweep`, `run-script`, their rerun commands, and named `check` requests. The command returns the admitted run ID and path; a separate supervisor retains ownership, enforces the job timeout and investigation deadline, and writes the terminal record. Closing the requesting terminal or losing its response does not stop that supervisor. Use `abort-run` to cancel an admitted job. Dry-run previews and check listings remain synchronous and do not accept `--detach`.
+
+```sh
+uv run --locked --exact entanglix simulate examples/readout/readout.toml --runs-root research_runs --detach
+uv run --locked --exact entanglix read-run research_runs/SYSTEM_ID/RUN_ID --wait 60
+```
+
+`read-run --wait SECONDS` returns when the attempt completes, fails, aborts, loses ownership, or the requested wait expires. Seconds must be finite and non-negative; the command line applies no maximum. An expired or interrupted wait leaves the job running. Reads and cancellation can run concurrently; waits poll at intervals of at most 0.25 seconds. Ctrl-C returns exit 130 without a traceback, including while a detached launch awaits admission.
+
+Before starting its supervisor, a detached request is recorded under `<runs_root>/_launches/<launch_id>/request.toml`. The record holds the operation, absolute input paths, and investigation ID when applicable. The launch directory's inherited lock tracks its owner. The admitted run's manifest carries `launch_id`; `attempt.toml` in the launch directory records the intended relative run path before the manifest is published; the link alone does not establish admission. `supervisor.log` retains launch diagnostics, and a refused request can carry `refused.toml` with its reason. Refusals create no attempt or investigation usage.
+
+If an admission response is lost, use `list-runs` to see admitted attempts and unresolved launches. `read-run <launch_directory>` recovers one request as `pending`, `admitted` (with its run ID), or `refused`. With `--wait`, it waits for admission resolution rather than job completion. Recovery checks ownership and the linked manifest without scanning other attempts; it never submits another job. A supervisor lost after publication leaves an interrupted attempt for the normal reconciliation path. A request whose owner disappears before publication is definitively non-admitted.
+
+`read-investigation` lists admitted attempts with their base, varied values, revision, and status, along with its unresolved launches. Pending requests consume no allowance; accounting starts at manifest publication.

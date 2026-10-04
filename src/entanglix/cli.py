@@ -53,6 +53,14 @@ def _print_circuit_diagnostics(provenance: dict[str, object], label: str) -> Non
 
 
 def main(argv: list[str] | None = None) -> int:
+    try:
+        return _main(argv)
+    except KeyboardInterrupt:
+        print("entanglix: interrupted", file=sys.stderr)
+        return 130
+
+
+def _main(argv: list[str] | None = None) -> int:
     parser = Parser(prog="entanglix", description="Quantum system research harness.")
     parser.add_argument("--version", action="version", version=f"entanglix {__version__}")
     subcommands = parser.add_subparsers(dest="command")
@@ -113,6 +121,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     reading = subcommands.add_parser("read-run", help="read an attempt's records and log tail")
     reading.add_argument("run", type=Path, help="attempt directory")
+    reading.add_argument("--wait", type=float, default=0, help="wait seconds; no command-line cap")
     checking = subcommands.add_parser("check", help="list relevant checks, or run named checks")
     checking.add_argument("run", type=Path, help="source attempt directory")
     checking.add_argument(
@@ -145,6 +154,12 @@ def main(argv: list[str] | None = None) -> int:
     )
     grid_replay.add_argument("run", type=Path)
     grid_replay.add_argument("--runs-root", type=Path)
+    for job_parser in (script, rerun, checking, simulation, replay, grid, grid_replay):
+        job_parser.add_argument(
+            "--detach",
+            action="store_true",
+            help="return admission; supervise in a separate session",
+        )
     draft = subcommands.add_parser("create-investigation", help="record a draft investigation")
     draft.add_argument("spec", type=Path, help="investigation terms TOML")
     draft.add_argument("--runs-root", type=Path, default=Path("research_runs"))
@@ -295,6 +310,22 @@ def main(argv: list[str] | None = None) -> int:
             signal.signal(signal.SIGTERM, signal.default_int_handler)
             signal.signal(signal.SIGHUP, signal.default_int_handler)
         try:
+
+            def execute(function, *positional, **arguments):
+                if not args.detach:
+                    return function(*positional, **arguments)
+                import inspect
+
+                from entanglix.launches import launch_job
+
+                arguments = dict(
+                    inspect.signature(function).bind(*positional, **arguments).arguments
+                )
+                return launch_job(
+                    "check" if function.__name__ == "check_run" else function.__name__,
+                    arguments,
+                )
+
             if args.command == "run-script":
                 inputs = {}
                 for item in args.input:
@@ -302,7 +333,8 @@ def main(argv: list[str] | None = None) -> int:
                     if not separator or not name or not path or name in inputs:
                         raise ValueError("--input requires a unique NAME=PATH")
                     inputs[name] = Path(path)
-                result = run_script(
+                result = execute(
+                    run_script,
                     args.system,
                     args.script,
                     inputs=inputs,
@@ -318,15 +350,16 @@ def main(argv: list[str] | None = None) -> int:
                 record_reconciliation(args.run, last_observed_state=args.state)
                 result = read_run(args.run)
             elif args.command == "rerun-script":
-                result = rerun_script(
-                    args.run, runs_root=args.runs_root, timeout_seconds=args.timeout
+                result = execute(
+                    rerun_script, args.run, runs_root=args.runs_root, timeout_seconds=args.timeout
                 )
             elif args.command == "capabilities":
                 result = list_capabilities()
             elif args.command == "check":
                 from entanglix.corrector.verification import check_run
 
-                result = check_run(
+                result = execute(
+                    check_run,
                     args.run,
                     tuple(args.names),
                     timeout_seconds=args.timeout,
@@ -344,7 +377,8 @@ def main(argv: list[str] | None = None) -> int:
                             raise ValueError("--vary requires a unique TARGET=VALUE")
                         values[target] = float(value)
                 result = (
-                    simulate(
+                    execute(
+                        simulate,
                         args.protocol,
                         values=values,
                         runs_root=args.runs_root,
@@ -354,13 +388,14 @@ def main(argv: list[str] | None = None) -> int:
                         base=args.base,
                     )
                     if args.command == "simulate"
-                    else rerun_simulation(args.run, runs_root=args.runs_root)
+                    else execute(rerun_simulation, args.run, runs_root=args.runs_root)
                 )
             elif args.command in {"sweep", "rerun-sweep"}:
                 from entanglix.protocols.sweep import rerun_sweep, sweep
 
                 result = (
-                    sweep(
+                    execute(
+                        sweep,
                         args.protocol,
                         runs_root=args.runs_root,
                         parent_run_ids=tuple(args.parent_run),
@@ -369,12 +404,12 @@ def main(argv: list[str] | None = None) -> int:
                         base=args.base,
                     )
                     if args.command == "sweep"
-                    else rerun_sweep(args.run, runs_root=args.runs_root)
+                    else execute(rerun_sweep, args.run, runs_root=args.runs_root)
                 )
             elif args.command == "list-runs":
                 result = list_runs(args.runs_root)
             else:
-                result = read_run(args.run)
+                result = read_run(args.run, wait_seconds=args.wait)
         except (OSError, ValueError, RuntimeError, KeyError, MemoryError) as exc:
             print(f"entanglix: {failure_message(exc)}", file=sys.stderr)
             return 64

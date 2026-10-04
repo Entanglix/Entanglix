@@ -275,3 +275,5 @@ resetting usage or checkpoints. Proposed and approved revisions do not resume a
 stopped investigation. A new session reads the same records; it does not recompute
 completed results. Interrupted work is reconciled and rerun with new linked IDs.
 Simulation and sweep runs have no restart files.
+
+Inspection includes each admitted attempt's run ID, base, varied values, dispatch revision, and execution state. Unresolved detached launches are listed separately and consume no allowance before admission; the [run reference](runs.md#detached-launches-and-waiting) describes admission recovery and waits.
