@@ -133,7 +133,7 @@ The [M2 guide](m2-guide.md) covers the joint implementation of Blocks 3–5. [AD
 - `read_run` shows the live trace of running jobs so a stalled run can be aborted mid-way.
 - Run history from the first execution through runner-owned records in each run directory, without a separate ledger store: provenance, parent runs, resource use, and outcome for completed, failed, aborted, and interrupted attempts. This history is available before catalog promotion or agent use.
 - Diagnostics and a documented recovery or rerun path for interrupted work.
-- This block accepts runner facilities through authored CPU jobs, real process/lock tests, and a GPU environment check on the workstation. CPU plan jobs use them in Block 4; linked verification inspection belongs to Block 4, and built-in protocol records, reproduction, and scientific GPU dispatch integration belong to Block 5, with their acceptance evidence required there.
+- This block accepts runner facilities through authored CPU jobs, real process/lock tests, and a GPU environment check on the workstation. Internal computation plans use them in Block 4; linked verification inspection belongs to Block 4, and built-in protocol records, reproduction, and scientific GPU dispatch integration belong to Block 5, with their acceptance evidence required there.
 - **Done when:** runner loss leaves the attempt without `FINISHED`; observed job failures receive failed terminal records; a completed CPU job's `result.toml` validates; it reproduces from frozen inputs, recorded code, and matching `env_hash`; the GPU environment gate passes on the workstation; attempts and lineage remain queryable after interruption.
 
 ### Block 4 — Corrector v0
@@ -142,7 +142,7 @@ The [M2 guide](m2-guide.md) covers the joint implementation of Blocks 3–5. [AD
 - Built-in checks as a separate package with hashed code and a versioned thresholds file: physicality of stored states, spectral truncation refinement, and shared sweep-check functions, with a deterministic, bounded evidence-point selection. Verification is a linked run whose report states each check's outcome and each point's coverage. Block 4 first shipped verdicts, a full-window reference comparison, and spectral cross-checks; Block 5 removes them and makes every check run on request ([ADR-0003 §2.3–§2.4](adr/0003-runs-verification-and-dispatch.md#23-verification-runs-and-checks-on-request)).
 - Block 4 owns trusted computation definitions and shared check functions; Block 5 protocols supply metric definitions and sweep application.
 - The corrector derives the checks relevant to a run from trusted computation definitions and the validated execution plan, not from labels in specs or results.
-- CPU plan jobs use the runner's existing gate, records, and lifecycle; linked verification runs integrate with history and `read_run` before this block closes.
+- Internal computation plans use the runner's existing gate, records, and lifecycle; linked verification runs integrate with history and `read_run` before this block closes.
 - **Done when:** a requested check fails a deliberately under-converged run; a hash mismatch fails the verification run; labels cannot change which checks are relevant. Verification is available before completion of Block 5.
 
 ### Block 5 — Protocols `simulate` and `sweep` (first end-to-end)

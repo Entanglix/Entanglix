@@ -1,4 +1,4 @@
-"""Built-in CPU plans share runner records, failures, provenance, and cancellation."""
+"""Internal plans and simulation records share binding, provenance, and lifecycle."""
 
 import hashlib
 import os
@@ -12,16 +12,29 @@ import tomli_w
 
 from entanglix.corrector import create_verification_run, load_policy, load_verification
 from entanglix.protocols.plans import load_plan
+from entanglix.protocols.simulate import rerun_simulation, simulate
 from entanglix.runner import (
     CodeSnapshot,
     _execute_job,
+    _load_record,
     capture_environment,
     publish_toml,
     read_run,
-    run_plan,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def simulation_file(root):
+    definition = _load_record(root / "plan.toml")
+    engine = definition.pop("engine", "qutip-cpu")
+    device = definition.pop("device", "cpu")
+    definition.update(
+        system="system.toml", needs={"device": device, "gradients": engine == "dynamiqs"}
+    )
+    path = root / "simulate.toml"
+    path.write_text(tomli_w.dumps(definition))
+    return path
 
 
 @pytest.fixture
@@ -44,29 +57,26 @@ def plan_files(tmp_path):
     return tmp_path, definition
 
 
-def test_plan_job_records_and_replays_frozen_complex_inputs(plan_files, runner_repository):
+def test_simulation_records_and_replays_frozen_complex_inputs(plan_files, runner_repository):
     root, _ = plan_files
-    first = run_plan(
-        root / "system.toml",
-        root / "plan.toml",
+    first = simulate(
+        simulation_file(root),
         runs_root=root / "runs",
         repository=runner_repository,
     )
     assert first["exit_code"] == 0
     run = Path(first["path"])
     record = read_run(run)
-    assert record["manifest"]["protocol"] == "plan"
+    assert record["manifest"]["protocol"] == "simulate"
     assert record["manifest"]["engine"] == "qutip-cpu"
     assert record["result"]["method"] == "vern9"
     assert record["start"]["process_group"] > 0
     assert record["finished"]["usage"]["wall_seconds"] > 0
     assert "verdict" not in record["result"]
-    (root / "plan.toml").write_text("invalid original")
-    replay = run_plan(
-        run / "spec/system.toml",
-        run / "spec/plan.toml",
+    (root / "simulate.toml").write_text("invalid original")
+    replay = rerun_simulation(
+        run,
         runs_root=root / "runs",
-        parent_run_ids=(run.name,),
         repository=runner_repository,
     )
     repeated = read_run(Path(replay["path"]))
@@ -98,9 +108,8 @@ def test_carrier_frame_plan_and_refinement_preserve_frame(plan_files, runner_rep
     loaded = load_plan(root / "system.toml", root / "plan.toml")
     expected = QuTiPIntegrator().evolve(loaded.system, loaded.request)
     run = Path(
-        run_plan(
-            root / "system.toml",
-            root / "plan.toml",
+        simulate(
+            simulation_file(root),
             runs_root=root / "runs",
             repository=runner_repository,
         )["path"]
@@ -121,9 +130,8 @@ def test_verification_admission_binds_source_and_leaves_source_unchanged(
 ):
     root, _ = plan_files
     source = Path(
-        run_plan(
-            root / "system.toml",
-            root / "plan.toml",
+        simulate(
+            simulation_file(root),
             runs_root=root / "runs",
             repository=runner_repository,
         )["path"]
@@ -180,7 +188,7 @@ def test_verification_admission_binds_source_and_leaves_source_unchanged(
 
 
 @pytest.mark.parametrize("change", ["kind", "array_path", "unknown_operator", "inconsistent"])
-def test_invalid_plan_is_rejected_before_admission(plan_files, change, runner_repository):
+def test_invalid_simulation_is_rejected_before_admission(plan_files, change, runner_repository):
     root, definition = plan_files
     if change == "kind":
         definition["kind"] = "authored-script"
@@ -192,9 +200,8 @@ def test_invalid_plan_is_rejected_before_admission(plan_files, change, runner_re
         definition["kind"] = "spectrum"
     (root / "plan.toml").write_text(tomli_w.dumps(definition))
     with pytest.raises(ValueError):
-        run_plan(
-            root / "system.toml",
-            root / "plan.toml",
+        simulate(
+            simulation_file(root),
             runs_root=root / "runs",
             repository=runner_repository,
         )
@@ -206,9 +213,8 @@ def test_policy_mismatch_fails_verification_execution_without_a_verdict(
 ):
     root, _ = plan_files
     source = Path(
-        run_plan(
-            root / "system.toml",
-            root / "plan.toml",
+        simulate(
+            simulation_file(root),
             runs_root=root / "runs",
             repository=runner_repository,
         )["path"]
@@ -247,9 +253,8 @@ load_verification(Path(os.environ['ENTANGLIX_RUN_DIR']))
 def test_verification_rejects_untrusted_or_incomplete_source(plan_files, change, runner_repository):
     root, _ = plan_files
     source = Path(
-        run_plan(
-            root / "system.toml",
-            root / "plan.toml",
+        simulate(
+            simulation_file(root),
             runs_root=root / "runs",
             repository=runner_repository,
         )["path"]
@@ -279,9 +284,8 @@ def test_verification_rechecks_retained_source_after_admission(
 ):
     root, _ = plan_files
     source = Path(
-        run_plan(
-            root / "system.toml",
-            root / "plan.toml",
+        simulate(
+            simulation_file(root),
             runs_root=root / "runs",
             repository=runner_repository,
         )["path"]
@@ -323,13 +327,15 @@ def test_plan_identity_ignores_toml_formatting_but_tracks_inputs_and_settings(pl
     assert load_plan(root / "system.toml", path).digest != first.digest
 
 
-def test_plan_timeout_uses_runner_lifecycle(plan_files, runner_repository):
-    root, _ = plan_files
-    job = run_plan(
-        root / "system.toml",
-        root / "plan.toml",
+def test_simulation_timeout_uses_runner_lifecycle(plan_files, runner_repository):
+    root, definition = plan_files
+    protocol = simulation_file(root)
+    spec = _load_record(protocol)
+    spec["timeout_seconds"] = 0.0001
+    protocol.write_text(tomli_w.dumps(spec))
+    job = simulate(
+        protocol,
         runs_root=root / "runs",
-        timeout_seconds=0.0001,
         repository=runner_repository,
     )
     record = read_run(Path(job["path"]))
@@ -338,16 +344,14 @@ def test_plan_timeout_uses_runner_lifecycle(plan_files, runner_repository):
     assert "timeout" in record["log_tail"]
 
 
-def test_dynamiqs_plan_runs_in_configured_exact_cpu_environment(
+def test_dynamiqs_simulation_runs_in_configured_exact_cpu_environment(
     plan_files, differentiable_repository
 ):
     root, definition = plan_files
     repository = differentiable_repository
     definition["engine"] = "dynamiqs"
     (root / "plan.toml").write_text(tomli_w.dumps(definition))
-    job = run_plan(
-        root / "system.toml", root / "plan.toml", repository=repository, runs_root=root / "runs"
-    )
+    job = simulate(simulation_file(root), repository=repository, runs_root=root / "runs")
     record = read_run(Path(job["path"]))
     assert job["exit_code"] == 0, record["log_tail"]
     assert record["result"]["engine"] == "dynamiqs"

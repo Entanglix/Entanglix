@@ -11,6 +11,7 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 import tomli_w
+from test_plans import simulation_file
 
 from entanglix.corrector import load_policy
 from entanglix.corrector.checks import output_checks, series_checks
@@ -18,7 +19,8 @@ from entanglix.corrector.reference import embed_state, prepare_refinement
 from entanglix.corrector.verification import check_run
 from entanglix.models import load_system
 from entanglix.protocols.plans import load_plan
-from entanglix.runner import _digest, _load_record, publish_toml, read_run, run_plan
+from entanglix.protocols.simulate import simulate
+from entanglix.runner import _digest, _load_record, publish_toml, read_run
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -43,9 +45,8 @@ def files(directory, *, kind="lindblad"):
 
 
 def source_run(directory, repository):
-    job = run_plan(
-        directory / "system.toml",
-        directory / "plan.toml",
+    job = simulate(
+        simulation_file(directory),
         repository=repository,
         runs_root=directory / "runs",
     )
@@ -329,7 +330,6 @@ def test_replacement_refinement_runs_without_repeating_source_and_binds_request(
     from test_simulate import protocol_files
 
     from entanglix.corrector import create_verification_run, load_verification
-    from entanglix.protocols.simulate import simulate
     from entanglix.runner import CodeSnapshot, capture_environment
 
     path, spec = protocol_files(tmp_path, kind="spectrum")

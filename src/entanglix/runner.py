@@ -1092,65 +1092,6 @@ def rerun_script(
     )
 
 
-def run_plan(
-    system: Path,
-    plan: Path,
-    *,
-    runs_root: Path = Path("research_runs"),
-    repository: Path | None = None,
-    parent_run_ids: tuple[str, ...] = (),
-    timeout_seconds: float | None = None,
-) -> dict:
-    """Execute an internal validated computation plan."""
-    repository = (repository or Path(__file__).resolve().parents[2]).resolve()
-    if timeout_seconds is not None and (not math.isfinite(timeout_seconds) or timeout_seconds <= 0):
-        raise ValueError("timeout_seconds must be finite and positive")
-    command, environment, extras = _cpu_job_context(repository, "entanglix.protocols._plan_job")
-    check = subprocess.run(
-        [*command, "check"],
-        input=json.dumps(
-            {
-                "system": str(system.resolve()),
-                "plan": str(plan.resolve()),
-                "repository": str(repository),
-                "extras": extras,
-            }
-        ),
-        text=True,
-        capture_output=True,
-        env=environment,
-    )
-    if check.returncode:
-        raise ValueError(process_failure(check, "locked-environment plan validation failed"))
-    gate = json.loads(check.stdout)
-    with create_run(
-        system_id=gate["system_id"],
-        protocol="plan",
-        inputs={name: Path(path) for name, path in gate["inputs"].items()},
-        environment=gate["environment"],
-        code=capture_code(repository),
-        engine=gate["engine"],
-        device="cpu",
-        needs={"gradients": False, "device": "cpu"},
-        runs_root=runs_root.resolve(),
-        parent_run_ids=parent_run_ids,
-        launch={
-            "kind": gate["kind"],
-            "plan_sha256": gate["plan_sha256"],
-            **({"timeout_seconds": timeout_seconds} if timeout_seconds is not None else {}),
-        },
-    ) as owner:
-        run = owner.path
-        if _load_record(run / "run.toml")["spec_sha256"] != gate["spec_sha256"]:
-            (run / "run.log").write_text("entanglix: inputs changed after plan validation\n")
-            record_finish(owner, status="failed", exit_code=64, wall_seconds=0, gpu_seconds=0)
-            return {"path": str(run), "exit_code": 64, "status": "failed"}
-        environment.update(ENTANGLIX_RUN_DIR=str(run))
-        return _execute_job(
-            owner, command, environment, timeout_seconds=timeout_seconds, job_input="plan.toml"
-        )
-
-
 def list_capabilities(repository: Path | None = None) -> dict:
     """Inspect the runner environment without creating or synchronizing it."""
     repository = (repository or Path(__file__).resolve().parents[2]).resolve()

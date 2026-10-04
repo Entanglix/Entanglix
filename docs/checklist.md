@@ -129,7 +129,7 @@ The [M2 guide](m2-guide.md) records the implementation approach; [ADR-0003](adr/
 
 ### [x] Block 3 — Runner and Run Contract
 
-**Depends on:** Blocks 0–2. Acceptance covers the runner facilities and authored CPU jobs. Plan-job integration belongs to 4A, linked verification to 4A–4B, and built-in protocol/GPU dispatch integration to 5C–5D; their acceptance checks remain below.
+**Depends on:** Blocks 0–2. Acceptance covers the runner facilities and authored CPU jobs. Computation-plan integration belongs to 4A, linked verification to 4A–4B, and built-in protocol/GPU dispatch integration to 5C–5D; their acceptance checks remain below.
 
 - [x] Gate facilities: system validation, static import scan, and selected-device environment check (driver access and loaded CUDA/cuDensityMat) ([launch tests](../tests/test_runner.py), [import policy](../src/entanglix/imports.py), [GPU gate tests](../tests/test_gpu_environment.py), [workstation evidence](environment.md#runner-gpu-environment-check))
 - [x] Run dir per contract §2: `run.toml` first, `runner/started.toml` before computation, frozen `spec/`, `FINISHED` last, atomic `result.toml`, and assigned job outputs ([record API](../src/entanglix/runner.py), [record tests](../tests/test_run_records.py), [launch tests](../tests/test_runner.py), [run reference](operations/runs.md))
@@ -150,7 +150,7 @@ The [M2 guide](m2-guide.md) records the implementation approach; [ADR-0003](adr/
 
 **Depends on:** Blocks 1–3. This block owns trusted computation definitions and shared check functions; protocol metrics and actual sweep integration belong to 5C–5D.
 
-- [x] CPU plan jobs use the existing runner gate, frozen records, lifecycle, and provenance facilities (4A) ([plan tests](../tests/test_plans.py), [retained plan records](operations/runs.md#computation-records))
+- [x] Internal computation plans use the runner gate, frozen records, lifecycle, and provenance through simulations ([plan and simulation tests](../tests/test_plans.py), [retained computation records](operations/runs.md#computation-records))
 - [x] Separate corrector package; code hashed at load; versioned thresholds outside the candidate workspace; research tools cannot replace policy or check reports ([policy implementation](../src/entanglix/corrector/__init__.py), [policy tests](../tests/test_corrector.py), [verification execution tests](../tests/test_verification.py))
 - [x] Requested dynamics integrity and same-frame CPU refined segments with local coverage; deterministic bounded sweep evidence selection; dimension-48 exact regression retained as engine evidence ([policy tests](../tests/test_corrector.py), [checks and coverage](../tests/test_verification.py), [scientific regressions](../tests/test_verification_cost.py), [semantics](operations/protocols.md#requested-checks-and-segment-tolerances))
 - [x] Linked requested checks bound to source digests, frozen requests and policy version; inspection lists history and per-check outcomes without an overall verdict ([binding tests](../tests/test_plans.py), [inspection and relocation](../tests/test_verification.py), [records](operations/runs.md#corrector-policy-and-verification-records))

@@ -38,7 +38,7 @@ Each step belongs to one block, and blocks complete in order. Block 3 accepts ru
 | 3A — Run records | Fields of `run.toml`, the runner's start and reconciliation records, `result.toml`, and `FINISHED`; run IDs; `env_hash` inputs; code provenance including uncommitted changes; exit codes | Records and their meanings written in an operational run reference; contract wording agrees |
 | 3B — CPU runner | Gate (spec validation, import scan, environment check); launch of an authored script in its own process group; frozen `spec/`; `FINISHED` last; `list_capabilities`, `list_runs`, `read_run` | Completed and failed runs leave valid records; launches rejected before `run.toml` exists exit `64` with a diagnostic; a completed run reproduces |
 | 3C — Lifecycle and GPU | Timeouts, `abort_run`, termination of the job or runner, an attempt lock, a GPU lock across runner instances, reconciliation of unknown process state, live trace, rerun lineage, documented recovery | Abrupt termination never yields a completed `FINISHED`; an attempt whose runner or job is alive is never reconciled; a runner killed while its job survives leaves the GPU blocked until reconciliation; interrupted attempts, including those that never started, remain queryable with their records and uncertain usage |
-| 4A — Corrector and plans | Versioned thresholds, policy digest, deterministic bounded evidence selection, trusted computation definitions, internal execution plans and CPU jobs, linked check records | Plan jobs preserve runner records and provenance; source bindings and policy digests are checked; dimension-48 exact regression qualifies the CPU engines without imposing a cap |
+| 4A — Corrector and plans | Versioned thresholds, policy digest, deterministic bounded evidence selection, trusted computation definitions, internal execution plans, linked check records | Plans preserve runner records and provenance through simulations; source bindings and policy digests are checked; dimension-48 exact regression qualifies the CPU engines without imposing a cap |
 | 4B — Shared checks | Integrity and spectral-refinement functions, declared sweep-expectation checks, coverage and linked inspection | Deliberate faults are detected; labels cannot change check applicability; reports identify scope, tolerances, residuals, coverage and inapplicable reasons |
 | 5A — Feasibility and metric | Disposable QuTiP probe of the first example; metric, region, windows, grids, drive-frequency policy, refined dimensions, and candidate thresholds | Choices recorded with measured durations and step counts before drive, frame, or protocol implementation |
 | 5B — Drives and frames | Lab-frame carrier drives on all three engines; rotating frames with an explicit rotating-wave approximation; frame comparison in the reference solve | Carrier fixtures pass M1-style agreement, refinement, and physicality checks; rotating and lab frames agree within declared tolerances |
@@ -96,7 +96,7 @@ The lock is a file lock, so lifecycle tests use short CPU jobs and real signals 
 
 ### Plans and applicability
 
-Checks are keyed to computation kinds M1 already provides: Lindblad evolution, spectrum, and parameter series. A plan is the runner-validated execution record for one computation: frozen system, evolution or spectral request, and engine decision. Step 4A pins the plan format and adds a built-in plan job that evaluates a plan on a named engine. Block 4 tests check plan runs directly; Block 5 protocols compile to plans and add metrics, summaries, and plots.
+Checks are keyed to computation kinds M1 already provides: Lindblad evolution, spectrum, and parameter series. A plan is the runner-validated execution record for one computation: frozen system, evolution or spectral request, and engine decision. Protocols compile to internal plans, which the computation worker evaluates on the selected engine. Tests exercise plan binding and lifecycle through simulations; there is no separate plan launcher. Protocols also supply metrics, summaries, and plots.
 
 The corrector derives the checks relevant to a run from the plan's content and the trusted definition of its kind, not from labels in specs or results. For example, dynamics checks do not apply to a spectral run, and rotating-wave shifts are reported only for a rotating-frame run. Runs without a trusted definition, including authored scripts, have no built-in checks.
 
@@ -179,7 +179,7 @@ Suggested locations, created as code arrives:
 ```text
 src/entanglix/runner.py          # records, gate, launch, lifecycle, GPU lock, list/read/abort
 src/entanglix/corrector/         # definitions, checks, thresholds.toml, verification job
-src/entanglix/protocols/         # plan job, simulate, sweep
+src/entanglix/protocols/         # internal plans, shared computation, simulate, sweep
 src/entanglix/evolution.py       # carrier drives and frames in the evolution input
 tests/probes/m2_feasibility.py   # disposable 5A probe and its retained results
 tests/probes/m2_verification.py  # 5V verification probe and its retained results

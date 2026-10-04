@@ -43,7 +43,7 @@ Linked [investigation jobs](investigations.md#usage-and-optional-limits) also re
 
 ## Computation records
 
-Simulations appear as `protocol = "simulate"`. Internal plan jobs, which no command launches, appear as `"plan"`; historical `"reference"` records remain readable. Their `spec/` contains `system.toml`, `plan.toml`, referenced model files, and numeric inputs, and a simulation also keeps its `simulate.toml`. The manifest records the computation kind, plan digest, selected engine, environment, and code provenance. The plan digest covers normalized content and model/numeric input digests; separate `spec_sha256` entries preserve raw-file integrity. The plan format is internal and is not a public authoring interface.
+Simulations appear as `protocol = "simulate"`; historical `"plan"` and `"reference"` records remain readable. A simulation's `spec/` contains `system.toml`, `simulate.toml`, its compiled `plan.toml`, referenced model files, and numeric inputs. The manifest records the computation kind, plan digest, selected engine, environment, and code provenance. The plan digest covers normalized content and model/numeric input digests; separate `spec_sha256` entries preserve raw-file integrity. The plan format is internal and is not a public authoring interface.
 
 The result records the actual engine, method, dimensions, device, and solver diagnostics. `artifacts/output.npz` holds `states`, `times_ns`, and `observable.<name>` arrays for dynamics, or `energies_ghz` for spectra; its digest is checked before completion. Computation completion describes execution only; checks run separately on request.
 
