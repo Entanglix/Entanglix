@@ -27,7 +27,7 @@ This index supports project planning and implementation. Operational entry point
 ## Operational harness
 
 - [../README.md](../README.md) — User entry point, available commands, and compatibility.
-- [research-agent.md](research-agent.md) — Draft research conduct for user agents; instruction delivery is decided before Block 6b. It avoids an auto-load filename and is not repository development guidance.
+- [research-agent.md](research-agent.md) — Draft research conduct for user agents; its delivery is settled in [ADR-0004 §2.8](adr/0004-investigations-and-agent-sessions.md#28-agent-sessions), and the text is refreshed in Block 6b. It avoids an auto-load filename and is not repository development guidance.
 - [../HARNESS_CONTRACT.md](../HARNESS_CONTRACT.md) — Shared interfaces, permissions, checks, and execution guarantees.
 - [operations/system-spec.md](operations/system-spec.md) — Implemented system syntax, units, operators, evolution, drive gradients, numerical checks, and engine selection. Other usage guides may be added under `operations/` as capabilities arrive. Runtime skills will be introduced in the root `skills/` directory with agent integration.
 - [operations/runs.md](operations/runs.md) — Authored CPU jobs, listing and inspection, frozen inputs, environment and code provenance, record ownership, and execution outcomes.

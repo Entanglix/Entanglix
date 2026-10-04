@@ -1,0 +1,216 @@
+{
+  "probe": "tests/probes/m3_agent_session.py",
+  "versions": {
+    "version": "codex-cli 0.160.0",
+    "uv": "uv 0.12.0 (x86_64-unknown-linux-gnu)",
+    "python": "3.13.12",
+    "mcp": "2.3.0"
+  },
+  "session": {
+    "command": "codex exec --json --skip-git-repo-check -s workspace-write",
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "low",
+    "environment": "CUDA_VISIBLE_DEVICES=\"\" and the stand-in command on PATH",
+    "project_settings": [
+      ".codex/config.toml",
+      ".codex/rules/operator.rules"
+    ],
+    "project_settings_loaded": {
+      "untrusted": false,
+      "trusted": true
+    }
+  },
+  "guidance": {
+    "server_instructions": {
+      "sent_at_initialize": true,
+      "in_prompt_at_session_start": false,
+      "reported_before_any_tool_use": false,
+      "in_transcript_once_tools_are_looked_up": true,
+      "first_tool_call_was_begin_session": {
+        "procedures": true,
+        "gpu": true,
+        "deny": false,
+        "wait": false
+      }
+    },
+    "workspace_file": {
+      "in_prompt_at_session_start": true,
+      "reported": true
+    },
+    "skill": {
+      "listed_at_session_start": true,
+      "body_in_prompt_at_session_start": false,
+      "body_read_with": [
+        "/bin/bash -lc 'cat .agents/skills/sample-procedure/SKILL.md procedures/sample.md procedures/manual-procedure.md'"
+      ],
+      "followed": true
+    },
+    "plain_procedure": {
+      "read_with": [
+        "/bin/bash -lc 'cat .agents/skills/sample-procedure/SKILL.md procedures/sample.md procedures/manual-procedure.md'"
+      ],
+      "followed": true
+    }
+  },
+  "development_instructions": {
+    "in_prompt_at_session_start": false,
+    "in_any_transcript": false
+  },
+  "operator_command": {
+    "rule_matches_offline": {
+      "entanglix investigation-decision demo start --revision 1": "forbidden",
+      "entanglix promote staged-1": "forbidden",
+      "entanglix list-investigations": "no match",
+      "uv run --project /home/paimon/Projects/Entanglix entanglix investigation-decision demo start --revision 1": "no match",
+      "bash -lc 'entanglix investigation-decision demo start --revision 1'": "no match"
+    },
+    "commands_that_ran": [
+      "2026-10-04T09:10:39-05:00 EXECUTED entanglix list-investigations"
+    ],
+    "refusal_names_the_rule": true
+  },
+  "tool_approval_unattended": {
+    "marked_read_only": {
+      "begin_session": "completed",
+      "environment": "completed"
+    },
+    "not_marked_default_mode": "{\"message\": \"MCP tool call requires approval, but approval policy is never\"}",
+    "not_marked_approve_mode": "completed"
+  },
+  "gpu_visibility": {
+    "session_shell": {
+      "CUDA_VISIBLE_DEVICES": "",
+      "cuInit": 100,
+      "devices": 0,
+      "with_variable_removed": {
+        "cuInit": 100,
+        "devices": 0
+      }
+    },
+    "server_child": {
+      "CUDA_VISIBLE_DEVICES": "GPU-f2a6e8aa-b32b-ae8e-6dc6-03612dd6b829",
+      "cuInit": 0,
+      "devices": 1,
+      "with_variable_removed": {
+        "cuInit": 0,
+        "devices": 1
+      }
+    },
+    "same_setting_outside_the_runtime": {
+      "CUDA_VISIBLE_DEVICES": "",
+      "cuInit": 100,
+      "devices": 0,
+      "with_variable_removed": {
+        "cuInit": 0,
+        "devices": 1
+      }
+    }
+  },
+  "server_environment": {
+    "variables_received": [
+      "CUDA_VISIBLE_DEVICES",
+      "HOME",
+      "LANG",
+      "LOGNAME",
+      "PATH",
+      "PROBE_LOG",
+      "SHELL",
+      "TERM",
+      "USER",
+      "UV",
+      "UV_RUN_RECURSION_DEPTH",
+      "VIRTUAL_ENV"
+    ],
+    "HOME": "/home/paimon",
+    "XDG_STATE_HOME": "<unset>",
+    "gpu_lock_directory": "/home/paimon/.local/state/entanglix/gpu",
+    "uv": "/home/paimon/.local/bin/uv"
+  },
+  "disconnection": {
+    "codex": {
+      "started": true,
+      "marker": "/home/paimon/Projects/entanglix-research/d3-probe/evidence/detached-1791123072998231259.jsonl",
+      "own_session": true,
+      "alive_after_close": true,
+      "finished": true,
+      "finished_seconds_after_close": 48.2,
+      "parent_at_finish": 1
+    },
+    "scripted_client": {
+      "started": true,
+      "marker": "/home/paimon/Projects/entanglix-research/d3-probe/evidence/detached-1791122944239289750.jsonl",
+      "own_session": true,
+      "alive_after_close": true,
+      "finished": true,
+      "finished_seconds_after_close": 6.0,
+      "parent_at_finish": 1
+    }
+  },
+  "waiting": {
+    "short_wait": {
+      "event": "wait_finished",
+      "after": 3.0033767223358154
+    },
+    "runtime_timeout": "{\"message\": \"tool call error: tool call failed for `probe/wait`\\n\\nCaused by:\\n    timed out awaiting tools/call after 8s\"}",
+    "cancellation_sent_by_codex": false,
+    "server_side_wait": {
+      "event": "wait_finished",
+      "after": 20.008785486221313
+    },
+    "call_answered_during_wait": true,
+    "scripted_client": {
+      "call_during_wait_seconds": 0.023,
+      "timeout": "MCPError",
+      "cancellation_sent": true,
+      "server_handler_cancelled": true
+    }
+  },
+  "audit": {
+    "initialize": {
+      "protocolVersion": "2025-06-18",
+      "capabilities": {
+        "experimental": {
+          "codex/auth-change": {}
+        },
+        "elicitation": {
+          "form": {},
+          "url": {}
+        }
+      },
+      "clientInfo": {
+        "name": "codex-mcp-client",
+        "title": "Codex",
+        "version": "0.160.0"
+      }
+    },
+    "request_meta_keys": [
+      "callId",
+      "itemId",
+      "progress_token",
+      "sessionId",
+      "threadId",
+      "windowId",
+      "x-codex-turn-metadata"
+    ],
+    "turn_metadata": {
+      "session_id": "01a10740-2953-79c0-9cca-cc8a5f4a036f",
+      "turn_id": "01a10740-2977-7b62-8983-cbb6345b46b3",
+      "model": "gpt-6.1-sol",
+      "reasoning_effort": "low",
+      "sandbox_mode": "workspace-write",
+      "codex_version": "0.160.0"
+    },
+    "transcript_path_sent": false,
+    "runtime_variables_in_server_environment": {}
+  },
+  "evidence": {
+    "workspace": "/home/paimon/Projects/entanglix-research/d3-probe",
+    "transcripts": {
+      "delivery": "/home/paimon/.codex/sessions/2026/10/04/rollout-2026-10-04T09-09-11-01a1073f-4c7d-7cc3-b97a-7d3529cffdd5.jsonl",
+      "procedures": "/home/paimon/.codex/sessions/2026/10/04/rollout-2026-10-04T09-09-18-01a1073f-6926-7d10-97ba-2738e531ffa7.jsonl",
+      "gpu": "/home/paimon/.codex/sessions/2026/10/04/rollout-2026-10-04T09-10-07-01a10740-2953-79c0-9cca-cc8a5f4a036f.jsonl",
+      "deny": "/home/paimon/.codex/sessions/2026/10/04/rollout-2026-10-04T09-10-32-01a10740-8ba0-75f3-b109-4ea94a64d110.jsonl",
+      "wait": "/home/paimon/.codex/sessions/2026/10/04/rollout-2026-10-04T09-10-56-01a10740-e6ff-7611-9fc4-7764df452f5e.jsonl"
+    }
+  }
+}

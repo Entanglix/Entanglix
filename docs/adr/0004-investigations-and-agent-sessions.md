@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-04
 **Status:** Accepted
-**Purpose:** fix how an investigation is recorded, who may change its terms, how its jobs are admitted and stopped, how progress is assessed and work resumed, how the first agent-assisted investigation is evaluated, and whose runtime drives the harness. Field lists, formats, and command names are documented with the implementation.
+**Purpose:** fix how an investigation is recorded, who may change its terms, how its jobs are admitted and stopped, how progress is assessed and work resumed, how the first agent-assisted investigation is evaluated, whose runtime drives the harness, and how an agent session is instructed, restricted, and audited. Field lists, formats, and command names are documented with the implementation.
 
 ---
 
@@ -54,6 +54,7 @@ The harness does only what the user requests. For an investigation it supplies n
 - An admitted attempt keeps the revision and limits under which it was admitted, including its deadline. An approved revision governs later admissions only. To withdraw permission from outstanding attempts, the user stops the investigation, approves the revision, and resumes.
 - Immediately before a job computes, the runner takes the lock again. If a stop event names the run, or its deadline has passed, the run ends as aborted without computing. Otherwise the start record is published before the lock is released.
 - The supervisor carries the absolute deadline into execution and ends the job at expiry, whatever its timeout.
+- A GPU launch takes the device lock before its launch check and before admission, and holds it through execution. On a busy device, or one awaiting reconciliation, the launch is refused: no attempt exists and no allowance is used. The lock is released if the check, admission, or manifest creation fails. No CUDA context is created before the lock is held. The lock order is device, then investigation, and a run outside an investigation follows the same order. A failure after the manifest is published remains a recorded failed attempt.
 
 **Rationale:**
 - Bases and ranges describe a permitted region with syntax that sweeps already validate. A base per value binds a derived file with existing digests, so no mechanism for derived inputs is needed.
@@ -61,6 +62,7 @@ The harness does only what the user requests. For an investigation it supplies n
 - The base-and-range fields permit a lab-frame confirmation and a lab-frame search at the same amplitudes. A rule separating them would be a workflow engine.
 - An attempt is admitted before it starts. Without the second check, a stop would miss it, and a timeout fixed at admission would let setup time carry the job past the deadline.
 - Applying an approved revision to attempts already admitted would mean reconfiguring jobs in flight. A stop already cancels outstanding attempts, so stop, revise, and resume withdraws permission with what exists.
+- A launch refused for a busy device did no work. Counting it would let repeated attempts use up an allowance or bring a checkpoint due, and a device check run beside an active job could take memory from it.
 
 ### 2.4 Checkpoints, assessments, and reviews
 
@@ -110,10 +112,49 @@ Measurements: [readout threshold probe](../../tests/probes/m3_readout_results.js
 ### 2.7 Agent runtime
 
 - The runtime is the user's own. The harness holds no model backend and no API key, and it does not limit the runtime: any runtime that speaks MCP over stdio can drive it.
-- Each session's audit records the runtime's name and version.
+- Each session's audit records the client name and version the runtime reports (§2.8).
 - CI tests the harness side with a scripted MCP client and needs no runtime. Checks that need a session run on the workstation in the user's runtime and are retained.
 
 **Rationale:** the harness provides tools, records, and procedures; the model and its runtime are the user's choice, as the solver is. CI has no logged-in user, and a runtime the harness does not own is not the harness's to pin.
+
+### 2.8 Agent sessions
+
+**Guidance**
+- Research conduct is one maintained text, which the harness ships as a file. The user supplies it in the session's initial context: through a workspace instruction file where the runtime reads one, otherwise through the runtime's manual context mechanism. The MCP server sends the same text as its instructions, as an additional channel.
+- Task procedures are skills: plain documents that declare `name`, `description`, and `version`. The conduct text names each procedure and its file, so a procedure stays usable as plain text in a runtime without skill loading.
+- The harness generates no workspace file and does not detect what a runtime loaded. Delivery is claimed only from what a runtime exposes of its context, such as the prompt it shows or its transcript. Following a procedure shows behaviour; it does not show which channel supplied the instruction.
+- A research workspace is a directory outside the repository, so repository development instructions are not loaded there. The user sets it up by documented steps; there is no setup command.
+
+**User decisions**
+- The operator command in the user's own terminal is the only decision path in M3.
+- An agent that needs a decision states the exact command, with the investigation and revision, and continues only after reading the decision event. A session that nobody attends hands off, and a later session continues from records.
+- A runtime's approval of a tool call permits invoking a research operation. It does not create an investigation start, a revision approval, a resume, or a review release.
+
+**Job tools**
+- A job tool returns the run ID once the manifest exists and a supervisor that outlives the call owns the attempt.
+- `read_run` takes an optional wait in seconds; without it the call returns at once. A wait returns at completion, at interruption, or when it expires. The MCP server caps one wait at 30 seconds; the command line applies no cap. Abandoning a wait never cancels the job, and the server answers other calls, including `abort_run`, while a wait is pending.
+- A launch is recorded in the tool-call audit before its supervisor is started, and the supervisor links the admitted run to that call, so the link does not depend on the server surviving. Recovery distinguishes a pending launch from an admitted or definitively refused one: an absent run is not evidence of refusal while admission is unresolved. This holds for a launch outside an investigation too.
+- The read operations report attempts and unresolved launches. The conduct tells an agent to read them at the start of a session and after a launch call that returned no response, and not to launch again while that launch is pending. There is no retry service.
+
+**Permissions**
+- An agent may request a job on either device through a supported protocol. Within an investigation the device is part of a base the user approved, and admission checks the base by digest, so a job request cannot change it. Which physical GPU the runner uses, and its runner extras, are operator configuration.
+- The user starts the runtime with `CUDA_VISIBLE_DEVICES=""`, and the server entry names the device for runner-launched jobs. This is CUDA visibility: ordinary CUDA code in the session finds no device. It is not an operating-system boundary.
+- Where the runtime can restrict commands, its settings deny the human-action commands. The restriction is claimed for a runtime and a command form only where a test shows the configured setting refusing the command. Setup documents the invocation forms covered by the restriction, and conformance tests exercise those forms. In a runtime without such a setting the conduct text carries the rule, the session is recorded as instruction-only, and no blocked-command test is claimed.
+- The server entry sets the runs root, the device, the runner extras, and the state directory when the user's shell sets one, because a runtime may not pass its own environment to the server. The server and the operator commands use the same runs root, and every runner instance uses the same GPU lock location.
+
+**Session audit**
+- There is one session-audit entry per MCP connection, and its ID is the tool-call audit's session ID. The entry is immutable. It holds the client name and version reported at the handshake, the server's configuration, and the conduct version and skill names and versions the harness supplied. Supplying a skill does not show that the runtime loaded it.
+- Metadata a client sends with a request, such as a session, turn, or model identifier, is recorded on that tool-call entry, because it can change during a connection. It is reported by the client and is not authenticated.
+- What the server cannot observe, such as the skills the runtime loaded and its transcript location, is recorded as unknown. An evaluation records its model and transcripts in its own configuration.
+
+**Rationale:**
+- Runtimes differ in whether they read a workspace file, when they show server instructions, which environment they pass to a server, whether they cancel a call they abandon, whether they ask for approval of a tool, and whether they can restrict commands. Each decision states what the harness does and what holds in a runtime without the feature.
+- An instruction is not enforcement (contract §8), so an instruction-only session is recorded as one and is not counted as a blocked command.
+- A wait inside `read_run` avoids both a new tool and repeated empty calls. The MCP server caps it because a runtime can abandon a call at its own timeout without telling the server; a terminal has no such timeout. The cap bounds one call, not a job or an investigation.
+- A launch can be admitted after its connection is lost, so the absence of a run cannot be read as refusal until the launch is resolved.
+- A server sees a connection and its requests, not an agent session or a model. Recording what the client reports, labelled as such, is the most the server can state.
+
+Measurements: [agent-session probe](../../tests/probes/m3_agent_session_results.json).
 
 ## 3. Alternatives not adopted
 
@@ -143,16 +184,31 @@ Measurements: [readout threshold probe](../../tests/probes/m3_readout_results.js
 | A model backend, an API key, or a list of supported runtimes | The runtime is the user's own |
 | A pinned runtime or a live agent session in CI | CI has no logged-in user, and the harness does not own the runtime |
 | A job queue, scheduler, grant service, or workflow engine | ADR-0001 and contract §7 reuse process and runtime facilities |
+| A generated workspace instruction file, or detection of what a runtime loaded | A shipped file the user supplies is enough, and a server cannot observe a model's context |
+| A runtime prompt or an in-session decision tool | Nothing in M3 needs one; the operator command is the single decision path |
+| A runtime's tool approval treated as a user decision | Approval permits a call; only the operator command records a decision |
+| Polling `read_run` without a wait, or a separate wait tool | Polling spends calls on nothing, and a second tool duplicates `read_run` |
+| An uncapped wait through MCP | A runtime abandons a long call at its own timeout and may not cancel it |
+| A capped wait on the command line | The cap answers a runtime's tool timeout, which a terminal does not have |
+| A harness guard in the terminal for human-action commands | Another cooperative mechanism that leaves the limitation in place |
+| An instruction-only rule counted as a blocked command | An instruction is not enforcement (contract §8) |
+| An agent self-report tool for model and transcript | Unverifiable; the client's metadata or the evaluation's configuration records them |
+| A retry service or idempotency key for launches | Audit and run records already distinguish a pending, admitted, or refused launch |
+| Counting a launch refused for a busy device | It did no work, and retries would use up an allowance |
+| A setup command for the research workspace | The setup is a few documented steps that differ by runtime |
+| An agent framework or orchestration library in the harness | The harness calls no model; the agent loop is the runtime's |
 
 ## 4. Consequences
 
 - The contract changes accordingly:
   - §4 states that every change to a revision takes effect only on a user decision, in place of routine revisions without approval, that admitted attempts retain their dispatch revision and limits, and that a stop cancels its outstanding attempts permanently.
-  - §5 describes `revise_investigation` as proposing a revision.
-  - §8 records the runtime's name and version in each session's audit, in place of a runtime pinned in CI.
+  - §5 describes `revise_investigation` as proposing a revision. It gives `read_run` an optional wait, reports attempts and unresolved launches, permits a runtime user-input path only when it is implemented and validated, and limits the command restriction to runtimes and command forms where a test shows it.
+  - §6 records a launch before its supervisor starts, puts client-sent request metadata on the tool-call entry, and keeps one immutable session entry per connection.
+  - §7 describes the hidden GPU as CUDA visibility and refuses a busy-device launch before an attempt exists.
+  - §8 records the client name and version the runtime reports in each session's audit, in place of a runtime pinned in CI, and states the conformance evidence for agent sessions in the terms of §2.8.
 - The roadmap and checklist replace the default checkpoint interval with a checkpoint the user declares, and refer to the user's runtime instead of a selected one.
 - A run's manifest gains its investigation and revision. The run reference and a new investigation reference document the records, the operator command, limits, and recovery.
 - The readout example records the first investigation: its question, scope, claim rule, measured brackets, costs, and stated limits.
-- Tests cover a draft that cannot start or approve itself, a proposed revision taking effect only on a decision, concurrent events, the admission rule of each operation, unknown limit names, concurrent launches against one limit, uncertain usage, the absolute deadline, an approved revision leaving admitted attempts under their dispatch revision, a run admitted but not yet computing after a stop, after a stop followed by a resume, and past the deadline, checkpoint gating that counts failed and aborted attempts, review gating with named release, and a new session continuing from records.
-- Instruction delivery, the form of job tools and their supervision, the user-input path inside a session, and permission settings are decided before Block 6b and added to this record. So is ADR-0003's open point on whether a research agent may declare a device.
+- Tests cover a draft that cannot start or approve itself, a proposed revision taking effect only on a decision, concurrent events, the admission rule of each operation, unknown limit names, concurrent launches against one limit, uncertain usage, the absolute deadline, an approved revision leaving admitted attempts under their dispatch revision, a run admitted but not yet computing after a stop, after a stop followed by a resume, and past the deadline, checkpoint gating that counts failed and aborted attempts, review gating with named release, and a new session continuing from records. They also cover each refusal of a launch on a busy device creating no attempt and no usage, the device lock released when the check, admission, or manifest creation fails, and a launch recovered as pending, admitted, or refused after its connection or response is lost.
+- §2.8 records the agent-session decisions taken before Block 6b and settles ADR-0003's open point on whether a research agent may declare a device.
 - Control and calibration add their operations to the permitted operations when those protocols are built. Co-design links device and control runs under one investigation.

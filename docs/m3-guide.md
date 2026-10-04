@@ -30,10 +30,10 @@ Block 6a: records and decisions --> admission and limits --> checkpoints, stop, 
     |
 Decision: instruction delivery, permissions, job tools
     |
-Block 6b: MCP surface and audit --> skills and instructions --> agent investigation + M3 evaluation
+Block 6b: busy-device admission --> MCP surface and audit --> skills and instructions --> agent investigation + M3 evaluation
 ```
 
-Steps complete in order. D3 needs nothing from Block 6a and can be taken at any time before 6b-1.
+Steps complete in order. D3 needs nothing from Block 6a and can be taken at any time before 6b-0.
 
 | Step | Work | Evidence before advancing |
 |---|---|---|
@@ -43,9 +43,10 @@ Steps complete in order. D3 needs nothing from Block 6a and can be taken at any 
 | 6a-2 — Admission, usage, and limits | Investigation ID on job operations; scope checks per operation; atomic admission and the check before a job computes; usage and finding check summaries from linked run records; `job_count`, `job_seconds`, `deadline`, and optional run timeouts | Out-of-scope launches and unknown limit names are refused; checks, reruns, and scripts are admitted by their own rules; no-limit and limit cases pass; two concurrent launches cannot both pass a limit that one exhausts; uncertain usage never returns allowance; an absolute deadline ends a running job and refuses later starts; an approved revision leaves attempts already admitted under their dispatch revision; under a `job_seconds` limit a job without a timeout is admitted and ends only when the allowance is used up; one workstation GPU job records its GPU-seconds and counts toward the limit like a CPU job |
 | 6a-3 — Checkpoints, reviews, stop, and resume | Checkpoint gating, assessments, review opening and release, `stop_investigation`, resume | A due checkpoint refuses admission until an assessment is recorded, counting failed and aborted attempts; an open review refuses admission until released by name; a stop cancels active jobs and records its reason; delayed-start tests show that a run admitted but not yet computing does not start after a stop, after a stop followed by a resume, or past the deadline; a new session continues from records with accounting intact |
 | 6a-4 — Scripted client and 6a acceptance | The readout threshold client, its documented selection policy, and baseline runs of both cases | The client reproduces the probe's outcomes: the declared evidence in the normal case and a supported handoff in the early-stop case; history survives an interrupted session; Block 6a exit criteria pass |
-| D3 — Agent-session decisions | Instruction delivery, user-input path, job-tool form, and permission settings (§5) | Recorded as a section of ADR-0004; instruction delivery demonstrated in a research workspace |
-| 6b-1 — MCP surface and audit | `entanglix.mcp` behind an optional `mcp` extra; stdio server over the backing operations; job supervision independent of the connection; tool-call and session audit | A scripted MCP client gets the CLI's results; unavailable capabilities are not advertised; approval claims, out-of-scope requests, and limit changes are refused; a job whose MCP connection is lost, before or during computation, still reaches a valid terminal record with its deadline enforced and the GPU excluded until then; every call leaves an audit record linked to its revision and runs |
-| 6b-2 — Skills and instructions | `skills/` with the initial skills; refreshed research-agent conduct through the selected mechanism; runtime permission settings | In a research workspace the runtime receives the research guidance and no repository development instructions, claimed only where the runtime exposes evidence of what it loaded; human-action commands are denied; the session sees no GPU |
+| D3 — Agent-session decisions | Instruction delivery, user-input path, job-tool form, permission settings, and session audit (§5) | Recorded as ADR-0004 §2.8; instruction delivery demonstrated in a scratch research workspace ([probe](../tests/probes/m3_agent_session_results.json)) |
+| 6b-0 — Busy-device admission | The device lock is taken before the launch check and admission and held through execution; the lease record is written once the run exists | Each refusal creates no attempt and uses no allowance: the device lock held, the lock free with a recorded process group still alive, and a previous attempt awaiting reconciliation. The lock is released when the check, admission, or manifest creation fails. A successful launch holds the lock continuously from before its launch check, including the child process that initializes CUDA, to the end of execution. A failure after the manifest is published stays a recorded failed attempt. The GPU launch tests pass again |
+| 6b-1 — MCP surface and audit | `entanglix.mcp` behind an optional `mcp` extra; stdio server over the backing operations; job supervision independent of the connection; tool-call and session audit; the `read_run` wait; launches recorded before the supervisor starts and reported while unresolved; attempts in `read_investigation`; tool annotations by each operation's effects | A scripted MCP client gets the CLI's results; unavailable capabilities are not advertised; approval claims, out-of-scope requests, and limit changes are refused; a job whose MCP connection is lost, before or during computation, still reaches a valid terminal record with its deadline enforced and the GPU excluded until then; every call leaves an audit record linked to its revision and runs; a wait returns at completion, at interruption, and at expiry, and the MCP server caps it at 30 seconds; abandoning a wait leaves the job running and `abort_run` is answered meanwhile; a connection lost before admission and a response lost after admission are each recovered without a second attempt, inside and outside an investigation, including a server lost after the audit record and before the supervisor starts, and a supervisor lost immediately after it publishes the manifest; the connection entry and the tool-call entries label client-reported and unknown fields |
+| 6b-2 — Skills and instructions | `skills/` with the initial skills; refreshed research-agent conduct through the selected mechanism; runtime permission settings | In a research workspace the session has the conduct text from its first step and no repository development instructions, claimed only from what the runtime exposes of its context; the runtime's configured restriction refuses the human-action commands in each documented invocation form, or the session is recorded as instruction-only; the examples and the commands an agent suggests use a tested form; the session sees no CUDA device while the server's jobs see theirs |
 | 6b-3 — Agent investigation and M3 evaluation | Formulation from a broad request; both cases through logged tools; comparison with the 6a baseline | Declared evidence and reporting criteria are met; the early-stop case ends in a supported report with next experiments; the comparison is reported, including worse or inconclusive results; M3 exit criteria pass |
 
 ## 3. First investigation and evaluation
@@ -215,15 +216,44 @@ The client computes the loss and the brackets from several runs' metrics. These 
 
 ## 5. Block 6b — agent integration
 
-### Decisions before 6b
+### Settled before 6b
 
-| Decision | Proposal |
+| Decision | Settled choice |
 |---|---|
-| Runtime | The user's own. Nothing is built or configured as a backend, and the harness requires only MCP over stdio, so any runtime that speaks it can drive the harness. Each session's audit records the runtime's name and version |
-| Instruction delivery | Research conduct in the MCP server's instructions and task procedures in skills, both independent of the runtime. Where a runtime does not surface required conduct or procedures, a generated workspace file supplies only the missing content |
-| User-input path | The operator CLI in the user's own terminal is the only decision path in M3. A runtime prompt is added only if the agent cannot answer it itself |
-| Job tools | A job tool returns the run ID once the manifest exists and the supervisor owns the attempt, and the agent then reads or waits on the run. Reading a live trace or aborting a stalled job then does not depend on how the runtime and transport handle a long call |
-| Permissions | Human-action commands are denied to the agent, and its session sees no GPU. The user sets both in their runtime; the operational docs state the requirement and give example settings for Claude Code and Codex. The MCP server's own environment keeps the device for runner-launched jobs |
+| Runtime | The user's own. Nothing is built or configured as a backend, and the harness requires only MCP over stdio, so any runtime that speaks it can drive the harness. Each session's audit records the client name and version the runtime reports |
+| Instruction delivery | One conduct text, supplied in the session's initial context: a workspace instruction file where the runtime reads one, otherwise its manual context mechanism. The server sends the same text as its instructions. Procedures are skills usable as plain text, and the conduct text names each one and its file. Nothing is generated |
+| User-input path | The operator CLI in the user's own terminal is the only decision path in M3. The agent states the exact command and continues after reading the decision event. A runtime's tool approval is not a decision |
+| Job tools | A job tool returns the run ID once the manifest exists and the supervisor owns the attempt. `read_run` takes an optional wait, which the MCP server caps at 30 seconds. A launch is recorded before its supervisor starts, and the read operations report unresolved launches and attempts |
+| Permissions | An agent requests either device through a supported job operation; within an investigation the device is declared by its approved base. The session starts with no CUDA device visible. Human-action commands are denied where the runtime's restriction is shown effective for the documented forms; elsewhere the session is instruction-only and recorded as such. The server entry sets the runs root, device, runner extras, and state directory |
+| Session audit | One immutable entry per connection, with identity, configuration, and supplied guidance. Client-sent request metadata goes on the tool-call entry. Unobservable fields are recorded as unknown |
+| Busy GPU | A launch on a busy device creates no attempt and uses no allowance (step 6b-0) |
+
+### Agent-session probe
+
+A probe drove Codex 0.160.0 non-interactively (`gpt-6.1-sol`, low reasoning effort) against a stub stdio server in a scratch research workspace. It measured one runtime in one configuration, and no interactive session.
+
+- **Guidance:** the workspace file was in the prompt from the start. Repository development instructions were absent from the prompt and from every transcript. Server instructions reached the model only with the server's tool descriptions, once it looked the tools up; the instructed first tool was then called first in 2 of 4 sessions.
+- **Procedures:** the skill was listed at the start and its body was read with a shell command. A plain procedure file named by the workspace file was read the same way.
+- **Tool approval:** an unattended session refused a tool not marked read-only until the server entry allowed it.
+- **Server environment:** the server received seven basic variables and its entry's own.
+- **Command restriction:** a project rule refused the bare `entanglix investigation-decision` command, and the refusal named the rule; a control command ran. The runtime's offline rule checker matched `entanglix promote` and did not match a wrapped `uv run … entanglix …`. The rule loaded only in a trusted workspace.
+- **CUDA visibility:** the session's shell saw no device and the server's child saw one.
+- **Waiting:** a 3-second wait returned. At an 8-second tool timeout the runtime gave the model an error and sent no cancellation; the server-side wait ran its full 20 seconds and another call was answered meanwhile.
+- **Disconnection:** a detached child finished 48 seconds after the session closed.
+- **Audit:** the handshake gave the client name and version. Each call carried session ID, turn ID, model, effort, and sandbox mode. No transcript path was sent.
+
+Results: [agent-session probe](../tests/probes/m3_agent_session_results.json).
+
+### Research workspace
+
+A research workspace is a directory outside the repository, on persistent disk. On this workstation it is `~/Projects/entanglix-research`. The user sets it up once by documented steps:
+
+- Supply the shipped conduct file in the runtime's initial context, under the name the runtime reads where it reads a workspace file, and place or link the skills where the runtime loads them.
+- Register the MCP server in the runtime with explicit settings: the runs root, the device for runner-launched jobs, the runner extras, and the state directory when the user's shell sets one. The server and the operator commands use the same runs root, and every runner instance uses the same GPU lock location.
+- Apply the runtime's settings: no CUDA device for the session, the command restriction for human actions, and approval of the server's job and write tools where the runtime asks for it.
+- Add a task brief with the agreed terms and inputs.
+
+For the evaluation the brief leaves out the baseline's answers and retained summaries. Each repetition uses its own runs root and a fresh session, and transcripts are inspected for contamination. A separate runs root alone does not prevent leakage, because the repository's readout example and probe results contain those answers.
 
 ### MCP surface and audit
 
@@ -233,18 +263,24 @@ Returning at admission needs a supervisor that outlives the call. The job tool s
 
 Step 6b-1 owns this work and its tests: one disconnection before computation starts and one during execution. Each shows that the run reaches a valid terminal record, that its deadline is still enforced, and that the GPU stays excluded until then. A separate process alone does not establish these.
 
-The server writes one record per tool call and one per session under `<runs_root>/_audit/`, outside run outputs, with the fields contract §6 requires.
+The server writes one record per tool call and one per connection under `<runs_root>/_audit/`, outside run outputs, with the fields contract §6 requires. The connection entry also records the resolved runs root and GPU lock directory, which makes a split lock location visible. Recording them does not enforce a shared location.
+
+The server annotates each tool by its operation's effects: a read-only operation is marked read-only, and a job tool is not, although it returns before the job finishes.
+
+`read_run` takes an optional wait that returns at completion, at interruption, or at expiry. The MCP server caps one wait at 30 seconds, and the command line applies no cap.
+
+A launch remains unresolved from its initial audit record until recovery establishes admission or definitive non-admission, including during supervisor startup. Recovery checks for an admitted attempt before treating supervisor termination as refusal. The call-to-run link must survive failure immediately after manifest publication.
 
 ### Skills and instructions
 
-`skills/` holds the roadmap's initial skills, `system-modeler`, `simulate`, `design-sweep`, and `gpu-budget`, each declaring its name, description, and version. The refreshed [research-agent conduct](research-agent.md) adds standing check requests, assessments, and stopping. The delivery check runs in a research workspace and confirms that the research guidance arrives and the repository development instructions do not. Delivery is claimed only where the runtime exposes evidence of what it loaded.
+`skills/` holds the roadmap's initial skills, `system-modeler`, `simulate`, `design-sweep`, and `gpu-budget`, each declaring its name, description, and version. The refreshed [research-agent conduct](research-agent.md) adds standing check requests, assessments, and stopping. The conduct text ships as a file, names each skill and its file, and is also sent as the server's instructions. The delivery check runs in a research workspace and confirms that the conduct text is in the session from its first step and that the repository development instructions are absent. Delivery is claimed only from what the runtime exposes of its context.
 
 ### Agent investigation and evaluation
 
 - **Formulation:** from a broad request about readout drive and qubit coherence, the agent drafts the investigation of §3 and the user starts it.
 - **Execution:** the agent runs both cases through logged tools, three runs each, under the evaluation protocol.
 - **Refusals:** tests reject approval claims in tool arguments, out-of-scope requests, and limit changes through research tools.
-- **CI and workstation:** CI tests the harness side with a scripted MCP client and needs no runtime: advertised tools, refusals, audit records, the server's instructions, and skill metadata. Checks that need a session run on the workstation in the user's logged-in runtime and are retained: instruction delivery, the permission settings, the hidden GPU, and the agent runs.
+- **CI and workstation:** CI tests the harness side with a scripted MCP client and needs no runtime: advertised tools, refusals, audit records, the server's instructions, and skill metadata. Checks that need a session run on the workstation in the user's logged-in runtime and are retained: instruction delivery, the command restriction, CUDA visibility, and the agent runs.
 - **Usability:** a user following only the operational docs can start, read, and stop the example investigation.
 
 ## 6. Dependencies, layout, and validation
@@ -260,6 +296,7 @@ skills/                             # system-modeler, simulate, design-sweep, gp
 examples/readout/investigate.py     # scripted client and M3 baseline
 docs/operations/investigations.md   # records, commands, limits, recovery
 tests/probes/m3_readout.py          # D1 probe and its retained results
+tests/probes/m3_agent_session.py    # D3 probe and its retained results
 ```
 
 Proposed validation commands after the corresponding capabilities exist:
@@ -286,8 +323,8 @@ Recorded in [ADR-0004](adr/0004-investigations-and-agent-sessions.md), with matc
 8. Resume derives state from records. Completed results are reused, a stopped investigation needs a resume decision, and M3 adds no restart files.
 9. The evaluation protocol compares a documented scripted policy and the agent under the same scope, checks, checkpoint, and allowance, with the measures in §3 and an early-stop case. The readout numbers stay in the example.
 10. The harness supplies no default checkpoint or limit. The user declares the checkpoint, and any limit, when starting an investigation.
-11. The runtime is the user's own and is not limited by the harness. Each session's audit records its name and version, CI covers the harness side with a scripted MCP client, and the roadmap, checklist, and contract §8 say so.
-12. Before 6b: the remaining decisions in §5, added to the ADR when taken.
+11. The runtime is the user's own and is not limited by the harness. Each session's audit records the client name and version the runtime reports, CI covers the harness side with a scripted MCP client, and the roadmap, checklist, and contract §8 say so.
+12. Agent sessions: one conduct text in the session's initial context and as server instructions, procedures as skills usable as plain text, the operator CLI as the only decision path, a job tool that returns at admission with a wait on `read_run` that MCP caps, launches recorded before their supervisor starts, command restriction claimed only where shown, CUDA visibility for the session, one audit entry per connection, and no attempt for a launch on a busy device (ADR-0004 §2.3 and §2.8).
 
 ## 8. Exit evidence and handoff
 

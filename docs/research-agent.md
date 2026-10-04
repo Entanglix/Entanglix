@@ -1,6 +1,6 @@
 # Research-agent guidance
 
-**Status:** draft operational guidance until agent integration. Delivery through MCP instructions, skills, or a generated research-workspace instruction file is undecided. This file is not automatically loaded as repository development instructions.
+**Status:** draft operational guidance until agent integration. It will be supplied in a session's initial context and sent as the MCP server's instructions, with procedures as skills. This file is not automatically loaded as repository development instructions.
 
 Entanglix is an expert-guided quantum system research harness. Consult the [README](../README.md) for available behavior and the [harness contract](../HARNESS_CONTRACT.md) for research interfaces and permissions. Refresh task entry points when runtime integration is implemented.
 

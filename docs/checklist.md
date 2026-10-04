@@ -195,7 +195,7 @@ The [M2 guide](m2-guide.md) records the implementation approach; [ADR-0003](adr/
 - [x] Before Block 6a: first investigation question, scope, assumptions, evidence requirements, progress checkpoints, and stop/review criteria; any requested ceilings informed by measured M2 costs ([readout example](../examples/readout/README.md#threshold-characterization), [probe](../tests/probes/m3_readout.py), [results](../tests/probes/m3_readout_results.json))
 - [x] Before Block 6a: what the contract leaves open (user-decision recording, progress-assessment fields, checkpoint declaration, resume behaviour) in a follow-up ADR ([ADR-0004](adr/0004-investigations-and-agent-sessions.md))
 - [x] Before Block 6a: evaluation protocol defines the scripted selection policy, comparable benchmark allowances, evidence thresholds, and outcome/time/compute/human-intervention measures; include supported early stopping after insufficient progress ([ADR-0004 §2.6](adr/0004-investigations-and-agent-sessions.md#26-evaluation-protocol), [readout example](../examples/readout/README.md#threshold-characterization))
-- [ ] Before Block 6b: runtime integration and research-agent instruction delivery (MCP instructions, skills, or a generated research-workspace instruction file); user-input event handling, progress reporting, runtime permission settings, and execution checks under the cooperative trust model; no separate grant issuer or OS security boundary required
+- [x] Before Block 6b: agent-session decisions on instruction delivery, the decision path, job tools, runtime permission settings and what holds in a runtime without them, session audit, and busy-device admission; no separate grant issuer or OS security boundary required ([ADR-0004 §2.8](adr/0004-investigations-and-agent-sessions.md#28-agent-sessions), [probe results](../tests/probes/m3_agent_session_results.json))
 
 ### [x] Block 6a — Investigation Execution
 
@@ -224,13 +224,15 @@ The [M2 guide](m2-guide.md) records the implementation approach; [ADR-0003](adr/
 
 - [ ] Formulation workflow refines broad ambitions into bounded next investigations; partial workflows and exploratory questions are supported
 - [ ] Agent assesses evidence, constraints, convergence, observed cost, and learning before continuing/refining/stopping; roles of numerical search and agent reasoning documented
+- [ ] A launch on a busy GPU is refused before an attempt exists and uses no investigation allowance
 - [ ] `entanglix.mcp` behind an optional `mcp` extra, introduced with `skills/`; MCP over stdio uses CLI backing operations, advertises available capabilities, and distinguishes research requests from runtime user-input events (contract §5)
-- [ ] Tool-call audit log and per-session runtime/model/skill records (contract §6), including scope revisions and linked run IDs
+- [ ] Tool-call audit log, with client-reported request metadata, and per-connection session records with unknown fields labelled (contract §6), including scope revisions and linked run IDs
+- [ ] A launch whose connection or response is lost is recovered as pending, admitted, or refused, without a second attempt
 - [ ] Initial skills: `system-modeler`, `simulate`, `design-sweep`, `gpu-budget`; versioned metadata; resource guidance covers measured usage and optional limits; updated research-agent conduct and workflow entry points delivered through the selected mechanism
 - [ ] Instruction-delivery check in a research workspace: intended research guidance reaches the runtime without repository development instructions
 - [ ] One coordinating agent uses separate run directories, frozen inputs, runner-owned history, one active GPU job by default, and cancellation of owned jobs; model/catalog changes are staged
-- [ ] Runtime permission settings block human-action commands for the agent; the agent session sees no GPU; the cooperative trust assumption is documented; no claim of resistance to arbitrary shell/code bypass
-- [ ] Tests reject agent-authored approval claims, out-of-scope tool requests, and configured-limit changes through research tools; each session's audit records the runtime name and version
+- [ ] The runtime's configured restriction refuses human-action commands for each runtime and command form where it is claimed, and an instruction-only session is recorded as such; the agent session sees no CUDA device; the cooperative trust assumption is documented; no claim of resistance to arbitrary shell/code bypass
+- [ ] Tests reject agent-authored approval claims, out-of-scope tool requests, and configured-limit changes through research tools; each session's audit records the client name and version the runtime reports
 - [ ] Demonstrate evidence-driven refinement and a supported early-stop report in an insufficient-progress case; preserve available results and suggested next experiments
 - [ ] Execute the declared baseline comparison; report scientific outcome, elapsed time, compute use, human interventions, and continuation/stopping rationale, including worse or inconclusive performance
 - [ ] Applicable quality evidence recorded for the complete independent sweep/search workflow

@@ -1,6 +1,6 @@
 # ADR-0003: Run Records, Verification, and Engine Dispatch
 
-**Date:** 2026-09-30, revised 2026-10-03
+**Date:** 2026-09-30, revised 2026-10-04
 **Status:** Accepted
 **Purpose:** fix how runs are recorded, how a user checks completed runs, how a run reaches the GPU without a performance claim, and how driven evolution is represented in the lab and rotating frames. Field lists, formats, and threshold values are documented with the implementation.
 
@@ -158,6 +158,6 @@ Measurements: [verification feasibility probe](../../tests/probes/m2_verificatio
 - Tests cover runner loss while the job survives, lock inheritance, reconciliation, the evidence-point bound, and refinement-step minimums. They also cover a run above dimension 30 launching and completing, an allocation failure reported as out of memory, a signal death reported as its signal, engine agreement at dimension 64, a run completing with no verification run and with no refinement declared, a malformed refinement rejected, a replacement refinement on a check request and a tampered one rejected, per-check outcomes and inapplicable requests, a terminated verification run reporting no outcome, a wrong initial state failing integrity, segment failures on the run's own engine and selection at drive changes, and the top-Fock diagnostic case.
 - A result's standing rests on the checks its user requested. Findings and promoted entries state which checks ran, their outcomes, and which relevant checks did not run.
 - The checks planned for `control` and `calibrate` follow the same rule when those protocols are built.
-- Whether research agents may declare a device is decided with the Block 6b permissions.
+- A research agent may request either device through a supported protocol; within an investigation the device belongs to a base the user approved ([ADR-0004 §2.8](0004-investigations-and-agent-sessions.md#28-agent-sessions)).
 - The selection table and the corrector policy drop their dimension caps, and engine selection and the launch gate drop their memory estimates.
 - Batching and performance-based dispatch follow the cuDensityMat usage study. Tolerances and segment limits are set with the implementation.

@@ -105,7 +105,7 @@ Refined solves run on CPU. Numerical agreement does not establish device-model a
 The runner enforces the investigation lifecycle through supported CLI/MCP paths. Standalone runs retain their own provenance and any configured limits without requiring an investigation or grant.
 
 - **Scope and start:** record the question, assumptions, parameter region, permitted changes/protocols, evidence requirements, progress checkpoints, review/stop criteria, and optional limits. A scalar objective is optional. An agent may draft an investigation; a user action starts it.
-- **User decisions:** the CLI/runtime user-input path records the initial scope, broader changes, review releases, and changes to configured ceilings. Research-tool arguments and agent-authored notes cannot create these events. Every change to a revision takes effect only on a user decision; choosing experiments within the recorded scope needs no revision. No separate grant issuer is required.
+- **User decisions:** the operator CLI, or a runtime user-input path where §5 permits one, records the initial scope, broader changes, review releases, and changes to configured ceilings. Research-tool arguments and agent-authored notes cannot create these events. Every change to a revision takes effect only on a user decision; choosing experiments within the recorded scope needs no revision. No separate grant issuer is required.
 - **Revisions:** investigation revisions are immutable and runs identify their dispatch revision. Admitted attempts retain their dispatch revision and limits, including their deadline; approved revisions govern later admissions only. Resume, reruns, and session changes preserve unsuccessful attempts, resource use, findings, and outstanding reviews.
 - **Admission:** check active revision, supported protocol, mechanically checkable scope constraints, review/stop state, and any run/investigation limits before dispatch. Free-text research aims are recorded context, not machine-certified scientific judgments.
 - **Progress:** progress checkpoints, not preset budgets, are the primary control on continuing work. A checkpoint is declared as a count of finished attempts, including failed and aborted runs and interrupted attempts once reconciled, or an elapsed interval; when one is due, the runner refuses further dispatch until a progress assessment is recorded. Assessments reference available results, check outcomes, constraint/convergence evidence, observed cost, learning or uncertainty, and a continue/refine/stop rationale. The runner does not certify that continuation is worthwhile. Findings may recommend stopping with resources still available.
@@ -134,8 +134,8 @@ CLI and MCP share backing operations and expose available capabilities. Research
 |---|---|---|
 | `validate_system` | Read-only | Check the system schema and model adapter inputs |
 | `list_capabilities` | Read-only | Report installed protocols, supported features, and interface versions |
-| `list_runs` / `read_run` | Read-only | Inspect artifacts, all attempt states, relevant checks and their outcomes, and the live trace of running jobs |
-| `list_investigations` / `read_investigation` | Read-only | Inspect revisions, findings, history, measured usage, remaining configured allowances, and review/stop state |
+| `list_runs` / `read_run` | Read-only | Inspect artifacts, all attempt states, launches whose admission is unresolved, relevant checks and their outcomes, and the live trace of running jobs; `read_run` accepts an optional wait, bounded through MCP, that returns at completion, interruption, or wait expiry |
+| `list_investigations` / `read_investigation` | Read-only | Inspect revisions, findings, history, attempts with their base and varied values, launches whose admission is unresolved, measured usage, remaining configured allowances, and review/stop state |
 | `list_catalog` / `read_entry` | Read-only | Inspect promoted entries and provenance |
 | `simulate` / `sweep` / `control` / `calibrate` | Controlled job | Execute through the runner, enforcing any configured limits |
 | `run_script` | Controlled job | Execute an authored script through the runner, enforcing any configured limits |
@@ -150,7 +150,7 @@ CLI and MCP share backing operations and expose available capabilities. Research
 | `propose_device_update` | Controlled write | Write a calibration proposal |
 | Investigation start/resume, scope/limit changes, review release; `promote`; device-model apply | Human action | Record user decisions, release named reviews, promote eligible results (§6), or apply proposals |
 
-Human actions use the operator CLI or runtime user-input path and record the action source and affected revision. The research-tool surface cannot synthesize these events, promote results, or apply device updates. The agent runtime's permission settings block the human-action commands, so an agent cannot run them from its shell by accident. This separates supported workflow roles; it is not authentication, and stronger identity and credential isolation is deferred deployment work.
+Human actions use the operator CLI and record the action source and affected revision. A runtime user-input path is permitted only when implemented and validated as distinct from research-tool requests. The research-tool surface cannot synthesize these events, promote results, or apply device updates, and a runtime's approval of a tool call is not a human action. Where the agent runtime can restrict commands, its settings deny the human-action commands, so an agent cannot run them from its shell by accident. The restriction is claimed for a runtime and command form only where a test shows it refusing the command; in a runtime without such a setting the rule is carried by instructions alone, and the session is recorded as such. This separates supported workflow roles; it is not authentication, and stronger identity and credential isolation is deferred deployment work.
 
 Read-only operations do not mutate research state. Controlled jobs use the runner/executor. Controlled writes are limited to staged outputs and runner-managed investigation records; they cannot change policy, verification thresholds, configured ceilings, promoted entries, or device models through the research API. Typed tools validate structured scope constraints; data and notes cannot change execution policy.
 
@@ -161,9 +161,9 @@ The runner is the single writer for history and publishes immutable events atomi
 | Record | Required content |
 |---|---|
 | Run ledger event | Run ID; spec/code/environment provenance; actual engine/solver when known; parent run IDs; outcome; resource use; check outcomes when available; investigation revision and source catalog IDs when applicable |
-| Tool-call audit | Timestamp, session ID, tool, permission class, argument/result hashes, outcome, and linked investigation revision/run IDs |
-| Session audit | One entry per agent session: runtime name/version, model ID, skill names/versions, and the path to the runtime's own transcript when it keeps one |
-| User-decision event | Timestamp, operator or runtime user-input source, affected investigation revision, start/resume, scope/limit changes, or named review release; separate from agent proposals |
+| Tool-call audit | Timestamp, session ID, tool, permission class, argument/result hashes, outcome, linked investigation revision/run IDs, and any session, turn, or model metadata the client sends with the call, recorded as reported by the client; a launch is recorded before its supervisor starts |
+| Session audit | One immutable entry per MCP connection, whose ID is the tool-call audit's session ID: the client name and version reported at the handshake, the server's configuration, and the conduct version and skill names/versions the harness supplied; what the server cannot observe, such as the skills the runtime loaded and its transcript location, is recorded as unknown |
+| User-decision event | Timestamp, operator source, or a runtime user-input source where §5 permits one, affected investigation revision, start/resume, scope/limit changes, or named review release; separate from agent proposals |
 
 Audit records are append-only through supported APIs and stored outside candidate run outputs; these are provenance guarantees, not protection against a hostile OS user. Supported tools expose histories without catalog promotion; unknown outcomes remain explicit until reconciled.
 
@@ -179,7 +179,7 @@ Executors provide the same guarantees from facilities that already exist:
 
 | Need | Workstation | Cluster |
 |---|---|---|
-| GPU exclusivity | Runner lock: one active GPU job by default, including across runner instances; a job may batch calculations; unknown process state blocks reuse until reconciled | Scheduler GPU allocation |
+| GPU exclusivity | Runner lock: one active GPU job by default, including across runner instances; a job may batch calculations; unknown process state blocks reuse until reconciled; a launch on a busy device is refused before an attempt exists | Scheduler GPU allocation |
 | Timeout and cancellation | Runner timer; signal to the job's process group and descendants | Scheduler time limit and cancellation |
 | Usage | Measured start/end times and assigned GPUs | Scheduler accounting |
 | Outputs | Local run directory | Execution storage; small artifacts mirrored back with integrity checks |
@@ -190,7 +190,7 @@ Executors provide the same guarantees from facilities that already exist:
 | Run ownership | Unique directories, frozen inputs, and assigned outputs; supported job paths cannot overwrite another run |
 | Scientific records | Runner owns ledger/audit publication; research tools cannot modify the corrector policy or write check reports |
 | Human actions | Research APIs stage proposals; human actions follow §5 |
-| Agent GPU access | The agent session sees no GPU by default (`CUDA_VISIBLE_DEVICES=""`); only runner-launched jobs do, so ad hoc analysis cannot take memory from a running job. On a cluster, the agent does not run on GPU nodes |
+| Agent GPU access | The agent session is started with no CUDA device visible (`CUDA_VISIBLE_DEVICES=""`), and the MCP server's configuration names the device for runner-launched jobs, so ordinary ad hoc analysis does not take memory from a running job. This is CUDA visibility, not an operating-system boundary. An agent requests GPU work only through a supported job operation; within an investigation, the device is declared by its approved base. On a cluster, the agent does not run on GPU nodes |
 
 Configured limits and cancellation apply to runner-launched scripts as well as built-in protocols. Static scanning is preflight, not a security sandbox. Restart files are used only where a protocol supports them. Entanglix builds no job queue, reservation service, grant issuer, or container layer; it reuses the process, scheduler, and agent-runtime facilities above.
 
@@ -198,7 +198,7 @@ A deployment requiring resistance to bypass or execution of untrusted code must 
 
 ## 8. Versioning and conformance
 
-Public schemas and CLI/MCP interfaces declare versions and compatibility expectations. Incompatible inputs fail with actionable diagnostics. Skill metadata declares `name`, `description`, and `version`. The agent runtime is the user's own; its name and version and the skill versions are recorded in each session's audit. Instructions and skills cannot substitute for tool-enforced invariants.
+Public schemas and CLI/MCP interfaces declare versions and compatibility expectations. Incompatible inputs fail with actionable diagnostics. Skill metadata declares `name`, `description`, and `version`. The agent runtime is the user's own; the client name and version it reports, and the versions of the conduct and skills the harness supplied, are recorded in each session's audit. Instructions and skills cannot substitute for tool-enforced invariants.
 
 Changes to normative invariants require a retained ADR and corresponding schema/interface versions and conformance updates where affected.
 
@@ -210,5 +210,5 @@ Conformance evidence must cover the observable guarantees below. Implementations
 | Execution (§2) | Runner and executors | Reproduction, atomic artifacts, no refusal of a request for its size, allocation failures reported as out of memory and unexplained signal deaths as their signal, cancellation/interruption recovery including runner loss while the job survives, amicode run-directory layout and ProblemSpec compatibility |
 | Verification (§3) | Corrector | No check without a request, convergence failures caught by the requested check, relevance from trusted definitions and inapplicable requests, per-check outcomes with scope, a terminated verification run reporting no outcome, declared-expectation checks, a run unrestricted by check prerequisites, a replacement refinement on a check request, bounded evidence-point coverage, report presentation after a failed newer attempt, independent constraint checks, training/holdout data separation, hash-mismatch rejection |
 | Investigations (§4) | Runner and tools | User-start/review event handling, rejection of tool-authored approvals, checkpoint gating including failed/aborted attempts, early-stop reports, no-limit and limit cases, atomic admission accounting for proposed/queued/running jobs, deadlines across queueing and execution, timeout resolution/grace and recorded overruns, rejection of unknown limits, retry/verification usage, cancellation and resume accounting |
-| History and promotion (§6) | Ledger, audit, catalog | Atomic concurrent events, failed-attempt lineage, recorded check scope, refusal of a failed check other than a violated declared expectation, and human-promotion boundaries |
-| Execution environments (§7) | Runner, executors, runtime adapter | Run/GPU ownership, conflicting-launch rejection, process cancellation, controlled history writes, blocked human-action commands, GPU-hidden agent session, and rejection of policy/verification bypass through supported tools; one executor test suite passes against the local executor and a stubbed scheduler; no OS-level containment claim |
+| History and promotion (§6) | Ledger, audit, catalog | Atomic concurrent events, failed-attempt lineage, recorded check scope, refusal of a failed check other than a violated declared expectation, human-promotion boundaries, a launch recorded before its supervisor starts and recovered as pending, admitted, or refused, and audit entries per tool call and per connection with client-reported and unknown fields labelled |
+| Execution environments (§7) | Runner, executors, runtime adapter | Run/GPU ownership, conflicting-launch rejection, process cancellation, controlled history writes, a busy-device launch refused without an attempt, human-action commands refused by the runtime's configured restriction for each runtime and command form where the restriction is claimed (an instruction-only session is not such evidence), no CUDA device visible to the agent session while runner-launched jobs see theirs, and rejection of policy/verification bypass through supported tools; one executor test suite passes against the local executor and a stubbed scheduler; no OS-level containment claim |
