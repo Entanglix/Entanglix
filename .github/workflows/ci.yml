@@ -37,3 +37,15 @@ jobs:
           enable-cache: true
       - run: uv python install
       - run: uv run --locked --exact --extra differentiable pytest -q tests/test_engine_dynamiqs.py tests/test_engine_acceptance.py tests/test_carriers_frames.py tests/test_corrector.py tests/test_plans.py tests/test_verification.py tests/test_simulate.py tests/test_sweep.py tests/test_verification_cost.py -m "not gpu" -k "dynamiqs or gradient"
+
+  mcp:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.12.0"
+          enable-cache: true
+      - run: uv python install
+      - run: uv run --locked --exact --extra mcp pytest -q tests/test_mcp.py -m "not gpu"

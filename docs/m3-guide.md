@@ -263,7 +263,7 @@ For the evaluation the brief leaves out the baseline's answers and retained summ
 
 `entanglix.mcp` wraps the backing operations the CLI uses and advertises only available capabilities: the read-only operations, the controlled jobs M3 provides, and `create_investigation`, `revise_investigation`, `record_finding`, and `reconcile_run`. Human actions are absent, as are catalog, control, and calibration operations.
 
-Returning at admission needs a supervisor that outlives the call. The job tool starts the existing runner command as a separate process in its own session, with output streams that do not depend on the server. That process holds the attempt and GPU locks, enforces the timeout and deadline, and writes `FINISHED`, exactly as a CLI launch does. The tool returns only when the manifest exists and the supervisor owns the attempt. After a disconnection the run finishes or times out under its supervisor, and the next session reads it. A lost supervisor is reconciled as in M2.
+Returning at admission needs a supervisor that outlives the call. The job tool records the request and starts a supervisor process in its own session, with output streams that do not depend on the server. The supervisor runs the same operation a CLI launch runs: it holds the attempt and GPU locks, enforces the timeout and deadline, and writes `FINISHED`. The tool returns only when the manifest exists and the supervisor owns the attempt. After a disconnection the run finishes or times out under its supervisor, and the next session reads it. A lost supervisor is reconciled as in M2.
 
 Step 6b-1 owns this work and its tests: one disconnection before computation starts and one during execution. Each shows that the run reaches a valid terminal record, that its deadline is still enforced, and that the GPU stays excluded until then. A separate process alone does not establish these.
 
@@ -295,7 +295,8 @@ Suggested locations, created as code arrives:
 
 ```text
 src/entanglix/investigations.py     # records, decisions, admission, findings, stop and resume
-src/entanglix/mcp/                  # optional extra: stdio server over the backing operations, audit
+src/entanglix/launches.py           # detached launches, supervisor handoff, recovery
+src/entanglix/mcp.py                # optional extra: stdio server over the backing operations, audit
 skills/                             # system-modeler, simulate, design-sweep, gpu-budget
 examples/readout/investigate.py     # scripted client and M3 baseline
 docs/operations/investigations.md   # records, commands, limits, recovery

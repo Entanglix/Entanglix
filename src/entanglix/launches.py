@@ -57,7 +57,39 @@ def _arguments(arguments):
     return result
 
 
-def prepare_launch(operation: str, arguments: dict, *, runs_root: Path | None = None) -> RunHandle:
+def reserve_launch(runs_root: Path, operation: str, *, investigation_id=None) -> RunHandle:
+    """Own a call before auditing it; a lost caller leaves a recoverable refusal."""
+    launch_id = f"l{datetime.now(UTC).strftime('%Y%m%dT%H%M%S%fZ')}-{secrets.token_hex(4)}"
+    parent = runs_root.resolve() / "_launches"
+    parent.mkdir(parents=True, exist_ok=True)
+    path = parent / launch_id
+    path.mkdir()
+    owner = RunHandle(path, os.open(path, os.O_RDONLY | os.O_DIRECTORY))
+    fcntl.flock(owner.fileno(), fcntl.LOCK_EX)
+    try:
+        publish_toml(
+            path / "call.toml",
+            {
+                "record_version": 1,
+                "launch_id": launch_id,
+                "operation": operation,
+                **({"investigation_id": investigation_id} if investigation_id else {}),
+            },
+        )
+    except BaseException:
+        owner.close()
+        path.rmdir()
+        raise
+    return owner
+
+
+def prepare_launch(
+    operation: str,
+    arguments: dict,
+    *,
+    runs_root: Path | None = None,
+    owner: RunHandle | None = None,
+) -> RunHandle:
     """Record a request while owning it, before a supervisor can start."""
     arguments = _arguments(arguments)
     function = _operation(operation)
@@ -88,19 +120,17 @@ def prepare_launch(operation: str, arguments: dict, *, runs_root: Path | None = 
         for key, value in arguments.items()
         if value is not None
     }
-    launch_id = f"l{datetime.now(UTC).strftime('%Y%m%dT%H%M%S%fZ')}-{secrets.token_hex(4)}"
-    parent = runs_root / "_launches"
-    parent.mkdir(parents=True, exist_ok=True)
-    path = parent / launch_id
-    path.mkdir()
-    owner = RunHandle(path, os.open(path, os.O_RDONLY | os.O_DIRECTORY))
-    fcntl.flock(owner.fileno(), fcntl.LOCK_EX)
+    borrowed = owner is not None
+    owner = owner or reserve_launch(runs_root, operation, investigation_id=investigation_id)
+    path = owner.path
+    if path.parent.parent != runs_root:
+        raise ValueError("launch owner and attempts must use the same runs root")
     try:
         publish_toml(
             path / "request.toml",
             {
                 "record_version": 1,
-                "launch_id": launch_id,
+                "launch_id": path.name,
                 "created_at": datetime.now(UTC),
                 "operation": operation,
                 "arguments": serialised,
@@ -108,8 +138,8 @@ def prepare_launch(operation: str, arguments: dict, *, runs_root: Path | None = 
             },
         )
     except BaseException:
-        owner.close()
-        path.rmdir()
+        if not borrowed:
+            owner.close()
         raise
     return owner
 
@@ -131,7 +161,9 @@ def start_supervisor(owner: RunHandle, *, environment: dict[str, str] | None = N
 def read_launch(path: Path) -> dict:
     """Check ownership and the prepublished link without scanning other attempts."""
     path = path.resolve()
-    request = _load_record(path / "request.toml")
+    request = _load_record(
+        path / ("request.toml" if (path / "request.toml").exists() else "call.toml")
+    )
     root = path.parent.parent
     with RunHandle(path, os.open(path, os.O_RDONLY | os.O_DIRECTORY)) as owner:
         owned = False
@@ -175,7 +207,12 @@ def read_launch(path: Path) -> dict:
 
 def unresolved_launches(runs_root: Path, *, investigation_id: str | None = None) -> list[dict]:
     result = []
-    for request in sorted((runs_root / "_launches").glob("*/request.toml")):
+    for path in sorted((runs_root / "_launches").glob("*")):
+        request = path / "request.toml"
+        if not request.exists():
+            request = path / "call.toml"
+        if not request.exists():
+            continue
         if investigation_id is not None:
             if _load_record(request).get("investigation_id") != investigation_id:
                 continue

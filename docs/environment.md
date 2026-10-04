@@ -264,3 +264,19 @@ TMPDIR=/var/tmp UV_PROJECT_ENVIRONMENT=/var/tmp/entanglix-6b-supervision-tests X
 ```
 
 The GPU command uses its own test environment. Each fixture also has a separate, exact runner environment; neither changes the checkout's runner extras.
+
+## Stdio MCP acceptance
+
+The server uses its own environment; jobs keep the runner environment. The
+[transport reference](operations/mcp.md) describes the command and explicit settings.
+Run the scripted-client tests with the SDK extra, then the workstation CUDA cases:
+
+```sh
+TMPDIR=/var/tmp UV_PROJECT_ENVIRONMENT=/var/tmp/entanglix-mcp-test uv run --locked --exact --extra mcp pytest -q tests/test_mcp.py -m 'not gpu'
+TMPDIR=/var/tmp UV_PROJECT_ENVIRONMENT=/var/tmp/entanglix-6b-mcp-gpu XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact --extra mcp --extra cuquantum --extra differentiable-cuda12 pytest -q tests/test_mcp.py -m gpu --require-gpu -o junit_family=legacy --junitxml=tests/probes/m3_mcp_gpu.xml
+```
+
+The [GPU report](../tests/probes/m3_mcp_gpu.xml) retains disconnection/deadline
+ownership evidence and CUDA launch-to-manifest timings. The optional SDK changes
+the lockfile digest in newly captured environments without changing the numerical
+package pins.

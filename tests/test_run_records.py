@@ -476,3 +476,40 @@ def test_pre_manifest_failure_removes_unadmitted_directory(run_kwargs, monkeypat
         create_run(**run_kwargs)
     assert not error.value.run.exists()
     assert not list((run_kwargs["runs_root"] / "fixture").iterdir())
+
+
+@pytest.mark.parametrize("owned", [False, True])
+def test_concurrent_attempt_readers_do_not_look_like_owner(run_kwargs, monkeypatch, owned):
+    import fcntl
+    from threading import Barrier
+
+    from entanglix.runner import _read_attempt, list_runs
+
+    owner = create_run(**run_kwargs)
+    if not owned:
+        owner.close()
+    barrier = Barrier(5)
+    flock = fcntl.flock
+
+    def overlap(descriptor, flags):
+        if flags in (fcntl.LOCK_SH | fcntl.LOCK_NB, fcntl.LOCK_EX | fcntl.LOCK_NB):
+            try:
+                return flock(descriptor, flags)
+            finally:
+                # Hold all successful probes until the other four readers have probed.
+                barrier.wait(timeout=5)
+        return flock(descriptor, flags)
+
+    monkeypatch.setattr(fcntl, "flock", overlap)
+
+    def read_one(index):
+        record = (
+            list_runs(run_kwargs["runs_root"])[0] if index % 5 == 4 else _read_attempt(owner.path)
+        )
+        return record["status"]
+
+    try:
+        with ThreadPoolExecutor(max_workers=5) as pool:
+            assert set(pool.map(read_one, range(200))) == {"active" if owned else "interrupted"}
+    finally:
+        owner.close()

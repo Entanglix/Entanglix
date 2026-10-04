@@ -741,12 +741,15 @@ def select_gpu() -> str:
     return devices[0]
 
 
+def _state_directory() -> Path:
+    return Path(os.environ.get("XDG_STATE_HOME", str(Path.home() / ".local/state")))
+
+
 def acquire_gpu(device: str) -> GpuLease:
     """Acquire a canonical device UUID outside all runs roots, without waiting."""
     if not re.fullmatch(r"GPU-[A-Za-z0-9-]+", device):
         raise ValueError("GPU lock requires a canonical GPU-... device identifier")
-    state = Path(os.environ.get("XDG_STATE_HOME", str(Path.home() / ".local/state")))
-    root = state / "entanglix/gpu"
+    root = _state_directory() / "entanglix/gpu"
     root.mkdir(parents=True, exist_ok=True)
     descriptor = os.open(root / f"{device}.lock", os.O_CREAT | os.O_RDWR, 0o600)
     record_path = root / f"{device}.toml"
@@ -1168,7 +1171,7 @@ def _read_attempt(run: Path) -> dict:
     try:
         active = False
         try:
-            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            fcntl.flock(descriptor, fcntl.LOCK_SH | fcntl.LOCK_NB)
         except BlockingIOError:
             active = True
         else:

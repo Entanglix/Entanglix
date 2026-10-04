@@ -1,5 +1,6 @@
 # Python environments, caches, and builds
 .venv/
+.venv-mcp/
 .venv-runner/
 .venv-runner-extras.toml
 __pycache__/
