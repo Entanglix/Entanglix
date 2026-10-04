@@ -212,6 +212,10 @@ The client computes the loss and the brackets from several runs' metrics. These 
 ### Carried from M2
 
 - The evidence-point bound stays at 8, and a failing point still fails its sweep. Refinement here uses single-point runs and the 3 × 3 seed, so neither binds. Revisit both when an investigation uses three or more axes or batches many points in one job.
+  - Corners are taken first, so a three-axis grid spends the whole bound on its corners and never samples extrema, the steepest change, or warnings. A four-axis grid has 16 corners, which makes segments and spectral refinement inapplicable for the whole sweep.
+  - The options are priority points first and then a deterministic spread, or the first points in priority order when the corners exceed the bound. The bound is a corrector threshold, so changing it means a new policy version and an acceptance rerun.
+  - A sweep's worker stops at the first point that raises. Completed points stay queryable, later points never run, and a rerun recomputes the grid and stops at the same point.
+- The integrity check's cost grows as dimension³ × stored states: milliseconds at dimensions 30–48, and about 5 s for 1601 states at dimension 240, extrapolated from 21 states.
 - The metric is a coherence magnitude, which the RWA's phase shift does not affect. A phase-sensitive metric would need a lab-frame comparison from the start.
 
 ## 5. Block 6b — agent integration
@@ -242,7 +246,7 @@ A probe drove Codex 0.160.0 non-interactively (`gpt-6.1-sol`, low reasoning effo
 - **Disconnection:** a detached child finished 48 seconds after the session closed.
 - **Audit:** the handshake gave the client name and version. Each call carried session ID, turn ID, model, effort, and sandbox mode. No transcript path was sent.
 
-Results: [agent-session probe](../tests/probes/m3_agent_session_results.json).
+Results: [agent-session probe](../tests/probes/m3_agent_session_results.json). The results name the scratch workspace where the probe ran; its raw evidence is now kept locally in `research_runs/m3-agent-session/`.
 
 ### Research workspace
 
