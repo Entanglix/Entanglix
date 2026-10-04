@@ -212,7 +212,7 @@ second job whose commitment would exceed the
 remaining allowance. Use an isolated test environment with the workstation extras:
 
 ```sh
-uv run --locked --exact pytest -q tests/test_investigations.py tests/test_investigation_admission.py -m 'not gpu'
+uv run --locked --exact pytest -q tests/test_investigations.py tests/test_investigation_admission.py tests/test_investigation_lifecycle.py -m 'not gpu'
 UV_PROJECT_ENVIRONMENT=/var/tmp/entanglix-6a2-gpu-test XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact --extra cuquantum --extra differentiable-cuda12 pytest -q tests/test_investigation_admission.py -m gpu --require-gpu -o junit_family=legacy --junitxml=tests/probes/m3_admission_gpu.xml
 ```
 

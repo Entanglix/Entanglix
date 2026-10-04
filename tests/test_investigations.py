@@ -352,6 +352,19 @@ def test_only_one_concurrent_start_becomes_effective(terms, tmp_path):
     assert len(read_investigation(path)["events"]) == 1
 
 
+@pytest.mark.parametrize("action", ["resume", "release-review"])
+@pytest.mark.parametrize("revision", [None, 1])
+def test_draft_lifecycle_decisions_have_a_neutral_diagnostic(terms, tmp_path, action, revision):
+    draft = create_investigation(terms, runs_root=tmp_path)
+    with pytest.raises(ValueError, match="investigation must be started before user decisions"):
+        record_user_decision(
+            Path(draft["path"]),
+            action,
+            revision=revision,
+            review_name="strategy" if action == "release-review" else None,
+        )
+
+
 def test_cli_workflow_and_new_process_read(terms, tmp_path):
     spec = tmp_path / "investigation.toml"
     spec.write_text(tomli_w.dumps(terms))

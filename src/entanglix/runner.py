@@ -1142,6 +1142,7 @@ def list_capabilities(repository: Path | None = None) -> dict:
             "list_investigations",
             "read_investigation",
             "record_finding",
+            "stop_investigation",
         ],
         "protocols": ["simulate", "sweep"],
         "runner_devices": ["cpu", "cuda"],

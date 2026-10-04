@@ -165,12 +165,21 @@ def main(argv: list[str] | None = None) -> int:
     finding.add_argument("investigation", type=Path)
     finding.add_argument("finding", type=Path, help="authored finding TOML")
     decision = subcommands.add_parser(
-        "investigation-decision", help="operator action: start or approve investigation terms"
+        "investigation-decision", help="operator action: start, approve, resume, or release review"
     )
     decision.add_argument("investigation", type=Path)
-    decision.add_argument("action", choices=["start", "approve-revision"])
-    decision.add_argument("--revision", required=True, type=int)
+    decision.add_argument(
+        "action", choices=["start", "approve-revision", "resume", "release-review"]
+    )
+    decision.add_argument("--revision", type=int, help="required for start and approve-revision")
+    decision.add_argument("--review", help="open review name for release-review")
     decision.add_argument("--note", default="")
+    stopping = subcommands.add_parser(
+        "stop-investigation", help="close admission and cancel outstanding jobs"
+    )
+    stopping.add_argument("investigation", type=Path)
+    stopping.add_argument("reason", help="stop reason; see the investigation reference")
+    stopping.add_argument("--note", default="")
     for launch_parser in (script, simulation, grid):
         launch_parser.add_argument(
             "--investigation", help="started investigation ID under the runs root"
@@ -191,6 +200,7 @@ def main(argv: list[str] | None = None) -> int:
         "read-investigation",
         "record-finding",
         "investigation-decision",
+        "stop-investigation",
     }:
         from entanglix.investigations import (
             create_investigation,
@@ -199,6 +209,7 @@ def main(argv: list[str] | None = None) -> int:
             record_finding,
             record_user_decision,
             revise_investigation,
+            stop_investigation,
         )
         from entanglix.runner import failure_message
 
@@ -213,9 +224,15 @@ def main(argv: list[str] | None = None) -> int:
                 result = read_investigation(args.investigation)
             elif args.command == "record-finding":
                 result = record_finding(args.investigation, args.finding)
+            elif args.command == "stop-investigation":
+                result = stop_investigation(args.investigation, args.reason, note=args.note)
             else:
                 result = record_user_decision(
-                    args.investigation, args.action, revision=args.revision, note=args.note
+                    args.investigation,
+                    args.action,
+                    revision=args.revision,
+                    review_name=args.review,
+                    note=args.note,
                 )
         except (OSError, ValueError, RuntimeError, KeyError, MemoryError) as exc:
             print(f"entanglix: {failure_message(exc)}", file=sys.stderr)

@@ -176,7 +176,7 @@ Limit accounting is tested in CPU CI with short CPU jobs and crafted records. On
 
 ### Checkpoints, assessments, and reviews
 
-A checkpoint is a required scope field with no implicit default: a count of finished attempts or an elapsed interval. Every finished run linked to the investigation counts, including verification runs and failed or aborted attempts. When one is due, admission is refused until an assessment is recorded.
+A checkpoint is a required scope field with no implicit default: a count of finished attempts or an elapsed interval. Every finished run linked to the investigation counts, including verification runs and failed or aborted attempts. An interrupted attempt counts once it is reconciled. When one is due, admission is refused until an assessment is recorded.
 
 The first investigation declares 10, which gives three assessments in the normal case. A count of two, one computation and its check run, would have meant 26 assessments in the probe.
 
@@ -280,7 +280,7 @@ Recorded in [ADR-0004](adr/0004-investigations-and-agent-sessions.md), with matc
 2. A user decision is an event recorded by one operator command. The actions are start, resume, approve a revision, and release a review. Research tools cannot create one.
 3. Every field of a revision belongs to the user: a research tool proposes a revision, and a user decision makes it effective. Findings need no approval. The runner checks permitted operations, permitted bases by digest, and value sets or ranges for varied targets, with one admission rule per operation.
 4. Admission, decisions, revisions, stops, and review-opening findings share one investigation lock, and the admitted run's manifest is the commitment record. Immediately before a job computes, the runner checks the absolute deadline and whether a stop event names the run. A stop cancels its outstanding attempts permanently; resume does not revive them. An admitted attempt keeps its dispatch revision and limits; an approved revision governs later admissions.
-5. A checkpoint is required and has no implicit default. Verification runs and failed or aborted attempts count.
+5. A checkpoint is required and has no implicit default. Verification runs, failed or aborted attempts, and reconciled attempts count.
 6. One finding record serves assessments, interpretations, and reports. The author supplies interpretation and a decision; the runner fills usage and check status from records.
 7. A review opens from a `review` finding or from a review point the user declared at a finished-attempt count, and is released by name. A declared review point is optional and absent unless the user requests one.
 8. Resume derives state from records. Completed results are reused, a stopped investigation needs a resume decision, and M3 adds no restart files.

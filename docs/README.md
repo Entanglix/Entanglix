@@ -32,7 +32,7 @@ This index supports project planning and implementation. Operational entry point
 - [operations/system-spec.md](operations/system-spec.md) — Implemented system syntax, units, operators, evolution, drive gradients, numerical checks, and engine selection. Other usage guides may be added under `operations/` as capabilities arrive. Runtime skills will be introduced in the root `skills/` directory with agent integration.
 - [operations/runs.md](operations/runs.md) — Authored CPU jobs, listing and inspection, frozen inputs, environment and code provenance, record ownership, and execution outcomes.
 - [operations/protocols.md](operations/protocols.md) — Simulation and serial sweep specifications, metrics, CPU/CUDA dispatch, requested checks and coverage, and frozen-input replay.
-- [operations/investigations.md](operations/investigations.md) — Investigation declarations, immutable revisions and findings, human starts and approvals, scoped job admission, optional limits, usage, and record inspection.
+- [operations/investigations.md](operations/investigations.md) — Investigation declarations, immutable revisions and findings, human starts and approvals, scoped admission, optional limits, checkpoints, named reviews, stop/resume, usage, and record inspection.
 - [environment.md](environment.md) — Observed GPU compatibility, tested package versions, limitations, and reproduction commands.
 
 ## Decision records

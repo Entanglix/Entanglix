@@ -4,10 +4,11 @@ An investigation records a research question, agreed terms, and findings. Its
 revisions and events are retained under `research_runs/_investigations/`, or the
 root passed to `--runs-root`. Reads and listings reconstruct state from these files.
 
-The available commands manage drafts, starts, revision approvals, findings, and
-job admission. `simulate`, `sweep`, and authored scripts can link jobs to an
+The available commands manage drafts, starts, revision approvals, findings,
+checkpoint/review gates, stops, resumes, and job admission. `simulate`, `sweep`, and
+authored scripts can link jobs to an
 investigation; checks and reruns inherit that membership. Scope and optional limits
-are enforced. Checkpoint/review gates and stop/resume commands are not available yet.
+are enforced.
 
 ## Declare the terms
 
@@ -107,7 +108,8 @@ Decision records retain the action, revision, timestamp, operator CLI source,
 OS user, and optional note. `investigation-decision` is a human action and is absent
 from the research operations advertised by `capabilities`. This separation follows
 the cooperative workflow in the [harness contract](../../HARNESS_CONTRACT.md);
-it is not OS authentication. Resume and named review release are not available yet.
+it is not OS authentication. Resume and named review release use the same operator
+command, as described below.
 
 ## Launch work within scope
 
@@ -218,9 +220,10 @@ verification runs; available-check listings are not copied into findings. Author
 cannot supply usage or evidence summaries.
 
 The decision is `continue`, `refine`, `stop`, or `review`. A `review` finding requires
-`review_name`; other decisions omit it. These currently record recommendations;
-checkpoint/review gating and cancellation are not yet implemented. A final report
-can leave `next_experiment` empty. A draft must be started before receiving findings.
+`review_name`; other decisions omit it. A review decision opens a named review;
+continue, refine, and stop record recommendations without changing the agreed
+terms or executing a stop. A final report can leave `next_experiment` empty.
+A draft must be started before receiving findings.
 
 Records use version 1. Revisions live in `revisions/0001.toml`, `0002.toml`, and so
 on; events in `events/00000001.toml`, `00000002.toml`, and so on. Earlier files are
@@ -228,3 +231,47 @@ never replaced through supported operations. Writers share a directory lock;
 readers obtain a consistent snapshot. A new process reads the same effective
 revision and history. CLI output is JSON; invalid declarations or actions return
 exit `64` with a diagnostic.
+
+## Checkpoints and reviews
+
+`read-investigation` reports the checkpoint's due state, total finished attempts,
+finished attempts since the last assessment, elapsed seconds, and open review names.
+Every linked job with `FINISHED` counts, including checks and failed/aborted work.
+An interrupted attempt counts once it is reconciled, and its usage stays uncertain.
+Unreconciled interrupted attempts do not count, and an attempt counts at most once.
+A due checkpoint refuses new admission, including dry runs, until a finding with
+`kind = "assessment"` is recorded. Interpretations and reports do not reset it.
+Elapsed intervals run from the start or last assessment; approvals and resumes do
+not reset them. A stop does not pause an elapsed interval. Already admitted jobs
+may finish.
+
+A review opens from a finding's `review` decision or a declared review point at its
+total finished-attempt count. It blocks all new admissions until the user releases
+it by name. Assessments and approved revisions do not release an open review.
+
+```sh
+entanglix investigation-decision research_runs/_investigations/<investigation_id> release-review --review strategy --note "Proceed with the current method."
+```
+
+## Stop and resume
+
+```sh
+entanglix stop-investigation research_runs/_investigations/<investigation_id> user_cancellation --note "Pause this work."
+entanglix investigation-decision research_runs/_investigations/<investigation_id> resume
+```
+
+Stop reasons are `evidence_completion`, `insufficient_progress`,
+`model_or_strategy_limitations`, `user_cancellation`, `configured_limits`,
+`interruption`, and `review_handoff`; the note explains the case. Stopping closes
+admission and records the outstanding run IDs before cancelling their jobs.
+Running jobs and their descendants are stopped through the runner's process-group
+cancellation. A delayed attempt checks its permanent cancellation before computing
+and ends aborted, even if the investigation has since resumed. Stop output lists
+any cancellation errors; retained records and logs remain inspectable.
+
+Resume is an operator decision on the effective revision, after all open reviews
+are released. It allows new admissions without reviving cancelled attempts or
+resetting usage or checkpoints. Proposed and approved revisions do not resume a
+stopped investigation. A new session reads the same records; it does not recompute
+completed results. Interrupted work is reconciled and rerun with new linked IDs.
+Simulation and sweep runs have no restart files.

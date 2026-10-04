@@ -4,7 +4,7 @@ Entanglix is a quantum system research harness for superconducting circuits.
 
 **Available in this checkout:** system validation and construction, CPU evolution with optional GPU adapters, carrier drives, explicit rotating-wave frames, and differentiable envelopes. Authored CPU jobs and CPU/CUDA `simulate` and serial `sweep` runs retain frozen inputs, code/environment provenance, metrics, plots, live inspection, timeouts, cancellation, recovery, and linked reruns. Built-in checks run only on request through `check`.
 
-Investigation records support drafts, human starts, proposed revisions and approvals, findings, retained history, scoped job admission, and optional job-count, total execution-time (`job_seconds`), and deadline limits. GPU-seconds remain recorded usage. Checkpoints and stop/resume integration follow separately.
+Investigation records support drafts, human starts, proposed revisions and approvals, findings, retained history, scoped job admission, checkpoint assessments, named reviews, cancellation, and operator resumes. Optional limits cover job count, total execution time (`job_seconds`), and deadlines; GPU-seconds remain recorded usage.
 
 Shared execution guarantees are in [HARNESS_CONTRACT.md](HARNESS_CONTRACT.md); [research-agent guidance](docs/research-agent.md) is a draft pending runtime integration. [ADRs](docs/adr/) retain decisions and rationale for readers who need that history.
 

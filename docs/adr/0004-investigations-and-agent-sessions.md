@@ -65,7 +65,7 @@ The harness does only what the user requests. For an investigation it supplies n
 ### 2.4 Checkpoints, assessments, and reviews
 
 - The harness supplies no default checkpoint and no default limit. The user declares the checkpoint when starting an investigation, as a count of finished attempts or an elapsed interval, and declares a limit only when one is wanted.
-- Every finished run linked to the investigation counts toward a checkpoint, including verification runs and failed or aborted attempts. When a checkpoint is due, admission is refused until an assessment is recorded.
+- Every finished run linked to the investigation counts toward a checkpoint, including verification runs and failed or aborted attempts. An interrupted attempt counts once it is reconciled. When a checkpoint is due, admission is refused until an assessment is recorded.
 - One finding record serves assessments, interpretations, and reports.
   - The author supplies the runs considered, what was learned, what remains unresolved, a decision to continue, refine, stop, or ask for review, its rationale, and the next experiment.
   - The runner fills the revision, the usage since the previous assessment and in total, and, for each linked run, the checks run with their outcomes and the relevant checks not run. Usage counts jobs, evaluated points, wall seconds, and GPU-seconds.

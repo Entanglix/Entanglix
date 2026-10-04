@@ -29,6 +29,15 @@ Number = Annotated[float, Field(strict=True, allow_inf_nan=False)]
 PositiveSeconds = Annotated[Number, Field(gt=0)]
 Digest = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
 Operation = Literal["simulate", "sweep", "check", "run_script"]
+STOP_REASONS = (
+    "evidence_completion",
+    "insufficient_progress",
+    "model_or_strategy_limitations",
+    "user_cancellation",
+    "configured_limits",
+    "interruption",
+    "review_handoff",
+)
 TARGET = re.compile(
     r"^(parameters\.[^.]+|evolution\.drive_amplitudes_ghz\.[^.]+|"
     r"evolution\.carriers\.[^.]+\.frequency_ghz|evolution\.frame\.frequencies_ghz\.[^.]+)$"
@@ -208,13 +217,20 @@ def _read_locked(path: Path) -> dict:
         if record["record_version"] != 1:
             raise ValueError("unsupported investigation record_version")
     active = None
+    state = "draft"
     for event in events:
         if event["kind"] == "decision" and event["action"] in {"start", "approve-revision"}:
             active = event["revision"]
+            if event["action"] == "start":
+                state = "active"
+        elif event["kind"] == "stop":
+            state = "stopped"
+        elif event["kind"] == "decision" and event["action"] == "resume":
+            state = "active"
     return {
         "path": str(path),
         "investigation_id": path.name,
-        "state": "draft" if active is None else "active",
+        "state": state,
         "active_revision": active,
         "revisions": revisions,
         "events": events,
@@ -271,27 +287,52 @@ def revise_investigation(path: Path, spec: Path | dict) -> dict:
     return {"path": str(path), "investigation_id": path.name, "proposed_revision": revision}
 
 
-def record_user_decision(path: Path, action: str, *, revision: int, note: str = "") -> dict:
+def record_user_decision(
+    path: Path,
+    action: str,
+    *,
+    revision: int | None = None,
+    review_name: str | None = None,
+    note: str = "",
+) -> dict:
     """Operator-only backing operation; research tools must never expose this function."""
-    if action not in {"start", "approve-revision"}:
-        raise ValueError("available decision actions are start and approve-revision")
-    if type(revision) is not int or revision < 1:
+    if action not in {"start", "approve-revision", "resume", "release-review"}:
+        raise ValueError("unknown investigation decision action")
+    if (revision is not None or action in {"start", "approve-revision"}) and (
+        type(revision) is not int or revision < 1
+    ):
         raise ValueError("revision must be a positive integer")
+    if (action == "release-review") != (review_name is not None):
+        raise ValueError("review_name is required only for release-review")
     path = path.resolve()
     with investigation_lock(path):
         record = _read_locked(path)
+        active = record["active_revision"]
+        if action != "start" and active is None:
+            raise ValueError("investigation must be started before user decisions")
+        if revision is None:
+            revision = active
         if not any(item["revision"] == revision for item in record["revisions"]):
             raise ValueError(f"unknown revision: {revision}")
-        active = record["active_revision"]
         if action == "start" and active is not None:
             raise ValueError("investigation has already started")
-        if action == "approve-revision" and active is None:
-            raise ValueError("a draft must be started before approving another revision")
-        if any(
-            event["kind"] == "decision" and event["revision"] == revision
+        if action in {"start", "approve-revision"} and any(
+            event["kind"] == "decision"
+            and event["action"] in {"start", "approve-revision"}
+            and event["revision"] == revision
             for event in record["events"]
         ):
             raise ValueError("revision has already taken effect")
+        lifecycle = _lifecycle(record, _runs(path))
+        if action in {"resume", "release-review"} and revision != active:
+            raise ValueError("resume and release-review apply to the effective revision")
+        if action == "resume":
+            if record["state"] != "stopped":
+                raise ValueError("only a stopped investigation can resume")
+            if lifecycle["open_reviews"]:
+                raise ValueError(f"release open reviews before resume: {lifecycle['open_reviews']}")
+        if action == "release-review" and review_name not in lifecycle["open_reviews"]:
+            raise ValueError(f"review is not open: {review_name}")
         uid = os.getuid()
         try:
             os_user = pwd.getpwuid(uid).pw_name
@@ -304,6 +345,15 @@ def record_user_decision(path: Path, action: str, *, revision: int, note: str = 
             revision=revision,
             source={"kind": "operator-cli", "os_user": os_user},
             note=note,
+            **({"open_reviews": lifecycle["open_reviews"]} if action == "approve-revision" else {}),
+            **(
+                {
+                    "review_name": review_name,
+                    "finished_attempts": lifecycle["checkpoint"]["finished_attempts"],
+                }
+                if action == "release-review"
+                else {}
+            ),
         )
     return read_investigation(path)
 
@@ -355,6 +405,105 @@ def _usage(records):
         elif manifest["protocol"] == "simulate" and finished and finished["status"] == "completed":
             usage["evaluated_points"] += 1
     return usage
+
+
+def _lifecycle(record, runs):
+    """Derive gates from finished attempts and immutable findings and decisions."""
+    if record["active_revision"] is None:
+        return {"open_reviews": [], "checkpoint": {"due": False, "finished_attempts": 0}}
+    terms = next(
+        r["terms"] for r in record["revisions"] if r["revision"] == record["active_revision"]
+    )
+    count = sum(
+        end is not None or (run / "runner/reconciled.toml").exists() for run, _, end in runs
+    )
+    start = next(e for e in record["events"] if e["kind"] == "decision" and e["action"] == "start")
+    assessment = next(
+        (
+            e
+            for e in reversed(record["events"])
+            if e["kind"] == "finding" and e["finding"]["kind"] == "assessment"
+        ),
+        None,
+    )
+    baseline = assessment or start
+    assessed_count = assessment["finished_attempts"] if assessment else 0
+    elapsed = max(0.0, (datetime.now(UTC) - baseline["recorded_at"]).total_seconds())
+    interval = terms["checkpoint"]
+    due = (
+        count - assessed_count >= interval["finished_attempts"]
+        if "finished_attempts" in interval
+        else elapsed >= interval["elapsed_seconds"]
+    )
+    reviews = set()
+    releases = {}
+    for event in record["events"]:
+        if event["kind"] == "decision" and event["action"] == "approve-revision":
+            reviews.update(event.get("open_reviews", []))
+        elif event["kind"] == "finding" and event["finding"]["decision"] == "review":
+            reviews.add(event["finding"]["review_name"])
+        elif event["kind"] == "decision" and event["action"] == "release-review":
+            reviews.discard(event["review_name"])
+            releases[event["review_name"]] = event["finished_attempts"]
+    reviews.update(
+        name
+        for name, threshold in terms["review_points"].items()
+        if count >= threshold and releases.get(name, -1) < threshold
+    )
+    return {
+        "open_reviews": sorted(reviews),
+        "checkpoint": {
+            "due": due,
+            "finished_attempts": count,
+            "since_assessment": count - assessed_count,
+            "elapsed_seconds": elapsed,
+        },
+    }
+
+
+def stop_investigation(path: Path, reason: str, *, note: str = "") -> dict:
+    """Close admission and permanently cancel outstanding attempts before signalling jobs."""
+    from entanglix.runner import abort_run
+
+    if reason not in STOP_REASONS:
+        raise ValueError(f"stop reason must be one of: {', '.join(STOP_REASONS)}")
+    path = path.resolve()
+    with investigation_lock(path):
+        record = _read_locked(path)
+        if record["state"] != "active":
+            raise ValueError("only an active investigation can be stopped")
+        outstanding = [
+            run
+            for run, _, end in _runs(path)
+            if end is None and not (run / "runner/reconciled.toml").exists()
+        ]
+        event = _event(
+            path,
+            "stop",
+            revision=record["active_revision"],
+            reason=reason,
+            note=note,
+            runs=[run.name for run in outstanding],
+        )
+    failures = []
+    for run in outstanding:
+        try:
+            read = _read_attempt(run)
+        except (OSError, ValueError) as exc:
+            failures.append({"run_id": run.name, "diagnostic": str(exc)})
+            continue
+        if read["status"] == "unknown":
+            failures.append(
+                {"run_id": run.name, "diagnostic": "cannot confirm job process-group liveness"}
+            )
+        elif read["status"] == "active" and "start" in read:
+            try:
+                abort_run(run)
+            except ValueError:
+                pass  # The job can exit between inspection and abort_run.
+            except OSError as exc:
+                failures.append({"run_id": run.name, "diagnostic": str(exc)})
+    return {"path": str(path), "stop": event, "cancellation_errors": failures}
 
 
 def _in_scope(base, hashes, points, defaults):
@@ -429,6 +578,14 @@ def admit(path, *, operation, base_name, hashes, points, timeout_seconds, defaul
         revision = record["active_revision"]
         if revision is None:
             raise ValueError("investigation must be started before admission")
+        if record["state"] == "stopped":
+            raise ValueError("investigation is stopped")
+        records = _runs(path)
+        lifecycle = _lifecycle(record, records)
+        if lifecycle["open_reviews"]:
+            raise ValueError(f"investigation has open reviews: {lifecycle['open_reviews']}")
+        if lifecycle["checkpoint"]["due"]:
+            raise ValueError("investigation checkpoint is due; record an assessment")
         terms = next(item["terms"] for item in record["revisions"] if item["revision"] == revision)
         if operation not in terms["scope"]["operations"]:
             raise ValueError(f"operation outside investigation scope: {operation}")
@@ -445,7 +602,6 @@ def admit(path, *, operation, base_name, hashes, points, timeout_seconds, defaul
         deadline = limits.get("deadline")
         if deadline is not None and datetime.now(UTC) >= deadline:
             raise ValueError("investigation deadline has passed")
-        records = _runs(path)
         usage = _usage(records)
         commitment = timeout_seconds if timeout_seconds is not None else 0.0
         if "job_count" in limits and usage["jobs"] + 1 > limits["job_count"]:
@@ -483,7 +639,7 @@ class CancelledStart(RuntimeError):
 
 @contextmanager
 def start_permission(run):
-    """Serialize the final deadline check and start publication with decisions."""
+    """Serialize the final cancellation/deadline check and start publication with decisions."""
     manifest = _load_record(run / "run.toml")
     investigation_id = manifest.get("investigation_id")
     if investigation_id is None:
@@ -491,6 +647,9 @@ def start_permission(run):
         return
     path = run.parent.parent / "_investigations" / investigation_id
     with investigation_lock(path):
+        record = _read_locked(path)
+        if any(e["kind"] == "stop" and run.name in e["runs"] for e in record["events"]):
+            raise CancelledStart("investigation stop cancelled this admitted attempt")
         deadline = manifest["investigation_limits"].get("deadline")
         if deadline is not None and datetime.now(UTC) >= deadline:
             raise CancelledStart("admitted attempt's deadline has passed")
@@ -610,6 +769,11 @@ def record_finding(path: Path, finding: Path | dict) -> dict:
                 },
             },
             evidence=evidence,
+            **(
+                {"finished_attempts": _lifecycle(record, runs)["checkpoint"]["finished_attempts"]}
+                if author["kind"] == "assessment"
+                else {}
+            ),
         )
 
 
@@ -617,7 +781,9 @@ def read_investigation(path: Path) -> dict:
     path = path.resolve()
     with investigation_lock(path, shared=True):
         record = _read_locked(path)
-        record["usage"] = _usage(_runs(path))
+        runs = _runs(path)
+        record["usage"] = _usage(runs)
+        record.update(_lifecycle(record, runs))
         return record
 
 
