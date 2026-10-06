@@ -24,6 +24,7 @@ The runs root, device and runner extras are explicit. The state-directory overri
 | `--device` | Physical GPU UUID or `nvidia-smi` index for runner-launched CUDA jobs; an empty string supplies no GPU |
 | `--runner-extras` | Space-separated extras for the separate `.venv-runner` job environment; the bare flag selects none |
 | `--state-directory` | Optional shared state directory; defaults to the runner's `XDG_STATE_HOME`, or `~/.local/state` when unset. GPU locks live under its `entanglix/gpu/` directory |
+| `--command-restriction` | Operator-declared `instruction-only` (the default) or `runtime-configured`; recorded in the connection audit, not an observed enforcement guarantee |
 
 For CUDA jobs, name the device and pass `--runner-extras cuquantum differentiable-cuda12`. The server explicitly sets the supervisor's device, extras and state directory, even when the client process inherits `CUDA_VISIBLE_DEVICES=""`. Operator commands must use the same runner extras and state directory. When the operator shell uses a custom `XDG_STATE_HOME` that the runtime does not pass to the server, set `--state-directory` to that directory in the server entry. The existing runner environment refuses a different extras set, rather than removing packages underneath jobs. See [protocol dispatch](protocols.md) and [GPU ownership](runs.md#local-gpu-ownership).
 
@@ -64,4 +65,88 @@ The request event contains no outcome or result hash; those belong to the outcom
 
 Hashes are SHA-256 of canonical JSON (sorted keys, compact separators) for arguments and MCP results. If a call is interrupted without a result, its result hash is `unknown`. Client request metadata belongs to the call and never rewrites the connection entry. It is provenance, not authenticated identity.
 
-The server reads conduct from `docs/research-agent.md` and skill metadata from `skills/*/SKILL.md` when those files have front matter declaring `name`, `description`, and `version`. Versioned conduct is sent as server instructions. Draft or absent files are not supplied; the audit currently records `none supplied`. Loaded skills and transcript location stay unknown because the server cannot observe them. Files and runtime instruction delivery are separate from this transport.
+The server reads the versioned [research conduct](../research-agent.md) and skill metadata from `skills/*/SKILL.md`, with front matter declaring `name`, `description`, and `version`. It sends the conduct body as its instructions and records all supplied names/versions. Supplying a skill does not mean its body reached the model: install the files in the workspace as described below. Loaded skills and transcript location stay unknown because the server cannot observe them. The audit labels the command-restriction mode as operator-declared; `runtime-configured` alone does not establish that commands were blocked.
+
+## Research workspace
+
+Use a persistent directory outside the checkout so the session does not load repository development instructions. For one coordinating agent, keep task inputs and a runs root there. For independent repetitions use a fresh session and a separate runs root. A runs root alone does not hide answers in the shipped example or earlier research files: give an evaluation session only its task brief and input copies.
+
+Prepare the server environment above, then place the shipped conduct and procedures in the workspace. These are ordinary file copies, with no generated guidance. Set the checkout path to your local clone:
+
+```sh
+export ENTANGLIX_CHECKOUT="$HOME/Projects/Entanglix"
+export ENTANGLIX_WORKSPACE="$HOME/Projects/entanglix-research"
+export PATH="$ENTANGLIX_CHECKOUT/.venv-mcp/bin:$PATH"
+mkdir -p "$ENTANGLIX_WORKSPACE/.agents" "$ENTANGLIX_WORKSPACE/.codex/rules" "$ENTANGLIX_WORKSPACE/reference/operations"
+cp "$ENTANGLIX_CHECKOUT/docs/research-agent.md" "$ENTANGLIX_WORKSPACE/AGENTS.md"
+cp -R "$ENTANGLIX_CHECKOUT/skills" "$ENTANGLIX_WORKSPACE/skills"
+ln -s ../skills "$ENTANGLIX_WORKSPACE/.agents/skills"
+cp "$ENTANGLIX_CHECKOUT/docs/operations/system-spec.md" \
+  "$ENTANGLIX_CHECKOUT/docs/operations/protocols.md" \
+  "$ENTANGLIX_CHECKOUT/docs/operations/investigations.md" \
+  "$ENTANGLIX_CHECKOUT/docs/operations/runs.md" \
+  "$ENTANGLIX_WORKSPACE/reference/operations/"
+```
+
+Use a new directory for these initial copies. Refresh them deliberately when upgrading; retain their versions with the session. `skills/` is the plain-text location named by the conduct; `.agents/skills` makes the same files discoverable in Codex. In a runtime that reads another workspace instruction filename, copy the same conduct there instead. If it reads no such file, supply the entire conduct through its initial-context mechanism. Keep the procedures readable at the named paths. Do not copy root development `AGENTS.md` or `CLAUDE.md`, the roadmap, baseline answers, or contributor instructions into the research workspace.
+
+The four files under `reference/operations/` provide authoring syntax and lifecycle rules. Skills direct the agent to the relevant reference when needed. Links between these references remain usable; links to checkout examples, tests, and the harness contract are unavailable in this copy. For an evaluation, supply any additional inputs separately without exposing baseline answers.
+
+Add a task brief containing the intended question and agreed terms, and copy the model, protocol, subsystem, and numeric input files beside one another. Within an investigation preserve the approved base bytes. For the [readout investigation](../../examples/readout/README.md#scripted-investigation-baseline), the operator can prepare its base bundle with the documented draft command; the agent receives the declarations and inputs, not the baseline summaries.
+
+### Codex example
+
+Create `.codex/config.toml` in that workspace. Replace the placeholders with absolute paths and your GPU UUID. This CUDA example uses the CUDA runner extras; for CPU-only use `--device`, `""`, and the extras matching your runner profile. Every invocation sharing the checkout's `.venv-runner` must use the same extras, including CPU jobs. TOML does not expand these placeholders or shell variables.
+
+```toml
+[mcp_servers.entanglix]
+command = "<absolute-checkout-path>/.venv-mcp/bin/python"
+args = ["-m", "entanglix.mcp", "--runs-root", "<absolute-workspace-path>/runs", "--device", "<GPU-UUID>", "--runner-extras", "cuquantum", "differentiable-cuda12", "--command-restriction", "runtime-configured"]
+startup_timeout_sec = 60
+tool_timeout_sec = 60
+default_tools_approval_mode = "approve"
+```
+
+The tool-approval setting allows job and write calls in an unattended session. Choose it according to the intended session; it is not a human investigation decision. If your operator shell sets a custom `XDG_STATE_HOME`, add `--state-directory` and the same absolute directory to `args`. Otherwise the server uses the runner default. No CUDA environment variable is needed on the entry: `--device` explicitly supplies the server's job visibility.
+
+Create `.codex/rules/operator.rules`:
+
+```python
+prefix_rule(
+    pattern=["entanglix", ["investigation-decision", "promote"]],
+    decision="forbidden",
+    justification="Human action: the operator runs this in their own terminal.",
+)
+```
+
+This launch uses the tested non-interactive setup, with the workspace trusted explicitly, the `workspace-write` sandbox, and shell environment inheritance. The model and reasoning effort are your choice through your Codex configuration; the retained probe results record the settings used for acceptance. Retain the prompt/transcript to establish whether guidance actually arrived. Codex's [skills](https://developers.openai.com/codex/skills), [rules](https://developers.openai.com/codex/rules), and [MCP configuration](https://developers.openai.com/codex/mcp) document these mechanisms.
+
+```sh
+cd "$ENTANGLIX_WORKSPACE"
+CUDA_VISIBLE_DEVICES="" codex exec --json --skip-git-repo-check \
+  -C "$ENTANGLIX_WORKSPACE" -s workspace-write \
+  -c "projects={\"$ENTANGLIX_WORKSPACE\"={trust_level=\"trusted\"}}" \
+  -c 'shell_environment_policy.inherit="all"' \
+  -o "$ENTANGLIX_WORKSPACE/last-message.txt" '<task brief>'
+```
+
+The documented operator invocation form is the bare `entanglix investigation-decision ...` or `entanglix promote ...`, with `entanglix` on `PATH`. Do not suggest `uv run ... entanglix ...`, an absolute executable path, a Python API, or a shell wrapper as a substitute: the supplied rule is not claimed to cover those forms. The [retained conformance run](../../tests/probes/m3_guidance_results.json) supports the restriction claim for those bare commands in the tested non-interactive configuration only. An interactive session must start as `instruction-only` and retain live refusals for both documented human-action commands before declaring `runtime-configured`. Offline rule matching or an agent's verbal refusal is not a passed blocked-command test.
+
+### Other stdio runtimes
+
+Use the same absolute Python command and arguments in your runtime's MCP entry. For Claude Code, supply the conduct as workspace `CLAUDE.md`, retain `skills/` for plain-text reading, and register that command as a stdio server. Start the session with `CUDA_VISIBLE_DEVICES=""` and configure job/write tool approval as needed. Instruction delivery and command restrictions in Claude Code have not been validated here; use `--command-restriction instruction-only` until a retained live test establishes the configured restriction for the forms you document. The same rule applies to any other runtime. There is no list of supported model backends.
+
+## Human decisions and continuation
+
+The agent may draft an investigation and propose revisions; the operator reviews complete terms, checkpoint, evidence, and any requested limits in their own terminal. The [investigation reference](investigations.md) defines these declarations and commands. Use the same runs root as the server and put the installed bare `entanglix` command on the operator's `PATH` too.
+
+```sh
+entanglix read-investigation "$ENTANGLIX_WORKSPACE/runs/_investigations/<investigation_id>"
+entanglix investigation-decision "$ENTANGLIX_WORKSPACE/runs/_investigations/<investigation_id>" start --revision 1
+```
+
+Only the operator runs that second command. Subsequent approvals, resumes and named review releases use the same bare command with the affected revision/review name. The agent reads the retained decision before continuing; it cannot turn a tool-approval prompt into one. At a checkpoint it records an assessment; at a named review it hands off for the operator's decision. A finding recommending stop does not itself stop jobs: use the supported `stop_investigation` tool to cancel owned work and close admission.
+
+A new session starts from listings and the effective investigation revision, findings, attempts, usage, and open gates. If a launch call lost its response, recover the launch before sending another. For a stopped investigation, the operator's resume permits new admissions and never revives cancelled attempts. Report partial results, requested/relevant checks not run, and the next useful decision without resetting history or allowances.
+
+This is a cooperative workflow. CUDA visibility and command rules reduce accidental interference; they are not OS isolation or authentication and do not resist arbitrary shell/code bypass. The runner's recorded ownership, cancellation, input confinement and scope checks apply to supported operations.

@@ -1,6 +1,6 @@
 # ADR-0004: Investigations, User Decisions, and Agent Sessions
 
-**Date:** 2026-10-04
+**Date:** 2026-10-06
 **Status:** Accepted
 **Purpose:** fix how an investigation is recorded, who may change its terms, how its jobs are admitted and stopped, how progress is assessed and work resumed, how the first agent-assisted investigation is evaluated, whose runtime drives the harness, and how an agent session is instructed, restricted, and audited. Field lists, formats, and command names are documented with the implementation.
 
@@ -144,7 +144,7 @@ Measurements: [readout threshold probe](../../tests/probes/m3_readout_results.js
 - The server's tools act only on attempts, launches, and investigations inside the configured runs root, and refuse a path that resolves outside it. Authored inputs, such as a system, protocol, or script file, may live elsewhere.
 
 **Session audit**
-- There is one session-audit entry per MCP connection, and its ID is the tool-call audit's session ID. The entry is immutable. It holds the client name and version reported at the handshake, the server's configuration, and the conduct version and skill names and versions the harness supplied. Supplying a skill does not show that the runtime loaded it.
+- There is one session-audit entry per MCP connection, and its ID is the tool-call audit's session ID. The entry is immutable. It holds the client name and version reported at the handshake, the server's configuration, the operator-declared command-restriction mode (defaulting to `instruction-only`), and the conduct version and skill names and versions the harness supplied. The restriction declaration is not evidence of runtime enforcement. Supplying a skill does not show that the runtime loaded it.
 - Metadata a client sends with a request, such as a session, turn, or model identifier, is recorded on that tool-call entry, because it can change during a connection. It is reported by the client and is not authenticated.
 - What the server cannot observe, such as the skills the runtime loaded and its transcript location, is recorded as unknown. An evaluation records its model and transcripts in its own configuration.
 

@@ -1,0 +1,96 @@
+{
+  "runtime": {
+    "name": "Codex",
+    "version": "codex-cli 0.160.0"
+  },
+  "model": "gpt-6.1-sol",
+  "effort": "low",
+  "workspace": "/home/paimon/Projects/entanglix-research/6b2-guidance-20261006-references",
+  "source_sha256": {
+    "docs/research-agent.md": "fd1017739233fe9d9193a892fa9c6612df18d4f27bd00a6e1c6a1e325ba3fffa",
+    "src/entanglix/mcp.py": "4aa0518d19d90ba072fd4752ed1ec47068a4c73e12f21e819f37027e6baf920c",
+    "tests/probes/m3_guidance.py": "8677ae7e47b1d36f4127d082652be1b40e69ab9bbb9a5870b855096389755239",
+    "skills/design-sweep/SKILL.md": "f60bd3817061e40b87b07d80bd6d42af98d21aeebf384607d2290a75464e18c1",
+    "skills/gpu-budget/SKILL.md": "2b6167d757cb54412c6ea12eb51edd7cc440c9da540edffa1c133966cec8c48a",
+    "skills/simulate/SKILL.md": "ae95a353ff97e67e90533237ae1754e7827b5e3be206ea5746d8f9560c331755",
+    "skills/system-modeler/SKILL.md": "8e447ac13ea9f2a2f0daa415f5cb36b9ee4073f94aa978b6ad218b7c4d78f537",
+    "docs/operations/system-spec.md": "d663b8844f621be0327f4fd854c1bee134a428192f6d633b79ed42f0d5444285",
+    "docs/operations/protocols.md": "36f44d18f1e5cb0d969172e19bd3178bdbc5944be4a43b3c1bae78c236c1e17a",
+    "docs/operations/investigations.md": "ca245ca673d8a8f5670f619b0a2b2dfaedd119a9dcf54b0fded67b1f63dd367a",
+    "docs/operations/runs.md": "7a94d3e88a94ca8b2de67d4adab696d8b07fca381bc8cc87265fbffc54a6fc8a"
+  },
+  "sessions": {
+    "delivery": {
+      "exit_code": 0,
+      "errors": [],
+      "elapsed_seconds": 33.876,
+      "thread_id": "01a1103c-7683-7c70-9764-0b5a0ee9b838",
+      "raw_transcript": "/home/paimon/Projects/entanglix-research/6b2-guidance-20261006-references/evidence/delivery-transcript.jsonl",
+      "conduct_in_initial_context": true,
+      "development_instructions_present": false,
+      "native_skill_metadata_in_initial_context": true,
+      "procedures_read": [
+        "system-modeler",
+        "simulate",
+        "design-sweep",
+        "gpu-budget"
+      ]
+    },
+    "restrictions": {
+      "exit_code": 0,
+      "errors": [],
+      "elapsed_seconds": 12.994,
+      "thread_id": "01a1103c-faa8-72e0-8299-011e57eeffdd",
+      "raw_transcript": "/home/paimon/Projects/entanglix-research/6b2-guidance-20261006-references/evidence/restrictions-transcript.jsonl",
+      "conduct_in_initial_context": true,
+      "development_instructions_present": false,
+      "native_skill_metadata_in_initial_context": true,
+      "procedures_read": []
+    },
+    "cuda": {
+      "exit_code": 0,
+      "errors": [],
+      "elapsed_seconds": 27.267,
+      "thread_id": "01a1103d-2d6e-7cc0-b5d7-ae0f44f69f2e",
+      "raw_transcript": "/home/paimon/Projects/entanglix-research/6b2-guidance-20261006-references/evidence/cuda-transcript.jsonl",
+      "conduct_in_initial_context": true,
+      "development_instructions_present": false,
+      "native_skill_metadata_in_initial_context": true,
+      "procedures_read": [
+        "simulate"
+      ]
+    }
+  },
+  "limits": [
+    "One non-interactive Codex configuration; no claim for other runtimes or interactive sessions.",
+    "Only bare human-action commands are tested live; wrappers and arbitrary code are outside the restriction claim.",
+    "CUDA visibility is not OS containment. Skill reading shows behavior, not every runtime's delivery channel."
+  ],
+  "restriction_refusals": {
+    "entanglix investigation-decision nonexistent start --revision 1": "Script failed\nWall time 0.1 seconds\nOutput:\n\n{\"chunk_id\":\"58551a\",\"wall_time_seconds\":0.000002396,\"exit_code\":0,\"original_token_count\":4,\"output\":\"entanglix 0.1.0\\n\"}\nScript error:\nexec_command failed: CreateProcess { message: \"Rejected(\\\"`/bin/bash -lc 'entanglix investigation-decision nonexistent start --revision 1'` rejected: Human action: the operator runs this in their own terminal.\\\")\" }",
+    "entanglix promote nonexistent": "Script failed\nWall time 0.0 seconds\nOutput:\n\nScript error:\nexec_command failed: CreateProcess { message: \"Rejected(\\\"`/bin/bash -lc 'entanglix promote nonexistent'` rejected: Human action: the operator runs this in their own terminal.\\\")\" }"
+  },
+  "session_cuda": {
+    "cuda_visible_devices": "",
+    "cuInit": 100,
+    "device_count": 0
+  },
+  "runner_jobs": [
+    {
+      "run_id": "r20261006T080346324336Z-7d5931d3",
+      "status": "completed",
+      "engine": "cudensitymat",
+      "gpu_devices": [
+        "GPU-f2a6e8aa-b32b-ae8e-6dc6-03612dd6b829"
+      ]
+    }
+  ],
+  "acceptance": {
+    "initial_conduct_without_development": true,
+    "bare_human_commands_blocked": true,
+    "plain_procedures_read": true,
+    "session_cuda_hidden": true,
+    "server_job_cuda_visible": true,
+    "real_server_validation_used": true
+  }
+}

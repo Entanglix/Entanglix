@@ -1,18 +1,18 @@
 # Planning and documentation index
 
-This index supports project planning and implementation. Operational entry points are the root README and harness contract; research-agent guidance is a draft until runtime integration. Root auto-load files guide repository development.
+This index supports project planning and implementation. Operational entry points are the root README, harness contract, and research-agent conduct. Root auto-load files guide repository development.
 
 ## Documentation boundary
 
 | Class | Examples | Lifecycle |
 |---|---|---|
 | Planning/development | Roadmap, checklist, phase guides, development instructions | Internal implementation guidance; plans are removable after building |
-| Operational harness | Root README, harness contract, research-agent guidance, skills | Retained and maintained for production users and agents; draft guidance awaits integration |
+| Operational harness | Root README, harness contract, research-agent conduct, skills | Retained and maintained for production users and agents |
 | Decision records | ADRs | Retained public decisions, rewritten in place when a decision changes, with earlier text in git; consulted when relevant, not automatically loaded into runtime context |
 
 - Operational docs stand alone: they never link to or depend on planning/development docs. Planning docs may link to anything.
 - Before a planning doc is removed, move lasting decisions into an ADR and operating guidance into an operational doc.
-- Repository auto-load files are development entry points. Research work may use a separate workspace; MCP instructions, skills, or an Entanglix-generated workspace instruction file will deliver research guidance once that mechanism is selected and tested. Avoid `AGENTS.md` or `CLAUDE.md` filenames under `docs/`.
+- Repository auto-load files are development entry points. Research sessions use a separate workspace with a copy of the shipped conduct in initial context, the same conduct as MCP instructions, and plain-text skills. Nothing is generated. Avoid `AGENTS.md` or `CLAUDE.md` filenames under `docs/`.
 
 ## Planning and development
 
@@ -27,13 +27,14 @@ This index supports project planning and implementation. Operational entry point
 ## Operational harness
 
 - [../README.md](../README.md) — User entry point, available commands, and compatibility.
-- [research-agent.md](research-agent.md) — Draft research conduct for user agents; its delivery is settled in [ADR-0004 §2.8](adr/0004-investigations-and-agent-sessions.md#28-agent-sessions), and the text is refreshed in Block 6b. It avoids an auto-load filename and is not repository development guidance.
+- [research-agent.md](research-agent.md) — Versioned conduct for research sessions: formulation, recovery, human decisions, checks on request, assessments, and stopping. Supplied in initial context and by the MCP server; it is separate from repository development guidance.
+- [../skills/](../skills/) — Versioned `system-modeler`, `simulate`, `design-sweep`, and `gpu-budget` procedures, usable through runtime skill discovery or as plain text.
 - [../HARNESS_CONTRACT.md](../HARNESS_CONTRACT.md) — Shared interfaces, permissions, checks, and execution guarantees.
-- [operations/system-spec.md](operations/system-spec.md) — Implemented system syntax, units, operators, evolution, drive gradients, numerical checks, and engine selection. Other usage guides may be added under `operations/` as capabilities arrive. Runtime skills will be introduced in the root `skills/` directory with agent integration.
+- [operations/system-spec.md](operations/system-spec.md) — Implemented system syntax, units, operators, evolution, drive gradients, numerical checks, and engine selection. Other usage guides may be added under `operations/` as capabilities arrive.
 - [operations/runs.md](operations/runs.md) — Authored CPU jobs, listing and inspection, frozen inputs, environment and code provenance, record ownership, and execution outcomes.
 - [operations/protocols.md](operations/protocols.md) — Simulation and serial sweep specifications, metrics, CPU/CUDA dispatch, requested checks and coverage, and frozen-input replay.
 - [operations/investigations.md](operations/investigations.md) — Investigation declarations, immutable revisions and findings, human starts and approvals, scoped admission, optional limits, checkpoints, named reviews, stop/resume, usage, and record inspection.
-- [operations/mcp.md](operations/mcp.md) — Optional stdio research tools, explicit server configuration, bounded waiting, launch recovery, and connection/call audit records.
+- [operations/mcp.md](operations/mcp.md) — Optional stdio research tools, workspace setup and runtime settings, explicit server configuration, bounded waiting, launch recovery, and connection/call audit records.
 - [environment.md](environment.md) — Observed GPU compatibility, tested package versions, limitations, and reproduction commands.
 
 ## Decision records

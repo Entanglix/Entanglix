@@ -6,7 +6,7 @@ For maintainers and coding agents working on Entanglix. Root `AGENTS.md` and `CL
 
 - [roadmap.md](roadmap.md) owns scope, dependencies, quality criteria, and open choices; [checklist.md](checklist.md) owns completion status and links to acceptance evidence.
 - [HARNESS_CONTRACT.md](../HARNESS_CONTRACT.md) owns shared interfaces and execution guarantees; [ADRs](adr/) retain decisions and rationale. Draft recommendations remain proposals.
-- [README.md](../README.md) owns supported usage and release notes; [research-agent.md](research-agent.md) is a draft operational reference pending runtime integration. Follow the [documentation boundary and sharing rule](README.md).
+- [README.md](../README.md) owns supported usage and release notes; [research-agent.md](research-agent.md) owns operational research conduct, supplied separately from development instructions. Follow the [documentation boundary and sharing rule](README.md).
 
 ## Checks
 
@@ -15,7 +15,7 @@ Run `uv sync --locked --exact`, `uv run --locked --exact pytest`, `uv run --lock
 ## Working rules
 
 - Never name or directly import the private solver outside the existing roadmap Appendix A; preserve that appendix during unrelated edits. Private plugins attach through entry points.
-- Operational docs never link to planning/development docs. Keep contributor instructions out of research-agent guidance; [Block 6b](roadmap.md#block-6b--agent-integration) will decide how that guidance reaches user agents.
+- Operational docs never link to planning/development docs. Keep contributor instructions out of research-agent guidance; research sessions receive their conduct and skills through a separate workspace and the MCP server.
 - Keep core imports and CPU tests usable without GPU or private packages. Preserve [ADR-0001's numerical policy](adr/0001-mandate.md#33-units-time-grid-and-truncation-defaults).
 - Lean by default: reuse existing facilities and implement capabilities when needed.
 - ADRs hold design decisions only, stated as final. Document organization belongs in the docs index, and edit history in git. A substantive change to an accepted decision rewrites that ADR in place with a revised date; earlier text stays in git.

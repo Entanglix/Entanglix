@@ -280,3 +280,36 @@ The [GPU report](../tests/probes/m3_mcp_gpu.xml) retains disconnection/deadline
 ownership evidence and CUDA launch-to-manifest timings. The optional SDK changes
 the lockfile digest in newly captured environments without changing the numerical
 package pins.
+
+## Research guidance conformance
+
+The [workspace reference](operations/mcp.md#research-workspace) describes conduct,
+plain-text skills, command settings, and the operator decision path. Scripted
+initialization tests check that the real server sends the shipped conduct and
+records supplied versions and operator-declared restriction mode:
+
+```sh
+TMPDIR=/var/tmp UV_PROJECT_ENVIRONMENT=/var/tmp/entanglix-mcp-test uv run --locked --exact --extra mcp pytest -q tests/test_research_guidance.py tests/test_mcp.py -m 'not gpu'
+```
+
+The [runtime driver](../tests/probes/m3_guidance.py) uses fresh sessions outside the
+checkout and retains raw transcripts under its workspace. It exercises initial
+conduct, native skill metadata and plain-procedure reading, configured bare-command
+refusals, and session/server CUDA separation using one tiny simulation. Use an
+available logged-in Codex account and choose a fresh workspace path:
+
+```sh
+UV_PROJECT_ENVIRONMENT="$PWD/.venv-mcp" uv sync --locked --exact --extra mcp
+TMPDIR=/var/tmp uv run --locked --exact python tests/probes/m3_guidance.py --workspace "$HOME/Projects/entanglix-research/6b2-guidance-new" --server-python "$PWD/.venv-mcp/bin/python" --device GPU-f2a6e8aa-b32b-ae8e-6dc6-03612dd6b829 --runner-extras cuquantum differentiable-cuda12 --model gpt-6.1-sol --effort low --output tests/probes/m3_guidance_results.json
+```
+
+The retained [conformance evidence](../tests/probes/m3_guidance_results.json) shows
+conduct in initial context, all four native skill descriptions and plain-text
+procedures, with no repository development instructions. The real MCP server
+validated the copied model. Runtime tool replies show both bare human-action
+commands refused by the configured rule, while `entanglix --version` ran. The
+session's CUDA probe found zero devices; a server-launched cuDensityMat job
+completed on the configured RTX 5090. All acceptance criteria passed.
+
+These measurements cover
+one non-interactive Codex 0.160.0 configuration, not all runtimes or interactive use.
