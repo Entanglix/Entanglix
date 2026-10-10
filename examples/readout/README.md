@@ -536,7 +536,34 @@ tokens (1,095,680 cached), 18 model requests and about 250 seconds; its 5-hour
 window went from 0% to 4%. Six requests and about one window percentage point
 were spent before requesting its first new job. This is one session interrupted
 between jobs, with earlier records written by a script and a prompt that named
-those records and prescribed the method. It does not demonstrate recovery during an executing job
-or discovery of unmentioned earlier work. The
+those records and prescribed the method. It does not demonstrate recovery during
+an executing job or discovery of unmentioned earlier work. The
 [summary probe](../../tests/probes/m3_pickup.py) rebuilds this evidence without
 launching a session.
+
+Two further [pick-up checks](../../tests/probes/m3_pickup_claude_results.json) on
+2026-10-10 used Claude Code 2.1.296 with `claude-sonnet-5-5`. The scripted normal
+client was killed during its 25th job, a lab run at `EJ = 15`, which left that
+attempt interrupted beside 24 finished jobs. Each session was asked only to
+continue the investigation and given the method brief; the prompt named neither
+the earlier session nor the interrupted attempt.
+
+| Session | Conduct | Interrupted attempt | Repeated work | Report cites | Requests | 5-hour used % |
+|---|---|---|---|---|---|---|
+| First | 0.1.1 | Not reconciled; point rerun with no link | One check | 28 of 32 attempts | 39 | 19→23 |
+| Second | 0.1.2 | Reconciled; rerun linked to it | None | 42 of 42 attempts | 52 | 27→32 |
+
+Both sessions confirmed the baseline's two normal brackets and launched every
+new job through MCP. The first skipped recovery: the conduct did not say how to
+settle an interrupted attempt, and its first read asked for the full record,
+which then lacked attempt metrics and check links. Both were changed before the
+second session, which reconciled the attempt, reran it with `rerun_simulation`,
+and recorded an assessment after a check was refused at a due checkpoint. It then
+continued into the tighter stage, which the normal terms do not request, and
+ended with the precision handoff at `EJ = 13.5` after 17 new jobs where six were
+needed; the brief it received describes both cases. Claude Code also rejected its
+full investigation read of 54,724 characters as over the tool-output limit, and
+accepted the default summary. These are two sessions on one runtime and one
+cut-off point, with no shell tool granted. The account windows are shared with
+other use. The [summary probe](../../tests/probes/m3_pickup_claude.py) rebuilds
+both without launching a session.

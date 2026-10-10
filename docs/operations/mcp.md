@@ -160,9 +160,42 @@ CUDA_VISIBLE_DEVICES="" codex exec --json --skip-git-repo-check \
 
 The documented operator invocation form is the bare `entanglix investigation-decision ...` or `entanglix promote ...`, with `entanglix` on `PATH`. Do not suggest `uv run ... entanglix ...`, an absolute executable path, a Python API, or a shell wrapper as a substitute: the supplied rule is not claimed to cover those forms. The [retained conformance run](../../tests/probes/m3_guidance_results.json) supports the restriction claim for those bare commands in the tested non-interactive configuration only. An interactive session must start as `instruction-only` and retain live refusals for both documented human-action commands before declaring `runtime-configured`. Offline rule matching or an agent's verbal refusal is not a passed blocked-command test.
 
+### Claude Code example
+
+Supply the conduct as workspace `CLAUDE.md` in place of `AGENTS.md`, and retain `skills/` for plain-text reading. Create `.mcp.json` in the workspace with the same absolute Python command and arguments; this CPU-only example declares the instruction-only restriction:
+
+```json
+{
+  "mcpServers": {
+    "entanglix": {
+      "command": "<absolute-checkout-path>/.venv-mcp/bin/python",
+      "args": ["-m", "entanglix.mcp", "--runs-root", "<absolute-workspace-path>/runs", "--device", "", "--runner-extras", "cuquantum", "differentiable-cuda12", "--command-restriction", "instruction-only"]
+    }
+  }
+}
+```
+
+The retained sessions used this non-interactive form. `--setting-sources project` leaves user-level settings out, `--tools` grants file tools and no shell, and `--permission-mode dontAsk` refuses every tool that `--allowedTools` does not name. List the research tools the session may call; the model is your choice.
+
+```sh
+cd "$ENTANGLIX_WORKSPACE"
+CUDA_VISIBLE_DEVICES="" claude -p '<task brief>' \
+  --output-format stream-json --verbose \
+  --mcp-config .mcp.json --strict-mcp-config --setting-sources project \
+  --tools Read,Glob,Grep,Write --permission-mode dontAsk \
+  --allowedTools Read Glob Grep Write \
+    mcp__entanglix__list_capabilities mcp__entanglix__list_runs \
+    mcp__entanglix__list_investigations mcp__entanglix__read_investigation \
+    mcp__entanglix__read_run mcp__entanglix__simulate mcp__entanglix__check \
+    mcp__entanglix__rerun_simulation mcp__entanglix__reconcile_run \
+    mcp__entanglix__record_finding mcp__entanglix__stop_investigation
+```
+
+In two [retained sessions](../../tests/probes/m3_pickup_claude_results.json) the conduct was present before the first reply and no repository development instructions appeared. No command restriction has been validated for Claude Code: a session without a shell tool cannot run an operator command, but no retained test covers a session that has one, so declare `instruction-only`. Claude Code rejects a tool result above its output limit. One full investigation read of 54,724 characters was rejected, and the default summary of 32,757 characters was accepted.
+
 ### Other stdio runtimes
 
-Use the same absolute Python command and arguments in your runtime's MCP entry. For Claude Code, supply the conduct as workspace `CLAUDE.md`, retain `skills/` for plain-text reading, and register that command as a stdio server. Start the session with `CUDA_VISIBLE_DEVICES=""` and configure job/write tool approval as needed. Instruction delivery and command restrictions in Claude Code have not been validated here; use `--command-restriction instruction-only` until a retained live test establishes the configured restriction for the forms you document. The same rule applies to any other runtime. There is no list of supported model backends.
+Use the same absolute Python command and arguments in your runtime's MCP entry, and supply the conduct under the instruction filename your runtime reads. Start the session with `CUDA_VISIBLE_DEVICES=""` and configure job/write tool approval as needed. Use `--command-restriction instruction-only` until a retained live test establishes the configured restriction for the forms you document. There is no list of supported model backends.
 
 ## Human decisions and continuation
 

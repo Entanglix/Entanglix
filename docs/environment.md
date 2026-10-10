@@ -359,6 +359,16 @@ report. This command launches no jobs or runtime sessions:
 uv run --locked --exact python tests/probes/m3_pickup.py --workspace "$HOME/Projects/entanglix-research/6b3-pickup-20261009" --output tests/probes/m3_pickup_results.json
 ```
 
+The [Claude Code pick-up probe](../tests/probes/m3_pickup_claude.py) rebuilds the
+two retained 2026-10-10 sessions' [results](../tests/probes/m3_pickup_claude_results.json)
+from each workspace's runs, MCP launch audit, and session output. Each workspace's
+`operator/` directory holds the scripts and prompt that produced it. This command
+launches no jobs or runtime sessions:
+
+```sh
+uv run --locked --exact python tests/probes/m3_pickup_claude.py --workspace "$HOME/Projects/entanglix-research/6b4-pickup-claude-20261010" "$HOME/Projects/entanglix-research/6b4-pickup-claude-20261010-b" --output tests/probes/m3_pickup_claude_results.json
+```
+
 ## MCP response summaries
 
 The [scripted stdio tests](../tests/test_mcp.py) exercise default summaries, full
