@@ -454,3 +454,89 @@ requires the operator to release its reviews and resume it. The
 [session tests](../../tests/test_readout_investigation.py) cover a killed client
 between jobs and an interrupt during a solve. Jobs are blocking in this client;
 it does not supply connection-independent supervision.
+
+## Agent investigation comparison
+
+The [evaluation driver](../../tests/probes/m3_evaluation.py) runs fresh research
+sessions with the shipped conduct, procedures and syntax references. Formulation
+runs as a separate session. Its prompt asks for a bounded next investigation and
+the needed operator decisions, forbids computation, and explicitly cautions against
+inferring readout quality from coherence alone. The session adds a proposed
+fixed-`EJ = 13.5` comparison of three amplitudes across RWA, lab and larger-basis lab
+inputs, with nine simulations, a proposed stability target and bounded resource
+and review declarations. It launches no jobs. The retained proposal is included
+in the results; this is a prompted formulation example, not an independently
+discovered research objective.
+
+The comparison terms are fixed in advance, independently of formulation. Each agent
+drafts exactly the baseline's terms; the driver approves that fixture through the
+operator CLI. Inputs and runs are separate from the baseline, and every solve,
+check, assessment, report and stop goes through the real MCP server. Raw
+transcripts retain the initial guidance and shell reads; the
+[results](../../tests/probes/m3_evaluation_results.json) record the client/model,
+source identities, source-bound claims, checks, decisions and stopping rationales.
+The execution brief prescribes midpoint search, both bracket widths, which runs
+to check, the lab confirmation rule, and the order of normal and tighter cases.
+Numerical search is fixed by those agreed terms. Agent reasoning appears in the
+`EJ = 12` no-crossing report, checkpoint assessments, stop decision and handoff;
+this comparison does not measure the invention of a search algorithm.
+
+| Case | Outcome | Jobs / points | Job time / elapsed | Assessments | Input tokens | 5-hour / weekly used % |
+|---|---|---|---|---|---|---|
+| Formulation | Bounded proposal; no compute | 0 / 0 | — | — | 188,317 | 32→34 / 6→6 |
+| Fresh normal baseline | Both normal brackets confirmed | 30 / 27 | 184 s / 202 s | 2 | — | — |
+| Normal agent 1 | Both normal brackets confirmed | 30 / 27 | 190 s / 330 s | 3 | 2,779,389 | 35→47 / 6→8 |
+| Normal agent 2 | Both normal brackets confirmed | 30 / 27 | 187 s / 391 s | 3 | 2,735,366 | 47→61 / 8→10 |
+| Normal agent 3 | Both normal brackets confirmed | 30 / 27 | 189 s / 349 s | 3 | 2,164,533 | 61→72 / 10→12 |
+| Fresh early-stop baseline | Precision handoff at `EJ = 13.5` | 41 / 34 | 251 s / 277 s | 4 | — | — |
+| Early-stop agent 1 | Precision handoff at `EJ = 13.5` | 41 / 34 | 254 s / 511 s | 4 | 3,407,468 | 72→85 / 12→14 |
+| Early-stop agent 2 | Precision handoff at `EJ = 13.5` | 41 / 34 | 253 s / 464 s | 4 | 2,068,986 | 86→97 / 14→16 |
+| Early-stop agent 3 | Runtime usage limit before compute | 0 / 0 | 0 s / unavailable | 0 | 304,891 | 97→100 / 16→16 |
+
+The five completed agent investigations reproduce the baseline's source-supported
+brackets and handoff. They retain the no-crossing finding at `EJ = 12`, pass the
+requested checks, preserve both normal-width results, and leave tighter `EJ = 15`
+unattempted after failed lab confirmation. All have zero operator decisions after
+start. The third early-stop session exhausted its Codex account allowance after
+drafting; its execution request also failed, without admitting a job. It has no
+scientific outcome or final report. The owner-approved acceptance rule requires
+successful formulation and at least two accepted sessions per case. Other sessions
+must be reported runtime failures before any admitted job; a failure after admission
+still fails the evaluation. This comparison passes with three accepted normal
+sessions, two accepted early-stop sessions and one reported pre-compute runtime
+failure.
+
+Together, formulation, drafting and execution used 13,648,950 input tokens
+(12,990,976 cached), 81,361 output tokens and 177 model requests. Resumed phases
+subtract earlier thread totals, so drafting is counted once. The 5-hour window
+already had 32% used at the first request and reached 100%: a 68-percentage-point
+observed increase; the weekly window went from 6% to 16%. These are rounded
+runtime-reported account windows, not a price estimate or an isolated attribution
+of shared-account usage.
+
+These measurements use non-interactive Codex 0.160.0, `gpt-6.1-sol` at high effort,
+on this workstation. Completed agents use about the same job time and more elapsed
+time than the scripted policy. Agents batch independent CPU jobs while the baseline
+is serial; summed job time therefore differs from occupied elapsed time. The
+summary measures time outside jobs by subtracting the union of execution intervals,
+without counting overlapping jobs twice. It does not identify that entire interval
+as model latency. Elapsed time covers operator start through investigation stop;
+formulation and drafting are recorded separately. This fixture demonstrates
+evidence-based decisions and reporting, with no acceleration claim or general
+runtime success-rate claim.
+
+A separate [pick-up check](../../tests/probes/m3_pickup_results.json) on 2026-10-09
+killed the scripted normal client with SIGKILL between jobs after 12 attempts.
+One fresh Codex 0.160.1 session (`gpt-6.1-sol`, high effort) read the retained
+records and completed 18 more jobs through MCP `simulate` and `check`, reaching
+30 jobs and 27 points without repeated points or checks. It first issued the
+missing check on an existing refined run, confirmed the same brackets, cited all
+30 runs, and stopped with `evidence_completion`. The session used 1,172,667 input
+tokens (1,095,680 cached), 18 model requests and about 250 seconds; its 5-hour
+window went from 0% to 4%. Six requests and about one window percentage point
+were spent before requesting its first new job. This is one session interrupted
+between jobs, with earlier records written by a script and a prompt that named those records and
+prescribed the method. It does not demonstrate recovery during an executing job
+or discovery of unmentioned earlier work. The
+[summary probe](../../tests/probes/m3_pickup.py) rebuilds this evidence without
+launching a session.

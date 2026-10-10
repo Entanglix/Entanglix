@@ -313,3 +313,48 @@ completed on the configured RTX 5090. All acceptance criteria passed.
 
 These measurements cover
 one non-interactive Codex 0.160.0 configuration, not all runtimes or interactive use.
+
+## Agent investigation evaluation
+
+The [evaluation driver](../tests/probes/m3_evaluation.py) runs fresh scripted
+baselines, a broad-request formulation session, and three normal plus three
+early-stop agent investigations. It retains full inputs, runs, audits and runtime
+transcripts outside the checkout; the compact
+[comparison](../tests/probes/m3_evaluation_results.json) includes unsuccessful
+sessions. The [readout example](../examples/readout/README.md#agent-investigation-comparison)
+states the measured outcomes and limits.
+
+Use an available logged-in Codex account, choose the model and effort explicitly,
+and supply a fresh persistent workspace. The driver consumes real runtime usage;
+acceptance requires successful formulation and at least two accepted sessions per
+case. Any other session must be a reported runtime failure before admitting a job;
+a failed session that admitted jobs fails the evaluation. Match `--runner-extras`
+to the checkout's existing runner profile:
+
+```sh
+UV_PROJECT_ENVIRONMENT="$PWD/.venv-mcp" uv sync --locked --exact --extra mcp
+TMPDIR=/var/tmp uv run --locked --exact python tests/probes/m3_evaluation.py --workspace "$HOME/Projects/entanglix-research/6b3-evaluation-new" --server-python "$PWD/.venv-mcp/bin/python" --runner-extras cuquantum differentiable-cuda12 --model YOUR_MODEL --effort YOUR_EFFORT --output tests/probes/m3_evaluation_results.json
+TMPDIR=/var/tmp UV_PROJECT_ENVIRONMENT="$PWD/.venv-mcp" uv run --locked --exact --extra mcp pytest -q tests/test_agent_evaluation.py tests/test_research_guidance.py
+```
+
+To rebuild only the summary from an existing workspace, without launching jobs or
+runtime sessions:
+
+```sh
+uv run --locked --exact python tests/probes/m3_evaluation.py --report-only --workspace "$HOME/Projects/entanglix-research/6b3-evaluation-20261006" --output tests/probes/m3_evaluation_results.json
+```
+
+The report records separate fingerprints for the driver used to execute the
+sessions and the current summary builder. The executed driver is retained under
+the workspace's `operator/` directory. Reporting fixes do not replace scientific
+outputs or hide failed sessions.
+
+The [pick-up summary probe](../tests/probes/m3_pickup.py) rebuilds the separately
+retained 2026-10-09 session's [result](../tests/probes/m3_pickup_results.json). It
+reads the interrupted-client snapshot, completed runs, MCP launch audit and runtime
+transcript, and compares its rebuilt measurements against the operator's original
+report. This command launches no jobs or runtime sessions:
+
+```sh
+uv run --locked --exact python tests/probes/m3_pickup.py --workspace "$HOME/Projects/entanglix-research/6b3-pickup-20261009" --output tests/probes/m3_pickup_results.json
+```

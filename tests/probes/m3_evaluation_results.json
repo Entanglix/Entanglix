@@ -1,0 +1,1686 @@
+{
+  "runtime": "codex-cli 0.160.0",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "workspace": "/home/paimon/Projects/entanglix-research/6b3-evaluation-20261006",
+  "source_sha256": {
+    "src/entanglix/__init__.py": "d77804ece126364195813d429a120f0a8ddd7b98a83d3c9993c4eef566476fc8",
+    "src/entanglix/__main__.py": "59d02666708d36aa051f55b0cae80c3afc6069bdaa07beac86785363d27e66bb",
+    "src/entanglix/_script_job.py": "1fb14eda7b64873ea95309f5643402eacb5208c21fd1bcc1f6d4b4f5a8de38a4",
+    "src/entanglix/_supervisor.py": "1c4523db034cbadf89263b5af639972046cc50d499345c4e8c38f15b08f921cd",
+    "src/entanglix/cli.py": "0a27f3e264c102e8913d967ef0e6aa9d678abcc599cc38a2c12c58ab7f4f4cd5",
+    "src/entanglix/corrector/__init__.py": "e42f075942ec92252272e278a07ab589cf3b725432c3afaf00bdc3ec07289ced",
+    "src/entanglix/corrector/_job.py": "03ede891278ae5696d67d87b0067da5336d64947f7dd3a47276a3bd207624ba9",
+    "src/entanglix/corrector/checks.py": "e9d1cccfa6a952824843b80a77e701bc0298e23ceb8813d6a4bdf11061a3d5cc",
+    "src/entanglix/corrector/dynamics.py": "f39007cf9ccf9bf833f8fc12d7205104b6ce904139e90d89208cf5567e52e3f6",
+    "src/entanglix/corrector/metrics.py": "ee25e25c6762f18e849013643f5be97c83a4fe3b512980a1fda8ee494df71393",
+    "src/entanglix/corrector/reference.py": "b744e3e9f20f0db0daee87ea81050917c2bb845bf3845464455a86515510a8cb",
+    "src/entanglix/corrector/sweeps.py": "9ba0b7501c7ae1b71916ea26649cb9b232cb72c2dc0ae4276337d7c4069f3d2d",
+    "src/entanglix/corrector/verification.py": "76f02a9fe5013b464ade044c8e860bf6adcb646183da4db203e6f612f4a956b8",
+    "src/entanglix/engines/__init__.py": "384d79114ef6ed775dd8b26aafdec353ba4c9e8f1e1cbc2682b5adb7904e90bf",
+    "src/entanglix/engines/cudensitymat.py": "ff8f2ae493e6e8d53cf9af27dae335044cdc0efd3c4e19885d87678b82995597",
+    "src/entanglix/engines/dynamiqs_jax.py": "1f07e91a92ea9097ab95e4b92265e61718e5a8d80e203e682ca05248361a448c",
+    "src/entanglix/engines/frames.py": "048228cf3d6577628676aa6c03ed62c03b715d27a6f5414f4b3b21a19d757ade",
+    "src/entanglix/engines/qutip_cpu.py": "9949ac309a7246edf2c3710d7a8497e76aa45a7d778c97bc33f356e186f849ee",
+    "src/entanglix/engines/selection.py": "a022d68c8e7920d2e4e655675fe233f585273315f827dbc28fd8fa4439fdf6b3",
+    "src/entanglix/evolution.py": "6999daea4956e205109c251eeb6a1cdcae6a5bbee437aad0d6b3ca27e38d9611",
+    "src/entanglix/imports.py": "0dc3784cd6f5d462be1bf71b594790ec02c2cba481accd411d13c77f53b2eaef",
+    "src/entanglix/investigations.py": "8e970c6cfb0ef9fde5dd623d753d9ab3ad5a068cfa169c7956016da6aabc3fdf",
+    "src/entanglix/launches.py": "37abbfbf8710e76d2360294eba142892030d0059671cf1375419126103420a50",
+    "src/entanglix/mcp.py": "4aa0518d19d90ba072fd4752ed1ec47068a4c73e12f21e819f37027e6baf920c",
+    "src/entanglix/models.py": "c67adcf1a53521ac742e63bb74051cf649a1a613dc55853a025710220b3a9b57",
+    "src/entanglix/protocols/__init__.py": "953c69547412c1537f2d0ece6e148b9c484e5efd3acb1a3dec6d7ca5601b0e7c",
+    "src/entanglix/protocols/_plan_job.py": "8917aff986d43ca1449f7270452753d37e9802b6c0a886f5ace5e8974edf39c8",
+    "src/entanglix/protocols/_simulate_job.py": "4ad4c75650aed3239ea9af8572803c0da20c0d26bd8a107cbb47952a3d44c939",
+    "src/entanglix/protocols/_sweep_job.py": "3dcedcbc7de6c91a30b8d7e988fe8202ca24e14df39a9ee38d301e8dfa69b890",
+    "src/entanglix/protocols/plans.py": "8b40a27342ac776495993999bac1f0e13c81b56c0d4747b853a1022408dd0ca5",
+    "src/entanglix/protocols/simulate.py": "4fdddf01d1d9d90b91d4d2aebafb970b96b80652e3a4803ca852d9042e66f193",
+    "src/entanglix/protocols/sweep.py": "68c3dbe38bd300a74ca19cf438ce3df6413dff35f1b0270431361ed2dfac8ce1",
+    "src/entanglix/runner.py": "7712004160d5e63f37cc4d4f2e5484e842fe624a185066259506f7bce7a5ba2a",
+    "examples/readout/investigate.py": "aebe6d9d9452397be83792692b42cc77803bd565ab8b2da8b20417727f4824ad",
+    "docs/research-agent.md": "fd1017739233fe9d9193a892fa9c6612df18d4f27bd00a6e1c6a1e325ba3fffa",
+    "skills/design-sweep/SKILL.md": "f60bd3817061e40b87b07d80bd6d42af98d21aeebf384607d2290a75464e18c1",
+    "skills/gpu-budget/SKILL.md": "2b6167d757cb54412c6ea12eb51edd7cc440c9da540edffa1c133966cec8c48a",
+    "skills/simulate/SKILL.md": "ae95a353ff97e67e90533237ae1754e7827b5e3be206ea5746d8f9560c331755",
+    "skills/system-modeler/SKILL.md": "8e447ac13ea9f2a2f0daa415f5cb36b9ee4073f94aa978b6ad218b7c4d78f537"
+  },
+  "operator_decisions": "Driver starts only a draft identical to the approved baseline terms; no agent approves itself.",
+  "baselines": {
+    "normal": {
+      "outcome": "evidence_completion",
+      "usage": {
+        "jobs": 30,
+        "evaluated_points": 27,
+        "job_seconds": 183.80327017199852,
+        "gpu_seconds": 0.0,
+        "committed_job_seconds": 0.0,
+        "unsettled_jobs": 0,
+        "unbounded_jobs": 0
+      },
+      "elapsed_seconds": 202.125551,
+      "computation_seconds": 174.50557710199882,
+      "check_seconds": 9.297693069999696,
+      "time_outside_jobs_seconds": 18.32228082800148,
+      "user_decisions_after_start": 0,
+      "assessments": 2
+    },
+    "early-stop": {
+      "outcome": "review_handoff",
+      "usage": {
+        "jobs": 41,
+        "evaluated_points": 34,
+        "job_seconds": 250.76670786100385,
+        "gpu_seconds": 0.0,
+        "committed_job_seconds": 0.0,
+        "unsettled_jobs": 0,
+        "unbounded_jobs": 0
+      },
+      "elapsed_seconds": 276.579418,
+      "computation_seconds": 238.32389233900176,
+      "check_seconds": 12.442815522002093,
+      "time_outside_jobs_seconds": 25.812710138996124,
+      "user_decisions_after_start": 0,
+      "assessments": 4
+    }
+  },
+  "agents": [
+    {
+      "case": "normal",
+      "investigation_id": "i20261006T090642344564Z-aabcacc1",
+      "acceptance": true,
+      "state": "stopped",
+      "problems": [],
+      "phases": [
+        {
+          "exit_code": 0,
+          "thread_id": "01a11076-8ef8-7071-a586-f159b9ef9357",
+          "elapsed_seconds": 55.94091451500026,
+          "errors": [],
+          "transcript": "/home/paimon/Projects/entanglix-research/6b3-evaluation-20261006/normal-1/evidence/draft-transcript.jsonl",
+          "conduct_in_initial_context": true,
+          "development_instructions_present": false,
+          "suspicious_commands": [],
+          "runtime_usage": {
+            "input_tokens": 295221,
+            "cached_input_tokens": 252160,
+            "output_tokens": 1896,
+            "model_requests": 8,
+            "windows_used_percent": {
+              "five_hour": {
+                "first": 35.0,
+                "last": 37.0
+              },
+              "weekly": {
+                "first": 6.0,
+                "last": 7.0
+              }
+            }
+          }
+        },
+        {
+          "exit_code": 0,
+          "thread_id": "01a11076-8ef8-7071-a586-f159b9ef9357",
+          "elapsed_seconds": 347.5977788070004,
+          "errors": [],
+          "transcript": "/home/paimon/Projects/entanglix-research/6b3-evaluation-20261006/normal-1/evidence/execute-transcript.jsonl",
+          "conduct_in_initial_context": true,
+          "development_instructions_present": false,
+          "suspicious_commands": [],
+          "runtime_usage": {
+            "input_tokens": 2484168,
+            "cached_input_tokens": 2408064,
+            "output_tokens": 10567,
+            "model_requests": 27,
+            "windows_used_percent": {
+              "five_hour": {
+                "first": 37.0,
+                "last": 47.0
+              },
+              "weekly": {
+                "first": 7.0,
+                "last": 8.0
+              }
+            }
+          }
+        }
+      ],
+      "usage": {
+        "jobs": 30,
+        "evaluated_points": 27,
+        "job_seconds": 190.20891997900162,
+        "gpu_seconds": 0.0,
+        "committed_job_seconds": 0.0,
+        "unsettled_jobs": 0,
+        "unbounded_jobs": 0
+      },
+      "elapsed_seconds": 329.621028,
+      "computation_seconds": 180.84632838200196,
+      "check_seconds": 9.362591596999664,
+      "execution_coverage_seconds": 80.08645868301392,
+      "time_outside_jobs_seconds": 249.5345693169861,
+      "user_decisions_after_start": 0,
+      "assessments": [
+        {
+          "rationale": "Two crossing lines reached declared resolution; EJ=13.5 endpoint integrity and local segments pass with 6% coverage. 10 jobs completed using 14.770301129 s CPU wall time and zero GPU seconds; 50 jobs remain. Lab comparisons can test whether endpoint margins exceed refinement changes.",
+          "decision": "continue",
+          "next_experiment": "Check EJ=15 final endpoints, then simulate coarse and refined lab zero/lower/upper for the two crossing lines, reusing these exact RWA endpoint runs. No range extension for EJ=12."
+        },
+        {
+          "rationale": "20 finished jobs; observed usage {\"committed_job_seconds\":0,\"evaluated_points\":21,\"gpu_seconds\":0,\"job_seconds\":103.41506156600371,\"jobs\":20,\"unbounded_jobs\":0,\"unsettled_jobs\":0}. EJ=13.5 loss margins exceed both observed loss changes and conservative sums of endpoint/zero coherence changes. Remaining evidence is scientifically useful within unchanged scope and allowance.",
+          "decision": "continue",
+          "next_experiment": "Check EJ=13.5 refined upper integrity, then coarse/refined lab simulations at EJ=15 zero and final RWA bracket endpoints, followed by refined integrity. Normal case completes when both lines confirmed; do not tighten this normal declaration."
+        },
+        {
+          "rationale": "30 finished jobs, {\"committed_job_seconds\":0,\"evaluated_points\":27,\"gpu_seconds\":0,\"job_seconds\":190.20891997900162,\"jobs\":30,\"unbounded_jobs\":0,\"unsettled_jobs\":0}. Both normal brackets confirmed, target margins exceed observed refinement changes; no useful remaining authorized normal experiment. Unused 30-job allowance does not justify more computation.",
+          "decision": "stop",
+          "next_experiment": "Record final report and stop evidence_completion. Next scientific decision: operator-approved wider amplitude scope for EJ=12, if that crossing is still wanted; any tighter claim needs an explicitly agreed follow-up with stronger convergence/frame evidence."
+        }
+      ],
+      "report": {
+        "decision": "stop",
+        "rationale": "Declared normal evidence complete: both required-width crossing brackets confirmed with lab/refined comparisons and requested checks passed. No additional authorized experiment is needed.",
+        "unresolved": [
+          "EJ=12 crossing is unresolved outside [0,0.002] GHz.",
+          "Four declared scientific limitations and relevant checks not run are retained in this report."
+        ],
+        "next_experiment": "Propose an operator-approved wider amplitude scope for EJ=12 if its crossing is still needed. Any tighter claim should be a separately agreed follow-up with stronger convergence and frame evidence."
+      },
+      "claims": [
+        {
+          "ej_ghz": 13.5,
+          "width_ghz": 0.0001249999999999999,
+          "endpoints": [
+            {
+              "amplitude_ghz": 0.00175,
+              "profiles": {
+                "rwa": {
+                  "additional_loss": 0.009504159784116561,
+                  "zero_run": "r20261006T090745940402Z-1336f419",
+                  "endpoint_run": "r20261006T090823318905Z-e9fbb9c9"
+                },
+                "lab": {
+                  "additional_loss": 0.009598808395924197,
+                  "zero_run": "r20261006T090925489045Z-dddaa060",
+                  "endpoint_run": "r20261006T090924177378Z-5c95f095"
+                },
+                "lab_refined": {
+                  "additional_loss": 0.009598977007492238,
+                  "zero_run": "r20261006T090926806995Z-d72cc81b",
+                  "endpoint_run": "r20261006T090929544158Z-0884c0b6"
+                }
+              },
+              "margin": -0.0004010229925077626,
+              "refinement_change": 1.6861156804104382e-07
+            },
+            {
+              "amplitude_ghz": 0.001875,
+              "profiles": {
+                "rwa": {
+                  "additional_loss": 0.010621280624162677,
+                  "zero_run": "r20261006T090745940402Z-1336f419",
+                  "endpoint_run": "r20261006T090835065620Z-50fe1586"
+                },
+                "lab": {
+                  "additional_loss": 0.0106948394193781,
+                  "zero_run": "r20261006T090925489045Z-dddaa060",
+                  "endpoint_run": "r20261006T090928199253Z-755e8574"
+                },
+                "lab_refined": {
+                  "additional_loss": 0.010695081712124077,
+                  "zero_run": "r20261006T090926806995Z-d72cc81b",
+                  "endpoint_run": "r20261006T090930936466Z-90fcabd1"
+                }
+              },
+              "margin": 0.0006950817121240769,
+              "refinement_change": 2.4229274597775685e-07
+            }
+          ],
+          "confirmed": true,
+          "stage": "normal"
+        },
+        {
+          "ej_ghz": 15,
+          "width_ghz": 0.0001250000000000001,
+          "endpoints": [
+            {
+              "amplitude_ghz": 0.001375,
+              "profiles": {
+                "rwa": {
+                  "additional_loss": 0.009171702763638545,
+                  "zero_run": "r20261006T090745940402Z-1336f419",
+                  "endpoint_run": "r20261006T090836400030Z-b319fb08"
+                },
+                "lab": {
+                  "additional_loss": 0.009222769240497475,
+                  "zero_run": "r20261006T091031651987Z-4a059566",
+                  "endpoint_run": "r20261006T091032959002Z-c4509b0c"
+                },
+                "lab_refined": {
+                  "additional_loss": 0.009222689859232691,
+                  "zero_run": "r20261006T091034251600Z-801a9950",
+                  "endpoint_run": "r20261006T091035555374Z-acb8367b"
+                }
+              },
+              "margin": -0.0007773101407673091,
+              "refinement_change": 7.938126478368446e-08
+            },
+            {
+              "amplitude_ghz": 0.0015,
+              "profiles": {
+                "rwa": {
+                  "additional_loss": 0.010596331294850048,
+                  "zero_run": "r20261006T090745940402Z-1336f419",
+                  "endpoint_run": "r20261006T090809749459Z-e0ea98f4"
+                },
+                "lab": {
+                  "additional_loss": 0.010623938364740071,
+                  "zero_run": "r20261006T091031651987Z-4a059566",
+                  "endpoint_run": "r20261006T091036923941Z-d3eaead3"
+                },
+                "lab_refined": {
+                  "additional_loss": 0.010623859145600267,
+                  "zero_run": "r20261006T091034251600Z-801a9950",
+                  "endpoint_run": "r20261006T091038289675Z-3148a3f5"
+                }
+              },
+              "margin": 0.0006238591456002671,
+              "refinement_change": 7.921913980357687e-08
+            }
+          ],
+          "confirmed": true,
+          "stage": "normal"
+        }
+      ],
+      "agent_claims": {
+        "outcome": "evidence_completion",
+        "no_crossing_ej": [
+          12
+        ],
+        "brackets": [
+          {
+            "ej_ghz": 13.5,
+            "stage": "normal",
+            "lower_amplitude_ghz": 0.00175,
+            "upper_amplitude_ghz": 0.001875,
+            "confirmed": true
+          },
+          {
+            "ej_ghz": 15,
+            "stage": "normal",
+            "lower_amplitude_ghz": 0.001375,
+            "upper_amplitude_ghz": 0.0015,
+            "confirmed": true
+          }
+        ],
+        "unattempted_tighter_ej": [],
+        "limitations": [
+          "One crossing assumes decreasing coherence; only sampled amplitudes are checked.",
+          "Bracket width describes the RWA crossing; lab confirmation is separate.",
+          "Coarse/refined differences are convergence evidence, not an error bound.",
+          "No check bounds whole-window or accumulated RWA error."
+        ],
+        "next_experiments": [
+          "Propose an operator-approved wider amplitude scope for EJ=12 if its crossing is still needed.",
+          "Any tighter claim should be a separately agreed follow-up with stronger convergence and frame evidence."
+        ]
+      },
+      "tools_used": [
+        "check",
+        "create_investigation",
+        "list_capabilities",
+        "list_investigations",
+        "list_runs",
+        "read_investigation",
+        "read_run",
+        "record_finding",
+        "simulate",
+        "stop_investigation",
+        "sweep",
+        "validate_system"
+      ],
+      "repetition": 1,
+      "comparison": {
+        "elapsed_ratio_to_baseline": 1.6307736769014425,
+        "job_seconds_ratio_to_baseline": 1.0348505758412723,
+        "additional_jobs": 0
+      }
+    },
+    {
+      "case": "normal",
+      "investigation_id": "i20261006T091319460301Z-93ccec41",
+      "acceptance": true,
+      "state": "stopped",
+      "problems": [],
+      "phases": [
+        {
+          "exit_code": 0,
+          "thread_id": "01a1107c-b91d-71f3-ba9f-85ed606e331c",
+          "elapsed_seconds": 79.27937124299933,
+          "errors": [],
+          "transcript": "/home/paimon/Projects/entanglix-research/6b3-evaluation-20261006/normal-2/evidence/draft-transcript.jsonl",
+          "conduct_in_initial_context": true,
+          "development_instructions_present": false,
+          "suspicious_commands": [],
+          "runtime_usage": {
+            "input_tokens": 326186,
+            "cached_input_tokens": 279168,
+            "output_tokens": 2992,
+            "model_requests": 8,
+            "windows_used_percent": {
+              "five_hour": {
+                "first": 47.0,
+                "last": 50.0
+              },
+              "weekly": {
+                "first": 8.0,
+                "last": 9.0
+              }
+            }
+          }
+        },
+        {
+          "exit_code": 0,
+          "thread_id": "01a1107c-b91d-71f3-ba9f-85ed606e331c",
+          "elapsed_seconds": 415.0377843769993,
+          "errors": [],
+          "transcript": "/home/paimon/Projects/entanglix-research/6b3-evaluation-20261006/normal-2/evidence/execute-transcript.jsonl",
+          "conduct_in_initial_context": true,
+          "development_instructions_present": false,
+          "suspicious_commands": [],
+          "runtime_usage": {
+            "input_tokens": 2409180,
+            "cached_input_tokens": 2346752,
+            "output_tokens": 12951,
+            "model_requests": 25,
+            "windows_used_percent": {
+              "five_hour": {
+                "first": 50.0,
+                "last": 61.0
+              },
+              "weekly": {
+                "first": 9.0,
+                "last": 10.0
+              }
+            }
+          }
+        }
+      ],
+      "usage": {
+        "jobs": 30,
+        "evaluated_points": 27,
+        "job_seconds": 187.08575612800087,
+        "gpu_seconds": 0.0,
+        "committed_job_seconds": 0.0,
+        "unsettled_jobs": 0,
+        "unbounded_jobs": 0
+      },
+      "elapsed_seconds": 391.278082,
+      "computation_seconds": 177.5766566350003,
+      "check_seconds": 9.509099493000576,
+      "execution_coverage_seconds": 96.28855919837952,
+      "time_outside_jobs_seconds": 294.98952280162047,
+      "user_decisions_after_start": 0,
+      "assessments": [
+        {
+          "rationale": "Midpoint samples resolved normal brackets; remaining endpoint margins are RWA-only. Observed cost 14.84773649699855 job-seconds, zero GPU seconds, 10/60 jobs, no unsettled work. Evidence can be completed within scope; further bisection is not needed in normal case.",
+          "decision": "continue",
+          "next_experiment": "Run upper-end integrity/segments/diagnostics, then lab and refined-lab at zero and both ends for EJ=13.5 and 15, with each refined run integrity; compare Delta-C target margins to observed refinement changes."
+        },
+        {
+          "rationale": "Normal brackets resolved and EJ=13.5 lab margin comparison is robust to observed refinement. Confirmed cost 123.42140159399969 job-seconds, zero GPU seconds, 20/60 jobs, no unsettled work. Remaining declared evidence is bounded; no tighter case applies.",
+          "decision": "continue",
+          "next_experiment": "Check integrity of all three EJ=13.5 refined lab runs, then confirm its normal bracket. If passes, execute EJ=15 lab/refined at both known endpoints and each refined integrity check."
+        },
+        {
+          "rationale": "Declared normal-case method is complete within range: two confirmed brackets and one no-crossing result. No precision failure or open review. Normal case has no tighter stage. 30/60 jobs, 187.08575612800087 measured CPU job-seconds, zero GPU seconds, no unsettled jobs. Unused allowance does not justify more computation after the scope handoff.",
+          "decision": "stop",
+          "next_experiment": "Operator decision on a complete revised declaration permitting a wider amplitude range for EJ=12, followed by a bounded seed extension. Preserve current normal brackets; do not execute broader or tighter work under this declaration."
+        }
+      ],
+      "report": {
+        "decision": "stop",
+        "rationale": "Declared normal evidence complete at 30/60 jobs and 187.08575612800087 execution seconds, zero GPU seconds, no unresolved attempts. Stop after report; unused allowance is not a reason to search farther or tighten. No lab-confirmation failure, so no precision review is required.",
+        "unresolved": [
+          "No crossing at EJ=12 within the range under sampled decreasing assumption; continuous monotonicity unproved.",
+          "Relevant checks not run: seed segments; intermediate RWA integrity/segments/diagnostics; coarse lab integrity/segments/diagnostics; refined lab segments/diagnostics. No required checks missing; spectral refinement is inapplicable to dynamics.",
+          "One crossing assumes decreasing coherence; only sampled amplitudes are checked.",
+          "Bracket width describes the RWA crossing; lab confirmation is separate.",
+          "Coarse/refined differences are convergence evidence, not an error bound.",
+          "No check bounds whole-window or accumulated RWA error."
+        ],
+        "next_experiment": "Propose a complete revision widening the amplitude range for EJ=12 for an operator decision; after approval, run a bounded extension of its seed line."
+      },
+      "claims": [
+        {
+          "ej_ghz": 13.5,
+          "width_ghz": 0.0001249999999999999,
+          "endpoints": [
+            {
+              "amplitude_ghz": 0.00175,
+              "profiles": {
+                "rwa": {
+                  "additional_loss": 0.009504159784116561,
+                  "zero_run": "r20261006T091426783044Z-213f9515",
+                  "endpoint_run": "r20261006T091543947029Z-942b6f24"
+                },
+                "lab": {
+                  "additional_loss": 0.009598808395924197,
+                  "zero_run": "r20261006T091651978580Z-f656ca2f",
+                  "endpoint_run": "r20261006T091656034979Z-3f0b428d"
+                },
+                "lab_refined": {
+                  "additional_loss": 0.009598977007492238,
+                  "zero_run": "r20261006T091653314682Z-c3647179",
+                  "endpoint_run": "r20261006T091654656067Z-d433d5ea"
+                }
+              },
+              "margin": -0.0004010229925077626,
+              "refinement_change": 1.6861156804104382e-07
+            },
+            {
+              "amplitude_ghz": 0.001875,
+              "profiles": {
+                "rwa": {
+                  "additional_loss": 0.010621280624162677,
+                  "zero_run": "r20261006T091426783044Z-213f9515",
+                  "endpoint_run": "r20261006T091549167708Z-311e7b47"
+                },
+                "lab": {
+                  "additional_loss": 0.0106948394193781,
+                  "zero_run": "r20261006T091651978580Z-f656ca2f",
+                  "endpoint_run": "r20261006T091728586486Z-ace31171"
+                },
+                "lab_refined": {
+                  "additional_loss": 0.010695081712124077,
+                  "zero_run": "r20261006T091653314682Z-c3647179",
+                  "endpoint_run": "r20261006T091729870380Z-ccbd0569"
+                }
+              },
+              "margin": 0.0006950817121240769,
+              "refinement_change": 2.4229274597775685e-07
+            }
+          ],
+          "confirmed": true,
+          "stage": "normal"
+        },
+        {
+          "ej_ghz": 15,
+          "width_ghz": 0.0001250000000000001,
+          "endpoints": [
+            {
+              "amplitude_ghz": 0.001375,
+              "profiles": {
+                "rwa": {
+                  "additional_loss": 0.009171702763638545,
+                  "zero_run": "r20261006T091426783044Z-213f9515",
+                  "endpoint_run": "r20261006T091547880920Z-6745a126"
+                },
+                "lab": {
+                  "additional_loss": 0.009222769240497475,
+                  "zero_run": "r20261006T091731211419Z-3cb55e2a",
+                  "endpoint_run": "r20261006T091837968672Z-364d8441"
+                },
+                "lab_refined": {
+                  "additional_loss": 0.009222689859232691,
+                  "zero_run": "r20261006T091732528395Z-4c4036b9",
+                  "endpoint_run": "r20261006T091839248012Z-e176bbb9"
+                }
+              },
+              "margin": -0.0007773101407673091,
+              "refinement_change": 7.938126478368446e-08
+            },
+            {
+              "amplitude_ghz": 0.0015,
+              "profiles": {
+                "rwa": {
+                  "additional_loss": 0.010596331294850048,
+                  "zero_run": "r20261006T091426783044Z-213f9515",
+                  "endpoint_run": "r20261006T091512157225Z-6c7655c8"
+                },
+                "lab": {
+                  "additional_loss": 0.010623938364740071,
+                  "zero_run": "r20261006T091731211419Z-3cb55e2a",
+                  "endpoint_run": "r20261006T091841855823Z-4b7ad8f0"
+                },
+                "lab_refined": {
+                  "additional_loss": 0.010623859145600267,
+                  "zero_run": "r20261006T091732528395Z-4c4036b9",
+                  "endpoint_run": "r20261006T091840543808Z-e59d806a"
+                }
+              },
+              "margin": 0.0006238591456002671,
+              "refinement_change": 7.921913980357687e-08
+            }
+          ],
+          "confirmed": true,
+          "stage": "normal"
+        }
+      ],
+      "agent_claims": {
+        "outcome": "evidence_completion",
+        "no_crossing_ej": [
+          12
+        ],
+        "brackets": [
+          {
+            "ej_ghz": 13.5,
+            "stage": "normal",
+            "lower_amplitude_ghz": 0.00175,
+            "upper_amplitude_ghz": 0.001875,
+            "confirmed": true
+          },
+          {
+            "ej_ghz": 15,
+            "stage": "normal",
+            "lower_amplitude_ghz": 0.001375,
+            "upper_amplitude_ghz": 0.0015,
+            "confirmed": true
+          }
+        ],
+        "unattempted_tighter_ej": [],
+        "limitations": [
+          "One crossing assumes decreasing coherence; only sampled amplitudes are checked.",
+          "Bracket width describes the RWA crossing; lab confirmation is separate.",
+          "Coarse/refined differences are convergence evidence, not an error bound.",
+          "No check bounds whole-window or accumulated RWA error."
+        ],
+        "next_experiments": [
+          "Propose a complete revision widening the amplitude range for EJ=12 for an operator decision; after approval, run a bounded extension of its seed line."
+        ]
+      },
+      "tools_used": [
+        "check",
+        "create_investigation",
+        "list_capabilities",
+        "list_investigations",
+        "list_runs",
+        "read_investigation",
+        "read_run",
+        "record_finding",
+        "simulate",
+        "stop_investigation",
+        "sweep",
+        "validate_system"
+      ],
+      "repetition": 2,
+      "comparison": {
+        "elapsed_ratio_to_baseline": 1.9358170209762346,
+        "job_seconds_ratio_to_baseline": 1.017858691811798,
+        "additional_jobs": 0
+      }
+    },
+    {
+      "case": "normal",
+      "investigation_id": "i20261006T092137781111Z-f8280f3c",
+      "acceptance": true,
+      "state": "stopped",
+      "problems": [],
+      "phases": [
+        {
+          "exit_code": 0,
+          "thread_id": "01a11084-4605-7741-9cb4-88f9959aa53e",
+          "elapsed_seconds": 88.39378185799978,
+          "errors": [],
+          "transcript": "/home/paimon/Projects/entanglix-research/6b3-evaluation-20261006/normal-3/evidence/draft-transcript.jsonl",
+          "conduct_in_initial_context": true,
+          "development_instructions_present": false,
+          "suspicious_commands": [],
+          "runtime_usage": {
+            "input_tokens": 245039,
+            "cached_input_tokens": 209920,
+            "output_tokens": 3128,
+            "model_requests": 7,
+            "windows_used_percent": {
+              "five_hour": {
+                "first": 61.0,
+                "last": 63.0
+              },
+              "weekly": {
+                "first": 10.0,
+                "last": 11.0
+              }
+            }
+          }
+        },
+        {
+          "exit_code": 0,
+          "thread_id": "01a11084-4605-7741-9cb4-88f9959aa53e",
+          "elapsed_seconds": 371.8894015779997,
+          "errors": [],
+          "transcript": "/home/paimon/Projects/entanglix-research/6b3-evaluation-20261006/normal-3/evidence/execute-transcript.jsonl",
+          "conduct_in_initial_context": true,
+          "development_instructions_present": false,
+          "suspicious_commands": [],
+          "runtime_usage": {
+            "input_tokens": 1919494,
+            "cached_input_tokens": 1856000,
+            "output_tokens": 11216,
+            "model_requests": 22,
+            "windows_used_percent": {
+              "five_hour": {
+                "first": 64.0,
+                "last": 72.0
+              },
+              "weekly": {
+                "first": 11.0,
+                "last": 12.0
+              }
+            }
+          }
+        }
+      ],
+      "usage": {
+        "jobs": 30,
+        "evaluated_points": 27,
+        "job_seconds": 189.37357723500008,
+        "gpu_seconds": 0.0,
+        "committed_job_seconds": 0.0,
+        "unsettled_jobs": 0,
+        "unbounded_jobs": 0
+      },
+      "elapsed_seconds": 349.185952,
+      "computation_seconds": 179.87717130099827,
+      "check_seconds": 9.496405934001814,
+      "execution_coverage_seconds": 79.43503141403198,
+      "time_outside_jobs_seconds": 269.750920585968,
+      "user_decisions_after_start": 0,
+      "assessments": [
+        {
+          "rationale": "10/60 jobs finished, 14.657414862998849 measured CPU job-seconds, no unsettled work. Bisection resolves the declared normal widths and remaining evidence is within unchanged scope. Normal case has no tighter requests. Preserve seed-derived zero and retained endpoints.",
+          "decision": "continue",
+          "next_experiment": "Check the retained EJ15 RWA endpoints for integrity/segments/diagnostics, then simulate lab/refined lab at zero and both normal endpoints; compare each lab loss target margin against the observed refinement change. No out-of-range EJ12 refinement."
+        },
+        {
+          "rationale": "20/60 admitted jobs finished with no unsettled work. Confirmations show useful margin at normal resolution. Remaining method is supported within unchanged terms, with no tighter stage in this normal case.",
+          "decision": "continue",
+          "next_experiment": "Complete missing EJ13.5 refined integrity, then lab/refined lab EJ15 at zero, 0.001375 and 0.0015 GHz, using the retained RWA bracket as lineage; issue refined integrity and compare loss margins with observed refinement changes."
+        },
+        {
+          "rationale": "30/60 jobs finished; all required normal-stage evidence has completed, all required pass/fail checks pass, both brackets confirmed, and no within-method work remains. Measured cost 189.37357723500008 CPU job-seconds, zero GPU-seconds; no unsettled jobs.",
+          "decision": "stop",
+          "next_experiment": "Propose a wider amplitude range for EJ=12 GHz and obtain operator approval of complete revised terms before any out-of-range search."
+        }
+      ],
+      "report": {
+        "decision": "stop",
+        "rationale": "Declared normal evidence is complete with both RWA brackets confirmed. All required checks pass. Stop despite 30 unused jobs; the next useful experiment changes scope and requires operator decision.",
+        "unresolved": [
+          "No sampled crossing at EJ12 within the allowed range; wider scope awaits operator decision.",
+          "One crossing assumes decreasing coherence; only sampled amplitudes are checked.",
+          "Bracket width describes the RWA crossing; lab confirmation is separate.",
+          "Coarse/refined differences are convergence evidence, not an error bound.",
+          "No check bounds whole-window or accumulated RWA error."
+        ],
+        "next_experiment": "Propose a wider amplitude range for EJ=12 GHz and obtain operator approval of complete revised terms before any out-of-range search."
+      },
+      "claims": [
+        {
+          "ej_ghz": 13.5,
+          "width_ghz": 0.0001249999999999999,
+          "endpoints": [
+            {
+              "amplitude_ghz": 0.00175,
+              "profiles": {
+                "rwa": {
+                  "additional_loss": 0.009504159784116561,
+                  "zero_run": "r20261006T092256246693Z-1bf1134b",
+                  "endpoint_run": "r20261006T092352467120Z-85e6beec"
+                },
+                "lab": {
+                  "additional_loss": 0.009598808395924197,
+                  "zero_run": "r20261006T092458359862Z-dad007c6",
+                  "endpoint_run": "r20261006T092459668504Z-d2ee2646"
+                },
+                "lab_refined": {
+                  "additional_loss": 0.009598977007492238,
+                  "zero_run": "r20261006T092502283040Z-a048393a",
+                  "endpoint_run": "r20261006T092503596485Z-746c973a"
+                }
+              },
+              "margin": -0.0004010229925077626,
+              "refinement_change": 1.6861156804104382e-07
+            },
+            {
+              "amplitude_ghz": 0.001875,
+              "profiles": {
+                "rwa": {
+                  "additional_loss": 0.010621280624162677,
+                  "zero_run": "r20261006T092256246693Z-1bf1134b",
+                  "endpoint_run": "r20261006T092400737887Z-156f1f23"
+                },
+                "lab": {
+                  "additional_loss": 0.0106948394193781,
+                  "zero_run": "r20261006T092458359862Z-dad007c6",
+                  "endpoint_run": "r20261006T092500968980Z-2431fb58"
+                },
+                "lab_refined": {
+                  "additional_loss": 0.010695081712124077,
+                  "zero_run": "r20261006T092502283040Z-a048393a",
+                  "endpoint_run": "r20261006T092504978524Z-131049fa"
+                }
+              },
+              "margin": 0.0006950817121240769,
+              "refinement_change": 2.4229274597775685e-07
+            }
+          ],
+          "confirmed": true,
+          "stage": "normal"
+        },
+        {
+          "ej_ghz": 15,
+          "width_ghz": 0.0001250000000000001,
+          "endpoints": [
+            {
+              "amplitude_ghz": 0.001375,
+              "profiles": {
+                "rwa": {
+                  "additional_loss": 0.009171702763638545,
+                  "zero_run": "r20261006T092256246693Z-1bf1134b",
+                  "endpoint_run": "r20261006T092402036459Z-85d3e409"
+                },
+                "lab": {
+                  "additional_loss": 0.009222769240497475,
+                  "zero_run": "r20261006T092617740018Z-a2867a41",
+                  "endpoint_run": "r20261006T092620273687Z-7448c2b6"
+                },
+                "lab_refined": {
+                  "additional_loss": 0.009222689859232691,
+                  "zero_run": "r20261006T092619013917Z-ddd682c7",
+                  "endpoint_run": "r20261006T092622962877Z-019f94c4"
+                }
+              },
+              "margin": -0.0007773101407673091,
+              "refinement_change": 7.938126478368446e-08
+            },
+            {
+              "amplitude_ghz": 0.0015,
+              "profiles": {
+                "rwa": {
+                  "additional_loss": 0.010596331294850048,
+                  "zero_run": "r20261006T092256246693Z-1bf1134b",
+                  "endpoint_run": "r20261006T092337575298Z-2fefc71b"
+                },
+                "lab": {
+                  "additional_loss": 0.010623938364740071,
+                  "zero_run": "r20261006T092617740018Z-a2867a41",
+                  "endpoint_run": "r20261006T092621584938Z-b86db5d6"
+                },
+                "lab_refined": {
+                  "additional_loss": 0.010623859145600267,
+                  "zero_run": "r20261006T092619013917Z-ddd682c7",
+                  "endpoint_run": "r20261006T092624335069Z-237cbb14"
+                }
+              },
+              "margin": 0.0006238591456002671,
+              "refinement_change": 7.921913980357687e-08
+            }
+          ],
+          "confirmed": true,
+          "stage": "normal"
+        }
+      ],
+      "agent_claims": {
+        "outcome": "evidence_completion",
+        "no_crossing_ej": [
+          12
+        ],
+        "brackets": [
+          {
+            "ej_ghz": 13.5,
+            "stage": "normal",
+            "lower_amplitude_ghz": 0.00175,
+            "upper_amplitude_ghz": 0.001875,
+            "confirmed": true
+          },
+          {
+            "ej_ghz": 15,
+            "stage": "normal",
+            "lower_amplitude_ghz": 0.001375,
+            "upper_amplitude_ghz": 0.0015,
+            "confirmed": true
+          }
+        ],
+        "unattempted_tighter_ej": [],
+        "limitations": [
+          "One crossing assumes decreasing coherence; only sampled amplitudes are checked.",
+          "Bracket width describes the RWA crossing; lab confirmation is separate.",
+          "Coarse/refined differences are convergence evidence, not an error bound.",
+          "No check bounds whole-window or accumulated RWA error."
+        ],
+        "next_experiments": [
+          "Propose a wider amplitude range for EJ=12 GHz and obtain operator approval of complete revised terms before any out-of-range search."
+        ]
+      },
+      "tools_used": [
+        "check",
+        "create_investigation",
+        "list_capabilities",
+        "list_investigations",
+        "list_runs",
+        "read_investigation",
+        "read_run",
+        "record_finding",
+        "simulate",
+        "stop_investigation",
+        "sweep",
+        "validate_system"
+      ],
+      "repetition": 3,
+      "comparison": {
+        "elapsed_ratio_to_baseline": 1.7275695738239447,
+        "job_seconds_ratio_to_baseline": 1.0303058104341072,
+        "additional_jobs": 0
+      }
+    },
+    {
+      "case": "early-stop",
+      "investigation_id": "i20261006T092921469005Z-96869d94",
+      "acceptance": true,
+      "state": "stopped",
+      "problems": [],
+      "phases": [
+        {
+          "exit_code": 0,
+          "thread_id": "01a1108b-4d8e-7f50-bc3a-4a86dc77de45",
+          "elapsed_seconds": 82.80692766399989,
+          "errors": [],
+          "transcript": "/home/paimon/Projects/entanglix-research/6b3-evaluation-20261006/early-stop-1/evidence/draft-transcript.jsonl",
+          "conduct_in_initial_context": true,
+          "development_instructions_present": false,
+          "suspicious_commands": [],
+          "runtime_usage": {
+            "input_tokens": 358275,
+            "cached_input_tokens": 311552,
+            "output_tokens": 2953,
+            "model_requests": 9,
+            "windows_used_percent": {
+              "five_hour": {
+                "first": 72.0,
+                "last": 75.0
+              },
+              "weekly": {
+                "first": 12.0,
+                "last": 13.0
+              }
+            }
+          }
+        },
+        {
+          "exit_code": 0,
+          "thread_id": "01a1108b-4d8e-7f50-bc3a-4a86dc77de45",
+          "elapsed_seconds": 593.1321421500006,
+          "errors": [],
+          "transcript": "/home/paimon/Projects/entanglix-research/6b3-evaluation-20261006/early-stop-1/evidence/execute-transcript.jsonl",
+          "conduct_in_initial_context": true,
+          "development_instructions_present": false,
+          "suspicious_commands": [],
+          "runtime_usage": {
+            "input_tokens": 3049193,
+            "cached_input_tokens": 2974336,
+            "output_tokens": 15713,
+            "model_requests": 33,
+            "windows_used_percent": {
+              "five_hour": {
+                "first": 75.0,
+                "last": 85.0
+              },
+              "weekly": {
+                "first": 13.0,
+                "last": 14.0
+              }
+            }
+          }
+        }
+      ],
+      "usage": {
+        "jobs": 41,
+        "evaluated_points": 34,
+        "job_seconds": 253.84790029800297,
+        "gpu_seconds": 0.0,
+        "committed_job_seconds": 0.0,
+        "unsettled_jobs": 0,
+        "unbounded_jobs": 0
+      },
+      "elapsed_seconds": 510.561645,
+      "computation_seconds": 241.15768838000076,
+      "check_seconds": 12.690211918002205,
+      "execution_coverage_seconds": 149.5327820777893,
+      "time_outside_jobs_seconds": 361.0288629222107,
+      "user_decisions_after_start": 0,
+      "assessments": [
+        {
+          "rationale": "Known inputs for the next jobs stay within revision 1. Checkpoint evidence supports the specified next experiment; no open review or observed confirmation failure.",
+          "decision": "continue",
+          "next_experiment": "Normal RWA brackets are [0.00175,0.001875] GHz at EJ 13.5 and [0.001375,0.0015] GHz at EJ 15. Complete endpoint checks, then lab/refined-lab zero and endpoint confirmation. EJ 12 remains no crossing; these normal results precede tighter requests."
+        },
+        {
+          "rationale": "Known inputs for the next jobs stay within revision 1. Checkpoint evidence supports the specified next experiment; no open review or observed confirmation failure.",
+          "decision": "continue",
+          "next_experiment": "EJ 13.5 normal lab losses straddle 0.01 with margins much greater than observed refinement changes; complete refined integrity checks before confirming. Then establish the normal EJ 15 result. No tighter requests yet."
+        },
+        {
+          "rationale": "Known inputs for the next jobs stay within revision 1. Checkpoint evidence supports the specified next experiment; no open review or observed confirmation failure.",
+          "decision": "continue",
+          "next_experiment": "All normal results established. Tighten EJ 13.5 to 0.000015625 GHz by RWA midpoints; confirm lab/refined-lab using retained zeros. EJ 15 tighter remains unattempted until EJ 13.5 passes; EJ 12 no crossing."
+        },
+        {
+          "rationale": "Complete only the explicitly required integrity verification for the already completed refined endpoints, then report, open precision review and stop. No further solve is justified; unused allowance cannot justify continuation.",
+          "decision": "continue",
+          "next_experiment": "No new simulation. Run integrity on the two already completed tighter refined EJ 13.5 lab endpoints, reusing checked zero. Then final report with decision review, review_name precision, followed by stop_investigation review_handoff."
+        }
+      ],
+      "report": {
+        "decision": "review",
+        "rationale": "All normal results were established before tighter work. At tighter EJ 13.5 lower amplitude 0.001796875 GHz, lab loss 0.010003426691453043 and refined lab loss 0.010003619219331794 both exceed 0.01. Required checks passed, but the lab loss does not straddle the target. Retain normal brackets and hand off at the first failed confirmation; unused job allowance does not support continuation.",
+        "unresolved": [
+          "The tighter EJ 13.5 RWA bracket fails lab confirmation at its lower endpoint; the normal-width confirmed bracket is the best supported result.",
+          "EJ 12 has no crossing within the permitted sampled amplitude range; a wider search requires revised scope and an operator decision.",
+          "EJ 15 tighter remains unattempted after the first confirmation failure.",
+          "One crossing assumes decreasing coherence; only sampled amplitudes are checked.",
+          "Bracket width describes the RWA crossing; lab confirmation is separate.",
+          "Coarse/refined differences are convergence evidence, not an error bound.",
+          "No check bounds whole-window or accumulated RWA error."
+        ],
+        "next_experiment": "Operator precision review: retain or accept the confirmed normal-width results before considering any revised precision or confirmation strategy; no further solve under the current handoff. For EJ = 12 GHz, propose and obtain approval for a wider amplitude scope before searching for the 0.01 crossing."
+      },
+      "claims": [
+        {
+          "ej_ghz": 13.5,
+          "width_ghz": 0.0001249999999999999,
+          "endpoints": [
+            {
+              "amplitude_ghz": 0.00175,
+              "profiles": {
+                "rwa": {
+                  "additional_loss": 0.009504159784116561,
+                  "zero_run": "r20261006T093029810727Z-d870a48b",
+                  "endpoint_run": "r20261006T093157571069Z-6095da79"
+                },
+                "lab": {
+                  "additional_loss": 0.009598808395924197,
+                  "zero_run": "r20261006T093239432311Z-8bc62889",
+                  "endpoint_run": "r20261006T093240752062Z-9427df9b"
+                },
+                "lab_refined": {
+                  "additional_loss": 0.009598977007492238,
+                  "zero_run": "r20261006T093243425470Z-23cd3fb3",
+                  "endpoint_run": "r20261006T093242087718Z-2529e25b"
+                }
+              },
+              "margin": -0.0004010229925077626,
+              "refinement_change": 1.6861156804104382e-07
+            },
+            {
+              "amplitude_ghz": 0.001875,
+              "profiles": {
+                "rwa": {
+                  "additional_loss": 0.010621280624162677,
+                  "zero_run": "r20261006T093029810727Z-d870a48b",
+                  "endpoint_run": "r20261006T093202729327Z-da181d9a"
+                },
+                "lab": {
+                  "additional_loss": 0.0106948394193781,
+                  "zero_run": "r20261006T093239432311Z-8bc62889",
+                  "endpoint_run": "r20261006T093307392481Z-7b957c7d"
+                },
+                "lab_refined": {
+                  "additional_loss": 0.010695081712124077,
+                  "zero_run": "r20261006T093243425470Z-23cd3fb3",
+                  "endpoint_run": "r20261006T093306128133Z-1de2291b"
+                }
+              },
+              "margin": 0.0006950817121240769,
+              "refinement_change": 2.4229274597775685e-07
+            }
+          ],
+          "confirmed": true,
+          "stage": "normal"
+        },
+        {
+          "ej_ghz": 15,
+          "width_ghz": 0.0001250000000000001,
+          "endpoints": [
+            {
+              "amplitude_ghz": 0.001375,
+              "profiles": {
+                "rwa": {
+                  "additional_loss": 0.009171702763638545,
+                  "zero_run": "r20261006T093029810727Z-d870a48b",
+                  "endpoint_run": "r20261006T093201401140Z-5565f0ed"
+                },
+                "lab": {
+                  "additional_loss": 0.009222769240497475,
+                  "zero_run": "r20261006T093406948492Z-a425b3b2",
+                  "endpoint_run": "r20261006T093409547886Z-5a1eac32"
+                },
+                "lab_refined": {
+                  "additional_loss": 0.009222689859232691,
+                  "zero_run": "r20261006T093408213077Z-925929f4",
+                  "endpoint_run": "r20261006T093410883763Z-07491c94"
+                }
+              },
+              "margin": -0.0007773101407673091,
+              "refinement_change": 7.938126478368446e-08
+            },
+            {
+              "amplitude_ghz": 0.0015,
+              "profiles": {
+                "rwa": {
+                  "additional_loss": 0.010596331294850048,
+                  "zero_run": "r20261006T093029810727Z-d870a48b",
+                  "endpoint_run": "r20261006T093143828903Z-073c37f5"
+                },
+                "lab": {
+                  "additional_loss": 0.010623938364740071,
+                  "zero_run": "r20261006T093406948492Z-a425b3b2",
+                  "endpoint_run": "r20261006T093433599165Z-d73cce8a"
+                },
+                "lab_refined": {
+                  "additional_loss": 0.010623859145600267,
+                  "zero_run": "r20261006T093408213077Z-925929f4",
+                  "endpoint_run": "r20261006T093434920993Z-52d034e0"
+                }
+              },
+              "margin": 0.0006238591456002671,
+              "refinement_change": 7.921913980357687e-08
+            }
+          ],
+          "confirmed": true,
+          "stage": "normal"
+        },
+        {
+          "ej_ghz": 13.5,
+          "width_ghz": 1.5625000000000014e-05,
+          "endpoints": [
+            {
+              "amplitude_ghz": 0.001796875,
+              "profiles": {
+                "rwa": {
+                  "additional_loss": 0.009916261105015645,
+                  "zero_run": "r20261006T093029810727Z-d870a48b",
+                  "endpoint_run": "r20261006T093523686936Z-bf496f53"
+                },
+                "lab": {
+                  "additional_loss": 0.010003426691453043,
+                  "zero_run": "r20261006T093239432311Z-8bc62889",
+                  "endpoint_run": "r20261006T093602737029Z-9a536e3c"
+                },
+                "lab_refined": {
+                  "additional_loss": 0.010003619219331794,
+                  "zero_run": "r20261006T093243425470Z-23cd3fb3",
+                  "endpoint_run": "r20261006T093559988244Z-40542718"
+                }
+              },
+              "margin": 3.619219331793891e-06,
+              "refinement_change": 1.9252787875068123e-07
+            },
+            {
+              "amplitude_ghz": 0.0018125,
+              "profiles": {
+                "rwa": {
+                  "additional_loss": 0.01005544721669227,
+                  "zero_run": "r20261006T093029810727Z-d870a48b",
+                  "endpoint_run": "r20261006T093518515576Z-0e3cf5d2"
+                },
+                "lab": {
+                  "additional_loss": 0.01014000483051003,
+                  "zero_run": "r20261006T093239432311Z-8bc62889",
+                  "endpoint_run": "r20261006T093601351740Z-6aa56e04"
+                },
+                "lab_refined": {
+                  "additional_loss": 0.010140206247917893,
+                  "zero_run": "r20261006T093243425470Z-23cd3fb3",
+                  "endpoint_run": "r20261006T093558710342Z-ab556cdf"
+                }
+              },
+              "margin": 0.00014020624791789317,
+              "refinement_change": 2.0141740786350226e-07
+            }
+          ],
+          "confirmed": false,
+          "stage": "tighter"
+        }
+      ],
+      "agent_claims": {
+        "outcome": "review_handoff",
+        "no_crossing_ej": [
+          12
+        ],
+        "brackets": [
+          {
+            "ej_ghz": 13.5,
+            "stage": "normal",
+            "lower_amplitude_ghz": 0.00175,
+            "upper_amplitude_ghz": 0.001875,
+            "confirmed": true
+          },
+          {
+            "ej_ghz": 15,
+            "stage": "normal",
+            "lower_amplitude_ghz": 0.001375,
+            "upper_amplitude_ghz": 0.0015,
+            "confirmed": true
+          },
+          {
+            "ej_ghz": 13.5,
+            "stage": "tighter",
+            "lower_amplitude_ghz": 0.001796875,
+            "upper_amplitude_ghz": 0.0018125,
+            "confirmed": false
+          }
+        ],
+        "unattempted_tighter_ej": [
+          15
+        ],
+        "limitations": [
+          "One crossing assumes decreasing coherence; only sampled amplitudes are checked.",
+          "Bracket width describes the RWA crossing; lab confirmation is separate.",
+          "Coarse/refined differences are convergence evidence, not an error bound.",
+          "No check bounds whole-window or accumulated RWA error."
+        ],
+        "next_experiments": [
+          "Operator precision review: retain or accept the confirmed normal-width results before considering any revised precision or confirmation strategy; no further solve under the current handoff.",
+          "For EJ = 12 GHz, propose and obtain approval for a wider amplitude scope before searching for the 0.01 crossing."
+        ]
+      },
+      "tools_used": [
+        "check",
+        "create_investigation",
+        "list_capabilities",
+        "list_investigations",
+        "list_runs",
+        "read_investigation",
+        "read_run",
+        "record_finding",
+        "simulate",
+        "stop_investigation",
+        "sweep",
+        "validate_system"
+      ],
+      "repetition": 1,
+      "comparison": {
+        "elapsed_ratio_to_baseline": 1.8459856799611896,
+        "job_seconds_ratio_to_baseline": 1.0122870873222412,
+        "additional_jobs": 0
+      }
+    },
+    {
+      "case": "early-stop",
+      "investigation_id": "i20261006T094033333283Z-4b2004be",
+      "acceptance": true,
+      "state": "stopped",
+      "problems": [],
+      "phases": [
+        {
+          "exit_code": 0,
+          "thread_id": "01a11095-a07c-7731-9b6f-ff1f3cf6e3f8",
+          "elapsed_seconds": 64.8943205659998,
+          "errors": [],
+          "transcript": "/home/paimon/Projects/entanglix-research/6b3-evaluation-20261006/early-stop-2/evidence/draft-transcript.jsonl",
+          "conduct_in_initial_context": true,
+          "development_instructions_present": false,
+          "suspicious_commands": [],
+          "runtime_usage": {
+            "input_tokens": 261291,
+            "cached_input_tokens": 210432,
+            "output_tokens": 2130,
+            "model_requests": 7,
+            "windows_used_percent": {
+              "five_hour": {
+                "first": 86.0,
+                "last": 87.0
+              },
+              "weekly": {
+                "first": 14.0,
+                "last": 14.0
+              }
+            }
+          }
+        },
+        {
+          "exit_code": 0,
+          "thread_id": "01a11095-a07c-7731-9b6f-ff1f3cf6e3f8",
+          "elapsed_seconds": 493.4395529679987,
+          "errors": [],
+          "transcript": "/home/paimon/Projects/entanglix-research/6b3-evaluation-20261006/early-stop-2/evidence/execute-transcript.jsonl",
+          "conduct_in_initial_context": true,
+          "development_instructions_present": false,
+          "suspicious_commands": [],
+          "runtime_usage": {
+            "input_tokens": 1807695,
+            "cached_input_tokens": 1725312,
+            "output_tokens": 11564,
+            "model_requests": 17,
+            "windows_used_percent": {
+              "five_hour": {
+                "first": 88.0,
+                "last": 97.0
+              },
+              "weekly": {
+                "first": 15.0,
+                "last": 16.0
+              }
+            }
+          }
+        }
+      ],
+      "usage": {
+        "jobs": 41,
+        "evaluated_points": 34,
+        "job_seconds": 252.71246318799967,
+        "gpu_seconds": 0.0,
+        "committed_job_seconds": 0.0,
+        "unsettled_jobs": 0,
+        "unbounded_jobs": 0
+      },
+      "elapsed_seconds": 463.66604,
+      "computation_seconds": 240.06641706199844,
+      "check_seconds": 12.646046126001238,
+      "execution_coverage_seconds": 162.53596186637878,
+      "time_outside_jobs_seconds": 301.1300781336212,
+      "user_decisions_after_start": 0,
+      "assessments": [
+        {
+          "rationale": "Agreed in-range method continues to produce resolvable evidence. No terms change; observed usage {\"committed_job_seconds\":0,\"evaluated_points\":15,\"gpu_seconds\":0,\"job_seconds\":14.792808168998818,\"jobs\":10,\"unbounded_jobs\":0,\"unsettled_jobs\":0}",
+          "decision": "continue",
+          "next_experiment": "Finish normal RWA endpoint checks, then compare coarse and refined lab endpoints and zero for EJ 13.5 and 15."
+        },
+        {
+          "rationale": "Agreed in-range method continues to produce resolvable evidence. No terms change; observed usage {\"committed_job_seconds\":0,\"evaluated_points\":21,\"gpu_seconds\":0,\"job_seconds\":101.00296493899987,\"jobs\":20,\"unbounded_jobs\":0,\"unsettled_jobs\":0}",
+          "decision": "continue",
+          "next_experiment": "Finish refined-lab integrity for EJ 13.5 normal bracket; then confirm EJ 15 normal bracket."
+        },
+        {
+          "rationale": "Agreed in-range method continues to produce resolvable evidence. No terms change; observed usage {\"committed_job_seconds\":0,\"evaluated_points\":27,\"gpu_seconds\":0,\"job_seconds\":184.95084289299848,\"jobs\":30,\"unbounded_jobs\":0,\"unsettled_jobs\":0}",
+          "decision": "continue",
+          "next_experiment": "Tighten EJ 13.5 first; bisection source bracket [0.00175,0.001875] and seed zero; no EJ 15 tighter work until EJ 13.5 confirmation succeeds."
+        },
+        {
+          "rationale": "Checkpoint at 40 completed jobs. Finish only the last prescribed confirmation integrity check before report and review handoff; no additional search or later tighter case. Observed usage {\"committed_job_seconds\":0,\"evaluated_points\":34,\"gpu_seconds\":0,\"job_seconds\":251.9526063129997,\"jobs\":40,\"unbounded_jobs\":0,\"unsettled_jobs\":0}",
+          "decision": "continue",
+          "next_experiment": "Run integrity on refined upper endpoint r20261006T094711460513Z-4a31e0eb; record failed-confirmation report, open precision review, and stop review_handoff."
+        }
+      ],
+      "report": {
+        "decision": "review",
+        "rationale": "First failed lab confirmation triggers the agreed stop and precision review. Retain both confirmed normal brackets and the RWA-only tighter bracket. 41/100 jobs used; remaining allowance is not grounds for further computation.",
+        "unresolved": [
+          "One crossing assumes decreasing coherence; only sampled amplitudes are checked.",
+          "Bracket width describes the RWA crossing; lab confirmation is separate.",
+          "Coarse/refined differences are convergence evidence, not an error bound.",
+          "No check bounds whole-window or accumulated RWA error.",
+          "EJ 12 has no sampled crossing within 0\u20130.002 GHz.",
+          "Tighter EJ 13.5 RWA resolution fails independent lab confirmation; tighter EJ 15 is unattempted.",
+          "Seed segments; integrity/segments/diagnostics on intermediate RWA points; integrity/segments/diagnostics on coarse lab runs; segments/diagnostics on refined lab runs. All expressly required checks ran. Spectral refinement is inapplicable to these dynamics. Diagnostics have no pass/fail verdict. Endpoint segment checks cover 0\u20132, 49\u201351, 98\u2013100 ns (6% of the window)."
+        ],
+        "next_experiment": "Operator precision review: retain the confirmed normal-width brackets, or approve revised frame/convergence evidence before pursuing smaller physical resolution; no lab-frame search under current terms. Operator scope decision: consider a wider readout-amplitude range for EJ 12, whose sampled loss remains below 0.01 at 0.002 GHz."
+      },
+      "claims": [
+        {
+          "ej_ghz": 13.5,
+          "width_ghz": 0.0001249999999999999,
+          "endpoints": [
+            {
+              "amplitude_ghz": 0.00175,
+              "profiles": {
+                "rwa": {
+                  "additional_loss": 0.009504159784116561,
+                  "zero_run": "r20261006T094138132138Z-35bc61c8",
+                  "endpoint_run": "r20261006T094244172521Z-c5a7eb0d"
+                },
+                "lab": {
+                  "additional_loss": 0.009598808395924197,
+                  "zero_run": "r20261006T094316980844Z-59347a7c",
+                  "endpoint_run": "r20261006T094319606675Z-d6a0c3c9"
+                },
+                "lab_refined": {
+                  "additional_loss": 0.009598977007492238,
+                  "zero_run": "r20261006T094318280430Z-98f8f616",
+                  "endpoint_run": "r20261006T094349443132Z-e25a9903"
+                }
+              },
+              "margin": -0.0004010229925077626,
+              "refinement_change": 1.6861156804104382e-07
+            },
+            {
+              "amplitude_ghz": 0.001875,
+              "profiles": {
+                "rwa": {
+                  "additional_loss": 0.010621280624162677,
+                  "zero_run": "r20261006T094138132138Z-35bc61c8",
+                  "endpoint_run": "r20261006T094246753588Z-e3d2e6a0"
+                },
+                "lab": {
+                  "additional_loss": 0.0106948394193781,
+                  "zero_run": "r20261006T094316980844Z-59347a7c",
+                  "endpoint_run": "r20261006T094350738304Z-1eb7f209"
+                },
+                "lab_refined": {
+                  "additional_loss": 0.010695081712124077,
+                  "zero_run": "r20261006T094318280430Z-98f8f616",
+                  "endpoint_run": "r20261006T094352012730Z-f3a0738b"
+                }
+              },
+              "margin": 0.0006950817121240769,
+              "refinement_change": 2.4229274597775685e-07
+            }
+          ],
+          "confirmed": true,
+          "stage": "normal"
+        },
+        {
+          "ej_ghz": 15,
+          "width_ghz": 0.0001250000000000001,
+          "endpoints": [
+            {
+              "amplitude_ghz": 0.001375,
+              "profiles": {
+                "rwa": {
+                  "additional_loss": 0.009171702763638545,
+                  "zero_run": "r20261006T094138132138Z-35bc61c8",
+                  "endpoint_run": "r20261006T094248094496Z-7f5bff41"
+                },
+                "lab": {
+                  "additional_loss": 0.009222769240497475,
+                  "zero_run": "r20261006T094440371175Z-d3608e8c",
+                  "endpoint_run": "r20261006T094443005982Z-a68769e6"
+                },
+                "lab_refined": {
+                  "additional_loss": 0.009222689859232691,
+                  "zero_run": "r20261006T094441673770Z-5e614e86",
+                  "endpoint_run": "r20261006T094504923389Z-9358727a"
+                }
+              },
+              "margin": -0.0007773101407673091,
+              "refinement_change": 7.938126478368446e-08
+            },
+            {
+              "amplitude_ghz": 0.0015,
+              "profiles": {
+                "rwa": {
+                  "additional_loss": 0.010596331294850048,
+                  "zero_run": "r20261006T094138132138Z-35bc61c8",
+                  "endpoint_run": "r20261006T094238943891Z-c7e92e06"
+                },
+                "lab": {
+                  "additional_loss": 0.010623938364740071,
+                  "zero_run": "r20261006T094440371175Z-d3608e8c",
+                  "endpoint_run": "r20261006T094506199011Z-7d7ef568"
+                },
+                "lab_refined": {
+                  "additional_loss": 0.010623859145600267,
+                  "zero_run": "r20261006T094441673770Z-5e614e86",
+                  "endpoint_run": "r20261006T094507482819Z-0d8ff09a"
+                }
+              },
+              "margin": 0.0006238591456002671,
+              "refinement_change": 7.921913980357687e-08
+            }
+          ],
+          "confirmed": true,
+          "stage": "normal"
+        },
+        {
+          "ej_ghz": 13.5,
+          "width_ghz": 1.5625000000000014e-05,
+          "endpoints": [
+            {
+              "amplitude_ghz": 0.001796875,
+              "profiles": {
+                "rwa": {
+                  "additional_loss": 0.009916261105015645,
+                  "zero_run": "r20261006T094138132138Z-35bc61c8",
+                  "endpoint_run": "r20261006T094557127328Z-82912f91"
+                },
+                "lab": {
+                  "additional_loss": 0.010003426691453043,
+                  "zero_run": "r20261006T094316980844Z-59347a7c",
+                  "endpoint_run": "r20261006T094623828101Z-44fbd44b"
+                },
+                "lab_refined": {
+                  "additional_loss": 0.010003619219331794,
+                  "zero_run": "r20261006T094318280430Z-98f8f616",
+                  "endpoint_run": "r20261006T094625128231Z-26ec2253"
+                }
+              },
+              "margin": 3.619219331793891e-06,
+              "refinement_change": 1.9252787875068123e-07
+            },
+            {
+              "amplitude_ghz": 0.0018125,
+              "profiles": {
+                "rwa": {
+                  "additional_loss": 0.01005544721669227,
+                  "zero_run": "r20261006T094138132138Z-35bc61c8",
+                  "endpoint_run": "r20261006T094551491689Z-847cb869"
+                },
+                "lab": {
+                  "additional_loss": 0.01014000483051003,
+                  "zero_run": "r20261006T094316980844Z-59347a7c",
+                  "endpoint_run": "r20261006T094710121485Z-08a4f341"
+                },
+                "lab_refined": {
+                  "additional_loss": 0.010140206247917893,
+                  "zero_run": "r20261006T094318280430Z-98f8f616",
+                  "endpoint_run": "r20261006T094711460513Z-4a31e0eb"
+                }
+              },
+              "margin": 0.00014020624791789317,
+              "refinement_change": 2.0141740786350226e-07
+            }
+          ],
+          "confirmed": false,
+          "stage": "tighter"
+        }
+      ],
+      "agent_claims": {
+        "outcome": "review_handoff",
+        "no_crossing_ej": [
+          12
+        ],
+        "brackets": [
+          {
+            "ej_ghz": 13.5,
+            "stage": "normal",
+            "lower_amplitude_ghz": 0.00175,
+            "upper_amplitude_ghz": 0.001875,
+            "confirmed": true
+          },
+          {
+            "ej_ghz": 15,
+            "stage": "normal",
+            "lower_amplitude_ghz": 0.001375,
+            "upper_amplitude_ghz": 0.0015,
+            "confirmed": true
+          },
+          {
+            "ej_ghz": 13.5,
+            "stage": "tighter",
+            "lower_amplitude_ghz": 0.001796875,
+            "upper_amplitude_ghz": 0.0018125,
+            "confirmed": false
+          }
+        ],
+        "unattempted_tighter_ej": [
+          15
+        ],
+        "limitations": [
+          "One crossing assumes decreasing coherence; only sampled amplitudes are checked.",
+          "Bracket width describes the RWA crossing; lab confirmation is separate.",
+          "Coarse/refined differences are convergence evidence, not an error bound.",
+          "No check bounds whole-window or accumulated RWA error."
+        ],
+        "next_experiments": [
+          "Operator precision review: retain the confirmed normal-width brackets, or approve revised frame/convergence evidence before pursuing smaller physical resolution; no lab-frame search under current terms.",
+          "Operator scope decision: consider a wider readout-amplitude range for EJ 12, whose sampled loss remains below 0.01 at 0.002 GHz."
+        ]
+      },
+      "tools_used": [
+        "check",
+        "create_investigation",
+        "list_capabilities",
+        "list_investigations",
+        "list_runs",
+        "read_investigation",
+        "read_run",
+        "record_finding",
+        "simulate",
+        "stop_investigation",
+        "sweep",
+        "validate_system"
+      ],
+      "repetition": 2,
+      "comparison": {
+        "elapsed_ratio_to_baseline": 1.676430022714127,
+        "job_seconds_ratio_to_baseline": 1.0077592250725496,
+        "additional_jobs": 0
+      }
+    },
+    {
+      "case": "early-stop",
+      "investigation_id": "i20261006T095006446577Z-9f8ce400",
+      "acceptance": false,
+      "problems": [
+        "runtime phase failed",
+        "runtime phase failed",
+        "seed sweep missing",
+        "normal brackets incomplete or unsupported",
+        "precision handoff missing or unsupported",
+        "remaining tighter work or precision review not reported",
+        "report lacks limits or next experiments",
+        "investigation not stopped after report"
+      ],
+      "phases": [
+        {
+          "exit_code": 1,
+          "thread_id": "01a1109e-27cb-7282-8a33-724ed965e9b4",
+          "elapsed_seconds": 87.09134308399916,
+          "errors": [
+            {
+              "type": "error",
+              "message": "You\u2019ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/codex/settings/usage to purchase more credits or try again at 6:55 AM."
+            },
+            {
+              "type": "turn.failed",
+              "error": {
+                "message": "You\u2019ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/codex/settings/usage to purchase more credits or try again at 6:55 AM."
+              }
+            }
+          ],
+          "transcript": "/home/paimon/Projects/entanglix-research/6b3-evaluation-20261006/early-stop-3/evidence/draft-transcript.jsonl",
+          "conduct_in_initial_context": true,
+          "development_instructions_present": false,
+          "suspicious_commands": [],
+          "runtime_usage": {
+            "input_tokens": 304891,
+            "cached_input_tokens": 264192,
+            "output_tokens": 2546,
+            "model_requests": 8,
+            "windows_used_percent": {
+              "five_hour": {
+                "first": 97.0,
+                "last": 100.0
+              },
+              "weekly": {
+                "first": 16.0,
+                "last": 16.0
+              }
+            }
+          }
+        },
+        {
+          "exit_code": 1,
+          "thread_id": "01a1109e-27cb-7282-8a33-724ed965e9b4",
+          "elapsed_seconds": 1.8519599770006607,
+          "errors": [
+            {
+              "type": "error",
+              "message": "You\u2019ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/codex/settings/usage to purchase more credits or try again at 6:55 AM."
+            },
+            {
+              "type": "turn.failed",
+              "error": {
+                "message": "You\u2019ve hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), visit https://chatgpt.com/codex/settings/usage to purchase more credits or try again at 6:55 AM."
+              }
+            }
+          ],
+          "transcript": "/home/paimon/Projects/entanglix-research/6b3-evaluation-20261006/early-stop-3/evidence/execute-transcript.jsonl",
+          "conduct_in_initial_context": true,
+          "development_instructions_present": false,
+          "suspicious_commands": [],
+          "runtime_usage": {
+            "input_tokens": 0,
+            "cached_input_tokens": 0,
+            "output_tokens": 0,
+            "model_requests": 0,
+            "windows_used_percent": {
+              "five_hour": null,
+              "weekly": null
+            }
+          }
+        }
+      ],
+      "state": "active",
+      "usage": {
+        "jobs": 0,
+        "evaluated_points": 0,
+        "job_seconds": 0.0,
+        "gpu_seconds": 0.0,
+        "committed_job_seconds": 0.0,
+        "unsettled_jobs": 0,
+        "unbounded_jobs": 0
+      },
+      "report": null,
+      "repetition": 3
+    }
+  ],
+  "formulation": {
+    "exit_code": 0,
+    "thread_id": "01a11074-ccfb-7371-8f9b-6618b9208308",
+    "elapsed_seconds": 115.19141478800066,
+    "errors": [],
+    "transcript": "/home/paimon/Projects/entanglix-research/6b3-evaluation-20261006/formulation/evidence/formulation-transcript.jsonl",
+    "conduct_in_initial_context": true,
+    "development_instructions_present": false,
+    "suspicious_commands": [],
+    "proposal": "I recommend a first investigation at fixed \\(E_J=13.5\\) GHz: compare three drive amplitudes using the RWA, lab-frame, and larger-basis lab-frame inputs. This would separate the sampled drive effect from sensitivity to the approximation and truncation.\n\nNo jobs or checks were launched, and no investigation declaration was created. The run and investigation listings were empty.\n\nThe shipped [model](/home/paimon/Projects/entanglix-research/6b3-evaluation-20261006/formulation/inputs/rwa/system.toml) contains a transmon with \\(E_C=0.25\\) GHz, a 7 GHz resonator, coupling \\(0.075\\,n_q(a+a^\\dagger)\\) GHz, and resonator loss \\(0.03\\ \\mathrm{ns}^{-1}\\). There is no explicit intrinsic qubit relaxation or dephasing channel. The drive acts on the resonator; the lab-frame coefficient is \\(A\\cos(2\\pi f_dt)\\).\n\n| Shipped inputs | Basis and protocol |\n|---|---|\n| `rwa`, `lab` | Identical models and initial-state files; 5 qubit \u00d7 6 resonator levels, transmon cutoff 30. RWA versus full lab-frame evolution. |\n| `refined-13_5` | Lab frame; 6 \u00d7 8 levels, cutoff 32, tighter solver tolerances. |\n| `refined-12`, `refined-15` | Larger-basis lab-frame inputs at different \\(E_J\\), with different carrier frequencies. |\n\nAll protocols cover 0\u2013100 ns at 1 ns output spacing and default to zero drive. The state arrays are finite and normalized, with an equal qubit superposition and resonator vacuum. `refined-15` uses a minus sign for the excited-state amplitude; its physical equivalence needs an eigenvector-gauge check before comparing across \\(E_J\\).\n\nThe reported coherence is\n\\[\nC_A(t)=2|\\rho_{q,01}^{(A)}(t)|.\n\\]\nThe [protocol reference](/home/paimon/Projects/entanglix-research/6b3-evaluation-20261006/formulation/reference/operations/protocols.md:62) defines this as a coherence proxy, not a fitted dephasing rate. Coupling to a driven, lossy resonator can change reduced qubit coherence through correlations and dissipative dynamics. Population changes can also contribute, so coherence loss alone would not isolate pure dephasing or establish measurement fidelity, distinguishability, or readout quality.\n\nThe proposed question is: **At the sampled amplitudes, how much does the readout drive change qubit coherence after 100 ns relative to no drive?**\n\n- **Scope:** fix \\(E_J=13.5\\) GHz, carrier \\(7.002206406997239\\) GHz, loss, initial state, and output grid. Vary only \\(A=\\{0,0.001,0.002\\}\\) GHz across the three matched inputs: nine simulations.\n- **Report:** \\(C_A(t)\\), qubit excited population, resonator photon population, and \\(D(A)=C_0(100)-C_A(100)\\). Positive \\(D\\) means additional endpoint coherence loss.\n- **Resolution:** the amplitude spacing is 0.001 GHz. Report sampled behavior without assuming monotonicity; the shipped sweep\u2019s decreasing expectation is a hypothesis. Any adjacent threshold crossing would remain a coarse bracket requiring further evidence.\n- **Evidence:** compare complete stored trajectories across lab/RWA and baseline/larger-basis runs. Propose an absolute stability target of 0.001 in \\(D\\), if an additional loss of 0.01 is scientifically meaningful to you. These comparisons measure sensitivity; they are not certified error bounds.\n- **Boundary:** defer changing \\(E_J\\), carrier detuning, pulse shape, or loss until this comparison is assessed.\n\nRelevant available checks are `integrity` for physicality and stored-data consistency, `segments` for sampled local integration/truncation sensitivity, and `diagnostics` for populations and static truncation/RWA indicators. Diagnostics have no pass/fail outcome. No built-in check establishes whole-window or RWA accuracy. None ran, and model validation also remains outstanding. The references link to fixture tests and a readout README that are absent from this workspace; their results cannot supply evidence here.\n\nThe decisions needed from you are:\n\n1. **Scientific target:** accept the fixed-\\(E_J\\), 100 ns comparison, and choose a meaningful coherence-loss threshold and numerical stability requirement.\n2. **Evidence request:** authorize the three named checks after each simulation and agree how failed checks or unresolved sensitivity should trigger review.\n3. **Resources:** declare job-count, execution-time, and any deadline limits. One proposed ceiling is 18 jobs\u2014nine simulations plus nine combined check jobs\u2014with 180 seconds per job and 3,240 total execution seconds. This is a ceiling, not a cost estimate; checks and failed jobs count.\n4. **Checkpoint and stopping:** propose assessment and operator review after the first six finished attempts. Stop at completed evidence, exhausted limits, or unresolved precision/model limitations; expanding scope requires another decision.\n\nThese are proposed choices only. If you later request a declaration, the [investigation procedure](/home/paimon/Projects/entanglix-research/6b3-evaluation-20261006/formulation/reference/operations/investigations.md) requires you to start its specific revision in your terminal before work proceeds.",
+    "runtime_usage": {
+      "input_tokens": 188317,
+      "cached_input_tokens": 153088,
+      "output_tokens": 3705,
+      "model_requests": 6,
+      "windows_used_percent": {
+        "five_hour": {
+          "first": 32.0,
+          "last": 34.0
+        },
+        "weekly": {
+          "first": 6.0,
+          "last": 6.0
+        }
+      }
+    }
+  },
+  "execution_driver_sha256": "94edaa2107ece58aeb4bce82356a8a863739ad051350872da5b998672f32d8fd",
+  "summary_driver_sha256": "7e431c4eee7c0567f48e869512f4e250b74a50a261eee13e4ac4b78e7fe9da23",
+  "completed_at": "2026-10-06T09:50:51.587Z",
+  "runtime_usage": {
+    "input_tokens": 13648950,
+    "cached_input_tokens": 12990976,
+    "output_tokens": 81361,
+    "model_requests": 177
+  },
+  "acceptance": true,
+  "case_counts": {
+    "normal": {
+      "accepted": 3,
+      "failed": 0,
+      "runtime_failed_before_admission": 0
+    },
+    "early-stop": {
+      "accepted": 2,
+      "failed": 1,
+      "runtime_failed_before_admission": 1
+    }
+  }
+}

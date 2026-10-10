@@ -1,6 +1,6 @@
 # ADR-0004: Investigations, User Decisions, and Agent Sessions
 
-**Date:** 2026-10-06
+**Date:** 2026-10-06, revised 2026-10-10
 **Status:** Accepted
 **Purpose:** fix how an investigation is recorded, who may change its terms, how its jobs are admitted and stopped, how progress is assessed and work resumed, how the first agent-assisted investigation is evaluated, whose runtime drives the harness, and how an agent session is instructed, restricted, and audited. Field lists, formats, and command names are documented with the implementation.
 
@@ -95,7 +95,7 @@ The harness does only what the user requests. For an investigation it supplies n
 ### 2.6 Evaluation protocol
 
 - The evaluation compares a documented scripted selection policy with the agent. Both receive the same revision: scope, requested checks, checkpoint, and a job-count allowance the user declares. They run in separate investigations, and each runs all of its own jobs.
-- The measures are the outcome against the declared claim rule and the requested checks, elapsed time, job time for computation and for checks, jobs and evaluated points, time outside jobs, user decisions after the start, and the rationale recorded at each assessment and at the stop.
+- The measures are the outcome against the declared claim rule and the requested checks, elapsed time, job time for computation and for checks, jobs and evaluated points, time outside jobs, user decisions after the start, the rationale recorded at each assessment and at the stop, and runtime usage where the runtime reports it.
 - The evaluation includes an early-stop case, in which the permitted method cannot establish the requested claim. Its supported outcome is a handoff that reports the best confirmed result and the next experiment. The first failed confirmation opens a review, and the remaining requests are reported as unattempted.
 - The agent runs each case more than once, and every run is reported, including a worse or inconclusive one.
 - The baseline is the scripted policy. Bayesian search is built when a task suits it.
@@ -104,6 +104,7 @@ The harness does only what the user requests. For an investigation it supplies n
 **Rationale:**
 - A sweep evaluates many points in one job, so points are counted as well as jobs.
 - An agent varies between runs, so one run is not a result.
+- Runtime usage is a cost to the user alongside job time, so it is measured.
 - The early-stop case shows a client recognizing a limit of its permitted method and stopping with the evidence it has. It does not show that further work would be uneconomic.
 - On a smooth one-dimensional crossing a midpoint policy is close to optimal, so the expected result is the same outcome at a higher elapsed time. ADR-0001 requires the comparison, not an advantage.
 

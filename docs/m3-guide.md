@@ -105,8 +105,8 @@ Two qualifications carry into acceptance:
 - **Same start:** the baseline and the agent receive the same scope revision, requested checks, checkpoint, and limit, in separate investigations. Each runs the seed sweep itself.
 - **Scripted selection policy:** the search, confirmation, and claim rule above, applied without judgment. A line with no crossing in the seed is reported, with a wider range proposed.
 - **Allowances:** the user declares one `job_count` per case at the start, the same for the baseline and the agent. This example uses 60 in the normal case and 100 in the early-stop case, against 30 and 41 jobs for the scripted policy. The harness supplies no default, and an ordinary investigation has no limit unless its user declares one.
-- **Measures:** outcome per `EJ` against the claim rule and the requested checks; elapsed time; job time for computation and for checks; jobs and evaluated points; time outside jobs; user decisions after the start; and the rationale recorded at each assessment and at the stop.
-- **Agent runs:** three per case, each reported.
+- **Measures:** outcome per `EJ` against the claim rule and the requested checks; elapsed time; job time for computation and for checks; jobs and evaluated points; time outside jobs; user decisions after the start; the rationale recorded at each assessment and at the stop; and runtime usage where the runtime reports it: tokens, model requests, and share of the usage window.
+- **Agent runs:** more than once per case, each reported, including a run the runtime could not finish.
 
 The expected result is the same outcome at a higher elapsed time: on a smooth one-dimensional curve the midpoint policy is close to optimal. Judgment shows only in the `EJ = 12` report, the stop decision, and the handoff.
 
@@ -281,8 +281,8 @@ A launch remains unresolved from its initial audit record until recovery establi
 
 ### Agent investigation and evaluation
 
-- **Formulation:** from a broad request about readout drive and qubit coherence, the agent drafts the investigation of §3 and the user starts it.
-- **Execution:** the agent runs both cases through logged tools, three runs each, under the evaluation protocol.
+- **Formulation:** from a broad request about readout drive and qubit coherence, in its own session the agent proposes a bounded investigation and the decisions it needs from the user, and launches nothing. For the comparison the user fixes the terms of §3 in advance; each agent run drafts them unchanged and the user starts it.
+- **Execution:** the agent runs both cases through logged tools, more than once each, under the evaluation protocol.
 - **Refusals:** tests reject approval claims in tool arguments, out-of-scope requests, and limit changes through research tools.
 - **CI and workstation:** CI tests the harness side with a scripted MCP client and needs no runtime: advertised tools, refusals, audit records, the server's instructions, and skill metadata. Checks that need a session run on the workstation in the user's logged-in runtime and are retained: instruction delivery, the command restriction, CUDA visibility, and the agent runs.
 - **Usability:** a user following only the operational docs can start, read, and stop the example investigation.
