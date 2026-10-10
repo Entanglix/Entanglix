@@ -9,6 +9,7 @@ import copy
 import hashlib
 import json
 import shutil
+import sys
 import tomllib
 from datetime import UTC, datetime
 from pathlib import Path
@@ -521,7 +522,19 @@ def main():
             job_count=args.job_count,
         )
     else:
-        result = Client(args.workspace).run()
+        client = Client(args.workspace)
+        try:
+            result = client.run()
+        except Exception:
+            record = read_investigation(client.path)
+            if record["state"] == "active" and not record["open_reviews"]:
+                raise
+            print(
+                f"User decision needed: state={record['state']}, reviews={record['open_reviews']}; "
+                "continue with the same run command after the operator decision.",
+                file=sys.stderr,
+            )
+            raise SystemExit(1) from None
     print(json.dumps(result, indent=2, default=str))
 
 

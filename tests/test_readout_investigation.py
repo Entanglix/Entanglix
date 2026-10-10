@@ -10,7 +10,12 @@ from pathlib import Path
 
 import pytest
 
-from entanglix.investigations import read_investigation, record_user_decision, revise_investigation
+from entanglix.investigations import (
+    read_investigation,
+    record_user_decision,
+    revise_investigation,
+    stop_investigation,
+)
 
 EXAMPLE = Path(__file__).resolve().parents[1] / "examples/readout/investigate.py"
 MODULE = runpy.run_path(str(EXAMPLE))
@@ -37,6 +42,58 @@ def test_draft_has_five_bases_and_cannot_self_start(tmp_path, case):
         Client(workspace).run()
     assert read_investigation(Path(record["path"]))["events"] == []
     assert not list((tmp_path / "runs").glob("*/*/run.toml"))
+
+
+@pytest.mark.parametrize("state", ["stopped", "review"])
+def test_run_command_reports_needed_decision_without_traceback(tmp_path, state):
+    workspace = tmp_path / "client"
+    record = draft(workspace, runs_root=tmp_path / "runs", case="normal", checkpoint=10)
+    investigation = Path(record["path"])
+    record_user_decision(investigation, "start", revision=1)
+    if state == "stopped":
+        stop_investigation(investigation, "user_cancellation")
+    else:
+        Client(workspace).finding(
+            {"note": "A decision is needed before proceeding."},
+            decision="review",
+            review="precision",
+        )
+    result = subprocess.run(
+        [sys.executable, str(EXAMPLE), "run", str(workspace)], capture_output=True, text=True
+    )
+    assert result.returncode == 1
+    assert not result.stdout
+    assert result.stderr == (
+        f"User decision needed: state={'stopped' if state == 'stopped' else 'active'}, "
+        f"reviews={[] if state == 'stopped' else ['precision']}; "
+        "continue with the same run command after the operator decision.\n"
+    )
+    assert "Traceback" not in result.stderr
+
+
+@pytest.mark.parametrize("stopped", [False, True])
+def test_run_command_rechecks_state_after_admission_error(tmp_path, monkeypatch, capsys, stopped):
+    workspace = tmp_path / "client"
+    record = draft(workspace, runs_root=tmp_path / "runs", case="normal", checkpoint=10)
+    investigation = Path(record["path"])
+    record_user_decision(investigation, "start", revision=1)
+
+    def refused(self):
+        if stopped:
+            stop_investigation(self.path, "user_cancellation")
+        raise ValueError("investigation is stopped" if stopped else "unrelated failure")
+
+    monkeypatch.setattr(Client, "run", refused)
+    monkeypatch.setattr(sys, "argv", [str(EXAMPLE), "run", str(workspace)])
+    if stopped:
+        with pytest.raises(SystemExit) as error:
+            MODULE["main"]()
+        assert error.value.code == 1
+        assert "state=stopped, reviews=[]" in capsys.readouterr().err
+    else:
+        with pytest.raises(ValueError, match="unrelated failure"):
+            MODULE["main"]()
+        assert not capsys.readouterr().err
 
 
 @pytest.mark.parametrize("during_job", [False, True])

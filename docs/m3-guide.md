@@ -1,6 +1,6 @@
 # M3 Guide — Investigations and Agent Integration
 
-**Status:** Draft implementation plan; no M3 capability is claimed by this document. The decisions in §7 are recorded in [ADR-0004](adr/0004-investigations-and-agent-sessions.md), with matching contract, roadmap, and checklist edits. Record layouts, command names, limits, and file names below are proposals.
+**Status:** Implemented through scripted and agent-driven investigations, the stdio MCP server, and bounded tool responses. Completion and acceptance evidence belong to the checklist. The decisions in §7 are recorded in [ADR-0004](adr/0004-investigations-and-agent-sessions.md), with matching contract, roadmap, and checklist edits. Implemented syntax and operating conventions live in the operational references.
 **Scope:** M3, covering the investigation decisions after M2, Block 6a (Investigation Execution), and Block 6b (Agent Integration).
 **Authority:** [roadmap](roadmap.md#investigation-decisions--after-m2-before-blocks-6a6b), [accepted mandate](adr/0001-mandate.md#4-later-decisions-and-implementation-evidence), and [harness contract](../HARNESS_CONTRACT.md#4-bounded-investigations). [The checklist](checklist.md#m3--bounded-agent-assisted-exploration-blocks-6a6b) owns completion status and acceptance evidence.
 **Audience:** the owner and implementation agents. This is a planning document; operational docs and production agents must work without it.

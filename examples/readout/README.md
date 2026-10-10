@@ -390,9 +390,11 @@ The stated limits are:
 The client drafts five bases: rotating frame, lab frame, and one refined lab-frame
 base per `EJ`, binding each embedded state to that value. It waits for an operator
 start; the client never approves, starts, releases a review, or resumes an
-investigation itself. Declare the checkpoint and, optionally, a job-count limit:
+investigation itself. Declare the checkpoint and, optionally, a job-count limit.
+On the workstation, preserve the shared runner extras profile:
 
 ```sh
+export ENTANGLIX_RUNNER_EXTRAS=cuquantum,differentiable-cuda12
 uv run --locked --exact python examples/readout/investigate.py draft research_runs/threshold-client --runs-root research_runs/threshold --case normal --checkpoint 10 --job-count 60
 INVESTIGATION=$(uv run --locked --exact python -c 'import json; print(json.load(open("research_runs/threshold-client/client.json"))["investigation"])')
 uv run --locked --exact entanglix read-investigation "$INVESTIGATION"
@@ -400,8 +402,8 @@ uv run --locked --exact entanglix investigation-decision "$INVESTIGATION" start 
 uv run --locked --exact python examples/readout/investigate.py run research_runs/threshold-client
 ```
 
-Runner extras must match its existing environment, as described in the
-[protocol reference](../../docs/operations/protocols.md#gpu-configuration-and-checks).
+See the [protocol reference](../../docs/operations/protocols.md#gpu-configuration-and-checks)
+for runner configuration.
 Omit `--job-count` for no investigation limit. Use a new workspace and runs root
 with `--case early-stop --job-count 100` for the tighter request. The checkpoint of
 10 and limits of 60/100 are these evaluations' explicit declarations, not harness

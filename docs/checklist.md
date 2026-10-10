@@ -17,7 +17,7 @@ Core capability progression; users may enter, iterate within, and stop at any su
 | M0 — Mandate + foundation | Decision 0, Block 0 | **complete** |
 | M1 — Model + engines | Blocks 1–2 | **complete** |
 | M2 — Local sweep with checks | Blocks 3–5 | **complete** |
-| M3 — Bounded agent-assisted exploration | Blocks 6a–6b | open |
+| M3 — Bounded agent-assisted exploration | Blocks 6a–6b | **complete** |
 | M4 — Control | Block 7 | open |
 | M5 — Device–control co-design | Block 8 | open |
 
@@ -218,7 +218,7 @@ The [M2 guide](m2-guide.md) records the implementation approach; [ADR-0003](adr/
 - [x] Applicable quality evidence recorded ([worked scientific example and limits](../examples/readout/README.md#scripted-investigation-baseline), [operational reference](operations/investigations.md), [normal baseline](../tests/probes/m3_investigation_normal.json), [early-stop baseline](../tests/probes/m3_investigation_early_stop.json), [client tests](../tests/test_readout_investigation.py))
 - [x] **Done:** scripted investigation reaches declared evidence or a supported stop/review handoff; progress/history survive resume; optional limits, review gates, cancellation, and local execution protections work through supported interfaces ([baseline evidence and policy](../examples/readout/README.md#scripted-investigation-baseline), [session recovery](../tests/test_readout_investigation.py))
 
-### [-] Block 6b — Agent Integration
+### [x] Block 6b — Agent Integration
 
 **Depends on:** Block 6a and the local runtime integration decision.
 
@@ -237,7 +237,7 @@ The [M2 guide](m2-guide.md) records the implementation approach; [ADR-0003](adr/
 - [x] Execute the declared baseline comparison; report scientific outcome, elapsed time, compute use, human interventions, and continuation/stopping rationale, including worse or inconclusive performance ([comparison, including the pre-compute runtime failure](../tests/probes/m3_evaluation_results.json), [evaluation driver](../tests/probes/m3_evaluation.py), [summary regression tests](../tests/test_agent_evaluation.py))
 - [x] Research-tool responses are bounded: an investigation is read as a status whose size does not depend on history, a paged attempt table, and an event index; a report is generated from the records; each result is sent once ([stdio views, acknowledgment and audit tests](../tests/test_mcp.py), [paging and report tests](../tests/test_mcp_views.py), [response sizes](environment.md#mcp-response-summaries), [interface and limits](operations/mcp.md#investigation-views-and-tables))
 - [x] Applicable quality evidence recorded for the complete independent sweep/search workflow ([comparison](../tests/probes/m3_evaluation_results.json), [pick-up evidence](../tests/probes/m3_pickup_results.json), [Claude Code pick-up after a cut-off job](../tests/probes/m3_pickup_claude_results.json), [summary tests](../tests/test_agent_evaluation.py), [guidance tests](../tests/test_research_guidance.py), [worked example and limitations](../examples/readout/README.md#agent-investigation-comparison))
-- [ ] **Done:** logged agent investigation meets declared evidence/reporting criteria and independent usability; refinement and justified stopping are demonstrated; local execution protections and any configured limits hold; baseline comparison complete
+- [x] **Done:** logged agent investigation meets declared evidence/reporting criteria and independent usability; refinement and justified stopping are demonstrated; local execution protections and any configured limits hold; baseline comparison complete ([comparison and acceptance](../tests/probes/m3_evaluation_results.json), [pick-up evidence](../tests/probes/m3_pickup_results.json), [usability walk-through](environment.md#investigation-usability-walk-through), [refusal and limit tests](../tests/test_mcp.py), [baseline comparison](../examples/readout/README.md#agent-investigation-comparison))
 - M3 does not require outperforming the baseline. Claims of acceleration require measured comparative benefit.
 
 ---

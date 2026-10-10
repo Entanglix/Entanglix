@@ -395,3 +395,27 @@ sent by MCP; the report is Markdown:
 
 These are character counts, not measured token savings. See the
 [MCP reference](operations/mcp.md#investigation-views-and-tables).
+
+## Investigation usability walk-through
+
+On 2026-10-10, at commit `18ff984`, the example investigation was started, read
+and stopped by following only the
+[scripted investigation baseline](../examples/readout/README.md#scripted-investigation-baseline)
+and the [investigation reference](operations/investigations.md), with a fresh
+workspace and runs root and no agent runtime:
+
+| Step | Command | Observed |
+|---|---|---|
+| Draft | `investigate.py draft` | State `draft` |
+| List and read | `list-investigations`, `read-investigation` | The draft and its terms |
+| Start | `investigation-decision ... start --revision 1` | State `active` |
+| Run and read | `investigate.py run`, `read-investigation` | 8 jobs admitted, 8 finished |
+| Stop | `stop-investigation ... user_cancellation` | State `stopped`; the client's next job was refused and no process remained |
+| Read and report | `read-investigation`, `report-investigation` | 8 completed attempts retained; the report rendered |
+| Resume | `investigation-decision ... resume` | State `active` |
+
+This was a manual check; its scratch records were not retained. The stop fell
+between jobs, so it did not cancel a running solve; the
+[session tests](../tests/test_readout_investigation.py) cover that. On this
+workstation the run command needs the pinned runner extras,
+`export ENTANGLIX_RUNNER_EXTRAS=cuquantum,differentiable-cuda12`.
