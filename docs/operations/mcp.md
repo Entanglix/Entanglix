@@ -75,22 +75,19 @@ are explicitly omitted; full values remain in the run's `result.toml`. An attemp
 whose records cannot be read keeps its row, with the reason in a `result_error` column.
 
 Use `read_investigation(investigation, event_id="00000001")` for one complete
-event. It cannot be combined with a table view or cursor. Investigation `detail`
-is no longer supported. Python and CLI investigation reads remain complete.
+event. It cannot be combined with a table view or cursor. Python and CLI
+investigation reads remain complete.
 `record_finding` returns an acknowledgment with event ID, revision, decision,
 usage, checkpoint and reviews.
 
 `read_run` retains summary reads and `detail=True`. Summaries keep execution
 state, complete log tails, metrics and check outcomes, scope and coverage.
 Manifest `spec_sha256`, `code` and `environment` are named under `detail_omitted`.
-Read detail or the retained files for full provenance and reports. Replies carry
-one JSON text payload; paging limits row count, not arbitrary text size.
+Read detail or the retained files for full provenance and reports. Paging limits
+row count, not arbitrary text size.
 
-For a complete user document run `entanglix report-investigation PATH --output FILE`,
-or omit `--output` for standard output. The Markdown report covers all attempts,
-events and findings, names its last covered event, and marks findings as the
-agent's interpretation. It is generated only on request and stores no new records;
-the [investigation reference](investigations.md#findings-and-retained-history) describes its layout.
+Use `entanglix report-investigation PATH --output FILE` for an
+[on-request Markdown report](investigations.md#findings-and-retained-history).
 
 ## Waiting and recovery
 
@@ -210,7 +207,7 @@ CUDA_VISIBLE_DEVICES="" claude -p '<task brief>' \
     mcp__entanglix__record_finding mcp__entanglix__stop_investigation
 ```
 
-In two [retained sessions](../../tests/probes/m3_pickup_claude_results.json) the conduct was present before the first reply and no repository development instructions appeared. No command restriction has been validated for Claude Code: a session without a shell tool cannot run an operator command, but no retained test covers a session that has one, so declare `instruction-only`. Claude Code rejected a 54,724-character investigation reply and accepted one of 32,757 characters in the retained sessions. Use the status and paged table views for research reads, and the report command or retained files for full history; those sessions predate these views.
+In three [retained sessions](../../tests/probes/m3_pickup_claude_results.json) the conduct was present before the first reply and no repository development instructions appeared. No command restriction has been validated for Claude Code: a session without a shell tool cannot run an operator command, but no retained test covers a session that has one, so declare `instruction-only`. Claude Code rejected a 54,724-character investigation reply and accepted one of 32,757 characters in the two sessions that predate the status and paged table views; the third used those views and no reply was rejected. Use them for research reads, and the report command or retained files for full history.
 
 ### Other stdio runtimes
 

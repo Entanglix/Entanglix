@@ -62,8 +62,9 @@ def report_investigation(path: Path) -> str:
     status, events = investigation_status(record), record["events"]
     revisions = {r["revision"]: r["terms"] for r in record["revisions"]}
     terms = revisions.get(record["active_revision"], record["revisions"][-1]["terms"])
-    reports = [e for e in events if e["kind"] == "finding" and e["finding"]["kind"] == "report"]
-    latest = reports[-1] if reports else None
+    findings = [e for e in events if e["kind"] == "finding"]
+    latest = findings[-1] if findings else None
+    latest_kind = latest["finding"]["kind"] if latest else None
     counts = status["checkpoint"]
     parts = [
         f"# Investigation {record['investigation_id']}",
@@ -71,8 +72,8 @@ def report_investigation(path: Path) -> str:
         f"Covers through event {events[-1]['event_id'] if events else 'none'} ({len(events)} events).",
         "## Question",
         terms["question"],
-        "## Latest report",
-        finding_text(latest["finding"]) if latest else "No report finding recorded.",
+        f"## Latest finding ({latest_kind})" if latest else "## Latest finding",
+        finding_text(latest["finding"]) if latest else "No finding recorded.",
         "## Open items",
         text({key: status[key] for key in ("open_reviews", "attention", "unresolved_launches")}),
         "## Usage",
@@ -88,7 +89,7 @@ def report_investigation(path: Path) -> str:
         parts.append(f"### Event {event['event_id']} — {kind} ({event['recorded_at']})")
         if event["kind"] == "finding":
             parts.append(
-                "See [Latest report](#latest-report)."
+                f"See [Latest finding ({latest_kind})](#latest-finding-{latest_kind})."
                 if event is latest
                 else finding_text(event["finding"])
             )

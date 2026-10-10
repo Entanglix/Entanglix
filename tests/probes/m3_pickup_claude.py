@@ -120,6 +120,7 @@ def report(root):
         for event in investigation["events"]
         if event["kind"] == "finding" and event["finding"]["kind"] == "report"
     ]
+    findings = [e["finding"] for e in investigation["events"] if e["kind"] == "finding"]
     links = EVALUATION["launch_links"](workspace)
     reruns = [
         run
@@ -200,6 +201,11 @@ def report(root):
             if count > 1
         ],
         "report_runs_cited": len(set(reports[-1]["runs"]) & set(records)) if reports else 0,
+        "last_finding": {
+            "kind": findings[-1]["kind"],
+            "decision": findings[-1]["decision"],
+            "runs_cited": len(set(findings[-1]["runs"]) & set(records)),
+        },
         "attempts": len(records),
         "brackets": brackets,
         "stages_beyond_normal_terms": sorted({item["stage"] for item in brackets} - {"normal"}),

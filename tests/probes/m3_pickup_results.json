@@ -300,7 +300,7 @@
   "retained_result_matches": true,
   "baseline_brackets_match": true,
   "summary_builder_sha256": "dbe9b772331a691645188b2ea68a119673e8f07ed7b637a57f03840c1d4a4d21",
-  "evaluation_builder_sha256": "1c7b152985fadfde4442d20bf66025214d4f7b49a280b865328520e25bef0253",
+  "evaluation_builder_sha256": "aabb12f5d9733cff9ffb4a3040fbe0f26736b541ee175037bc31cae8c142e986",
   "source_sha256": {
     "operator/common.py": "ca58df71955846d60bf23f91132b24d9a6f72c8395af86eea12ada4552648f6e",
     "operator/killed_client.py": "fdcbe6c250454e8ac3a03c0d1eb546e57a028bde0fe48f43d856e205d8b68119",

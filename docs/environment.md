@@ -360,13 +360,13 @@ uv run --locked --exact python tests/probes/m3_pickup.py --workspace "$HOME/Proj
 ```
 
 The [Claude Code pick-up probe](../tests/probes/m3_pickup_claude.py) rebuilds the
-two retained 2026-10-10 sessions' [results](../tests/probes/m3_pickup_claude_results.json)
+three retained 2026-10-10 sessions' [results](../tests/probes/m3_pickup_claude_results.json)
 from each workspace's runs, MCP launch audit, and session output. Each workspace's
 `operator/` directory holds the scripts and prompt that produced it. This command
 launches no jobs or runtime sessions:
 
 ```sh
-uv run --locked --exact python tests/probes/m3_pickup_claude.py --workspace "$HOME/Projects/entanglix-research/6b4-pickup-claude-20261010" "$HOME/Projects/entanglix-research/6b4-pickup-claude-20261010-b" --output tests/probes/m3_pickup_claude_results.json
+uv run --locked --exact python tests/probes/m3_pickup_claude.py --workspace "$HOME/Projects/entanglix-research/6b4-pickup-claude-20261010" "$HOME/Projects/entanglix-research/6b4-pickup-claude-20261010-b" "$HOME/Projects/entanglix-research/6b4-pickup-claude-20261010-c" --output tests/probes/m3_pickup_claude_results.json
 ```
 
 ## MCP response summaries
@@ -389,17 +389,9 @@ sent by MCP; the report is Markdown:
 |---|---:|
 | Status | 11,035 |
 | Attempt table (42 rows) | 9,420 |
-| Event index (8 rows) | 3,176 |
+| Event index (8 rows) | 867 |
 | `list_runs` (42 rows) | 4,589 |
-| Report | 33,213 |
+| Report | 33,225 |
 
-The report is 384 lines. Sweep rows omit point arrays; a synthetic 500-point case
-checks that the table row does not grow with its point values.
-
-Repeated reports over unchanged records are identical. Status carries complete
-terms and the latest finding, plus an unpaged attention list; it does not grow
-with completed history. Tables have at most 50 rows per reply. Reports cover all
-pages without a tool-reply limit. These are character counts, not measured token
-savings. The [MCP reference](operations/mcp.md#investigation-views-and-tables)
-describes the views, cursor and metric limits. Run summary/detail behavior is
-unchanged.
+These are character counts, not measured token savings. See the
+[MCP reference](operations/mcp.md#investigation-views-and-tables).

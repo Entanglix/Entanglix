@@ -43,7 +43,7 @@ def records(tmp_path, count):
                 "run_id": f"r{i:06d}",
                 "base": "base",
                 "status": "completed",
-                "varied_values": {"amplitude": i},
+                "varied_values": [{"amplitude": i}],
             }
             for i in range(count)
         ],
@@ -73,6 +73,19 @@ def test_status_size_does_not_follow_finished_history(tmp_path):
         result.pop("attempt_counts")
     assert json.dumps(small, sort_keys=True) == json.dumps(large, sort_keys=True)
     assert "attempts" not in large and "events" not in large
+
+
+def test_status_keeps_only_effective_and_newest_revision_terms(tmp_path):
+    record = records(tmp_path, 0)
+    record["revisions"] = [
+        {"revision": number, "terms": {"question": f"Question {number}"}} for number in range(1, 5)
+    ]
+    record["active_revision"] = 3
+    assert investigation_view(record)["revisions"] == [
+        {"revision": 1},
+        {"revision": 2},
+        *record["revisions"][2:],
+    ]
 
 
 def test_oldest_interruption_is_visible_and_reconciliation_clears_attention(tmp_path):
@@ -164,8 +177,17 @@ def test_event_index_and_lookup_preserve_order_and_full_text(tmp_path):
         }
         for i in range(120)
     ]
+    finding = record["events"][1]["finding"]
+    finding.update(
+        rationale="Long rationale. " * 10000,
+        next_experiment="Next experiment. " * 10000,
+        review_name="precision",
+    )
     page = investigation_view(record, view="events")
     assert len(page["rows"]) == PAGE_SIZE
+    assert page["rows"][1][-1] == {"decision": "continue", "review_name": "precision"}
+    assert "Long rationale." not in json.dumps(page)
+    assert "Next experiment." not in json.dumps(page)
     next_page = investigation_view(record, view="events", after=page["next_after"])
     assert next_page["rows"][0][0] == f"{PAGE_SIZE + 1:08d}"
     assert investigation_view(record, event_id="00000002")["event"] == record["events"][1]
@@ -173,8 +195,9 @@ def test_event_index_and_lookup_preserve_order_and_full_text(tmp_path):
         investigation_view(record, view="events", event_id="00000002")
 
 
+@pytest.mark.parametrize("kind", ["report", "interpretation", "assessment"])
 def test_report_command_covers_all_attempts_and_findings_deterministically(
-    tmp_path, monkeypatch, capsys
+    tmp_path, monkeypatch, capsys, kind
 ):
     from entanglix import investigation_report
 
@@ -186,7 +209,7 @@ def test_report_command_covers_all_attempts_and_findings_deterministically(
             "kind": "finding",
             "revision": 1,
             "recorded_at": "now",
-            "finding": {"kind": "interpretation", "learned": "Earlier interpretation."},
+            "finding": {"kind": "report", "learned": "Earlier report."},
         }
     )
     record["events"].append(
@@ -196,7 +219,7 @@ def test_report_command_covers_all_attempts_and_findings_deterministically(
             "revision": 1,
             "recorded_at": "now",
             "finding": {
-                "kind": "report",
+                "kind": kind,
                 "decision": "stop",
                 "learned": "Measured the crossing.\n\nA second paragraph of interpretation.",
                 "runs": [f"r{i:06d}" for i in range(65)],
@@ -217,7 +240,9 @@ def test_report_command_covers_all_attempts_and_findings_deterministically(
     assert output.read_text() == first
     assert all(a["run_id"] in first for a in record["attempts"])
     assert "Measured the crossing." in first and "Remaining uncertainty." in first
-    assert "Earlier interpretation." in first
+    assert "Earlier report." in first
+    assert f"## Latest finding ({kind})" in first
+    assert f"[Latest finding ({kind})](#latest-finding-{kind})" in first
     assert "Covers through event 00000003" in first
     assert "agent's interpretation" in first
     assert "65 referenced attempts" in first
@@ -228,3 +253,13 @@ def test_report_command_covers_all_attempts_and_findings_deterministically(
         first.index("## Attempts and checks") < first.index("## History") < first.index("## Terms")
     )
     assert first.count("r000064") == 1
+
+
+def test_report_with_no_findings_says_none_recorded(tmp_path, monkeypatch):
+    from entanglix import investigation_report
+
+    monkeypatch.setattr(
+        investigation_report, "read_investigation", lambda path: records(tmp_path, 0)
+    )
+    report = investigation_report.report_investigation(tmp_path)
+    assert "## Latest finding\n\nNo finding recorded." in report

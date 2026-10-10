@@ -541,7 +541,7 @@ an executing job or discovery of unmentioned earlier work. The
 [summary probe](../../tests/probes/m3_pickup.py) rebuilds this evidence without
 launching a session.
 
-Two further [pick-up checks](../../tests/probes/m3_pickup_claude_results.json) on
+Three further [pick-up checks](../../tests/probes/m3_pickup_claude_results.json) on
 2026-10-10 used Claude Code 2.1.296 with `claude-sonnet-5-5`. The scripted normal
 client was killed during its 25th job, a lab run at `EJ = 15`, which left that
 attempt interrupted beside 24 finished jobs. Each session was asked only to
@@ -552,8 +552,9 @@ the earlier session nor the interrupted attempt.
 |---|---|---|---|---|---|---|
 | First | 0.1.1 | Not reconciled; point rerun with no link | One check | 28 of 32 attempts | 39 | 19→23 |
 | Second | 0.1.2 | Reconciled; rerun linked to it | None | 42 of 42 attempts | 52 | 27→32 |
+| Third | 0.1.4 | Reconciled; rerun linked to it | None | 31 of 31 attempts, in a finding of the wrong kind | 38 | 9→12 |
 
-Both sessions confirmed the baseline's two normal brackets and launched every
+All three sessions confirmed the baseline's two normal brackets and launched every
 new job through MCP. The first skipped recovery: the conduct did not say how to
 settle an interrupted attempt, and its first read asked for the full record,
 which then lacked attempt metrics and check links. Both were changed before the
@@ -563,7 +564,13 @@ continued into the tighter stage, which the normal terms do not request, and
 ended with the precision handoff at `EJ = 13.5` after 17 new jobs where six were
 needed; the brief it received describes both cases. Claude Code also rejected its
 full investigation read of 54,724 characters as over the tool-output limit, and
-accepted the default summary. These are two sessions on one runtime and one
-cut-off point, with no shell tool granted. The account windows are shared with
-other use. The [summary probe](../../tests/probes/m3_pickup_claude.py) rebuilds
-both without launching a session.
+accepted the default summary. The brief was then written per case and the single
+investigation read replaced by a status with an attention list and paged tables.
+The third session found the interrupted attempt on that list, ran the six missing
+jobs and no others, and stopped with `evidence_completion`; no reply was rejected.
+It recorded its final report as an `interpretation` finding, so the summary's
+report criterion is not met; the conduct then did not name the kind to use. These
+are three sessions on one runtime and one cut-off point, with no shell tool
+granted. The account windows are shared with other use. The
+[summary probe](../../tests/probes/m3_pickup_claude.py) rebuilds all three without
+launching a session.

@@ -185,7 +185,7 @@ def test_tool_parity_annotations_and_immutable_audit(study, runner_repository, t
     assert not list_runs(runs)
 
 
-def test_summary_detail_and_finding_ack_over_stdio(study, runner_repository, tmp_path):
+def test_investigation_views_and_finding_ack_over_stdio(study, runner_repository, tmp_path):
     from test_investigation_admission import assessment
 
     from entanglix.investigations import record_finding, revise_investigation
@@ -226,7 +226,6 @@ def test_summary_detail_and_finding_ack_over_stdio(study, runner_repository, tmp
                 )
             )["rows"] == indexed["rows"][1:]
             for args in (
-                {"detail": True},
                 {"view": "attempts", "event_id": older["event_id"]},
                 {"view": "unknown"},
                 {"after": 1},
@@ -313,7 +312,7 @@ def test_oversized_metrics_and_stale_checks_remain_explicit_in_summary():
     assert "code" in original["manifest"]
 
 
-def test_investigation_summary_keeps_effective_terms_in_full(study):
+def test_investigation_status_keeps_effective_terms_in_full(study):
     record = read_investigation(study[-1])
     terms = record["revisions"][0]["terms"]
     terms["question"] = "Full question. " * 1000

@@ -240,7 +240,7 @@ entanglix report-investigation PATH --output report.md
 ```
 
 Omit `--output` to print Markdown. The report names the last event it covers,
-opens with the question, latest report finding and open items, and puts terms
+opens with the question, latest finding of any kind and open items, and puts terms
 after attempts and history. Findings are agent interpretations, rendered as text
 with referenced-run counts. The report is identical over unchanged retained
 records. It includes retained checkpoint counts rather than the advancing elapsed

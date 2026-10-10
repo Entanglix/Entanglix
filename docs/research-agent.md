@@ -1,7 +1,7 @@
 ---
 name: entanglix-research-conduct
 description: Conduct for a quantum research session using Entanglix tools.
-version: 0.1.4
+version: 0.1.6
 ---
 
 # Research-agent conduct
@@ -25,9 +25,8 @@ Before choosing new work read `read_investigation(view="attempts")`. Follow
 `next_after` by passing it as `after` until it is null. Recover completed work
 from metrics and check outcomes; do not repeat it because a finding omitted its
 values. Use `view="events"` for history and `event_id` for one complete event.
-`list_runs` uses the same table cursor. Paths are relative to the runs root;
-pass the returned path to `read_run`, not a bare run ID. Request run detail only
-when needed; large reports are also in the run directory's files.
+Paths are relative to the runs root; pass the returned path to `read_run`, not a
+bare run ID.
 
 After losing a job response, recover its launch from the listings before
 resubmitting. Pending admission may become an independently supervised job.
@@ -73,9 +72,9 @@ whole-window accuracy, and diagnostics are not pass/fail evidence.
 Record findings with source run IDs, interpretation, uncertainty, checks run and
 not run, and the next experiment. Measurements remain in the attempt and run
 records; use `learned` for what they imply instead of copying whole results.
-Finding writes return an acknowledgment; read the event if its full text is needed.
 At a stop or handoff give the user `entanglix report-investigation PATH --output FILE`.
-In a final report cite every attempt, including failed and interrupted ones.
+Record the final report as a finding of kind `report`, citing every attempt,
+including failed and interrupted ones.
 At a due checkpoint record an assessment of learning, convergence, constraints,
 and observed cost before seeking admission.
 An assessment does not release an open review. Recommend or execute a supported

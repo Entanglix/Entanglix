@@ -1,5 +1,5 @@
 {
-  "summary_builder_sha256": "f4796cadeff0c843983c07c6ce002422c37cc9b425484a4b1cb1eb48911ba15d",
+  "summary_builder_sha256": "8dc1c9e5dbfef01724e44d80cb90aa11ba731c64db7252b7eafa11eedd585a12",
   "runs": [
     {
       "workspace": "/home/paimon/Projects/entanglix-research/6b4-pickup-claude-20261010",
@@ -131,6 +131,11 @@
         }
       ],
       "report_runs_cited": 28,
+      "last_finding": {
+        "kind": "report",
+        "decision": "stop",
+        "runs_cited": 28
+      },
       "attempts": 32,
       "brackets": [
         {
@@ -301,6 +306,11 @@
       "repeated_points": [],
       "repeated_checks": [],
       "report_runs_cited": 42,
+      "last_finding": {
+        "kind": "report",
+        "decision": "review",
+        "runs_cited": 42
+      },
       "attempts": 42,
       "brackets": [
         {
@@ -368,6 +378,180 @@
         "later_jobs_launched_through_mcp": true
       },
       "pickup_criteria_met": true
+    },
+    {
+      "workspace": "/home/paimon/Projects/entanglix-research/6b4-pickup-claude-20261010-c",
+      "runtime": "Claude Code 2.1.296",
+      "model": "claude-sonnet-5-5",
+      "conduct_version": "0.1.4",
+      "command_restriction": "instruction-only; the session had no shell tool",
+      "conduct_lines_before_first_reply": [
+        68,
+        69
+      ],
+      "development_instructions_present": false,
+      "before_pickup": {
+        "state": "active",
+        "usage": {
+          "jobs": 25,
+          "evaluated_points": 23,
+          "job_seconds": 120.33876021998003,
+          "gpu_seconds": 0.0,
+          "committed_job_seconds": 180.0,
+          "unsettled_jobs": 1,
+          "unbounded_jobs": 0
+        },
+        "checkpoint": {
+          "due": false,
+          "finished_attempts": 24,
+          "since_assessment": 4,
+          "elapsed_seconds": 28.509194
+        },
+        "cut_run": {
+          "path": "/home/paimon/Projects/entanglix-research/6b4-pickup-claude-20261010-c/normal/runs/readout/r20261010T184429164696Z-600614c0",
+          "run_id": "r20261010T184429164696Z-600614c0",
+          "status": "interrupted",
+          "protocol": "simulate",
+          "base": "lab",
+          "varied_values": {
+            "evolution.drive_amplitudes_ghz.readout": 0.001375,
+            "parameters.EJ": 15.0,
+            "evolution.carriers.readout.frequency_ghz": 7.002760675881172
+          },
+          "has_result": false,
+          "has_finished": false
+        },
+        "client_exit_code": -9
+      },
+      "session": {
+        "is_error": false,
+        "model_requests": 38,
+        "elapsed_seconds": 127.027,
+        "input_tokens": 50,
+        "cache_creation_input_tokens": 55988,
+        "cache_read_input_tokens": 871945,
+        "output_tokens": 13079,
+        "windows_used_percent": {
+          "first": {
+            "five_hour": 9,
+            "seven_day": 6
+          },
+          "last": {
+            "five_hour": 12,
+            "seven_day": 6
+          }
+        },
+        "tool_calls": {
+          "Glob": 4,
+          "Grep": 2,
+          "Read": 4,
+          "Write": 1,
+          "abort_run": 1,
+          "check": 3,
+          "list_capabilities": 1,
+          "list_investigations": 1,
+          "read_investigation": 2,
+          "read_run": 8,
+          "reconcile_run": 1,
+          "record_finding": 2,
+          "rerun_simulation": 1,
+          "simulate": 4,
+          "stop_investigation": 2
+        },
+        "refused_calls": [
+          {
+            "tool": "abort_run",
+            "message": "\"Error executing tool abort_run: only an active, started attempt can be aborted\""
+          },
+          {
+            "tool": "simulate",
+            "message": "simulate rejected: [Errno 2] No such file or directory: '/home/paimon/Projects/entanglix-r"
+          },
+          {
+            "tool": "check",
+            "message": "investigation checkpoint is due; record an assessment\""
+          },
+          {
+            "tool": "stop_investigation",
+            "message": "\"Error executing tool stop_investigation: stop reason must be one of: evidence_completion,"
+          }
+        ],
+        "results_rejected_by_runtime": []
+      },
+      "state": "stopped",
+      "open_reviews": [],
+      "stop_reason": "evidence_completion",
+      "usage": {
+        "jobs": 31,
+        "evaluated_points": 27,
+        "job_seconds": 178.6267997310497,
+        "gpu_seconds": 0.0,
+        "committed_job_seconds": 180.0,
+        "unsettled_jobs": 1,
+        "unbounded_jobs": 0
+      },
+      "jobs_after_pickup": 6,
+      "launch_tools_after_pickup": {
+        "rerun_simulation": 1,
+        "simulate": 3,
+        "check": 2
+      },
+      "repeated_points": [],
+      "repeated_checks": [],
+      "report_runs_cited": 0,
+      "last_finding": {
+        "kind": "interpretation",
+        "decision": "stop",
+        "runs_cited": 31
+      },
+      "attempts": 31,
+      "brackets": [
+        {
+          "ej_ghz": 13.5,
+          "stage": "normal",
+          "lower": 0.00175,
+          "upper": 0.001875,
+          "width_ghz": 0.0001249999999999999,
+          "margins": [
+            -0.0004010229925077626,
+            0.0006950817121240769
+          ],
+          "refinement_changes": [
+            1.6861156804104382e-07,
+            2.4229274597775685e-07
+          ],
+          "confirmed": true,
+          "claim_agrees": true
+        },
+        {
+          "ej_ghz": 15.0,
+          "stage": "normal",
+          "lower": 0.001375,
+          "upper": 0.0015,
+          "width_ghz": 0.0001250000000000001,
+          "margins": [
+            -0.0007773101407673091,
+            0.0006238591456002671
+          ],
+          "refinement_changes": [
+            7.938126478368446e-08,
+            7.921913980357687e-08
+          ],
+          "confirmed": true,
+          "claim_agrees": true
+        }
+      ],
+      "stages_beyond_normal_terms": [],
+      "criteria": {
+        "interrupted_attempt_reconciled": true,
+        "rerun_linked_to_interrupted_attempt": true,
+        "no_repeated_point_or_check": true,
+        "report_cites_every_attempt": false,
+        "normal_brackets_confirmed": true,
+        "stopped": true,
+        "later_jobs_launched_through_mcp": true
+      },
+      "pickup_criteria_met": false
     }
   ]
 }

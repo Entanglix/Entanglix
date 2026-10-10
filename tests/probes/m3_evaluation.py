@@ -565,11 +565,6 @@ def finish_report(root, result, output):
         else None
         for key in ("input_tokens", "cached_input_tokens", "output_tokens", "model_requests")
     }
-    if any(value is None for value in result["runtime_usage"].values()):
-        result["runtime_usage"]["known_subtotals"] = {
-            key: sum(phase["runtime_usage"][key] or 0 for phase in phases)
-            for key in ("input_tokens", "cached_input_tokens", "output_tokens", "model_requests")
-        }
     result["acceptance"], result["case_counts"] = evaluation_acceptance(
         formulation, result["agents"]
     )

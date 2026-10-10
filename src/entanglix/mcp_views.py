@@ -1,6 +1,7 @@
 """Compact research views; backing records and CLI output remain complete."""
 
 import json
+from collections import Counter
 from pathlib import Path
 
 from entanglix import runner
@@ -84,14 +85,7 @@ def relative_path(path, root):
 
 
 def investigation_status(record):
-    from collections import Counter
-
     latest = record["revisions"][-1]["revision"]
-    approved = {
-        e["revision"]
-        for e in record["events"]
-        if e["kind"] == "decision" and e["action"] in {"start", "approve-revision"}
-    }
     root = Path(record["path"]).parent.parent
     result = {
         key: record[key]
@@ -107,12 +101,7 @@ def investigation_status(record):
         )
     }
     result["revisions"] = [
-        r
-        if r["revision"] in {record["active_revision"], latest}
-        else {
-            "revision": r["revision"],
-            "status": "approved" if r["revision"] in approved else "proposed",
-        }
+        r if r["revision"] in {record["active_revision"], latest} else {"revision": r["revision"]}
         for r in record["revisions"]
     ]
     findings = [e for e in record["events"] if e["kind"] == "finding"]
@@ -138,8 +127,8 @@ def attempt_data(record):
     from entanglix.corrector.verification import verification_history
 
     root = Path(record["path"]).parent.parent
-    columns = ["path", "protocol", "base", "status", "parents", "checks", "points"]
-    rows = []
+    fixed = ["path", "protocol", "base", "status", "parents", "checks", "points"]
+    items = []
     for a in sorted(record["attempts"], key=lambda a: Path(a["path"]).name):
         item = {"path": relative_path(a["path"], root), "base": a["base"], "status": a["status"]}
         try:
@@ -168,8 +157,7 @@ def attempt_data(record):
                 item["points"] = partial_results(Path(a["path"]))["completed_count"]
             else:
                 values = a["varied_values"]
-                if isinstance(values, list):
-                    values = values[0] if len(values) == 1 else {}
+                values = values[0] if len(values) == 1 else {}
                 item.update({f"values.{key}": value for key, value in values.items()})
             item.update(
                 {
@@ -179,12 +167,9 @@ def attempt_data(record):
             )
         except (OSError, ValueError, KeyError) as exc:
             item["result_error"] = runner.failure_message(exc)
-        for key in sorted(item.keys() - set(columns)):
-            columns.append(key)
-            for row in rows:
-                row.append(None)
-        rows.append([item.get(key) for key in columns])
-    return columns, rows
+        items.append(item)
+    columns = fixed + sorted({key for item in items for key in item} - set(fixed))
+    return columns, [[item.get(key) for key in columns] for item in items]
 
 
 def event_rows(record):
@@ -195,11 +180,7 @@ def event_rows(record):
             e["kind"],
             e.get("revision"),
             e.get("action", e.get("reason", e.get("finding", {}).get("kind"))),
-            {
-                k: v
-                for k, v in e.get("finding", {}).items()
-                if k in {"decision", "rationale", "next_experiment", "review_name"}
-            },
+            {k: v for k, v in e.get("finding", {}).items() if k in {"decision", "review_name"}},
         ]
         for e in record["events"]
     ]
