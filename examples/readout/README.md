@@ -535,8 +535,8 @@ missing check on an existing refined run, confirmed the same brackets, cited all
 tokens (1,095,680 cached), 18 model requests and about 250 seconds; its 5-hour
 window went from 0% to 4%. Six requests and about one window percentage point
 were spent before requesting its first new job. This is one session interrupted
-between jobs, with earlier records written by a script and a prompt that named those records and
-prescribed the method. It does not demonstrate recovery during an executing job
+between jobs, with earlier records written by a script and a prompt that named
+those records and prescribed the method. It does not demonstrate recovery during an executing job
 or discovery of unmentioned earlier work. The
 [summary probe](../../tests/probes/m3_pickup.py) rebuilds this evidence without
 launching a session.

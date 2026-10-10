@@ -225,6 +225,17 @@ continue, refine, and stop record recommendations without changing the agreed
 terms or executing a stop. A final report can leave `next_experiment` empty.
 A draft must be started before receiving findings.
 
+Use a finding's `learned` field for interpretation, with source run IDs supporting
+the claim. Measurements remain in attempt and run records; repeating their full
+results in each finding makes later recovery harder. MCP finding writes return
+an acknowledgment rather than echoing the submitted text and attached evidence.
+MCP investigation reads summarize earlier findings and revisions, retain effective
+terms and latest-finding text in full, and include attempt metrics and compact
+linked check outcomes. Policy, scopes and coverage remain on the check attempts.
+Request `detail=True` for the full record or `event_id` for one
+complete event; see the [MCP reference](mcp.md#summary-and-detail). CLI and Python
+backing reads remain complete.
+
 Records use version 1. Revisions live in `revisions/0001.toml`, `0002.toml`, and so
 on; events in `events/00000001.toml`, `00000002.toml`, and so on. Earlier files are
 never replaced through supported operations. Writers share a directory lock;

@@ -24,6 +24,7 @@ from test_simulate import gpu_repository as gpu_repository
 from entanglix.investigations import read_investigation
 from entanglix.launches import read_launch
 from entanglix.mcp import READS, Configuration, build_server, supplied_guidance
+from entanglix.mcp_views import METRIC_LIMIT, investigation_view, run_view
 from entanglix.runner import (
     _load_record,
     list_capabilities,
@@ -62,7 +63,9 @@ async def client(repository, runs, state, *, device="", extras=()):
 
 def content(result):
     assert not result.is_error, result
-    return result.structured_content
+    assert result.structured_content is None
+    assert len(result.content) == 1 and result.content[0].type == "text"
+    return json.loads(result.content[0].text)
 
 
 async def call(session, name, arguments=None, **kwargs):
@@ -132,7 +135,7 @@ def test_tool_parity_annotations_and_immutable_audit(study, runner_repository, t
                 await cli_result(runner_repository, "list-investigations", "--runs-root", str(runs))
             )
             inspected = await call(
-                session, "read_investigation", {"investigation": str(investigation)}
+                session, "read_investigation", {"investigation": str(investigation), "detail": True}
             )
             cli = json.loads(
                 await cli_result(runner_repository, "read-investigation", str(investigation))
@@ -172,7 +175,148 @@ def test_tool_parity_annotations_and_immutable_audit(study, runner_repository, t
     assert len(outcomes) == len(requests)
     assert sum(item["outcome"] == "error" for item in outcomes) == 3
     assert all(len(item["result_sha256"]) == 64 for item in outcomes)
+    assert any(
+        item.get("links", {}).get("proposed_revision") == 2
+        and item["links"]["investigation_id"] == investigation.name
+        for item in outcomes
+    )
     assert not list_runs(runs)
+
+
+def test_summary_detail_and_finding_ack_over_stdio(study, runner_repository, tmp_path):
+    from test_investigation_admission import assessment
+
+    from entanglix.investigations import record_finding, revise_investigation
+
+    protocol, _, terms, runs, investigation = study
+    older = record_finding(investigation, assessment([]) | {"learned": "EARLIER-TEXT" * 10000})
+    revise_investigation(investigation, terms | {"question": "Proposed question"})
+
+    async def exercise():
+        async with client(runner_repository, runs, tmp_path / "state") as session:
+            latest = assessment([]) | {"learned": "LATEST-TEXT" * 10000}
+            ack = await call(
+                session, "record_finding", {"investigation": str(investigation), "finding": latest}
+            )
+            assert "finding" not in ack and "LATEST-TEXT" not in json.dumps(ack)
+            assert ack["revision"] == 1 and ack["checkpoint"]["since_assessment"] == 0
+            brief = await call(session, "read_investigation", {"investigation": str(investigation)})
+            assert "EARLIER-TEXT" not in json.dumps(brief)
+            assert brief["latest_finding"]["finding"]["learned"] == latest["learned"]
+            one = await call(
+                session,
+                "read_investigation",
+                {"investigation": str(investigation), "event_id": older["event_id"]},
+            )
+            assert one["event"]["finding"]["learned"] == "EARLIER-TEXT" * 10000
+            full = await call(
+                session, "read_investigation", {"investigation": str(investigation), "detail": True}
+            )
+            assert full["revisions"][1]["terms"]["question"] == "Proposed question"
+            assert full["events"][-1]["event_id"] == ack["event_id"]
+            for args in (
+                {"detail": True, "event_id": older["event_id"]},
+                {"event_id": "../not-an-event"},
+            ):
+                result = await session.call_tool(
+                    "read_investigation", {"investigation": str(investigation)} | args
+                )
+                assert result.is_error
+            launch = await call(
+                session,
+                "simulate",
+                {"protocol": str(protocol), "investigation_id": investigation.name, "base": "seed"},
+            )
+            run = launch["path"]
+            assert (await call(session, "read_run", {"run": run, "wait_seconds": 30}))[
+                "status"
+            ] == "completed"
+            checked = await call(session, "check", {"run": run, "checks": ["integrity"]})
+            check_brief = await call(
+                session, "read_run", {"run": checked["path"], "wait_seconds": 30}
+            )
+            check_full = await call(session, "read_run", {"run": checked["path"], "detail": True})
+            assert "checks" not in check_brief["result"]["report"]["checks"][0]
+            assert check_full["result"]["report"]["checks"][0]["checks"]
+            brief = await call(session, "read_investigation", {"investigation": str(investigation)})
+            entry = next(item for item in brief["attempts"] if item["run_id"] == launch["run_id"])
+            assert entry["metrics"] == read_run(Path(run))["result"]["metrics"]
+            history = entry["verification"][0]
+            assert history["run_id"] == checked["run_id"] and history["source_matches"]
+            assert history["checks"] == [{"name": "integrity", "outcome": "pass"}]
+            assert set(history) == {"run_id", "source_matches", "checks"}
+            check_entry = next(
+                item for item in brief["attempts"] if item["run_id"] == checked["run_id"]
+            )
+            assert check_entry["source_run_ids"] == [launch["run_id"]]
+            assert check_entry["status"] == "completed" and check_entry["policy_version"]
+            assert check_entry["checks"][0]["scope"]
+            assert check_brief["manifest"]["detail_omitted"] == [
+                "code",
+                "environment",
+                "spec_sha256",
+            ]
+            assert "spec_sha256" in check_full["manifest"]
+
+    asyncio.run(exercise())
+    outcomes = [_load_record(path) for path in (runs / "_audit/calls").glob("*/outcome.toml")]
+    assert any(item.get("links", {}).get("investigation_revision") == 1 for item in outcomes)
+    assert any(item.get("links", {}).get("run_id") for item in outcomes)
+
+
+def test_oversized_metrics_and_stale_checks_remain_explicit_in_summary():
+    original = {
+        "manifest": {
+            "spec_sha256": {"system.toml": "digest"},
+            "code": {"revision": "commit"},
+            "environment": {"python": "3.13"},
+        },
+        "log_tail": "progress\n" * 900 + "fatal error: allocation failed\n",
+        "result": {"metrics": {"large": list(range(METRIC_LIMIT)), "endpoint": 0.4}},
+        "verification": [
+            {
+                "run_id": "check",
+                "status": "completed",
+                "policy_version": "old",
+                "source_matches": False,
+                "checks": [],
+            }
+        ],
+    }
+    summary = run_view(original)
+    assert summary["result"]["metrics"]["large"]["omitted"]
+    assert summary["result"]["metrics"]["endpoint"] == 0.4
+    assert summary["verification"][0]["source_matches"] is False
+    assert isinstance(original["result"]["metrics"]["large"], list)
+    assert summary["log_tail"] == original["log_tail"]
+    assert summary["manifest"] == {"detail_omitted": ["code", "environment", "spec_sha256"]}
+    assert "code" in original["manifest"]
+
+
+def test_investigation_summary_keeps_effective_terms_in_full(study):
+    record = read_investigation(study[-1])
+    terms = record["revisions"][0]["terms"]
+    terms["question"] = "Full question. " * 1000
+    terms["evidence_requirements"]["requirements"] = ["Full evidence requirement. " * 1000]
+    summary = investigation_view(record)
+    assert summary["revisions"][0]["terms"] == terms
+
+
+def test_sweep_summary_keeps_errors_without_inventing_status():
+    record = {
+        "sweep_progress": {
+            "completed_points": [{"index": 0, "values": {"x": 1}, "error": "solver failed"}]
+        }
+    }
+    point = run_view(record)["sweep_progress"]["completed_points"][0]
+    assert point["error"] == "solver failed"
+    assert "status" not in point
+
+
+@pytest.mark.parametrize("report", ["Authored interpretation", {"checks": "Authored data"}])
+def test_authored_reports_are_not_treated_as_corrector_reports(report):
+    record = {"manifest": {"protocol": "script"}, "result": {"report": report}}
+    assert run_view(record)["result"]["report"] == report
 
 
 def test_launch_wait_cancel_and_concurrent_abort(
@@ -433,7 +577,9 @@ def test_transport_checks_replay_and_admission_refusals(study, runner_repository
                 {"protocol": str(protocol), "investigation_id": investigation.name, "base": "seed"},
             )
             run = launch["path"]
-            record = await call(session, "read_run", {"run": run, "wait_seconds": 30})
+            record = await call(
+                session, "read_run", {"run": run, "wait_seconds": 30, "detail": True}
+            )
             assert record["status"] == "completed"
             assert record == json.loads(await cli_result(runner_repository, "read-run", run))
             checked = await call(session, "check", {"run": run, "checks": ["integrity"]})
@@ -643,7 +789,7 @@ def test_mcp_wait_ends_at_interruption_and_concurrent_reads_agree(
                 )
                 assert {item["status"] for item in reads[:4]} == {"interrupted"}
                 assert reads[4]["result"][0]["status"] == "interrupted"
-            assert await call(session, "read_run", {"run": str(run)}) == json.loads(
+            assert await call(session, "read_run", {"run": str(run), "detail": True}) == json.loads(
                 await cli_result(runner_repository, "read-run", str(run))
             )
 

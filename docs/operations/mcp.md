@@ -32,7 +32,7 @@ The resolved runs root and GPU lock directory are recorded in each connection's 
 
 ## Tool surface
 
-Tool arguments and result objects use the same backing operations as the CLI. Unknown request fields, including approval claims or policy overrides, are refused. The server configuration supplies the repository, runs root, runner extras and physical device; these are not tool arguments. Attempt, launch and investigation paths must resolve inside the configured runs root, including symlink targets. Relative record paths resolve from that root. Authored input paths (system, protocol, script, additional inputs and replacement refinement) may live elsewhere.
+Tools use the same backing operations as the CLI, with MCP response summaries described below. Unknown request fields, including approval claims or policy overrides, are refused. The server configuration supplies the repository, runs root, runner extras and physical device; these are not tool arguments. Attempt, launch and investigation paths must resolve inside the configured runs root, including symlink targets. Relative record paths resolve from that root. Authored input paths (system, protocol, script, additional inputs and replacement refinement) may live elsewhere.
 
 | Tools | Effect |
 |---|---|
@@ -43,7 +43,33 @@ Tool arguments and result objects use the same backing operations as the CLI. Un
 
 Only the first row carries the MCP read-only annotation. Jobs and writes may require runtime approval. Unavailable catalog, control and calibration operations, promotion, and investigation start/approval/resume/review release are absent. A proposed revision never changes the effective terms. See [investigations](investigations.md) for the operator decision path.
 
-Job tools do not expose dry runs. Use the CLI's `--dry-run` for protocol previews where the required device is visible; an agent session with no CUDA device has no CUDA preview through this server. `check` requires named checks; `read_run` includes the relevant-check listing without launching a check. A list result is carried in MCP structured content under `result`; object results are carried directly.
+Job tools do not expose dry runs. Use the CLI's `--dry-run` for protocol previews where the required device is visible; an agent session with no CUDA device has no CUDA preview through this server. `check` requires named checks; `read_run` includes the relevant-check listing without launching a check. Each successful tool reply carries one JSON text payload, without a duplicate structured-content payload. Lists are wrapped under `result`; objects are carried directly.
+
+### Summary and detail
+
+`read_run` and `read_investigation` return summaries by default. Pass `detail=True`
+to retrieve the complete backing record. Python backing operations and CLI reads
+still return full records. Run summaries retain execution status, metrics and
+check history, including source identity match and policy version; nested check
+details are omitted by name. Manifests omit `spec_sha256`, `code` and `environment`
+by name under `detail_omitted`; request detail for their provenance. Sweep points
+retain coordinates, metrics and any recorded error.
+
+Investigation summaries retain effective terms, usage, checkpoints, open reviews,
+decisions, stops and attempts with their metrics and linked check outcomes. Source
+attempts carry compact check links: run ID, source identity match, names and
+outcomes. Check attempts carry policy versions, scopes and coverage. Earlier
+revisions and findings appear as indexes; the latest finding includes its full text
+without attached evidence snapshots. Use
+`read_investigation(investigation, event_id="00000001")` for one complete event,
+or `detail=True` for all revisions and events. These selectors cannot be combined.
+`record_finding` returns an acknowledgment with the event ID, revision, decision,
+usage, checkpoint and open reviews; it does not echo the finding or its evidence.
+
+Metric values exceeding 512 JSON bytes are marked `omitted`; request detail to
+recover them. Text is not truncated: effective terms, log tails and latest-finding
+text remain complete. Summaries grow with indexed events, attempts and their
+retained text; there is no fixed total response-size limit.
 
 ## Waiting and recovery
 

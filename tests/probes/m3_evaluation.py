@@ -174,8 +174,21 @@ def occupied_seconds(intervals):
     return total
 
 
-def runtime_usage(transcript, previous=None):
+def runtime_usage(transcript, previous=None, *, resumed=False):
     """Read phase usage, subtracting an earlier snapshot of the same thread."""
+    if (
+        not transcript
+        or not Path(transcript).is_file()
+        or (previous and not Path(previous).is_file())
+        or (resumed and previous is None)
+    ):
+        return {
+            **dict.fromkeys(
+                ("input_tokens", "cached_input_tokens", "output_tokens", "model_requests")
+            ),
+            "windows_used_percent": {"five_hour": None, "weekly": None},
+            "reason": "transcript unavailable; phase usage cannot be established",
+        }
     rows = [json.loads(line) for line in Path(transcript).read_text().splitlines()]
     prior = (
         [json.loads(line) for line in Path(previous).read_text().splitlines()] if previous else []
@@ -481,14 +494,21 @@ def evaluation_acceptance(formulation, agents):
 def finish_report(root, result, output):
     """Rebuild measured summaries without running or correcting agent work."""
     formulation = result["formulation"]
-    formulation["proposal"] = (root / "formulation/evidence/formulation-answer.txt").read_text()
-    formulation["runtime_usage"] = runtime_usage(formulation["transcript"])
+    proposal = root / "formulation/evidence/formulation-answer.txt"
+    formulation["proposal"] = proposal.read_text() if proposal.is_file() else None
+    formulation["runtime_usage"] = runtime_usage(formulation.get("transcript"))
     for index, prior in enumerate(result["agents"]):
         case, repetition = prior["case"], prior["repetition"]
         previous = None
-        for phase in prior["phases"]:
-            phase["runtime_usage"] = runtime_usage(phase["transcript"], previous)
-            previous = phase["transcript"]
+        for index_phase, phase in enumerate(prior["phases"]):
+            resumed = (
+                index_phase > 0
+                and phase["thread_id"] == prior["phases"][index_phase - 1]["thread_id"]
+            )
+            phase["runtime_usage"] = runtime_usage(
+                phase.get("transcript"), previous, resumed=resumed
+            )
+            previous = phase.get("transcript")
         try:
             item = summarize(root / f"{case}-{repetition}", case, prior["phases"])
         except (ValueError, KeyError, OSError, RuntimeError, StopIteration) as exc:
@@ -515,14 +535,25 @@ def finish_report(root, result, output):
     result.setdefault(
         "completed_at",
         max(
-            json.loads(Path(phase["transcript"]).read_text().splitlines()[-1])["timestamp"]
-            for phase in phases
+            (
+                json.loads(Path(phase["transcript"]).read_text().splitlines()[-1])["timestamp"]
+                for phase in phases
+                if phase.get("transcript") and Path(phase["transcript"]).is_file()
+            ),
+            default=None,
         ),
     )
     result["runtime_usage"] = {
         key: sum(phase["runtime_usage"][key] for phase in phases)
+        if all(phase["runtime_usage"][key] is not None for phase in phases)
+        else None
         for key in ("input_tokens", "cached_input_tokens", "output_tokens", "model_requests")
     }
+    if any(value is None for value in result["runtime_usage"].values()):
+        result["runtime_usage"]["known_subtotals"] = {
+            key: sum(phase["runtime_usage"][key] or 0 for phase in phases)
+            for key in ("input_tokens", "cached_input_tokens", "output_tokens", "model_requests")
+        }
     result["acceptance"], result["case_counts"] = evaluation_acceptance(
         formulation, result["agents"]
     )

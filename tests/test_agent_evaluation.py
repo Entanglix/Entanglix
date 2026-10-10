@@ -140,3 +140,51 @@ def test_read_call_does_not_establish_launch_provenance(tmp_path):
         (call / "request.toml").write_text(f'tool = "{tool}"\n')
         (call / "outcome.toml").write_text(f'[links]\nrun_id = "run-{index}"\n')
     assert EVALUATION["launch_links"](tmp_path) == {"run-1": "simulate"}
+
+
+def test_missing_transcript_usage_is_unknown_including_resumed_phase(tmp_path):
+    missing = EVALUATION["runtime_usage"](None)
+    assert missing["input_tokens"] is None and missing["model_requests"] is None
+    transcript = tmp_path / "execute.jsonl"
+    transcript.write_text(
+        json.dumps(
+            {
+                "type": "event_msg",
+                "payload": {
+                    "type": "token_count",
+                    "info": {
+                        "total_token_usage": {
+                            "input_tokens": 100,
+                            "cached_input_tokens": 50,
+                            "output_tokens": 10,
+                        }
+                    },
+                },
+            }
+        )
+        + "\n"
+    )
+    resumed = EVALUATION["runtime_usage"](transcript, resumed=True)
+    assert resumed["input_tokens"] is None
+    assert EVALUATION["runtime_usage"](transcript, tmp_path / "missing")["input_tokens"] is None
+
+
+def test_report_without_transcript_preserves_unavailable_usage(tmp_path):
+    result = {
+        "formulation": {
+            "exit_code": 1,
+            "errors": ["runtime failed before a transcript was available"],
+            "conduct_in_initial_context": False,
+            "development_instructions_present": False,
+            "suspicious_commands": [],
+        },
+        "agents": [],
+        "source_sha256": {},
+    }
+    output = tmp_path / "summary.json"
+    EVALUATION["finish_report"](tmp_path, result, output)
+    summary = json.loads(output.read_text())
+    assert summary["runtime_usage"]["input_tokens"] is None
+    assert summary["formulation"]["runtime_usage"]["model_requests"] is None
+    assert summary["completed_at"] is None
+    assert not summary["acceptance"]

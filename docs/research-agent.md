@@ -1,7 +1,7 @@
 ---
 name: entanglix-research-conduct
 description: Conduct for a quantum research session using Entanglix tools.
-version: 0.1.0
+version: 0.1.1
 ---
 
 # Research-agent conduct
@@ -15,6 +15,12 @@ Use the available research tools; retained records are the execution history.
 Read `list_capabilities`, `list_runs`, and `list_investigations` at session entry.
 Read the relevant investigation before continuing: effective terms, findings,
 attempts, unresolved launches, limits, checkpoints, and open reviews.
+Use the attempt list's metrics and linked check outcomes to recover completed
+work before choosing another experiment. Do not repeat a completed job or check
+because a prior finding omitted its values. Reads return summaries; request
+`detail=True` only for needed full records, or an investigation `event_id` for one
+complete finding. Omission markers identify missing detail; effective terms,
+log tails and latest-finding text remain complete.
 Use the returned path with `read_run`, not the bare run ID. After a job call loses
 its response, read its recorded launch path or the listings.
 Do not resubmit while admission is pending; an admitted attempt may still run
@@ -56,9 +62,12 @@ you to issue those checks after each relevant run without asking again. The
 runner never issues them automatically. Local segments do not establish
 whole-window accuracy, and diagnostics are not pass/fail evidence.
 
-Record findings with source run IDs and values, uncertainty, checks run and not
-run, and the next experiment. At a due checkpoint record an assessment of
-learning, convergence, constraints, and observed cost before seeking admission.
+Record findings with source run IDs, interpretation, uncertainty, checks run and
+not run, and the next experiment. Measurements remain in the attempt and run
+records; use `learned` for what they imply instead of copying whole results.
+Finding writes return an acknowledgment; read the event if its full text is needed.
+At a due checkpoint record an assessment of learning, convergence, constraints,
+and observed cost before seeking admission.
 An assessment does not release an open review. Recommend or execute a supported
 stop when progress or meaningful precision cannot be sustained, even if resources
 remain. Retain partial results and propose the smallest useful next decision.
@@ -71,6 +80,10 @@ Read only the procedure relevant to the next action; each is usable as plain tex
 - `simulate`: `skills/simulate/SKILL.md` — one computation, checks, and replay.
 - `design-sweep`: `skills/design-sweep/SKILL.md` — static/dynamic grids and sampled evidence.
 - `gpu-budget`: `skills/gpu-budget/SKILL.md` — resource use, optional limits, and GPU ownership.
+
+The copied operational references may link to repository tests or example pages
+that are absent from this workspace. Do not search outside the workspace for
+those links; ask the operator for any additional material needed for the task.
 
 Access is limited to the owner and explicitly permitted collaborators; access
 does not authorize onward distribution.

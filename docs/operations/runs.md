@@ -101,6 +101,14 @@ identity match, and completed check reports. Earlier reports remain history unde
 their recorded policy. A newer failure does not erase earlier outcomes or substitute
 them for its missing report.
 
+MCP reads summarize nested check details while retaining outcomes, scopes,
+coverage, policy versions and source identity matches. Sweep points retain their
+coordinates, metrics and any recorded error. Log tails remain complete. Manifests
+name omitted provenance fields in `detail_omitted`; oversized metrics are also
+marked as omitted. Use `read_run(path, detail=True)` through MCP
+for full reports and point details; CLI and Python backing reads remain complete.
+See the [MCP response reference](mcp.md#summary-and-detail).
+
 ## Limits, interruption, and recovery
 
 `run-script --timeout SECONDS` limits execution from publication of the start record, including lingering processes after the main job exits. The default has no timeout; preparation is outside this timer. The timeout must be finite and positive. Termination has a fixed two-second grace period. The supervisor polls at 10 ms intervals; scheduling can delay observation. At expiry it sends `SIGTERM` to the job group and, after the grace interval, `SIGKILL` if needed. It waits for the group to disappear, then records `aborted/130`, actual wall time including termination, and the reason in `run.log`.

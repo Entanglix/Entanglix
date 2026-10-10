@@ -10,6 +10,7 @@ import secrets
 from contextvars import ContextVar
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from functools import wraps
 from pathlib import Path
 
 from mcp.server.mcpserver import MCPServer
@@ -24,6 +25,7 @@ from entanglix.launches import (
     start_supervisor,
     validate_wait,
 )
+from entanglix.mcp_views import finding_ack, investigation_view, run_view
 
 JOBS = {
     "simulate",
@@ -251,7 +253,11 @@ def build_server(config: Configuration):
             if call.owner is not None:
                 call.owner.close()
             binding = read_launch(owner.path) if owner else {}
-            data = _plain(result).get("structuredContent", {}) if result is not None else {}
+            data = {}
+            if result is not None and not _plain(result).get("isError", False):
+                content = _plain(result).get("content", [])
+                if content and content[0].get("type") == "text":
+                    data = json.loads(content[0]["text"])
             manifest = data.get("manifest", {})
             links = {
                 key: value
@@ -331,7 +337,19 @@ def build_server(config: Configuration):
     def tool(function):
         name = function.__name__
         handlers[name] = function
-        server.add_tool(function, annotations=ToolAnnotations(readOnlyHint=name in READS))
+
+        @wraps(function)
+        async def encoded(**arguments):
+            data = await function(**arguments)
+            if isinstance(data, list):
+                data = {"result": data}
+            return CallToolResult(content=[TextContent(type="text", text=_json(data))])
+
+        server.add_tool(
+            encoded,
+            structured_output=False,
+            annotations=ToolAnnotations(readOnlyHint=name in READS),
+        )
         return function
 
     @tool
@@ -366,8 +384,10 @@ def build_server(config: Configuration):
         return await backing(runner.list_runs, root)
 
     @tool
-    async def read_run(run: str, wait_seconds: float = 0) -> dict[str, object]:
-        """Read an attempt or launch, optionally waiting up to 30 seconds."""
+    async def read_run(
+        run: str, wait_seconds: float = 0, detail: bool = False
+    ) -> dict[str, object]:
+        """Read a compact attempt or launch; detail=True returns the full record. Wait up to 30 seconds."""
         try:
             validate_wait(wait_seconds)
         except ValueError as exc:
@@ -384,7 +404,8 @@ def build_server(config: Configuration):
             if remaining <= 0:
                 break
             await asyncio.sleep(min(remaining, 0.25))
-        return await backing(runner.read_run, path)
+        record = await backing(runner.read_run, path)
+        return record if detail else run_view(record)
 
     @tool
     async def list_investigations() -> list[dict[str, object]]:
@@ -392,9 +413,23 @@ def build_server(config: Configuration):
         return await backing(investigations.list_investigations, root)
 
     @tool
-    async def read_investigation(investigation: str) -> dict[str, object]:
-        """Read terms, user decisions, findings, attempts, and remaining allowances."""
-        return await backing(investigations.read_investigation, research_path(investigation))
+    async def read_investigation(
+        investigation: str,
+        detail: bool = False,
+        event_id: str | None = None,
+    ) -> dict[str, object]:
+        """Read a compact investigation; detail=True returns all records, event_id one full event."""
+        if detail and event_id is not None:
+            raise ToolError("detail and event_id cannot be requested together")
+        record = await backing(investigations.read_investigation, research_path(investigation))
+        if event_id is not None:
+            event = next(
+                (event for event in record["events"] if event["event_id"] == event_id), None
+            )
+            if event is None:
+                raise ToolError(f"unknown investigation event: {event_id}")
+            return {"investigation_id": record["investigation_id"], "event": event}
+        return record if detail else await backing(investigation_view, record)
 
     @tool
     async def simulate(
@@ -500,7 +535,10 @@ def build_server(config: Configuration):
     @tool
     async def record_finding(investigation: str, finding: dict) -> dict[str, object]:
         """Append interpretation; usage and check status come from retained records."""
-        return await backing(investigations.record_finding, research_path(investigation), finding)
+        path = research_path(investigation)
+        event = await backing(investigations.record_finding, path, finding)
+        record = await backing(investigations.read_investigation, path)
+        return finding_ack(event, record)
 
     @tool
     async def stop_investigation(

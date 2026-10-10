@@ -358,3 +358,31 @@ report. This command launches no jobs or runtime sessions:
 ```sh
 uv run --locked --exact python tests/probes/m3_pickup.py --workspace "$HOME/Projects/entanglix-research/6b3-pickup-20261009" --output tests/probes/m3_pickup_results.json
 ```
+
+## MCP response summaries
+
+The [scripted stdio tests](../tests/test_mcp.py) exercise default summaries, full
+detail, individual events, finding acknowledgments, one JSON text representation
+and retained audit links. No agent-runtime session is needed:
+
+```sh
+TMPDIR=/var/tmp UV_PROJECT_ENVIRONMENT="$PWD/.venv-mcp" uv run --locked --exact --extra mcp pytest -q tests/test_mcp.py tests/test_research_guidance.py tests/test_agent_evaluation.py -m "not gpu"
+```
+
+Read-only measurements on the retained [pick-up records](../tests/probes/m3_pickup_results.json)
+and [agent evaluation records](../tests/probes/m3_evaluation_results.json)
+compare compact JSON from full backing records with the default MCP views:
+
+| Record | Full record, characters | Default summary, characters |
+|---|---:|---:|
+| Pick-up investigation `i20261010T005717439916Z-79fad977` | 94,057 | 41,676 |
+| Normal agent 2 investigation `i20261006T091319460301Z-93ccec41` | 144,860 | 59,352 |
+| Early-stop agent 1 investigation `i20261006T092921469005Z-96869d94` | 296,358 | 66,226 |
+| Simulation `r20261010T005725585132Z-f2fca8f7` | 6,230 | 4,796 |
+| Check `r20261010T005723903865Z-6de537d7` | 46,079 | 3,345 |
+| Seed sweep `r20261010T005719088845Z-fbc0c2ea` | 63,169 | 11,084 |
+
+Replies carry this JSON once. These are response-size measurements, not measured
+runtime token savings. Summaries still grow with attempts, events and retained
+text. The [MCP reference](operations/mcp.md#summary-and-detail) describes metric limits
+and how to retrieve omitted detail.
