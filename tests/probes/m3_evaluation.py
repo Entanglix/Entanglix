@@ -441,9 +441,8 @@ endpoint integrity/segments/diagnostics; each refined lab run integrity. Confirm
 requires lab and refined-lab runs at zero and both endpoints, comparing their loss
 margins with the observed refinement change. Intermediate RWA points and coarse lab
 runs do not need checks. Reuse your own retained zero/endpoint runs when unchanged.
-For the early-stop case establish all normal results first, then tighten in ascending
-EJ to width 0.000015625 GHz; stop at the first failed lab confirmation, open review
-'precision', and leave later tighter requests unattempted. Before a due checkpoint
+{stage_instructions}
+Before a due checkpoint
 record an assessment with all run IDs, evidence, learned/unresolved items, rationale,
 and next experiment. Unused allowance is not a reason to continue after a handoff.
 
@@ -455,11 +454,28 @@ terms, and the next useful experiment. Delta-C and brackets are your interpretat
 not a built-in metric. Record the final report via MCP, then stop. Also write
 'evidence/claims.json' with this exact compact shape for the external reviewer:
 {{"outcome":"evidence_completion or review_handoff", "no_crossing_ej":[...],
-"brackets":[{{"ej_ghz":number,"stage":"normal or tighter",
+"brackets":[{{"ej_ghz":number,"stage":"{stage_names}",
 "lower_amplitude_ghz":number,"upper_amplitude_ghz":number,"confirmed":boolean}}],
-"unattempted_tighter_ej":[...], "limitations":[...], "next_experiments":[...]}}.
+{extra_claims}"limitations":[...], "next_experiments":[...]}}.
 Do not compute beyond the agreed method or change any base input.
 """
+
+
+def execution_brief(investigation, case):
+    early = case == "early-stop"
+    return EXECUTION.format(
+        investigation=investigation,
+        stage_instructions=(
+            "Establish all normal results first, then tighten in ascending EJ to width "
+            "0.000015625 GHz; stop at the first failed lab confirmation, open review "
+            "'precision', and leave later tighter requests unattempted."
+            if early
+            else "This normal case ends after confirming the normal-width brackets. "
+            "Do not run a tighter search."
+        ),
+        stage_names="normal or tighter" if early else "normal",
+        extra_claims='"unattempted_tighter_ej":[...], ' if early else "",
+    )
 
 
 def evaluation_acceptance(formulation, agents):
@@ -693,7 +709,7 @@ def main():
                         session(
                             path,
                             "execute",
-                            EXECUTION.format(investigation=investigation),
+                            execution_brief(investigation, case),
                             python,
                             args.model,
                             args.effort,

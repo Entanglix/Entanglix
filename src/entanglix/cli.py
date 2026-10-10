@@ -174,6 +174,11 @@ def _main(argv: list[str] | None = None) -> int:
         "read-investigation", help="read terms and event history"
     )
     investigation.add_argument("investigation", type=Path)
+    report = subcommands.add_parser(
+        "report-investigation", help="render retained investigation history as Markdown"
+    )
+    report.add_argument("investigation", type=Path)
+    report.add_argument("--output", type=Path, help="write a file instead of standard output")
     finding = subcommands.add_parser(
         "record-finding", help="append research reasoning and references"
     )
@@ -213,6 +218,7 @@ def _main(argv: list[str] | None = None) -> int:
         "revise-investigation",
         "list-investigations",
         "read-investigation",
+        "report-investigation",
         "record-finding",
         "investigation-decision",
         "stop-investigation",
@@ -237,6 +243,15 @@ def _main(argv: list[str] | None = None) -> int:
                 result = list_investigations(args.runs_root)
             elif args.command == "read-investigation":
                 result = read_investigation(args.investigation)
+            elif args.command == "report-investigation":
+                from entanglix.investigation_report import report_investigation
+
+                text = report_investigation(args.investigation)
+                if args.output:
+                    args.output.write_text(text)
+                else:
+                    print(text, end="")
+                return 0
             elif args.command == "record-finding":
                 result = record_finding(args.investigation, args.finding)
             elif args.command == "stop-investigation":

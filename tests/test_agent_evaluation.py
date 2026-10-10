@@ -10,6 +10,14 @@ import pytest
 EVALUATION = runpy.run_path(str(Path(__file__).resolve().parent / "probes/m3_evaluation.py"))
 
 
+def test_execution_brief_only_declares_its_own_case():
+    normal = EVALUATION["execution_brief"]("investigation", "normal")
+    early = EVALUATION["execution_brief"]("investigation", "early-stop")
+    assert "0.000015625" not in normal and "unattempted_tighter_ej" not in normal
+    assert "Do not run a tighter search" in normal
+    assert "0.000015625" in early and "unattempted_tighter_ej" in early
+
+
 def test_concurrent_job_time_is_not_double_counted():
     assert EVALUATION["occupied_seconds"]([(0, 10), (2, 6), (10, 12), (14, 15)]) == 13
 

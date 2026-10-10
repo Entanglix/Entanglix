@@ -230,12 +230,21 @@ Use a finding's `learned` field for interpretation, with source run IDs supporti
 the claim. Measurements remain in attempt and run records; repeating their full
 results in each finding makes later recovery harder. MCP finding writes return
 an acknowledgment rather than echoing the submitted text and attached evidence.
-MCP investigation reads summarize earlier findings and revisions, retain effective
-terms and latest-finding text in full, and include attempt metrics and compact
-linked check outcomes. Policy, scopes and coverage remain on the check attempts.
-Request `detail=True` for the full record or `event_id` for one
-complete event; see the [MCP reference](mcp.md#summary-and-detail). CLI and Python
-backing reads remain complete.
+MCP reads return status with an attention list by default. Read attempts and event
+history through their paged table views, or request one complete event by ID; see
+the [MCP reference](mcp.md#investigation-views-and-tables). CLI and Python reads
+remain complete. For a user report, including every attempt and finding, run:
+
+```sh
+entanglix report-investigation PATH --output report.md
+```
+
+Omit `--output` to print Markdown. The report names the last event it covers,
+opens with the question, latest report finding and open items, and puts terms
+after attempts and history. Findings are agent interpretations, rendered as text
+with referenced-run counts. The report is identical over unchanged retained
+records. It includes retained checkpoint counts rather than the advancing elapsed
+clock. It is generated only when requested and adds no history records.
 
 Records use version 1. Revisions live in `revisions/0001.toml`, `0002.toml`, and so
 on; events in `events/00000001.toml`, `00000002.toml`, and so on. Earlier files are

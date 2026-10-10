@@ -93,7 +93,7 @@ def test_tool_parity_annotations_and_immutable_audit(study, runner_repository, t
             assert {tool.name for tool in tools} == set(list_capabilities()["operations"])
             for tool in tools:
                 assert tool.annotations.read_only_hint == (tool.name in READS)
-            assert await call(session, "list_runs") == {"result": []}
+            assert (await call(session, "list_runs"))["rows"] == []
             capabilities = await call(session, "list_capabilities")
             assert capabilities == list_capabilities(runner_repository)
             assert capabilities == json.loads(await cli_result(runner_repository, "capabilities"))
@@ -128,14 +128,14 @@ def test_tool_parity_annotations_and_immutable_audit(study, runner_repository, t
                     assert result.is_error
                 except Exception as exc:
                     assert "unsupported" in str(exc) or "unknown" in str(exc).lower()
-            assert (await call(session, "list_runs"))["result"] == json.loads(
+            assert (await call(session, "list_runs"))["rows"] == json.loads(
                 await cli_result(runner_repository, "list-runs", "--runs-root", str(runs))
             )
             assert (await call(session, "list_investigations"))["result"] == json.loads(
                 await cli_result(runner_repository, "list-investigations", "--runs-root", str(runs))
             )
             inspected = await call(
-                session, "read_investigation", {"investigation": str(investigation), "detail": True}
+                session, "read_investigation", {"investigation": str(investigation)}
             )
             cli = json.loads(
                 await cli_result(runner_repository, "read-investigation", str(investigation))
@@ -144,11 +144,9 @@ def test_tool_parity_annotations_and_immutable_audit(study, runner_repository, t
             assert inspected["checkpoint"].pop("elapsed_seconds") <= cli["checkpoint"].pop(
                 "elapsed_seconds"
             )
-            enriched = inspected.pop("attempts")
-            backing = cli.pop("attempts")
-            for enriched_attempt, backing_attempt in zip(enriched, backing, strict=True):
-                assert {key: enriched_attempt[key] for key in backing_attempt} == backing_attempt
-            assert inspected == cli
+            assert {key: inspected[key] for key in cli if key in inspected} == {
+                key: value for key, value in cli.items() if key in inspected
+            }
             assert session_file.read_bytes() == connection_bytes
 
     asyncio.run(exercise())
@@ -213,13 +211,25 @@ def test_summary_detail_and_finding_ack_over_stdio(study, runner_repository, tmp
                 {"investigation": str(investigation), "event_id": older["event_id"]},
             )
             assert one["event"]["finding"]["learned"] == "EARLIER-TEXT" * 10000
-            full = await call(
-                session, "read_investigation", {"investigation": str(investigation), "detail": True}
+            assert brief["revisions"][1]["terms"]["question"] == "Proposed question"
+            indexed = await call(
+                session,
+                "read_investigation",
+                {"investigation": str(investigation), "view": "events"},
             )
-            assert full["revisions"][1]["terms"]["question"] == "Proposed question"
-            assert full["events"][-1]["event_id"] == ack["event_id"]
+            assert indexed["rows"][-1][0] == ack["event_id"]
+            assert (
+                await call(
+                    session,
+                    "read_investigation",
+                    {"investigation": str(investigation), "view": "events", "after": 1},
+                )
+            )["rows"] == indexed["rows"][1:]
             for args in (
-                {"detail": True, "event_id": older["event_id"]},
+                {"detail": True},
+                {"view": "attempts", "event_id": older["event_id"]},
+                {"view": "unknown"},
+                {"after": 1},
                 {"event_id": "../not-an-event"},
             ):
                 result = await session.call_tool(
@@ -242,35 +252,31 @@ def test_summary_detail_and_finding_ack_over_stdio(study, runner_repository, tmp
             check_full = await call(session, "read_run", {"run": checked["path"], "detail": True})
             assert "checks" not in check_brief["result"]["report"]["checks"][0]
             assert check_full["result"]["report"]["checks"][0]["checks"]
-            brief = await call(session, "read_investigation", {"investigation": str(investigation)})
-            entry = next(item for item in brief["attempts"] if item["run_id"] == launch["run_id"])
-            assert entry["metrics"] == read_run(Path(run))["result"]["metrics"]
-            history = entry["verification"][0]
-            assert history["run_id"] == checked["run_id"] and history["source_matches"]
-            assert history["checks"] == [{"name": "integrity", "outcome": "pass"}]
-            assert set(history) == {"run_id", "source_matches", "checks"}
-            check_entry = next(
-                item for item in brief["attempts"] if item["run_id"] == checked["run_id"]
+            attempts = await call(
+                session,
+                "read_investigation",
+                {"investigation": str(investigation), "view": "attempts"},
             )
-            assert check_entry["source_run_ids"] == [launch["run_id"]]
-            assert check_entry["status"] == "completed" and check_entry["policy_version"]
-            assert check_entry["checks"][0]["scope"]
+            rows = [dict(zip(attempts["columns"], row)) for row in attempts["rows"]]
+            entry = next(row for row in rows if Path(row["path"]).name == launch["run_id"])
+            assert (
+                entry["metrics.population"]
+                == read_run(Path(run))["result"]["metrics"]["population"]
+            )
+            assert entry["checks"][0][:3] == [checked["run_id"], True, [["integrity", "pass"]]]
+            check_entry = next(row for row in rows if Path(row["path"]).name == checked["run_id"])
+            assert check_entry["parents"] == [launch["run_id"]]
+            assert check_entry["status"] == "completed"
+            assert check_entry["checks"] == [["integrity", "pass"]]
             assert check_brief["manifest"]["detail_omitted"] == [
                 "code",
                 "environment",
                 "spec_sha256",
             ]
             assert "spec_sha256" in check_full["manifest"]
-            detailed = await call(
-                session, "read_investigation", {"investigation": str(investigation), "detail": True}
-            )
-            assert detailed["attempts"] == brief["attempts"]
-            backing = read_investigation(investigation)
-            for enriched_attempt, backing_attempt in zip(
-                detailed["attempts"], backing["attempts"], strict=True
-            ):
-                assert {key: enriched_attempt[key] for key in backing_attempt} == backing_attempt
-            assert detailed["events"][-1]["finding"] == latest
+            listed = await call(session, "list_runs", {"after": 1})
+            assert listed["total"] == 2 and len(listed["rows"]) == 1
+            assert listed["rows"][0][0] == check_entry["path"]
 
     asyncio.run(exercise())
     outcomes = [_load_record(path) for path in (runs / "_audit/calls").glob("*/outcome.toml")]
@@ -802,7 +808,7 @@ def test_mcp_wait_ends_at_interruption_and_concurrent_reads_agree(
                     call(session, "list_runs"),
                 )
                 assert {item["status"] for item in reads[:4]} == {"interrupted"}
-                assert reads[4]["result"][0]["status"] == "interrupted"
+                assert reads[4]["rows"][0][reads[4]["columns"].index("status")] == "interrupted"
             assert await call(session, "read_run", {"run": str(run), "detail": True}) == json.loads(
                 await cli_result(runner_repository, "read-run", str(run))
             )

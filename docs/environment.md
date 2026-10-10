@@ -371,28 +371,35 @@ uv run --locked --exact python tests/probes/m3_pickup_claude.py --workspace "$HO
 
 ## MCP response summaries
 
-The [scripted stdio tests](../tests/test_mcp.py) exercise default summaries, full
-detail, individual events, finding acknowledgments, one JSON text representation
-and retained audit links. No agent-runtime session is needed:
+The [scripted stdio tests](../tests/test_mcp.py) and [view tests](../tests/test_mcp_views.py)
+exercise investigation status, paged attempt and event tables, single events,
+run detail, finding acknowledgments, deterministic reports and retained audit
+links. No agent-runtime session is needed:
 
 ```sh
-TMPDIR=/var/tmp UV_PROJECT_ENVIRONMENT="$PWD/.venv-mcp" uv run --locked --exact --extra mcp pytest -q tests/test_mcp.py tests/test_research_guidance.py tests/test_agent_evaluation.py -m "not gpu"
+TMPDIR=/var/tmp UV_PROJECT_ENVIRONMENT="$PWD/.venv-mcp" uv run --locked --exact --extra mcp pytest -q tests/test_mcp.py tests/test_mcp_views.py tests/test_research_guidance.py tests/test_agent_evaluation.py -m "not gpu"
 ```
 
-Read-only measurements on the retained [pick-up records](../tests/probes/m3_pickup_results.json)
-and [agent evaluation records](../tests/probes/m3_evaluation_results.json)
-compare compact JSON from full backing records with the default MCP views:
+Read-only measurements on the second retained [Claude Code pick-up investigation](../tests/probes/m3_pickup_claude_results.json),
+`i20261010T165839906785Z-85f1d3ed`, cover 42 attempts and 8 events in
+`6b4-pickup-claude-20261010-b/normal/runs`. JSON views use the compact representation
+sent by MCP; the report is Markdown:
 
-| Record | Full record, characters | Default summary, characters |
-|---|---:|---:|
-| Pick-up investigation `i20261010T005717439916Z-79fad977` | 94,057 | 41,676 |
-| Normal agent 2 investigation `i20261006T091319460301Z-93ccec41` | 144,860 | 59,352 |
-| Early-stop agent 1 investigation `i20261006T092921469005Z-96869d94` | 296,358 | 66,226 |
-| Simulation `r20261010T005725585132Z-f2fca8f7` | 6,230 | 4,796 |
-| Check `r20261010T005723903865Z-6de537d7` | 46,079 | 3,345 |
-| Seed sweep `r20261010T005719088845Z-fbc0c2ea` | 63,169 | 11,084 |
+| View | Characters |
+|---|---:|
+| Status | 11,035 |
+| Attempt table (42 rows) | 9,420 |
+| Event index (8 rows) | 3,176 |
+| `list_runs` (42 rows) | 4,589 |
+| Report | 33,213 |
 
-Replies carry this JSON once. These are response-size measurements, not measured
-runtime token savings. Summaries still grow with attempts, events and retained
-text. The [MCP reference](operations/mcp.md#summary-and-detail) describes metric limits
-and how to retrieve omitted detail.
+The report is 384 lines. Sweep rows omit point arrays; a synthetic 500-point case
+checks that the table row does not grow with its point values.
+
+Repeated reports over unchanged records are identical. Status carries complete
+terms and the latest finding, plus an unpaged attention list; it does not grow
+with completed history. Tables have at most 50 rows per reply. Reports cover all
+pages without a tool-reply limit. These are character counts, not measured token
+savings. The [MCP reference](operations/mcp.md#investigation-views-and-tables)
+describes the views, cursor and metric limits. Run summary/detail behavior is
+unchanged.

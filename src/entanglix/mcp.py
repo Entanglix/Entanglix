@@ -25,7 +25,7 @@ from entanglix.launches import (
     start_supervisor,
     validate_wait,
 )
-from entanglix.mcp_views import finding_ack, investigation_view, run_view
+from entanglix.mcp_views import finding_ack, investigation_view, run_view, runs_view
 
 JOBS = {
     "simulate",
@@ -379,9 +379,10 @@ def build_server(config: Configuration):
         return await backing(runner.list_capabilities, repository)
 
     @tool
-    async def list_runs() -> list[dict[str, object]]:
-        """List attempts and unresolved launches in the configured runs root."""
-        return await backing(runner.list_runs, root)
+    async def list_runs(after: int = 0) -> dict[str, object]:
+        """Read a 50-row attempt/launch table; follow next_after with after."""
+        records = await backing(runner.list_runs, root)
+        return await backing(runs_view, records, root, after)
 
     @tool
     async def read_run(
@@ -415,21 +416,13 @@ def build_server(config: Configuration):
     @tool
     async def read_investigation(
         investigation: str,
-        detail: bool = False,
+        view: str = "status",
+        after: int = 0,
         event_id: str | None = None,
     ) -> dict[str, object]:
-        """Read an investigation with attempt results; detail=True includes all records, event_id one event."""
-        if detail and event_id is not None:
-            raise ToolError("detail and event_id cannot be requested together")
+        """Read status, or a paged attempts/events table; event_id returns one full event."""
         record = await backing(investigations.read_investigation, research_path(investigation))
-        if event_id is not None:
-            event = next(
-                (event for event in record["events"] if event["event_id"] == event_id), None
-            )
-            if event is None:
-                raise ToolError(f"unknown investigation event: {event_id}")
-            return {"investigation_id": record["investigation_id"], "event": event}
-        return await backing(investigation_view, record, detail=detail)
+        return await backing(investigation_view, record, view=view, after=after, event_id=event_id)
 
     @tool
     async def simulate(

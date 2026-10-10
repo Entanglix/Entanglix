@@ -45,33 +45,52 @@ Only the first row carries the MCP read-only annotation. Jobs and writes may req
 
 Job tools do not expose dry runs. Use the CLI's `--dry-run` for protocol previews where the required device is visible; an agent session with no CUDA device has no CUDA preview through this server. `check` requires named checks; `read_run` includes the relevant-check listing without launching a check. Each successful tool reply carries one JSON text payload, without a duplicate structured-content payload. Lists are wrapped under `result`; objects are carried directly.
 
-### Summary and detail
+### Investigation views and tables
 
-`read_run` and `read_investigation` return summaries by default. Pass `detail=True`
-to retrieve the complete backing record. MCP investigation reads enrich the
-attempt list with protocol, metrics, source IDs and check links at both detail
-levels; full reads also recover oversized metrics. Python backing operations and
-CLI reads still return full records. Run summaries retain execution status, metrics and
-check history, including source identity match and policy version; nested check
-details are omitted by name. Manifests omit `spec_sha256`, `code` and `environment`
-by name under `detail_omitted`; request detail for their provenance. Sweep points
-retain coordinates, metrics and any recorded error.
+`read_investigation(investigation)` returns status: effective terms, the newest
+proposed revision, revision indexes, usage, declared limits, checkpoint,
+open reviews, unresolved launches, counts, latest-finding text and the last stop.
+Its unpaged `attention` list includes active and unknown attempts and interrupted
+attempts not yet reconciled, however old they are. Earlier findings and completed
+attempts are not included. Terms and latest-finding text are complete; attached
+evidence stays in the event record. Status size depends on current terms, latest
+finding and attention, rather than the length of completed history.
 
-Investigation summaries retain effective terms, usage, checkpoints, open reviews,
-decisions, stops and attempts with their metrics and linked check outcomes. Source
-attempts carry compact check links: run ID, source identity match, names and
-outcomes. Check attempts carry policy versions, scopes and coverage. Earlier
-revisions and findings appear as indexes; the latest finding includes its full text
-without attached evidence snapshots. Use
-`read_investigation(investigation, event_id="00000001")` for one complete event,
-or `detail=True` for all revisions and events. These selectors cannot be combined.
-`record_finding` returns an acknowledgment with the event ID, revision, decision,
-usage, checkpoint and open reviews; it does not echo the finding or its evidence.
+Use `view="attempts"` for the attempt table or `view="events"` for the event index.
+Tables return `columns`, positional `rows`, `total` and `next_after`. Each page
+holds at most 50 rows, oldest first. Pass `next_after` as the integer `after`
+offset to continue until it is null. The same encoder and cursor serve
+`list_runs(after=...)`, including unresolved launches. No filters are supported.
+Paths are relative to the configured runs root and accepted by the read tools.
 
-Metric values exceeding 512 JSON bytes are marked `omitted`; request detail to
-recover them. Text is not truncated: effective terms, log tails and latest-finding
-text remain complete. Summaries grow with indexed events, attempts and their
-retained text; there is no fixed total response-size limit.
+Attempt columns cover path, protocol, base, execution status, varied values,
+metrics, parents, checks and completed sweep-point count. A sweep is one row.
+Target and metric names appear once in `values.<target>` and `metrics.<name>`
+column headers. Sweep rows omit per-point varied values; use `read_run` or the
+retained point files for those values.
+Source checks carry check run ID, source identity match, name/outcome pairs and
+any diagnostic; check rows carry name/outcome pairs. A null outcome denotes
+information without a pass/fail judgment. Metric values exceeding 512 JSON bytes
+are explicitly omitted; full values remain in the run's `result.toml`. An attempt
+whose records cannot be read keeps its row, with the reason in a `result_error` column.
+
+Use `read_investigation(investigation, event_id="00000001")` for one complete
+event. It cannot be combined with a table view or cursor. Investigation `detail`
+is no longer supported. Python and CLI investigation reads remain complete.
+`record_finding` returns an acknowledgment with event ID, revision, decision,
+usage, checkpoint and reviews.
+
+`read_run` retains summary reads and `detail=True`. Summaries keep execution
+state, complete log tails, metrics and check outcomes, scope and coverage.
+Manifest `spec_sha256`, `code` and `environment` are named under `detail_omitted`.
+Read detail or the retained files for full provenance and reports. Replies carry
+one JSON text payload; paging limits row count, not arbitrary text size.
+
+For a complete user document run `entanglix report-investigation PATH --output FILE`,
+or omit `--output` for standard output. The Markdown report covers all attempts,
+events and findings, names its last covered event, and marks findings as the
+agent's interpretation. It is generated only on request and stores no new records;
+the [investigation reference](investigations.md#findings-and-retained-history) describes its layout.
 
 ## Waiting and recovery
 
@@ -191,7 +210,7 @@ CUDA_VISIBLE_DEVICES="" claude -p '<task brief>' \
     mcp__entanglix__record_finding mcp__entanglix__stop_investigation
 ```
 
-In two [retained sessions](../../tests/probes/m3_pickup_claude_results.json) the conduct was present before the first reply and no repository development instructions appeared. No command restriction has been validated for Claude Code: a session without a shell tool cannot run an operator command, but no retained test covers a session that has one, so declare `instruction-only`. Claude Code rejects a tool result above its output limit. One full investigation read of 54,724 characters was rejected, and the default summary of 32,757 characters was accepted.
+In two [retained sessions](../../tests/probes/m3_pickup_claude_results.json) the conduct was present before the first reply and no repository development instructions appeared. No command restriction has been validated for Claude Code: a session without a shell tool cannot run an operator command, but no retained test covers a session that has one, so declare `instruction-only`. Claude Code rejected a 54,724-character investigation reply and accepted one of 32,757 characters in the retained sessions. Use the status and paged table views for research reads, and the report command or retained files for full history; those sessions predate these views.
 
 ### Other stdio runtimes
 

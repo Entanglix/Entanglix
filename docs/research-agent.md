@@ -1,7 +1,7 @@
 ---
 name: entanglix-research-conduct
 description: Conduct for a quantum research session using Entanglix tools.
-version: 0.1.2
+version: 0.1.4
 ---
 
 # Research-agent conduct
@@ -12,28 +12,28 @@ Use the available research tools; retained records are the execution history.
 
 ## Start and recover
 
-Read `list_capabilities`, `list_runs`, and `list_investigations` at session entry.
-Read the relevant investigation before continuing: effective terms, findings,
-attempts, unresolved launches, limits, checkpoints, and open reviews.
-Use the attempt list's metrics and linked check outcomes to recover completed
-work before choosing another experiment. Do not repeat a completed job or check
-because a prior finding omitted its values. Reads return summaries; request
-`detail=True` only for needed full records, or an investigation `event_id` for one
-complete finding. Omission markers identify missing detail; effective terms,
-log tails and latest-finding text remain complete.
-Use the returned path with `read_run`, not the bare run ID. After a job call loses
-its response, read its recorded launch path or the listings.
-Do not resubmit while admission is pending; an admitted attempt may still run
-after the connection closes. Use `read_run` with a requested wait when useful;
-MCP bounds each wait at 30 seconds. A lost waiter does not cancel the job.
+Read capabilities and investigation listings at session entry. Read the relevant
+investigation's status with `read_investigation`. Settle its attention list before
+continuing: inspect each attempt and wait for healthy running jobs. For an
+interrupted attempt, abort an orphaned job group if it remains; once its owner
+and group are gone call `reconcile_run` with what you observed. Replay
+interrupted computations with `rerun_simulation`, `rerun_sweep` or `rerun_script`;
+do not submit fresh jobs for the same inputs. Recovery needs no operator decision
+and stays within effective terms.
 
-Settle interrupted attempts before continuing. Read the attempt; once its owner
-and process group are gone, call `reconcile_run` with what you observed. The tool
-checks ownership and group liveness and retains uncertain usage. Rerun the
-interrupted computation with the rerun tool for its kind (`rerun_simulation`,
-`rerun_sweep`, or `rerun_script`), so the new attempt links to the old one. Do not
-launch a fresh job for the same inputs. This recovery needs no operator decision;
-continue within the effective terms.
+Before choosing new work read `read_investigation(view="attempts")`. Follow
+`next_after` by passing it as `after` until it is null. Recover completed work
+from metrics and check outcomes; do not repeat it because a finding omitted its
+values. Use `view="events"` for history and `event_id` for one complete event.
+`list_runs` uses the same table cursor. Paths are relative to the runs root;
+pass the returned path to `read_run`, not a bare run ID. Request run detail only
+when needed; large reports are also in the run directory's files.
+
+After losing a job response, recover its launch from the listings before
+resubmitting. Pending admission may become an independently supervised job.
+A bounded `read_run` wait, capped at 30 seconds through MCP, does not supervise
+or cancel that job. Read effective terms, usage, checkpoints and open reviews
+before new admissions.
 
 ## Formulate and act
 
@@ -74,6 +74,7 @@ Record findings with source run IDs, interpretation, uncertainty, checks run and
 not run, and the next experiment. Measurements remain in the attempt and run
 records; use `learned` for what they imply instead of copying whole results.
 Finding writes return an acknowledgment; read the event if its full text is needed.
+At a stop or handoff give the user `entanglix report-investigation PATH --output FILE`.
 In a final report cite every attempt, including failed and interrupted ones.
 At a due checkpoint record an assessment of learning, convergence, constraints,
 and observed cost before seeking admission.

@@ -107,7 +107,11 @@ coordinates, metrics and any recorded error. Log tails remain complete. Manifest
 name omitted provenance fields in `detail_omitted`; oversized metrics are also
 marked as omitted. Use `read_run(path, detail=True)` through MCP
 for full reports and point details; CLI and Python backing reads remain complete.
-See the [MCP response reference](mcp.md#summary-and-detail).
+Large full check or sweep reads can exceed a runtime tool-reply limit. The complete
+report is retained in the run directory: read `result.toml`, point results under
+`artifacts/`, and their archives with the session's file tools. MCP `list_runs` uses
+the same paged table form as investigation history; CLI listing stays complete.
+See the [MCP response reference](mcp.md#investigation-views-and-tables).
 
 ## Limits, interruption, and recovery
 

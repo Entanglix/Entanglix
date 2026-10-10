@@ -25,24 +25,10 @@ def check_view(check):
     }
 
 
-def history_view(history, *, compact=False):
-    metadata = {"run_id", "source_matches", "diagnostic"}
-    check_keys = {"name", "outcome"}
+def history_view(history):
     return [
-        {
-            key: value
-            for key, value in item.items()
-            if key != "checks"
-            and (not compact or key in metadata or (key == "path" and "run_id" not in item))
-        }
-        | {
-            "checks": [
-                {key: value for key, value in check.items() if key in check_keys}
-                if compact
-                else check_view(check)
-                for check in item.get("checks", [])
-            ]
-        }
+        {key: value for key, value in item.items() if key != "checks"}
+        | {"checks": [check_view(check) for check in item.get("checks", [])]}
         for item in history
     ]
 
@@ -78,79 +64,179 @@ def run_view(record):
     return summary
 
 
-def investigation_view(record, *, detail=False):
-    summary = dict(record)
-    summary["attempts"] = investigation_attempts(record["attempts"], detail=detail)
-    if detail:
-        return summary
-    approved = {
-        event["revision"]
-        for event in record["events"]
-        if event["kind"] == "decision" and event["action"] in {"start", "approve-revision"}
+PAGE_SIZE = 50
+
+
+def table(columns, rows, after=0):
+    if type(after) is not int or after < 0 or after > len(rows):
+        raise ValueError("after must be an integer offset between 0 and the row count")
+    end = min(after + PAGE_SIZE, len(rows))
+    return {
+        "columns": columns,
+        "rows": rows[after:end],
+        "total": len(rows),
+        "next_after": end if end < len(rows) else None,
     }
-    summary["revisions"] = [
-        revision
-        if revision["revision"] == record["active_revision"]
-        else {
-            "revision": revision["revision"],
-            "status": "approved" if revision["revision"] in approved else "proposed",
-        }
-        for revision in record["revisions"]
-    ]
-    if record["active_revision"] is None:
-        summary["revisions"][-1] = record["revisions"][-1]
-    events, latest = [], None
-    for event in record["events"]:
-        if event["kind"] != "finding":
-            events.append(event)
-            continue
-        finding = event["finding"]
-        events.append(
-            {key: event[key] for key in ("event_id", "recorded_at", "kind", "revision")}
-            | {
-                "finding": {
-                    key: value
-                    for key, value in finding.items()
-                    if key in {"kind", "decision", "rationale", "next_experiment", "review_name"}
-                }
-                | {"run_count": len(finding["runs"])}
-            }
+
+
+def relative_path(path, root):
+    return str(Path(path).resolve().relative_to(Path(root).resolve()))
+
+
+def investigation_status(record):
+    from collections import Counter
+
+    latest = record["revisions"][-1]["revision"]
+    approved = {
+        e["revision"]
+        for e in record["events"]
+        if e["kind"] == "decision" and e["action"] in {"start", "approve-revision"}
+    }
+    root = Path(record["path"]).parent.parent
+    result = {
+        key: record[key]
+        for key in (
+            "path",
+            "investigation_id",
+            "state",
+            "active_revision",
+            "usage",
+            "checkpoint",
+            "open_reviews",
+            "unresolved_launches",
         )
-        latest = {key: value for key, value in event.items() if key != "evidence"}
-    summary["events"] = events
-    summary["latest_finding"] = latest
-    return summary
+    }
+    result["revisions"] = [
+        r
+        if r["revision"] in {record["active_revision"], latest}
+        else {
+            "revision": r["revision"],
+            "status": "approved" if r["revision"] in approved else "proposed",
+        }
+        for r in record["revisions"]
+    ]
+    findings = [e for e in record["events"] if e["kind"] == "finding"]
+    result["attempt_counts"] = dict(Counter(a["status"] for a in record["attempts"]))
+    result["finding_counts"] = dict(Counter(e["finding"]["kind"] for e in findings))
+    result["latest_finding"] = (
+        {k: v for k, v in findings[-1].items() if k != "evidence"} if findings else None
+    )
+    result["last_stop"] = next((e for e in reversed(record["events"]) if e["kind"] == "stop"), None)
+    result["attention"] = [
+        {"path": relative_path(a["path"], root), "status": a["status"]}
+        for a in record["attempts"]
+        if a["status"] in {"active", "unknown"}
+        or (
+            a["status"] == "interrupted"
+            and not (Path(a["path"]) / "runner/reconciled.toml").exists()
+        )
+    ]
+    return result
 
 
-def investigation_attempts(entries, *, detail=False):
+def attempt_data(record):
     from entanglix.corrector.verification import verification_history
 
-    attempts = []
-    for attempt in entries:
+    root = Path(record["path"]).parent.parent
+    columns = ["path", "protocol", "base", "status", "parents", "checks", "points"]
+    rows = []
+    for a in sorted(record["attempts"], key=lambda a: Path(a["path"]).name):
+        item = {"path": relative_path(a["path"], root), "base": a["base"], "status": a["status"]}
         try:
-            run = runner._read_attempt(Path(attempt["path"]))
-            manifest = run["manifest"]
-            item = attempt | {
-                "protocol": manifest["protocol"],
-                "metrics": run.get("result", {}).get("metrics", {})
-                if detail
-                else metrics_view(run.get("result", {}).get("metrics", {})),
-            }
-            if manifest["protocol"] == "verification":
-                item["source_run_ids"] = manifest["parent_run_ids"]
-                item["policy_version"] = manifest["launch"]["policy_version"]
+            run = runner._read_attempt(Path(a["path"]))
+            manifest, result = run["manifest"], run.get("result", {})
+            protocol = manifest["protocol"]
+            item.update(protocol=protocol, parents=manifest["parent_run_ids"], checks=[])
+            if protocol == "verification":
                 item["checks"] = [
-                    check_view(check)
-                    for check in run.get("result", {}).get("report", {}).get("checks", [])
+                    [c["name"], c.get("outcome")]
+                    for c in result.get("report", {}).get("checks", [])
                 ]
-            elif manifest["protocol"] in {"simulate", "sweep", "plan"}:
-                item["verification"] = history_view(
-                    verification_history(Path(attempt["path"])), compact=True
-                )
-            attempts.append(item)
+            elif protocol in {"simulate", "sweep", "plan"}:
+                item["checks"] = [
+                    [
+                        h.get("run_id", h.get("path")),
+                        h.get("source_matches"),
+                        [[c["name"], c.get("outcome")] for c in h.get("checks", [])],
+                        h.get("diagnostic"),
+                    ]
+                    for h in verification_history(Path(a["path"]))
+                ]
+            if protocol == "sweep":
+                from entanglix.protocols.sweep import partial_results
+
+                item["points"] = partial_results(Path(a["path"]))["completed_count"]
+            else:
+                values = a["varied_values"]
+                if isinstance(values, list):
+                    values = values[0] if len(values) == 1 else {}
+                item.update({f"values.{key}": value for key, value in values.items()})
+            item.update(
+                {
+                    f"metrics.{key}": value
+                    for key, value in metrics_view(result.get("metrics", {})).items()
+                }
+            )
         except (OSError, ValueError, KeyError) as exc:
-            attempts.append(attempt | {"result_error": runner.failure_message(exc)})
-    return attempts
+            item["result_error"] = runner.failure_message(exc)
+        for key in sorted(item.keys() - set(columns)):
+            columns.append(key)
+            for row in rows:
+                row.append(None)
+        rows.append([item.get(key) for key in columns])
+    return columns, rows
+
+
+def event_rows(record):
+    return [
+        [
+            e["event_id"],
+            e["recorded_at"],
+            e["kind"],
+            e.get("revision"),
+            e.get("action", e.get("reason", e.get("finding", {}).get("kind"))),
+            {
+                k: v
+                for k, v in e.get("finding", {}).items()
+                if k in {"decision", "rationale", "next_experiment", "review_name"}
+            },
+        ]
+        for e in record["events"]
+    ]
+
+
+EVENT_COLUMNS = ["event_id", "recorded_at", "kind", "revision", "action", "finding"]
+
+
+def investigation_view(record, *, view="status", after=0, event_id=None):
+    if event_id is not None:
+        if view != "status" or after != 0:
+            raise ValueError("event_id cannot be combined with view or after")
+        event = next((e for e in record["events"] if e["event_id"] == event_id), None)
+        if event is None:
+            raise ValueError(f"unknown investigation event: {event_id}")
+        return {"investigation_id": record["investigation_id"], "event": event}
+    if view == "attempts":
+        return table(*attempt_data(record), after)
+    if view == "events":
+        return table(EVENT_COLUMNS, event_rows(record), after)
+    if view != "status" or after != 0:
+        raise ValueError("view must be status, attempts or events; after is only for tables")
+    return investigation_status(record)
+
+
+def runs_view(records, root, after=0):
+    rows = [
+        [
+            relative_path(r["path"], root),
+            r.get("run_id", r.get("launch_id")),
+            r.get("system_id"),
+            r["status"],
+            r.get("reason", r.get("diagnostic")),
+        ]
+        for r in sorted(records, key=lambda r: Path(r["path"]).name)
+    ]
+    return table(["path", "id", "system_id", "status", "reason"], rows, after)
 
 
 def finding_ack(event, record):
