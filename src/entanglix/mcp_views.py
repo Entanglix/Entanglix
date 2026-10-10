@@ -78,10 +78,11 @@ def run_view(record):
     return summary
 
 
-def investigation_view(record):
-    from entanglix.corrector.verification import verification_history
-
+def investigation_view(record, *, detail=False):
     summary = dict(record)
+    summary["attempts"] = investigation_attempts(record["attempts"], detail=detail)
+    if detail:
+        return summary
     approved = {
         event["revision"]
         for event in record["events"]
@@ -118,14 +119,22 @@ def investigation_view(record):
         latest = {key: value for key, value in event.items() if key != "evidence"}
     summary["events"] = events
     summary["latest_finding"] = latest
+    return summary
+
+
+def investigation_attempts(entries, *, detail=False):
+    from entanglix.corrector.verification import verification_history
+
     attempts = []
-    for attempt in record["attempts"]:
+    for attempt in entries:
         try:
             run = runner._read_attempt(Path(attempt["path"]))
             manifest = run["manifest"]
             item = attempt | {
                 "protocol": manifest["protocol"],
-                "metrics": metrics_view(run.get("result", {}).get("metrics", {})),
+                "metrics": run.get("result", {}).get("metrics", {})
+                if detail
+                else metrics_view(run.get("result", {}).get("metrics", {})),
             }
             if manifest["protocol"] == "verification":
                 item["source_run_ids"] = manifest["parent_run_ids"]
@@ -141,8 +150,7 @@ def investigation_view(record):
             attempts.append(item)
         except (OSError, ValueError, KeyError) as exc:
             attempts.append(attempt | {"result_error": runner.failure_message(exc)})
-    summary["attempts"] = attempts
-    return summary
+    return attempts
 
 
 def finding_ack(event, record):

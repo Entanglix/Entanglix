@@ -144,6 +144,10 @@ def test_tool_parity_annotations_and_immutable_audit(study, runner_repository, t
             assert inspected["checkpoint"].pop("elapsed_seconds") <= cli["checkpoint"].pop(
                 "elapsed_seconds"
             )
+            enriched = inspected.pop("attempts")
+            backing = cli.pop("attempts")
+            for enriched_attempt, backing_attempt in zip(enriched, backing, strict=True):
+                assert {key: enriched_attempt[key] for key in backing_attempt} == backing_attempt
             assert inspected == cli
             assert session_file.read_bytes() == connection_bytes
 
@@ -257,6 +261,16 @@ def test_summary_detail_and_finding_ack_over_stdio(study, runner_repository, tmp
                 "spec_sha256",
             ]
             assert "spec_sha256" in check_full["manifest"]
+            detailed = await call(
+                session, "read_investigation", {"investigation": str(investigation), "detail": True}
+            )
+            assert detailed["attempts"] == brief["attempts"]
+            backing = read_investigation(investigation)
+            for enriched_attempt, backing_attempt in zip(
+                detailed["attempts"], backing["attempts"], strict=True
+            ):
+                assert {key: enriched_attempt[key] for key in backing_attempt} == backing_attempt
+            assert detailed["events"][-1]["finding"] == latest
 
     asyncio.run(exercise())
     outcomes = [_load_record(path) for path in (runs / "_audit/calls").glob("*/outcome.toml")]

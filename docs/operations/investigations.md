@@ -223,6 +223,7 @@ The decision is `continue`, `refine`, `stop`, or `review`. A `review` finding re
 `review_name`; other decisions omit it. A review decision opens a named review;
 continue, refine, and stop record recommendations without changing the agreed
 terms or executing a stop. A final report can leave `next_experiment` empty.
+A final report lists every attempt, including failed and interrupted ones.
 A draft must be started before receiving findings.
 
 Use a finding's `learned` field for interpretation, with source run IDs supporting

@@ -48,8 +48,10 @@ Job tools do not expose dry runs. Use the CLI's `--dry-run` for protocol preview
 ### Summary and detail
 
 `read_run` and `read_investigation` return summaries by default. Pass `detail=True`
-to retrieve the complete backing record. Python backing operations and CLI reads
-still return full records. Run summaries retain execution status, metrics and
+to retrieve the complete backing record. MCP investigation reads enrich the
+attempt list with protocol, metrics, source IDs and check links at both detail
+levels; full reads also recover oversized metrics. Python backing operations and
+CLI reads still return full records. Run summaries retain execution status, metrics and
 check history, including source identity match and policy version; nested check
 details are omitted by name. Manifests omit `spec_sha256`, `code` and `environment`
 by name under `detail_omitted`; request detail for their provenance. Sweep points

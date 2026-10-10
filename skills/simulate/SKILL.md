@@ -1,7 +1,7 @@
 ---
 name: simulate
 description: Run and inspect one Entanglix spectrum or dynamics computation, request relevant checks, or replay frozen inputs.
-version: 0.1.0
+version: 0.1.1
 ---
 
 # One computation
@@ -27,8 +27,11 @@ the bare run ID is not a path. If the response was lost, resolve the recorded
 launch path before retrying.
 Inspect execution outcome, actual engine, metrics, artifacts, provenance, and the
 check listing. Failed or interrupted work stays part of history. Cancel owned
-work with `abort_run`; reconcile only after ownership and group-liveness checks
-permit it, retaining uncertain usage.
+work with `abort_run`. Settle an interrupted attempt before continuing: read it,
+then call `reconcile_run` once its owner and process group are gone, retaining
+uncertain usage. Use `rerun_simulation` to replay it with a link to the earlier
+attempt; do not submit a fresh simulation for the same inputs. Recovery needs no
+operator decision and stays within effective terms.
 
 Explain relevant checks and issue `check` only for explicit or standing requests:
 integrity tests stored bookkeeping and state properties; segments compare local

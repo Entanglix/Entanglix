@@ -1,7 +1,7 @@
 ---
 name: entanglix-research-conduct
 description: Conduct for a quantum research session using Entanglix tools.
-version: 0.1.1
+version: 0.1.2
 ---
 
 # Research-agent conduct
@@ -26,6 +26,14 @@ its response, read its recorded launch path or the listings.
 Do not resubmit while admission is pending; an admitted attempt may still run
 after the connection closes. Use `read_run` with a requested wait when useful;
 MCP bounds each wait at 30 seconds. A lost waiter does not cancel the job.
+
+Settle interrupted attempts before continuing. Read the attempt; once its owner
+and process group are gone, call `reconcile_run` with what you observed. The tool
+checks ownership and group liveness and retains uncertain usage. Rerun the
+interrupted computation with the rerun tool for its kind (`rerun_simulation`,
+`rerun_sweep`, or `rerun_script`), so the new attempt links to the old one. Do not
+launch a fresh job for the same inputs. This recovery needs no operator decision;
+continue within the effective terms.
 
 ## Formulate and act
 
@@ -66,6 +74,7 @@ Record findings with source run IDs, interpretation, uncertainty, checks run and
 not run, and the next experiment. Measurements remain in the attempt and run
 records; use `learned` for what they imply instead of copying whole results.
 Finding writes return an acknowledgment; read the event if its full text is needed.
+In a final report cite every attempt, including failed and interrupted ones.
 At a due checkpoint record an assessment of learning, convergence, constraints,
 and observed cost before seeking admission.
 An assessment does not release an open review. Recommend or execute a supported

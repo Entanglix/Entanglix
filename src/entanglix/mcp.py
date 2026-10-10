@@ -418,7 +418,7 @@ def build_server(config: Configuration):
         detail: bool = False,
         event_id: str | None = None,
     ) -> dict[str, object]:
-        """Read a compact investigation; detail=True returns all records, event_id one full event."""
+        """Read an investigation with attempt results; detail=True includes all records, event_id one event."""
         if detail and event_id is not None:
             raise ToolError("detail and event_id cannot be requested together")
         record = await backing(investigations.read_investigation, research_path(investigation))
@@ -429,7 +429,7 @@ def build_server(config: Configuration):
             if event is None:
                 raise ToolError(f"unknown investigation event: {event_id}")
             return {"investigation_id": record["investigation_id"], "event": event}
-        return record if detail else await backing(investigation_view, record)
+        return await backing(investigation_view, record, detail=detail)
 
     @tool
     async def simulate(
