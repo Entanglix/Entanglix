@@ -539,11 +539,12 @@ window went from 0% to 4%. Six requests and about one window percentage point
 were spent before requesting its first new job. This is one session interrupted
 between jobs, with earlier records written by a script and a prompt that named
 those records and prescribed the method. It does not demonstrate recovery during
-an executing job or discovery of unmentioned earlier work. The
+an executing job or discovery of unmentioned earlier work; the cut-off checks
+below cover both. The
 [summary probe](../../tests/probes/m3_pickup.py) rebuilds this evidence without
 launching a session.
 
-Four further [pick-up checks](../../tests/probes/m3_pickup_claude_results.json) on
+Four further [pick-up checks](../../tests/probes/m3_pickup_cutoff_results.json) on
 2026-10-10 used Claude Code 2.1.296 with `claude-sonnet-5-5`. The scripted normal
 client was killed during its 25th job, a lab run at `EJ = 15`, which left that
 attempt interrupted beside 24 finished jobs. Each session was asked only to
@@ -575,6 +576,14 @@ It recorded its final report as an `interpretation` finding, so the summary's
 report criterion is not met; the conduct then did not name the kind to use. With
 the kind named, the fourth session did the same six jobs, recorded a `report`
 finding, and met every criterion. These are four sessions on one runtime and one
-cut-off point, with no shell tool granted. The account windows are shared with
-other use. The [summary probe](../../tests/probes/m3_pickup_claude.py) rebuilds
-all four without launching a session.
+cut-off point, with no shell tool granted.
+
+On the same setup, one Codex 0.162.1 session (`gpt-6.1-sol`, high effort, conduct
+0.1.6, sandboxed shell) also met every criterion. It reconciled and replayed the
+attempt, ran the six missing jobs, and cited all 31 attempts in a `report`
+finding, using 997,657 input tokens (926,208 cached), 17 model requests and about
+206 seconds; its 5-hour window went from 0% to 4%. It asked for full detail on
+all 31 run reads, and replies of up to 67,202 characters were accepted. The
+account windows are shared with other use. The
+[summary probe](../../tests/probes/m3_pickup_cutoff.py) rebuilds all five
+sessions without launching one.

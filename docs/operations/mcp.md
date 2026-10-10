@@ -207,7 +207,7 @@ CUDA_VISIBLE_DEVICES="" claude -p '<task brief>' \
     mcp__entanglix__record_finding mcp__entanglix__stop_investigation
 ```
 
-In four [retained sessions](../../tests/probes/m3_pickup_claude_results.json) the conduct was present before the first reply and no repository development instructions appeared. No command restriction has been validated for Claude Code: a session without a shell tool cannot run an operator command, but no retained test covers a session that has one, so declare `instruction-only`. Claude Code rejected a 54,724-character investigation reply and accepted one of 32,757 characters in the two sessions that predate the status and paged table views; the third and fourth used those views and no reply was rejected. Use them for research reads, and the report command or retained files for full history.
+In four [retained sessions](../../tests/probes/m3_pickup_cutoff_results.json) the conduct was present before the first reply and no repository development instructions appeared. No command restriction has been validated for Claude Code: a session without a shell tool cannot run an operator command, but no retained test covers a session that has one, so declare `instruction-only`. Claude Code rejected a 54,724-character investigation reply and accepted one of 32,757 characters in the two sessions that predate the status and paged table views; the third and fourth used those views and no reply was rejected. Use them for research reads, and the report command or retained files for full history.
 
 ### Other stdio runtimes
 

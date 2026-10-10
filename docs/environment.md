@@ -359,14 +359,15 @@ report. This command launches no jobs or runtime sessions:
 uv run --locked --exact python tests/probes/m3_pickup.py --workspace "$HOME/Projects/entanglix-research/6b3-pickup-20261009" --output tests/probes/m3_pickup_results.json
 ```
 
-The [Claude Code pick-up probe](../tests/probes/m3_pickup_claude.py) rebuilds the
-four retained 2026-10-10 sessions' [results](../tests/probes/m3_pickup_claude_results.json)
+The [cut-off pick-up probe](../tests/probes/m3_pickup_cutoff.py) rebuilds the
+retained 2026-10-10 sessions' [results](../tests/probes/m3_pickup_cutoff_results.json),
+four on Claude Code and one on Codex,
 from each workspace's runs, MCP launch audit, and session output. Each workspace's
 `operator/` directory holds the scripts and prompt that produced it. This command
 launches no jobs or runtime sessions:
 
 ```sh
-uv run --locked --exact python tests/probes/m3_pickup_claude.py --workspace "$HOME/Projects/entanglix-research/6b4-pickup-claude-20261010" "$HOME/Projects/entanglix-research/6b4-pickup-claude-20261010-b" "$HOME/Projects/entanglix-research/6b4-pickup-claude-20261010-c" "$HOME/Projects/entanglix-research/6b4-pickup-claude-20261010-d" --output tests/probes/m3_pickup_claude_results.json
+uv run --locked --exact python tests/probes/m3_pickup_cutoff.py --workspace "$HOME/Projects/entanglix-research/6b4-pickup-claude-20261010" "$HOME/Projects/entanglix-research/6b4-pickup-claude-20261010-b" "$HOME/Projects/entanglix-research/6b4-pickup-claude-20261010-c" "$HOME/Projects/entanglix-research/6b4-pickup-claude-20261010-d" "$HOME/Projects/entanglix-research/6b4-pickup-codex-20261010" --output tests/probes/m3_pickup_cutoff_results.json
 ```
 
 ## MCP response summaries
@@ -380,7 +381,7 @@ links. No agent-runtime session is needed:
 TMPDIR=/var/tmp UV_PROJECT_ENVIRONMENT="$PWD/.venv-mcp" uv run --locked --exact --extra mcp pytest -q tests/test_mcp.py tests/test_mcp_views.py tests/test_research_guidance.py tests/test_agent_evaluation.py -m "not gpu"
 ```
 
-Read-only measurements on the second retained [Claude Code pick-up investigation](../tests/probes/m3_pickup_claude_results.json),
+Read-only measurements on the second retained [Claude Code pick-up investigation](../tests/probes/m3_pickup_cutoff_results.json),
 `i20261010T165839906785Z-85f1d3ed`, cover 42 attempts and 8 events in
 `6b4-pickup-claude-20261010-b/normal/runs`. JSON views use the compact representation
 sent by MCP; the report is Markdown:

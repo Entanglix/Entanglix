@@ -1,5 +1,5 @@
 {
-  "summary_builder_sha256": "8dc1c9e5dbfef01724e44d80cb90aa11ba731c64db7252b7eafa11eedd585a12",
+  "summary_builder_sha256": "cea51d67972b795f683b3325a38a9f770e692602bb9a8a3365548dbb5e730159",
   "runs": [
     {
       "workspace": "/home/paimon/Projects/entanglix-research/6b4-pickup-claude-20261010",
@@ -695,6 +695,165 @@
         },
         {
           "ej_ghz": 15.0,
+          "stage": "normal",
+          "lower": 0.001375,
+          "upper": 0.0015,
+          "width_ghz": 0.0001250000000000001,
+          "margins": [
+            -0.0007773101407673091,
+            0.0006238591456002671
+          ],
+          "refinement_changes": [
+            7.938126478368446e-08,
+            7.921913980357687e-08
+          ],
+          "confirmed": true,
+          "claim_agrees": true
+        }
+      ],
+      "stages_beyond_normal_terms": [],
+      "criteria": {
+        "interrupted_attempt_reconciled": true,
+        "rerun_linked_to_interrupted_attempt": true,
+        "no_repeated_point_or_check": true,
+        "report_cites_every_attempt": true,
+        "normal_brackets_confirmed": true,
+        "stopped": true,
+        "later_jobs_launched_through_mcp": true
+      },
+      "pickup_criteria_met": true
+    },
+    {
+      "workspace": "/home/paimon/Projects/entanglix-research/6b4-pickup-codex-20261010",
+      "runtime": "codex-cli 0.162.1",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "conduct_version": "0.1.6",
+      "command_restriction": "runtime-configured; workspace-write sandbox with a shell",
+      "conduct_in_initial_context": true,
+      "development_instructions_present": false,
+      "before_pickup": {
+        "state": "active",
+        "usage": {
+          "jobs": 25,
+          "evaluated_points": 23,
+          "job_seconds": 119.77145930111874,
+          "gpu_seconds": 0.0,
+          "committed_job_seconds": 180.0,
+          "unsettled_jobs": 1,
+          "unbounded_jobs": 0
+        },
+        "checkpoint": {
+          "due": false,
+          "finished_attempts": 24,
+          "since_assessment": 4,
+          "elapsed_seconds": 28.84365
+        },
+        "cut_run": {
+          "path": "/home/paimon/Projects/entanglix-research/6b4-pickup-codex-20261010/normal/runs/readout/r20261010T203319932877Z-7a507a86",
+          "run_id": "r20261010T203319932877Z-7a507a86",
+          "status": "interrupted",
+          "protocol": "simulate",
+          "base": "lab",
+          "varied_values": {
+            "evolution.drive_amplitudes_ghz.readout": 0.001375,
+            "parameters.EJ": 15.0,
+            "evolution.carriers.readout.frequency_ghz": 7.002760675881172
+          },
+          "has_result": false,
+          "has_finished": false
+        },
+        "client_exit_code": -9
+      },
+      "session": {
+        "is_error": false,
+        "elapsed_seconds": 205.97825208699214,
+        "input_tokens": 997657,
+        "cached_input_tokens": 926208,
+        "output_tokens": 8609,
+        "model_requests": 17,
+        "windows_used_percent": {
+          "five_hour": {
+            "first": 0.0,
+            "last": 4.0
+          },
+          "weekly": {
+            "first": 12.0,
+            "last": 13.0
+          }
+        },
+        "tool_calls": {
+          "abort_run": 1,
+          "check": 2,
+          "list_capabilities": 1,
+          "list_investigations": 1,
+          "read_investigation": 10,
+          "read_run": 31,
+          "reconcile_run": 1,
+          "record_finding": 3,
+          "rerun_simulation": 1,
+          "simulate": 3,
+          "stop_investigation": 1
+        },
+        "refused_calls": [
+          {
+            "tool": "abort_run",
+            "message": "Error executing tool abort_run: only an active, started attempt can be aborted"
+          }
+        ],
+        "run_reads_with_detail": 31,
+        "reply_characters": {
+          "largest": 67202,
+          "total": 461910
+        }
+      },
+      "state": "stopped",
+      "open_reviews": [],
+      "stop_reason": "evidence_completion",
+      "usage": {
+        "jobs": 31,
+        "evaluated_points": 27,
+        "job_seconds": 179.6039320921409,
+        "gpu_seconds": 0.0,
+        "committed_job_seconds": 180.0,
+        "unsettled_jobs": 1,
+        "unbounded_jobs": 0
+      },
+      "jobs_after_pickup": 6,
+      "launch_tools_after_pickup": {
+        "rerun_simulation": 1,
+        "simulate": 3,
+        "check": 2
+      },
+      "repeated_points": [],
+      "repeated_checks": [],
+      "report_runs_cited": 31,
+      "last_finding": {
+        "kind": "report",
+        "decision": "stop",
+        "runs_cited": 31
+      },
+      "attempts": 31,
+      "brackets": [
+        {
+          "ej_ghz": 13.5,
+          "stage": "normal",
+          "lower": 0.00175,
+          "upper": 0.001875,
+          "width_ghz": 0.0001249999999999999,
+          "margins": [
+            -0.0004010229925077626,
+            0.0006950817121240769
+          ],
+          "refinement_changes": [
+            1.6861156804104382e-07,
+            2.4229274597775685e-07
+          ],
+          "confirmed": true,
+          "claim_agrees": true
+        },
+        {
+          "ej_ghz": 15,
           "stage": "normal",
           "lower": 0.001375,
           "upper": 0.0015,

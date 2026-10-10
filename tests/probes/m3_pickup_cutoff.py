@@ -1,8 +1,8 @@
-"""Rebuild the recorded Claude Code pick-up evidence; never launch a job or runtime.
+"""Rebuild the recorded pick-up evidence after a cut-off job; never launch a job or runtime.
 
 Each workspace holds an investigation whose scripted client was killed during a
-solve, then one headless Claude Code session asked only to continue it. The
-summary is read from the retained runs, MCP launch audit and session output.
+solve, then one headless Claude Code or Codex session asked only to continue it.
+The summary is read from the retained runs, MCP launch audit and session output.
 """
 
 import argparse
@@ -20,14 +20,13 @@ EVALUATION = runpy.run_path(str(Path(__file__).with_name("m3_evaluation.py")))
 MCP = "mcp__entanglix__"
 
 
-def report(root):
-    operator, workspace = root / "operator", root / "normal"
-    before = json.loads((operator / "before-pickup.json").read_text())
-    events = [
-        json.loads(line)
-        for line in (workspace / "evidence/pickup.jsonl").read_text().splitlines()
-        if line.strip()
-    ]
+def stream(workspace):
+    lines = (workspace / "evidence/pickup.jsonl").read_text().splitlines()
+    return [json.loads(line) for line in lines if line.strip()]
+
+
+def claude_session(operator, workspace):
+    events = stream(workspace)
     start = next(item for item in events if item.get("subtype") == "init")
     end = next(item for item in reversed(events) if item["type"] == "result")
     windows = [
@@ -62,6 +61,96 @@ def report(root):
                     )
                 elif part.get("is_error"):
                     refused.append({"tool": name, "message": text.split("refused: ")[-1][:90]})
+    transcript = (workspace / "evidence/pickup-transcript.jsonl").read_text().splitlines()
+    conduct = [
+        line for line in (workspace / "CLAUDE.md").read_text().splitlines() if len(line) > 40
+    ]
+    initial = transcript[
+        : next(i for i, line in enumerate(transcript) if json.loads(line)["type"] == "assistant")
+    ]
+    return (
+        {"runtime": f"Claude Code {start['claude_code_version']}", "model": start["model"]},
+        {
+            "command_restriction": "instruction-only; the session had no shell tool",
+            # Counted, not asserted whole: the transcript escapes some punctuation.
+            "conduct_lines_before_first_reply": [
+                sum(
+                    any(line in entry or json.dumps(line)[1:-1] in entry for entry in initial)
+                    for line in conduct
+                ),
+                len(conduct),
+            ],
+            "development_instructions_present": any(
+                mark in "\n".join(transcript)
+                for mark in EVALUATION["GUIDANCE"]["DEVELOPMENT_MARKERS"]
+            ),
+        },
+        {
+            "is_error": end["is_error"],
+            "model_requests": end["num_turns"],
+            "elapsed_seconds": end["duration_ms"] / 1000,
+            **{
+                key: end["usage"][key]
+                for key in (
+                    "input_tokens",
+                    "cache_creation_input_tokens",
+                    "cache_read_input_tokens",
+                    "output_tokens",
+                )
+            },
+            "windows_used_percent": {"first": windows[0], "last": windows[-1]},
+            "tool_calls": dict(sorted(tools.items())),
+            "refused_calls": refused,
+            "results_rejected_by_runtime": rejected,
+        },
+    )
+
+
+def codex_session(operator, workspace):
+    phase = json.loads((operator / "pickup-phase.json").read_text())
+    usage = EVALUATION["runtime_usage"](workspace / "evidence/pickup-transcript.jsonl")
+    server = tomllib.loads((workspace / ".codex/config.toml").read_text())["mcp_servers"]
+    arguments = server["entanglix"]["args"]
+    calls = [
+        item["item"]
+        for item in stream(workspace)
+        if item["type"] == "item.completed" and item["item"]["type"] == "mcp_tool_call"
+    ]
+    sizes = [len(json.dumps(call["result"])) for call in calls]
+    return (
+        {"runtime": phase["runtime"], "model": phase["model"], "effort": phase["effort"]},
+        {
+            "command_restriction": arguments[arguments.index("--command-restriction") + 1]
+            + "; workspace-write sandbox with a shell",
+            "conduct_in_initial_context": phase["conduct_in_initial_context"],
+            "development_instructions_present": phase["development_instructions_present"],
+        },
+        {
+            "is_error": bool(phase["exit_code"] or phase["errors"]),
+            "elapsed_seconds": phase["elapsed_seconds"],
+            **usage,
+            "tool_calls": dict(sorted(collections.Counter(call["tool"] for call in calls).items())),
+            "refused_calls": [
+                {"tool": call["tool"], "message": call["result"]["content"][0]["text"][:90]}
+                for call in calls
+                if call["status"] == "failed"
+            ],
+            "run_reads_with_detail": sum(
+                call["tool"] == "read_run" and bool(call["arguments"].get("detail"))
+                for call in calls
+            ),
+            "reply_characters": {"largest": max(sizes), "total": sum(sizes)},
+        },
+    )
+
+
+def report(root):
+    operator, workspace = root / "operator", root / "normal"
+    before = json.loads((operator / "before-pickup.json").read_text())
+    guidance = "AGENTS.md" if (workspace / "AGENTS.md").is_file() else "CLAUDE.md"
+    identity, delivery, session = (codex_session if guidance == "AGENTS.md" else claude_session)(
+        operator, workspace
+    )
     records = {
         path.parent.name: runner.read_run(path.parent)
         for path in sorted((workspace / "runs").glob("*/*/run.toml"))
@@ -128,13 +217,6 @@ def report(root):
         if cut in records[run]["manifest"].get("parent_run_ids", [])
         and records[run]["manifest"]["protocol"] == "simulate"
     ]
-    transcript = (workspace / "evidence/pickup-transcript.jsonl").read_text().splitlines()
-    conduct = [
-        line for line in (workspace / "CLAUDE.md").read_text().splitlines() if len(line) > 40
-    ]
-    initial = transcript[
-        : next(i for i, line in enumerate(transcript) if json.loads(line)["type"] == "assistant")
-    ]
     criteria = {
         "interrupted_attempt_reconciled": "reconciliation" in records[cut],
         "rerun_linked_to_interrupted_attempt": bool(reruns),
@@ -147,45 +229,16 @@ def report(root):
     }
     return {
         "workspace": str(root),
-        "runtime": f"Claude Code {start['claude_code_version']}",
-        "model": start["model"],
-        "conduct_version": re.search(
-            r"^version: (\S+)", (workspace / "CLAUDE.md").read_text(), re.M
-        )[1],
-        "command_restriction": "instruction-only; the session had no shell tool",
-        # Counted, not asserted whole: the transcript escapes some punctuation.
-        "conduct_lines_before_first_reply": [
-            sum(
-                any(line in entry or json.dumps(line)[1:-1] in entry for entry in initial)
-                for line in conduct
-            ),
-            len(conduct),
+        **identity,
+        "conduct_version": re.search(r"^version: (\S+)", (workspace / guidance).read_text(), re.M)[
+            1
         ],
-        "development_instructions_present": any(
-            mark in "\n".join(transcript) for mark in EVALUATION["GUIDANCE"]["DEVELOPMENT_MARKERS"]
-        ),
+        **delivery,
         "before_pickup": {
             key: before[key]
             for key in ("state", "usage", "checkpoint", "cut_run", "client_exit_code")
         },
-        "session": {
-            "is_error": end["is_error"],
-            "model_requests": end["num_turns"],
-            "elapsed_seconds": end["duration_ms"] / 1000,
-            **{
-                key: end["usage"][key]
-                for key in (
-                    "input_tokens",
-                    "cache_creation_input_tokens",
-                    "cache_read_input_tokens",
-                    "output_tokens",
-                )
-            },
-            "windows_used_percent": {"first": windows[0], "last": windows[-1]},
-            "tool_calls": dict(sorted(tools.items())),
-            "refused_calls": refused,
-            "results_rejected_by_runtime": rejected,
-        },
+        "session": session,
         "state": investigation["state"],
         "open_reviews": investigation["open_reviews"],
         "stop_reason": next(
