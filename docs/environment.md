@@ -360,13 +360,13 @@ uv run --locked --exact python tests/probes/m3_pickup.py --workspace "$HOME/Proj
 ```
 
 The [Claude Code pick-up probe](../tests/probes/m3_pickup_claude.py) rebuilds the
-three retained 2026-10-10 sessions' [results](../tests/probes/m3_pickup_claude_results.json)
+four retained 2026-10-10 sessions' [results](../tests/probes/m3_pickup_claude_results.json)
 from each workspace's runs, MCP launch audit, and session output. Each workspace's
 `operator/` directory holds the scripts and prompt that produced it. This command
 launches no jobs or runtime sessions:
 
 ```sh
-uv run --locked --exact python tests/probes/m3_pickup_claude.py --workspace "$HOME/Projects/entanglix-research/6b4-pickup-claude-20261010" "$HOME/Projects/entanglix-research/6b4-pickup-claude-20261010-b" "$HOME/Projects/entanglix-research/6b4-pickup-claude-20261010-c" --output tests/probes/m3_pickup_claude_results.json
+uv run --locked --exact python tests/probes/m3_pickup_claude.py --workspace "$HOME/Projects/entanglix-research/6b4-pickup-claude-20261010" "$HOME/Projects/entanglix-research/6b4-pickup-claude-20261010-b" "$HOME/Projects/entanglix-research/6b4-pickup-claude-20261010-c" "$HOME/Projects/entanglix-research/6b4-pickup-claude-20261010-d" --output tests/probes/m3_pickup_claude_results.json
 ```
 
 ## MCP response summaries
