@@ -29,11 +29,11 @@ Run the gate through the CPU runner, with the `differentiable` extra in its esta
 ENTANGLIX_RUNNER_EXTRAS=differentiable uv run --locked --exact entanglix control examples/transmon-control/control.toml --runs-root research_runs/m4-control
 ```
 
-For the documented GPU workstation use its existing `cuquantum,differentiable-cuda12` runner profile instead. This solve still uses CPU only. The [control reference](../../docs/operations/control.md#launch-and-solver-selection) describes the environment, solver options and neutral pulse. [Baseline evidence](../../tests/probes/m4_baseline_results.json) retains the run, convergence and first/later objective-call costs. The candidate's objective is solver-reported; no independent control check is claimed.
+For the documented GPU workstation use its existing `cuquantum,differentiable-cuda12` runner profile instead. This solve still uses CPU only. The [control reference](../../docs/operations/control.md#launch-and-solver-selection) describes the environment, solver options and neutral pulse. [Baseline evidence](../../tests/probes/m4_baseline_results.json) retains the run, convergence and first/later objective-call costs. The candidate's objective is solver-reported; the requested independent checks are recorded below.
 
 The retained `grape` candidate reports fidelity **0.9996150467**, against the declared 0.999 target, after 30 SLSQP iterations and 39 objective/gradient calls. It reports successful convergence and took 16.2 s of job time. The first call took 12.4 s with tracing/compilation included; the second took 0.079 s. Subsequent calls had a median of 0.061 s, and subsequent iterations 0.074 s. These are CPU workstation measurements; the solve ran before the regression checks.
 
-The neutral pulse lasts exactly 20 ns. Both channels reach their `0.0540542252 GHz` amplitude bound; the largest first difference is `0.0780027637 GHz/ns`, and the second difference reaches its `0.0900903754 GHz/ns²` bound within floating-point roundoff. Q and R are listed as ignored guidance by the pure-fidelity baseline. Random initialization uses the declared seed with 10% of the amplitude bounds. A preliminary full-bound initialization converged to only 0.97468 on this problem; convergence alone therefore does not establish the target. This candidate remains a closed-model RWA result, awaiting an independently requested control replay and target check.
+The neutral pulse lasts exactly 20 ns. Both channels reach their `0.0540542252 GHz` amplitude bound; the largest first difference is `0.0780027637 GHz/ns`, and the second difference reaches its `0.0900903754 GHz/ns²` bound within floating-point roundoff. Q and R are listed as ignored guidance by the pure-fidelity baseline. Random initialization uses the declared seed with 10% of the amplitude bounds. A preliminary full-bound initialization converged to only 0.97468 on this problem; convergence alone therefore does not establish the target. This candidate remains a closed-model RWA result; its requested replay, target and constraints checks pass as recorded below.
 
 ## Piccolo candidate
 
@@ -45,4 +45,23 @@ OPENBLAS_NUM_THREADS=1 uv run --locked --exact entanglix control examples/transm
 
 Keep the workstation's established runner extras profile; Piccolo itself needs no Python extra. [Retained evidence](../../tests/probes/m4_piccolo_results.json) records Julia 1.13.0, Piccolo 2.1.0, the pinned project digests, native pulse and neutral pulse, and both solver settings as arguments. The candidate reports fidelity **0.9999999922** against the 0.999 target, with native objective **0.0000104719795** including regularisation. It reached the declared 100-iteration cap at tolerance `1e-8`, so `converged = false`. The native solve took 18.0 s; the job took 26.8 s including Julia startup and compilation, with no concurrent regression work. Removing the scalar drift offset avoids the slow solve in the earlier export; these workstation timings are not a solver speed comparison.
 
-The returned duration is `19.999999999995616 ns`. Channel maxima are `0.0515972200` and `0.0502446944 GHz`; the largest first and second differences are `0.0598031177 GHz/ns` and `0.0721359481 GHz/ns²`, below the declared bounds. These are quantities recomputed from the neutral pulse, not built-in check outcomes. As with the baseline, this is a closed-model RWA candidate awaiting a requested independent replay and target check.
+The returned duration is `19.999999999995616 ns`. Channel maxima are `0.0515972200` and `0.0502446944 GHz`; the largest first and second differences are `0.0598031177 GHz/ns` and `0.0721359481 GHz/ns²`, below the declared bounds. These are quantities recomputed from the neutral pulse, not built-in check outcomes. As with the baseline, this is a closed-model RWA candidate; its requested replay, target and constraints checks pass as recorded below.
+
+## Requested check evidence
+
+The [retained check summary](../../tests/probes/m4_control_checks_results.json) records replay, target and constraints checks on both candidates, with the same generated ProblemSpec digest shown above. Independent QuTiP `vern9` replay uses `rtol=1e-11` and `atol=1e-13`.
+
+| Candidate | Replayed fidelity | Difference from solver report | Leakage | Replay / target / constraints |
+|---|---:|---:|---:|---|
+| GRAPE | 0.9996150466896573 | 3.15e-11 | 2.98e-5 | pass / pass / pass |
+| Piccolo | 0.9999999942451363 | 2.05e-9 | 5.44e-9 | pass / pass / pass |
+
+The target is 0.999; replay agreement is checked within `1e-7`. Constraints cover the returned amplitudes, the frozen time-step bracket, and first and second differences including the terminal knot. Leakage is reported without a threshold. Piccolo's iteration-cap outcome remains `converged = false` even though its candidate passes these checks.
+
+Request these checks on any completed candidate with:
+
+```sh
+entanglix check research_runs/<system_id>/<run_id> replay target constraints
+```
+
+These checks establish the returned pulse's behavior within the declared closed rotating-frame model. They do not establish device-model, dissipative or lab-frame accuracy. To solve inside an investigation or rerun a retained candidate, use the [control reference](../../docs/operations/control.md#investigations-and-reruns); each solver selection belongs to its own exact approved base.

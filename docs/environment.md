@@ -442,7 +442,7 @@ Rebuild the compact summary from a completed candidate without another solve:
 uv run --locked --exact python tests/probes/m4_baseline.py RUN --output tests/probes/m4_baseline_results.json
 ```
 
-The [retained baseline summary](../tests/probes/m4_baseline_results.json) links the candidate and its trace. Timings include JAX compilation on cold calls and are workstation measurements. The example records the solver-reported fidelity and numerical constraints; independent control checks follow separately.
+The [retained baseline summary](../tests/probes/m4_baseline_results.json) links the candidate and its trace. Timings include JAX compilation on cold calls and are workstation measurements. The example records the solver-reported fidelity and numerical constraints; its independent checks are linked under [control check acceptance](#control-check-acceptance).
 
 ## Piccolo adapter acceptance
 
@@ -460,7 +460,7 @@ TMPDIR=/var/tmp OPENBLAS_NUM_THREADS=1 ENTANGLIX_RUNNER_EXTRAS=cuquantum,differe
 uv run --locked --exact python tests/probes/m4_piccolo.py RUN --output tests/probes/m4_piccolo_results.json
 ```
 
-The [candidate summary](../tests/probes/m4_piccolo_results.json) records the shared problem digest, native objective, separately reported fidelity, iteration-cap outcome, runtime provenance and pulse differences. The [example](../examples/transmon-control/README.md#piccolo-candidate) states the measurements and their limits. Independent control checks follow separately.
+The [candidate summary](../tests/probes/m4_piccolo_results.json) records the shared problem digest, native objective, separately reported fidelity, iteration-cap outcome, runtime provenance and pulse differences. The [example](../examples/transmon-control/README.md#piccolo-candidate) states the measurements and their limits. Independent checks are linked under [control check acceptance](#control-check-acceptance).
 
 
 ## Control check acceptance
@@ -481,3 +481,13 @@ export ENTANGLIX_RUNNER_EXTRAS=cuquantum,differentiable-cuda12
 JAX_PLATFORMS=cpu XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact entanglix check research_runs/m4-control/junction_with_shunt/r20261011T134458228287Z-2e465951 replay target constraints
 JAX_PLATFORMS=cpu XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact entanglix check research_runs/m4-control/junction_with_shunt/r20261011T134524092210Z-875bff8c replay target constraints
 ```
+
+## Control investigation acceptance
+
+The [control investigation tests](../tests/test_control_investigations.py) run in isolated runner checkouts with a test-only solver installed through its distribution entry point. They require neither Julia nor GPU packages. Retain their CPU report with:
+
+```sh
+TMPDIR=/var/tmp uv run --locked --exact pytest -q tests/test_control_investigations.py --junitxml=tests/probes/m4_control_investigations.xml
+```
+
+The [report](../tests/probes/m4_control_investigations.xml) records exact-base admission, requested check findings, usage and limits, stop/deadline handling, and CLI/detached linked reruns under current revisions. The [first-gate example](../examples/transmon-control/README.md#requested-check-evidence) records both open solvers' existing candidates and their requested checks; those solves need not be repeated for investigation admission changes.

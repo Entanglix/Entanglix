@@ -5,10 +5,9 @@ revisions and events are retained under `research_runs/_investigations/`, or the
 root passed to `--runs-root`. Reads and listings reconstruct state from these files.
 
 The available commands manage drafts, starts, revision approvals, findings,
-checkpoint/review gates, stops, resumes, and job admission. `simulate`, `sweep`, and
-authored scripts can link jobs to an
-investigation; checks and reruns inherit that membership. Scope and optional limits
-are enforced.
+checkpoint/review gates, stops, resumes, and job admission. `simulate`, `sweep`,
+`control`, and authored scripts can link jobs to an investigation; checks and
+reruns inherit that membership. Scope and optional limits are enforced.
 
 ## Declare the terms
 
@@ -57,7 +56,8 @@ finished_attempts = 10
 Each base has a unique name and relative input filenames with lowercase SHA-256
 digests. Every base includes `system.toml`. Use the runner's fixed names for the
 system (`system.toml`), simulation protocol (`simulate.toml`, even when authored as
-`readout.toml`), and script (`script.py`); subsystem and data filenames are retained.
+`readout.toml`), control input (`control.toml`), and script (`script.py`); subsystem
+and data filenames are retained.
 A variation declares either a closed
 `range = [lower, upper]` or unique `values = [...]`. The supported targets are
 `parameters.<name>`, `evolution.drive_amplitudes_ghz.<drive>`,
@@ -139,6 +139,12 @@ the same runs root.
 
 An authored script uses `run-script ... --investigation <investigation_id> --base
 <base_name>` and must match an exact bundle, including the script, system, and data.
+
+A [control solve](control.md#investigations-and-reruns) also requires an exact
+bundle, including the authored control input, system and data. Control has no
+varied targets; changing the solver requires another approved base. `rerun-control`
+inherits membership and uses current approved terms.
+
 A named check on a linked source automatically belongs to its investigation:
 
 ```sh

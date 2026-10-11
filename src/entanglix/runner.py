@@ -336,7 +336,7 @@ def create_run(
     from entanglix.investigations import admit, investigation_path
 
     path = investigation_path(runs_root, investigation_id)
-    if protocol not in {"simulate", "sweep", "script", "verification"}:
+    if protocol not in {"simulate", "sweep", "script", "verification", "control"}:
         raise ValueError("unsupported investigation operation")
     hashes = (
         base_inputs

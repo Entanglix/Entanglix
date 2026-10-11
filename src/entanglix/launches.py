@@ -20,13 +20,14 @@ current_launch: ContextVar[Path | None] = ContextVar("current_launch", default=N
 
 def _operation(name):
     from entanglix.corrector.verification import check_run
-    from entanglix.protocols.control import control
+    from entanglix.protocols.control import control, rerun_control
     from entanglix.protocols.simulate import rerun_simulation, simulate
     from entanglix.protocols.sweep import rerun_sweep, sweep
     from entanglix.runner import rerun_script, run_script
 
     operations = {
         "control": control,
+        "rerun_control": rerun_control,
         "simulate": simulate,
         "sweep": sweep,
         "run_script": run_script,

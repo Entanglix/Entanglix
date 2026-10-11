@@ -145,6 +145,11 @@ def _main(argv: list[str] | None = None) -> int:
         "--dry-run", action="store_true", help="validate the model and solver without a run"
     )
     controlling.add_argument("--parent-run", action="append", default=[])
+    control_replay = subcommands.add_parser(
+        "rerun-control", help="re-solve frozen control inputs with linked lineage"
+    )
+    control_replay.add_argument("run", type=Path)
+    control_replay.add_argument("--runs-root", type=Path)
     replay = subcommands.add_parser(
         "rerun-simulation",
         help="replay a frozen simulation with linked lineage",
@@ -161,7 +166,17 @@ def _main(argv: list[str] | None = None) -> int:
     )
     grid_replay.add_argument("run", type=Path)
     grid_replay.add_argument("--runs-root", type=Path)
-    for job_parser in (script, rerun, checking, simulation, replay, grid, grid_replay, controlling):
+    for job_parser in (
+        script,
+        rerun,
+        checking,
+        simulation,
+        replay,
+        grid,
+        grid_replay,
+        controlling,
+        control_replay,
+    ):
         job_parser.add_argument(
             "--detach",
             action="store_true",
@@ -207,7 +222,7 @@ def _main(argv: list[str] | None = None) -> int:
     stopping.add_argument("investigation", type=Path)
     stopping.add_argument("reason", help="stop reason; see the investigation reference")
     stopping.add_argument("--note", default="")
-    for launch_parser in (script, simulation, grid):
+    for launch_parser in (script, simulation, grid, controlling):
         launch_parser.add_argument(
             "--investigation", help="started investigation ID under the runs root"
         )
@@ -304,6 +319,7 @@ def _main(argv: list[str] | None = None) -> int:
         "rerun-script",
         "check",
         "control",
+        "rerun-control",
         "simulate",
         "rerun-simulation",
         "sweep",
@@ -325,6 +341,7 @@ def _main(argv: list[str] | None = None) -> int:
             "rerun-script",
             "check",
             "control",
+            "rerun-control",
             "simulate",
             "rerun-simulation",
             "sweep",
@@ -389,15 +406,21 @@ def _main(argv: list[str] | None = None) -> int:
                     timeout_seconds=args.timeout,
                     refinement=args.refinement,
                 )
-            elif args.command == "control":
-                from entanglix.protocols.control import control
+            elif args.command in {"control", "rerun-control"}:
+                from entanglix.protocols.control import control, rerun_control
 
-                result = execute(
-                    control,
-                    args.protocol,
-                    runs_root=args.runs_root,
-                    parent_run_ids=tuple(args.parent_run),
-                    dry_run=args.dry_run,
+                result = (
+                    execute(
+                        control,
+                        args.protocol,
+                        runs_root=args.runs_root,
+                        parent_run_ids=tuple(args.parent_run),
+                        dry_run=args.dry_run,
+                        investigation_id=args.investigation,
+                        base=args.base,
+                    )
+                    if args.command == "control"
+                    else execute(rerun_control, args.run, runs_root=args.runs_root)
                 )
             elif args.command in {"simulate", "rerun-simulation"}:
                 from entanglix.protocols.simulate import rerun_simulation, simulate
@@ -456,6 +479,7 @@ def _main(argv: list[str] | None = None) -> int:
                 "rerun-script",
                 "check",
                 "control",
+                "rerun-control",
                 "simulate",
                 "rerun-simulation",
                 "sweep",

@@ -1,6 +1,6 @@
 # Closed-system control
 
-Control inputs can be compiled through Python or solved on CPU through `entanglix control`. The open `grape` backend uses JAX gradients through dynamiqs and SciPy SLSQP with explicit constraints. The optional `piccolo` backend runs Piccolo directly in Julia through a pinned project. Control checks are not yet available.
+Control inputs can be compiled through Python or solved on CPU through `entanglix control`. The open `grape` backend uses JAX gradients through dynamiqs and SciPy SLSQP with explicit constraints. The optional `piccolo` backend runs Piccolo directly in Julia through a pinned project. Named replay, target and constraints checks run on request.
 
 The [transmon example](../../examples/transmon-control/control.toml) declares a closed-system X gate in a rotating frame, with two quadratures of the charge drive. It uses the existing [system format](system-spec.md), including its basis and tensor order.
 
@@ -63,7 +63,7 @@ uv run --locked --exact entanglix control examples/transmon-control/control.toml
 uv run --locked --exact entanglix control examples/transmon-control/control.toml --runs-root research_runs
 ```
 
-On the documented GPU workstation the established profile is `cuquantum,differentiable-cuda12`; keep that profile. A control job still runs on CPU, with CUDA hidden. `--detach`, `read-run --wait`, timeouts, cancellation and interrupted-attempt reconciliation follow the [run reference](runs.md). Control investigation admission, linked control reruns and MCP exposure are not yet available.
+On the documented GPU workstation the established profile is `cuquantum,differentiable-cuda12`; keep that profile. A control job still runs on CPU, with CUDA hidden. `--detach`, `read-run --wait`, timeouts, cancellation and interrupted-attempt reconciliation follow the [run reference](runs.md). Investigation admission and linked control reruns are available. Control tools are not yet exposed through MCP.
 
 Solvers are discovered through `entanglix.solvers` entry points. Each entry loads a backend factory implementing `capabilities()` and `solve(problem_spec, options)`. The `problem_spec` argument is a `Path` to the frozen, unchanged `RUN/spec/problem.toml`; `options` is the separate solver-options table. Backends may derive `RUN` from that path and list retained native files in `Solution.trace["native_artifacts"]` as names mapped to paths relative to `RUN`, for the job to digest and record. This gives every backend the same file, including one that passes it to another process. The built-in entries are `grape` and `piccolo`. An optional `validate(problem_spec, options)` method checks support before admission and again in the job; any returned runtime provenance is included in the environment hash. A missing named solver fails before any attempt is created, unless a declared `fallback` exists. A fallback is used only when the named entry is absent; it does not hide an installed solver's unsupported input or execution failure. The preview, manifest and result name the requested and actual solver, its distribution version and whether fallback was used.
 
@@ -85,6 +85,20 @@ The existing differentiable engine evolves one maximally entangled input with a 
 For fixed step `dt = T/(N-1)`, constraints act on `diff(amplitudes)/dt` (N−1 first differences) and `diff(amplitudes, n=2)/dt²` (N−2 second differences). They include the amplitude jump to the terminal knot. No zero endpoint derivative is imposed. Amplitude bounds are SciPy bounds, and derivative bounds are linear constraints, never penalties. The [solver tests](../../tests/test_control_solver.py) recompute an active bound from the pulse and compare its objective and gradient with independent matrix-exponential propagation, including leakage.
 
 The frozen `spec/` contains `control.toml`, model inputs and `problem.toml`. `result.toml` carries the pulse and trace artifact digests, actual solver/version, the solver-native `objective`, `metrics.solver_reported_fidelity` when supplied by the backend, ignored guidance fields and `termination` (`converged`, solver status/message, iterations, objective evaluations). `artifacts/solver-trace.toml` retains per-objective and per-iteration timings. A backend returns fidelity separately from its native objective, which may include regularizers; the runner never derives fidelity from that objective. These are solver-reported candidate quantities, not built-in check outcomes. A solve reaching its iteration cap can still be an executed, completed job with `converged = false`.
+
+## Investigations and reruns
+
+An investigation may permit `control` and `check` with an exact-match base. Its input digests cover the authored control, system and referenced assets, using the canonical names `control.toml` and `system.toml`; the generated `problem.toml` is not an authored base input. Control accepts no varied targets. A different solver or solver-options table needs a separately approved base, even when it generates the same ProblemSpec. See the [investigation reference](investigations.md) for complete terms and user decisions.
+
+```sh
+entanglix control control.toml --runs-root research_runs --investigation <investigation_id> --base <base_name>
+entanglix check research_runs/<system_id>/<run_id> replay target constraints
+entanglix rerun-control research_runs/<system_id>/<run_id> --detach
+```
+
+The solve and each requested check are separate admitted jobs. They count toward the investigation's usage and optional limits; its stop and deadline terminate their process groups. Requested checks remain client-issued. Findings report checks run, requested checks not run and relevant checks not run, including for control candidates.
+
+An investigation run retains original base bytes under `spec/base/`, including the original system filename when the authored control uses another name. `rerun-control` verifies the frozen input digests and creates a new attempt linked to the source. It retains investigation membership and the runs root, and passes admission under the current approved revision. Standalone control reruns need no investigation. Reruns use current code and environment, recording whether they match the source; they do not require a provenance match. The [run reference](runs.md) describes detached supervision and recovery.
 
 ## Piccolo
 

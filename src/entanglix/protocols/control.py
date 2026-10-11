@@ -263,6 +263,7 @@ def compile_control(
     *,
     repository: Path | None = None,
     extras=(),
+    retain_base=False,
 ) -> dict:
     """Prepare immutable input bytes for the runner; this creates no attempt."""
     loaded = load_control(protocol)
@@ -295,12 +296,21 @@ def compile_control(
         if hashlib.sha256(content).hexdigest() != loaded.input_digests[name]:
             raise ValueError(f"control input changed during compilation: {name}")
         frozen[name] = content
+    base_inputs = loaded.input_digests if retain_base else {}
+    base_files = {}
+    if retain_base:
+        # Admission and reruns use the authored bytes, before canonicalization.
+        base_files = {f"base/{name}": content for name, content in frozen.items()}
+        if loaded.definition.system != "system.toml":
+            base_files[f"base/{loaded.definition.system}"] = frozen["system.toml"]
     # Use the runner's canonical system filename in the frozen control input.
     definition = loaded.definition.model_dump(exclude_none=True)
     definition["system"] = "system.toml"
     frozen["control.toml"] = tomli_w.dumps(definition).encode("utf-8")
     frozen["problem.toml"] = loaded.problem_bytes
+    frozen.update(base_files)
     for name, content in frozen.items():
+        (directory / name).parent.mkdir(parents=True, exist_ok=True)
         with (directory / name).open("xb") as target:
             target.write(content)
         (directory / name).chmod(0o444)
@@ -310,6 +320,8 @@ def compile_control(
         "spec_sha256": {name: hashlib.sha256(data).hexdigest() for name, data in frozen.items()},
         "problem_sha256": loaded.digest,
         "preview": loaded.listing,
+        "base_inputs": base_inputs,
+        "scope_values": [{}],
     }
     if repository is not None:
         from entanglix.corrector.control import control_listing
@@ -339,6 +351,8 @@ def control(
     repository: Path | None = None,
     parent_run_ids=(),
     dry_run=False,
+    investigation_id: str | None = None,
+    base: str | None = None,
 ):
     """Solve a closed-system control problem as one owned CPU job."""
     from entanglix.protocols.simulate import _launch_protocol
@@ -350,4 +364,13 @@ def control(
         repository=repository,
         parent_run_ids=parent_run_ids,
         dry_run=dry_run,
+        investigation_id=investigation_id,
+        base=base,
     )
+
+
+def rerun_control(run: Path, *, repository: Path | None = None, runs_root: Path | None = None):
+    """Re-solve retained control inputs as a new linked attempt under current terms."""
+    from entanglix.protocols.simulate import _rerun_protocol
+
+    return _rerun_protocol(run, operation="control", repository=repository, runs_root=runs_root)

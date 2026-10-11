@@ -28,7 +28,7 @@ PositiveCount = Annotated[int, Field(strict=True, gt=0)]
 Number = Annotated[float, Field(strict=True, allow_inf_nan=False)]
 PositiveSeconds = Annotated[Number, Field(gt=0)]
 Digest = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
-Operation = Literal["simulate", "sweep", "check", "run_script"]
+Operation = Literal["simulate", "sweep", "check", "run_script", "control"]
 STOP_REASONS = (
     "evidence_completion",
     "insufficient_progress",
@@ -700,7 +700,7 @@ def record_finding(path: Path, finding: Path | dict) -> dict:
             read = _read_attempt(run)
             relevant = set()
             unavailable = None
-            if manifest["protocol"] in {"simulate", "sweep", "plan", "verification"}:
+            if manifest["protocol"] in {"simulate", "sweep", "plan", "verification", "control"}:
                 from entanglix.corrector.verification import check_run, verification_history
 
                 source = (

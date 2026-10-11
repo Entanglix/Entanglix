@@ -141,7 +141,7 @@ def attempt_data(record):
                     [c["name"], c.get("outcome")]
                     for c in result.get("report", {}).get("checks", [])
                 ]
-            elif protocol in {"simulate", "sweep", "plan"}:
+            elif protocol in {"simulate", "sweep", "plan", "control"}:
                 item["checks"] = [
                     [
                         h.get("run_id", h.get("path")),
