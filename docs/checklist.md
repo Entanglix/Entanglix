@@ -251,7 +251,7 @@ The [M4 guide](m4-guide.md) records the implementation approach; [ADR-0005](adr/
 **Builds on:** Blocks 1–4 for standalone control; Block 6b for agent integration. Prefer to sequence after M3; that order is not a technical prerequisite. Cluster execution and calibration are optional.
 
 - [x] Control decisions recorded in [ADR-0005](adr/0005-control-problems-and-solvers.md): the control spec and generated ProblemSpec, the shared problem subset, solvers, the Piccolo adapter, and control checks ([probe](../tests/probes/m4_control.py), [results](../tests/probes/m4_control_results.json))
-- [ ] `control` spec and one generated ProblemSpec per run, with the system exported in the control frame
+- [-] `control` spec and one generated ProblemSpec per run, with the system exported in the control frame ([validation and export](../src/entanglix/protocols/control.py), [schema, quadrature, pulse, freezing, and invalid-input tests](../tests/test_control.py), [control reference](operations/control.md), [first-gate input and bounds](../examples/transmon-control/README.md))
 - [ ] `SolverBackend` protocol and entry-point discovery
 - [ ] Open GRAPE-style baseline
 - [ ] Piccolo adapter running Piccolo's ProblemSpec runner in Julia, with a pinned Julia project

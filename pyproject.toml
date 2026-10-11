@@ -27,7 +27,7 @@ requires = ["uv_build==0.12.0"]
 build-backend = "uv_build"
 
 [dependency-groups]
-dev = ["pytest>=8.4,<10", "ruff>=0.12,<1"]
+dev = ["jsonschema>=4,<5", "pytest>=8.4,<10", "ruff>=0.12,<1"]
 
 [tool.uv]
 required-version = ">=0.12,<0.13"

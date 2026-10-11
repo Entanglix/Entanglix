@@ -1,6 +1,6 @@
 # M4 Guide — Control
 
-**Status:** Planned. The decisions are recorded in [ADR-0005](adr/0005-control-problems-and-solvers.md), with matching contract, mandate, roadmap, and checklist edits. Nothing is implemented yet.
+**Status:** In progress. The decisions are recorded in [ADR-0005](adr/0005-control-problems-and-solvers.md). The checklist records completed capabilities and acceptance evidence.
 **Scope:** M4, Block 7 (Protocol `control`).
 **Authority:** [roadmap](roadmap.md#block-7--protocol-control), [ADR-0005](adr/0005-control-problems-and-solvers.md), and [harness contract](../HARNESS_CONTRACT.md#1-objects-and-interfaces). [The checklist](checklist.md#m4--control-block-7) owns completion status and acceptance evidence.
 **Audience:** the owner and implementation agents. This is a planning document; operational docs and production agents must work without it.
