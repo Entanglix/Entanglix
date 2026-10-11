@@ -47,6 +47,12 @@ Here `H0` is in GHz, `D_j` is dimensionless, `u_j` is in GHz, and `t` is in ns. 
 
 Compilation takes an empty existing directory. It verifies the loaded input digests before writing anything, writes read-only copies of the system, referenced assets, canonicalized control input, and generated ProblemSpec, and returns paths and digests for the runner. The frozen control input refers to `system.toml`. Changing the named solver or its convergence settings leaves the generated ProblemSpec bytes unchanged. Compilation itself creates no run or terminal record.
 
+## MCP and research procedure
+
+The stdio server offers `control(protocol, investigation_id=None, base=None)` and `rerun_control(run)`. Its configuration supplies the runs root and runner environment; neither is a tool argument. A successful call returns admission while a separate supervisor executes the CPU job. Pass its returned path to `read_run`, optionally with a bounded wait. Source run paths must resolve inside the configured runs root. The same admission, check, cancellation and rerun rules apply as through the CLI.
+
+The versioned `skills/control/SKILL.md` procedure directs a research agent to this reference, distinguishes solver completion from candidate checks, and explains exact bases and recovery. Copy it and this reference into the research workspace following the [MCP setup](mcp.md#research-workspace). Runtime approval may be needed for these job tools; a tool approval does not approve investigation terms.
+
 ## Numerical evidence and limits
 
 The [export tests](../../tests/test_control.py) compare a complex-state, piecewise pulse propagated from the exported matrices with QuTiP evolution of the declared control model. The QuTiP outputs are explicitly transformed from the lab basis to the control frame; the absolute state-entry agreement limit is `1e-9`. Separate quadrature checks pin the sign of the imaginary channel and the single `2π` conversion. The example verifies the relation to the probe's normalized charge operators within `1e-13` absolute error.
@@ -63,7 +69,7 @@ uv run --locked --exact entanglix control examples/transmon-control/control.toml
 uv run --locked --exact entanglix control examples/transmon-control/control.toml --runs-root research_runs
 ```
 
-On the documented GPU workstation the established profile is `cuquantum,differentiable-cuda12`; keep that profile. A control job still runs on CPU, with CUDA hidden. `--detach`, `read-run --wait`, timeouts, cancellation and interrupted-attempt reconciliation follow the [run reference](runs.md). Investigation admission and linked control reruns are available. Control tools are not yet exposed through MCP.
+On the documented GPU workstation the established profile is `cuquantum,differentiable-cuda12`; keep that profile. A control job still runs on CPU, with CUDA hidden. `--detach`, `read-run --wait`, timeouts, cancellation and interrupted-attempt reconciliation follow the [run reference](runs.md). Investigation admission and linked control reruns are available through the CLI and [stdio MCP server](mcp.md).
 
 Solvers are discovered through `entanglix.solvers` entry points. Each entry loads a backend factory implementing `capabilities()` and `solve(problem_spec, options)`. The `problem_spec` argument is a `Path` to the frozen, unchanged `RUN/spec/problem.toml`; `options` is the separate solver-options table. Backends may derive `RUN` from that path and list retained native files in `Solution.trace["native_artifacts"]` as names mapped to paths relative to `RUN`, for the job to digest and record. This gives every backend the same file, including one that passes it to another process. The built-in entries are `grape` and `piccolo`. An optional `validate(problem_spec, options)` method checks support before admission and again in the job; any returned runtime provenance is included in the environment hash. A missing named solver fails before any attempt is created, unless a declared `fallback` exists. A fallback is used only when the named entry is absent; it does not hide an installed solver's unsupported input or execution failure. The preview, manifest and result name the requested and actual solver, its distribution version and whether fallback was used.
 

@@ -751,6 +751,7 @@ def test_record_paths_stay_within_configured_runs_root(
                 ("rerun_script", {"run": address(run)}),
                 ("rerun_simulation", {"run": address(run)}),
                 ("rerun_sweep", {"run": address(run)}),
+                ("rerun_control", {"run": address(run)}),
                 ("check", {"run": address(run), "checks": ["integrity"]}),
                 ("read_investigation", {"investigation": address(investigation)}),
                 ("revise_investigation", {"investigation": address(investigation), "spec": terms}),

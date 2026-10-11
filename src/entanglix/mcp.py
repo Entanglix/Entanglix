@@ -28,6 +28,8 @@ from entanglix.launches import (
 from entanglix.mcp_views import finding_ack, investigation_view, run_view, runs_view
 
 JOBS = {
+    "control",
+    "rerun_control",
     "simulate",
     "sweep",
     "run_script",
@@ -446,6 +448,18 @@ def build_server(config: Configuration):
     ) -> dict[str, object]:
         """Admit a sweep and return its ID while its supervisor executes it."""
         return await job("sweep", protocol=protocol, investigation_id=investigation_id, base=base)
+
+    @tool
+    async def control(
+        protocol: str, investigation_id: str | None = None, base: str | None = None
+    ) -> dict[str, object]:
+        """Admit a CPU control solve against an exact approved base when investigating."""
+        return await job("control", protocol=protocol, investigation_id=investigation_id, base=base)
+
+    @tool
+    async def rerun_control(run: str) -> dict[str, object]:
+        """Re-solve frozen control inputs as a new linked attempt under current terms."""
+        return await job("rerun_control", run=run)
 
     @tool
     async def run_script(

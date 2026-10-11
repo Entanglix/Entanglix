@@ -1,7 +1,7 @@
 ---
 name: entanglix-research-conduct
 description: Conduct for a quantum research session using Entanglix tools.
-version: 0.1.6
+version: 0.1.7
 ---
 
 # Research-agent conduct
@@ -17,7 +17,7 @@ investigation's status with `read_investigation`. Settle its attention list befo
 continuing: inspect each attempt and wait for healthy running jobs. For an
 interrupted attempt, abort an orphaned job group if it remains; once its owner
 and group are gone call `reconcile_run` with what you observed. Replay
-interrupted computations with `rerun_simulation`, `rerun_sweep` or `rerun_script`;
+interrupted computations with `rerun_simulation`, `rerun_sweep`, `rerun_control` or `rerun_script`;
 do not submit fresh jobs for the same inputs. Recovery needs no operator decision
 and stays within effective terms.
 
@@ -27,6 +27,8 @@ from metrics and check outcomes; do not repeat it because a finding omitted its
 values. Use `view="events"` for history and `event_id` for one complete event.
 Paths are relative to the runs root; pass the returned path to `read_run`, not a
 bare run ID.
+Use `read_run` summaries for execution state, metrics and check outcomes; request
+`detail=True` only when full provenance or report details are needed.
 
 After losing a job response, recover its launch from the listings before
 resubmitting. Pending admission may become an independently supervised job.
@@ -88,6 +90,7 @@ Read only the procedure relevant to the next action; each is usable as plain tex
 - `system-modeler`: `skills/system-modeler/SKILL.md` — model representation and validation.
 - `simulate`: `skills/simulate/SKILL.md` — one computation, checks, and replay.
 - `design-sweep`: `skills/design-sweep/SKILL.md` — static/dynamic grids and sampled evidence.
+- `control`: `skills/control/SKILL.md` — closed-system gate optimization, candidate checks and linked reruns.
 - `gpu-budget`: `skills/gpu-budget/SKILL.md` — resource use, optional limits, and GPU ownership.
 
 The copied operational references may link to repository tests or example pages

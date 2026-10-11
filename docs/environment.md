@@ -491,3 +491,13 @@ TMPDIR=/var/tmp uv run --locked --exact pytest -q tests/test_control_investigati
 ```
 
 The [report](../tests/probes/m4_control_investigations.xml) records exact-base admission, requested check findings, usage and limits, stop/deadline handling, and CLI/detached linked reruns under current revisions. The [first-gate example](../examples/transmon-control/README.md#requested-check-evidence) records both open solvers' existing candidates and their requested checks; those solves need not be repeated for investigation admission changes.
+
+## Control MCP and guidance acceptance
+
+The [scripted control client](../tests/test_mcp_control.py) exercises real CPU jobs with the test-only entry-point solver, comparing CLI and MCP candidate records, requesting checks, re-solving with lineage, and refusing scope/limit violations without admitting attempts. Run it with the shared transport, view and guidance tests:
+
+```sh
+TMPDIR=/var/tmp UV_PROJECT_ENVIRONMENT="$PWD/.venv-mcp" uv run --locked --exact --extra mcp pytest -q tests/test_mcp.py tests/test_mcp_control.py tests/test_research_guidance.py tests/test_mcp_views.py -m "not gpu" --junitxml=tests/probes/m4_mcp.xml
+```
+
+The [retained CPU report](../tests/probes/m4_mcp.xml) covers tool parity, annotations, audit links, root confinement and the supplied conduct/skill versions. The [workspace setup](operations/mcp.md#research-workspace) includes the control reference and procedure. No live runtime session is part of this acceptance; the earlier runtime measurements remain evidence only for the configurations and guidance versions they used.

@@ -33,6 +33,7 @@ def test_shipped_guidance_and_declared_restrictions_reach_connection(tmp_path, m
         "system-modeler",
         "simulate",
         "design-sweep",
+        "control",
         "gpu-budget",
     }
     assert all(re.fullmatch(r"\d+\.\d+\.\d+", item["version"]) for item in metadata)
@@ -40,7 +41,7 @@ def test_shipped_guidance_and_declared_restrictions_reach_connection(tmp_path, m
     procedures = set(re.findall(r"`(skills/[^`]+/SKILL.md)`", expected))
     assert procedures == {
         f"skills/{name}/SKILL.md"
-        for name in ("system-modeler", "simulate", "design-sweep", "gpu-budget")
+        for name in ("system-modeler", "simulate", "design-sweep", "control", "gpu-budget")
     }
     for path in procedures:
         assert (ROOT / path).is_file()

@@ -37,11 +37,13 @@ Tools use the same backing operations as the CLI, with MCP response summaries de
 | Tools | Effect |
 |---|---|
 | `validate_system`, `list_capabilities`, `list_runs`, `read_run`, `list_investigations`, `read_investigation` | Read-only; validation includes operator meanings and model provenance |
-| `simulate`, `sweep`, `run_script`, `rerun_simulation`, `rerun_sweep`, `rerun_script`, `check` | Admit jobs through the runner, returning the launch and run IDs once admission is established |
+| `simulate`, `sweep`, `control`, `run_script`, `rerun_simulation`, `rerun_sweep`, `rerun_control`, `rerun_script`, `check` | Admit jobs through the runner, returning the launch and run IDs once admission is established |
 | `abort_run`, `stop_investigation` | Cancel work using the existing process-group and investigation rules |
 | `create_investigation`, `revise_investigation`, `record_finding`, `reconcile_run` | Draft terms, propose revisions, append findings, or reconcile uncertain attempts |
 
-Only the first row carries the MCP read-only annotation. Jobs and writes may require runtime approval. Unavailable catalog, control and calibration operations, promotion, and investigation start/approval/resume/review release are absent. A proposed revision never changes the effective terms. See [investigations](investigations.md) for the operator decision path.
+Only the first row carries the MCP read-only annotation. Jobs and writes may require runtime approval. Unavailable catalog and calibration operations, promotion, and investigation start/approval/resume/review release are absent. A proposed revision never changes the effective terms. See [investigations](investigations.md) for the operator decision path.
+
+Control tools take an authored protocol path, or a source run path for `rerun_control`. An investigation control request names an exact approved base and accepts no varied values. Control solves and their requested checks run on CPU; see the [control reference](control.md).
 
 Job tools do not expose dry runs. Use the CLI's `--dry-run` for protocol previews where the required device is visible; an agent session with no CUDA device has no CUDA preview through this server. `check` requires named checks; `read_run` includes the relevant-check listing without launching a check. Each successful tool reply carries one JSON text payload, without a duplicate structured-content payload. Lists are wrapped under `result`; objects are carried directly.
 
@@ -129,12 +131,13 @@ cp "$ENTANGLIX_CHECKOUT/docs/operations/system-spec.md" \
   "$ENTANGLIX_CHECKOUT/docs/operations/protocols.md" \
   "$ENTANGLIX_CHECKOUT/docs/operations/investigations.md" \
   "$ENTANGLIX_CHECKOUT/docs/operations/runs.md" \
+  "$ENTANGLIX_CHECKOUT/docs/operations/control.md" \
   "$ENTANGLIX_WORKSPACE/reference/operations/"
 ```
 
 Use a new directory for these initial copies. Refresh them deliberately when upgrading; retain their versions with the session. `skills/` is the plain-text location named by the conduct; `.agents/skills` makes the same files discoverable in Codex. In a runtime that reads another workspace instruction filename, copy the same conduct there instead. If it reads no such file, supply the entire conduct through its initial-context mechanism. Keep the procedures readable at the named paths. Do not copy root development `AGENTS.md` or `CLAUDE.md`, the roadmap, baseline answers, or contributor instructions into the research workspace.
 
-The four files under `reference/operations/` provide authoring syntax and lifecycle rules. Skills direct the agent to the relevant reference when needed. Links between these references remain usable; links to checkout examples, tests, and the harness contract are unavailable in this copy. For an evaluation, supply any additional inputs separately without exposing baseline answers.
+The five files under `reference/operations/` provide authoring syntax and lifecycle rules. Skills direct the agent to the relevant reference when needed. Links between these references remain usable; links to checkout examples, tests, and the harness contract are unavailable in this copy. For an evaluation, supply any additional inputs separately without exposing baseline answers.
 
 Add a task brief containing the intended question and agreed terms, and copy the model, protocol, subsystem, and numeric input files beside one another. Within an investigation preserve the approved base bytes. For the [readout investigation](../../examples/readout/README.md#scripted-investigation-baseline), the operator can prepare its base bundle with the documented draft command; the agent receives the declarations and inputs, not the baseline summaries.
 
@@ -206,6 +209,8 @@ CUDA_VISIBLE_DEVICES="" claude -p '<task brief>' \
     mcp__entanglix__rerun_simulation mcp__entanglix__reconcile_run \
     mcp__entanglix__record_finding mcp__entanglix__stop_investigation
 ```
+
+For a control task, also allow `mcp__entanglix__control` and `mcp__entanglix__rerun_control`; their transport is covered by scripted clients, with no live control-session claim.
 
 In four [retained sessions](../../tests/probes/m3_pickup_cutoff_results.json) the conduct was present before the first reply and no repository development instructions appeared. No command restriction has been validated for Claude Code: a session without a shell tool cannot run an operator command, but no retained test covers a session that has one, so declare `instruction-only`. Claude Code rejected a 54,724-character investigation reply and accepted one of 32,757 characters in the two sessions that predate the status and paged table views; the third and fourth used those views and no reply was rejected. Use them for research reads, and the report command or retained files for full history.
 

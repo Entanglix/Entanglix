@@ -1,0 +1,43 @@
+---
+name: control
+description: Solve an Entanglix closed-system gate problem, inspect a returned pulse, request control checks, or re-solve frozen inputs.
+version: 0.1.0
+---
+
+# Closed-system control
+
+Read workspace `reference/operations/control.md` for the input, units, subspace,
+solver support and neutral pulse. Use `reference/operations/investigations.md`
+for approved terms and `reference/operations/runs.md` for job recovery.
+
+Declare the gate, duration, amplitude and derivative bounds, reported target and
+control frame. The supported control model is closed and uses an explicit RWA;
+omitted dissipators appear in the launch listing. These choices do not establish
+lab-frame or device-model accuracy. Control solves and their checks run on CPU.
+
+Call `control` with the authored protocol. In an investigation read effective
+terms first and name an exact approved base; there are no varied control targets.
+A different solver or options table needs another approved base, even when the
+generated ProblemSpec digest is identical. A fallback applies only to an absent
+named solver; it does not hide unsupported input or a failed solve.
+
+The tool returns admission, not a finished gate. Pass the returned path to
+`read_run`, optionally with a bounded wait. Inspect execution status, actual
+solver, objective, separately reported fidelity and convergence. Request
+`detail=True` only for needed provenance or report details. Reaching an iteration
+cap can leave a completed candidate with `converged = false`.
+
+Issue `check` for explicitly or standing-requested names: `replay` compares the
+solver's reported fidelity with an independent rollout; `target` tests the
+declared target; `constraints` tests the returned knots and time grid. Read the
+check run with `read_run(detail=True)` for replayed fidelity and leakage, which
+the default summary lists under `detail_omitted`. Leakage is diagnostic.
+Passing checks applies to the declared control model, not the
+RWA or device-model approximation. Different pulses from two solvers can both
+pass; compare their shared ProblemSpec digests and requested check outcomes.
+
+Settle an interrupted attempt once ownership and group-liveness checks permit
+reconciliation. Use `rerun_control`, not a fresh solve of the same inputs, to
+retain lineage and investigation membership under current approved terms.
+Each rerun needs its own requested checks. Record findings with source run IDs,
+attained fidelity, unmet targets or constraints, leakage and the next decision.

@@ -48,4 +48,4 @@ jobs:
           version: "0.12.0"
           enable-cache: true
       - run: uv python install
-      - run: uv run --locked --exact --extra mcp pytest -q tests/test_mcp.py tests/test_research_guidance.py -m "not gpu"
+      - run: uv run --locked --exact --extra mcp pytest -q tests/test_mcp.py tests/test_mcp_control.py tests/test_research_guidance.py -m "not gpu"

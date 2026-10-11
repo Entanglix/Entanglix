@@ -1145,6 +1145,8 @@ def list_capabilities(repository: Path | None = None) -> dict:
             "rerun_simulation",
             "sweep",
             "rerun_sweep",
+            "control",
+            "rerun_control",
             "create_investigation",
             "revise_investigation",
             "list_investigations",
@@ -1152,7 +1154,7 @@ def list_capabilities(repository: Path | None = None) -> dict:
             "record_finding",
             "stop_investigation",
         ],
-        "protocols": ["simulate", "sweep"],
+        "protocols": ["simulate", "sweep", "control"],
         "runner_devices": ["cpu", "cuda"],
         "engines": {
             engine: {"version": found[package], "devices": devices}

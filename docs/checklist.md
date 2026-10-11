@@ -18,7 +18,7 @@ Core capability progression; users may enter, iterate within, and stop at any su
 | M1 — Model + engines | Blocks 1–2 | **complete** |
 | M2 — Local sweep with checks | Blocks 3–5 | **complete** |
 | M3 — Bounded agent-assisted exploration | Blocks 6a–6b | **complete** |
-| M4 — Control | Block 7 | in progress |
+| M4 — Control | Block 7 | **complete** |
 | M5 — Device–control co-design | Block 8 | open |
 
 Supporting milestones, scheduled by dependency and research need:
@@ -190,7 +190,7 @@ The [M2 guide](m2-guide.md) records the implementation approach; [ADR-0003](adr/
 
 ## M3 — Bounded Agent-assisted Exploration (Blocks 6a–6b)
 
-### [-] Investigation decisions — after M2
+### [x] Investigation decisions — after M2
 
 - [x] Before Block 6a: first investigation question, scope, assumptions, evidence requirements, progress checkpoints, and stop/review criteria; any requested ceilings informed by measured M2 costs ([readout example](../examples/readout/README.md#threshold-characterization), [probe](../tests/probes/m3_readout.py), [results](../tests/probes/m3_readout_results.json))
 - [x] Before Block 6a: what the contract leaves open (user-decision recording, progress-assessment fields, checkpoint declaration, resume behaviour) in a follow-up ADR ([ADR-0004](adr/0004-investigations-and-agent-sessions.md))
@@ -246,7 +246,7 @@ The [M2 guide](m2-guide.md) records the implementation approach; [ADR-0003](adr/
 
 The [M4 guide](m4-guide.md) records the implementation approach; [ADR-0005](adr/0005-control-problems-and-solvers.md) records the control spec, solver, adapter, and check decisions. This checklist records completion and links to acceptance evidence.
 
-### [-] Block 7 — Protocol `control`
+### [x] Block 7 — Protocol `control`
 
 **Builds on:** Blocks 1–4 for standalone control; Block 6b for agent integration. Prefer to sequence after M3; that order is not a technical prerequisite. Cluster execution and calibration are optional.
 
@@ -259,9 +259,9 @@ The [M4 guide](m4-guide.md) records the implementation approach; [ADR-0005](adr/
 - [x] Control checks on request: pulse replay on a different engine, the declared fidelity target, and the declared constraints (contract §3); a second solver on the same ProblemSpec as a separate run ([checks](../src/entanglix/corrector/control.py), [constructed-pulse and linked CLI tests](../tests/test_control_checks.py), [GRAPE active-bound test](../tests/test_control_solver.py), [Piccolo active-bound report](../tests/probes/m4_piccolo.xml), [policy and tolerances](operations/control.md#requested-checks), [refreshed acceptance commands and evidence](environment.md#control-check-acceptance))
 - [x] Standalone control from an existing system model through the CLI ([runner worker](../src/entanglix/protocols/_control_job.py), [CLI test](../tests/test_control_solver.py), [command and evidence](environment.md#control-baseline-acceptance))
 - [x] `control` in investigations: exact-base admission, usage, limits, stop/deadline, and linked rerun; a test-only entry-point plugin candidate passes open replay ([control integration](../src/entanglix/protocols/control.py), [admission, finding, lifecycle, and CLI tests](../tests/test_control_investigations.py), [CPU report](../tests/probes/m4_control_investigations.xml), [reference](operations/control.md#investigations-and-reruns), [both solvers’ first-gate checks](../examples/transmon-control/README.md#requested-check-evidence))
-- [ ] When Block 6b is available: MCP capability and `control` skill with integration evidence
-- [ ] Applicable quality evidence recorded
-- [ ] **Done:** open baseline and Piccolo solve the same gate problem from one generated ProblemSpec, each candidate passing the checks requested, both in run dirs; a private plugin, if present, is discovered and its candidate is checked by the same open replay
+- [x] MCP `control` and `rerun_control` tools, advertised capabilities, and versioned `control` skill; integration evidence is a scripted stdio client, with no live session ([tools](../src/entanglix/mcp.py), [procedure](../skills/control/SKILL.md), [CLI parity, check, rerun and refusal tests](../tests/test_mcp_control.py), [guidance tests](../tests/test_research_guidance.py), [CPU report](../tests/probes/m4_mcp.xml), [setup and command](environment.md#control-mcp-and-guidance-acceptance))
+- [x] Applicable quality evidence recorded ([export and pulse-convention tests](../tests/test_control.py), [gradient and constraint evidence](../tests/test_control_solver.py), [independent first-gate checks](../tests/probes/m4_control_checks_results.json), [execution and plugin tests](../tests/test_control_investigations.py), [CLI/MCP conformance and guidance report](../tests/probes/m4_mcp.xml), [operational reference](operations/control.md))
+- [x] **Done:** open baseline and Piccolo solve the same gate problem from one generated ProblemSpec, each candidate passing the checks requested, both in run dirs; a private plugin, if present, is discovered and its candidate is checked by the same open replay ([first-gate checks on both candidates](../tests/probes/m4_control_checks_results.json), [baseline candidate](../tests/probes/m4_baseline_results.json), [Piccolo candidate](../tests/probes/m4_piccolo_results.json), [measurements and limits](../examples/transmon-control/README.md#requested-check-evidence), [plugin discovery and replay](../tests/test_control_investigations.py))
 - **Unblocks:** the Harmoniqs conversation once the shared ProblemSpec, the open-baseline and Piccolo runs, and their check reports are inspectable; audience/license and Appendix A rules still apply.
 
 ---

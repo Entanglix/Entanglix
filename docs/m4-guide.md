@@ -1,6 +1,6 @@
 # M4 Guide — Control
 
-**Status:** In progress. The decisions are recorded in [ADR-0005](adr/0005-control-problems-and-solvers.md). The checklist records completed capabilities and acceptance evidence.
+**Status:** Implemented through the control spec and generated ProblemSpec, the open baseline, the Piccolo adapter, requested control checks, investigation admission and the MCP tools. Agent integration rests on a scripted MCP client; no live control session was run. Completion and acceptance evidence belong to the checklist. The decisions are recorded in [ADR-0005](adr/0005-control-problems-and-solvers.md).
 **Scope:** M4, Block 7 (Protocol `control`).
 **Authority:** [roadmap](roadmap.md#block-7--protocol-control), [ADR-0005](adr/0005-control-problems-and-solvers.md), and [harness contract](../HARNESS_CONTRACT.md#1-objects-and-interfaces). [The checklist](checklist.md#m4--control-block-7) owns completion status and acceptance evidence.
 **Audience:** the owner and implementation agents. This is a planning document; operational docs and production agents must work without it.
@@ -105,7 +105,7 @@ The default environment has neither extra, so the baseline and MCP tests are ski
 
 ## 6. Exit evidence and handoff
 
-[Checklist M4](checklist.md#m4--control-block-7) is the sole acceptance list; this guide adds no completion gates. The first-gate runs and their check reports are Entanglix records and are retained with the example.
+[Checklist M4](checklist.md#m4--control-block-7) is the sole acceptance list; this guide adds no completion gates. The first-gate runs and their check reports are Entanglix records. Their summaries are retained in the repository and linked from the example; the run directories stay in the local runs root.
 
 Later blocks build on the same records: co-design links device and control runs under one investigation, the catalog warm-starts from a promoted pulse, and interoperability shows `amico-run` accepting a generated ProblemSpec.
 

@@ -21,7 +21,7 @@ This index supports project planning and implementation. Operational entry point
 - [m1-guide.md](m1-guide.md) — Completed implementation guide for M1 (Blocks 1–2): model representation, engine integration, scientific fixtures, and acceptance evidence.
 - [m2-guide.md](m2-guide.md) — Implementation guide for M2 (Blocks 3–5): run records, verification, drives and frames, and the first simulation and sweep.
 - [m3-guide.md](m3-guide.md) — Implementation guide for M3 (Blocks 6a–6b): the first investigation and its evaluation, investigation records, admission, checkpoints and reviews, and agent integration.
-- [m4-guide.md](m4-guide.md) — Planned implementation guide for M4 (Block 7): the control spec and generated ProblemSpec, the open baseline, the Piccolo adapter, control checks, and the first gate.
+- [m4-guide.md](m4-guide.md) — Completed implementation guide for M4 (Block 7): the control spec and generated ProblemSpec, the open baseline, the Piccolo adapter, control checks, and the first gate.
 - [development.md](development.md) — Maintainer and coding-agent instructions. Root [AGENTS.md](../AGENTS.md) and [CLAUDE.md](../CLAUDE.md) are one-line pointers here; they are excluded from research-runtime guidance.
 - Phase guides may be added as needed, including before code exists.
 
@@ -34,7 +34,7 @@ This index supports project planning and implementation. Operational entry point
 - [operations/system-spec.md](operations/system-spec.md) — Implemented system syntax, units, operators, evolution, drive gradients, numerical checks, and engine selection. Other usage guides may be added under `operations/` as capabilities arrive.
 - [operations/runs.md](operations/runs.md) — Authored CPU jobs, listing and inspection, frozen inputs, environment and code provenance, record ownership, and execution outcomes.
 - [operations/protocols.md](operations/protocols.md) — Simulation and serial sweep specifications, metrics, CPU/CUDA dispatch, requested checks and coverage, and frozen-input replay.
-- [operations/control.md](operations/control.md) — CPU control jobs, closed rotating-frame models, shared ProblemSpec export, solver selection, the pinned Piccolo/Julia adapter, neutral pulses, and numerical evidence.
+- [operations/control.md](operations/control.md) — CPU control jobs, closed rotating-frame models, shared ProblemSpec export, solver selection, the pinned Piccolo/Julia adapter, neutral pulses, requested checks, investigation admission, linked reruns and MCP usage.
 - [operations/investigations.md](operations/investigations.md) — Investigation declarations, immutable revisions and findings, human starts and approvals, scoped admission, optional limits, checkpoints, named reviews, stop/resume, usage, and record inspection.
 - [operations/mcp.md](operations/mcp.md) — Optional stdio research tools, workspace setup and runtime settings, explicit server configuration, bounded waiting, launch recovery, and connection/call audit records.
 - [environment.md](environment.md) — Observed GPU compatibility, tested package versions, limitations, and reproduction commands.
