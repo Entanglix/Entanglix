@@ -461,3 +461,23 @@ uv run --locked --exact python tests/probes/m4_piccolo.py RUN --output tests/pro
 ```
 
 The [candidate summary](../tests/probes/m4_piccolo_results.json) records the shared problem digest, native objective, separately reported fidelity, iteration-cap outcome, runtime provenance and pulse differences. The [example](../examples/transmon-control/README.md#piccolo-candidate) states the measurements and their limits. Independent control checks follow separately.
+
+
+## Control check acceptance
+
+The [control check tests](../tests/test_control_checks.py) cover independent replay, target failures on accurately reported pulses, constraints, complex goals and leakage, linked CLI checks, and source binding. The active-bound tests for [GRAPE](../tests/test_control_solver.py) and [Piccolo](../tests/test_control_piccolo.py) also apply the corrector's constraints check to the returned neutral pulse.
+
+```sh
+uv run --locked --exact pytest -q tests/test_control_checks.py tests/test_corrector.py tests/test_verification.py
+JAX_PLATFORMS=cpu XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact --extra differentiable pytest -q tests/test_control_checks.py tests/test_control_solver.py -m "not gpu"
+```
+
+The [Julia report](../tests/probes/m4_piccolo.xml), regenerated with the Piccolo adapter acceptance command above, also retains the active-bound constraints result. The [retained first-gate check summary](../tests/probes/m4_control_checks_results.json) records fresh replay, target and constraints checks on both solvers’ existing candidates. Control checks run on CPU and require no cuQuantum or GPU. After a corrector change, rerun the Simulation acceptance and Sweep acceptance commands above once and replace their retained summaries and reports after all studies finish. Keep the tree and runner profile fixed throughout. No live agent session is used.
+
+The two check runs in the first-gate summary were produced with the workstation's runner profile:
+
+```sh
+export ENTANGLIX_RUNNER_EXTRAS=cuquantum,differentiable-cuda12
+JAX_PLATFORMS=cpu XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact entanglix check research_runs/m4-control/junction_with_shunt/r20261011T134458228287Z-2e465951 replay target constraints
+JAX_PLATFORMS=cpu XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact entanglix check research_runs/m4-control/junction_with_shunt/r20261011T134524092210Z-875bff8c replay target constraints
+```

@@ -4,8 +4,8 @@
   "device": "cuda",
   "records": [
     {
-      "run_id": "r20261003T184755086080Z-c385168b",
-      "path": "/home/paimon/Projects/Entanglix/research_runs/readout/r20261003T184755086080Z-c385168b",
+      "run_id": "r20261011T162524784868Z-9c7c2436",
+      "path": "/home/paimon/Projects/Entanglix/research_runs/readout/r20261011T162524784868Z-9c7c2436",
       "parent_run_ids": [],
       "engine": "cudensitymat",
       "device": "cuda",
@@ -13,15 +13,15 @@
         5,
         6
       ],
-      "env_hash": "52f05f746b350b1ad5853dff8e98ee362044e73ea33bed3a42689b6f1f753351",
+      "env_hash": "86f2a1dcacb266e37322ec5db9100478a493d92ce4a30004c4076ce24b4ba2d1",
       "environment": {
-        "lock_sha256": "86cb0cc828fae097fad65a23e77e905d97ee8f4038728f4b1818d53690c91a1e",
+        "lock_sha256": "44c4e6aa76860221ea9e45284a072ec29a681c7c2369fe9064140b5d77870575",
         "python": "3.13.12",
         "extras": [
           "cuquantum",
           "differentiable-cuda12"
         ],
-        "env_hash": "52f05f746b350b1ad5853dff8e98ee362044e73ea33bed3a42689b6f1f753351",
+        "env_hash": "86f2a1dcacb266e37322ec5db9100478a493d92ce4a30004c4076ce24b4ba2d1",
         "platform": {
           "system": "Linux",
           "machine": "x86_64",
@@ -37,9 +37,9 @@
         }
       },
       "code": {
-        "revision": "f7f25b9c7410d2ab3d305a791e1b7e3874bfad7a",
+        "revision": "c1acaf4c52a71b2606ee1b5db1d57bdd5d35abbb",
         "dirty": true,
-        "patch_sha256": "9026fccfbcf1dfeffcbaa31a095c79ff336e210950ec73f4d4986ffdb6ffe5b5",
+        "patch_sha256": "747b7e4aa14e8f69e50e65f6a56d6e92f5b5d9126adc0829a931db5188f72646",
         "untracked_sha256": {}
       },
       "plan_sha256": "dc7aa3010ade97f20fec80d4a38ca2de15b92d9e3b5a1fb1254e1d805e8a9eb3",
@@ -47,13 +47,13 @@
         "excited_population": 0.8921401998276918
       },
       "usage": {
-        "wall_seconds": 176.71880461502587,
-        "gpu_seconds": 176.73715549497865,
+        "wall_seconds": 178.2942245590384,
+        "gpu_seconds": 179.8248702629935,
         "uncertain": false
       },
       "automatic_checks": false,
-      "verification_run_id": "r20261003T185052131366Z-b6685094",
-      "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
+      "verification_run_id": "r20261011T162823451894Z-05dd605d",
+      "policy_version": "d67c3a1223a85c5b8b6c9e64b6795abe774bdd2fc040b77f6f86231d1934f729",
       "report": {
         "kind": "lindblad",
         "requested_checks": [
@@ -62,7 +62,7 @@
           "diagnostics"
         ],
         "refinement_origin": "source spec",
-        "work_seconds": 0.2769069480127655,
+        "work_seconds": 0.30301645601866767,
         "limit": "No built-in check measures whole-window error or the accuracy of a rotating-wave approximation.",
         "checks": [
           {
@@ -465,10 +465,10 @@
       }
     },
     {
-      "run_id": "r20261003T185054564314Z-c8277af7",
-      "path": "/home/paimon/Projects/Entanglix/research_runs/readout/r20261003T185054564314Z-c8277af7",
+      "run_id": "r20261011T162825861131Z-80f5f1ee",
+      "path": "/home/paimon/Projects/Entanglix/research_runs/readout/r20261011T162825861131Z-80f5f1ee",
       "parent_run_ids": [
-        "r20261003T184755086080Z-c385168b"
+        "r20261011T162524784868Z-9c7c2436"
       ],
       "engine": "cudensitymat",
       "device": "cuda",
@@ -476,15 +476,15 @@
         5,
         6
       ],
-      "env_hash": "52f05f746b350b1ad5853dff8e98ee362044e73ea33bed3a42689b6f1f753351",
+      "env_hash": "86f2a1dcacb266e37322ec5db9100478a493d92ce4a30004c4076ce24b4ba2d1",
       "environment": {
-        "lock_sha256": "86cb0cc828fae097fad65a23e77e905d97ee8f4038728f4b1818d53690c91a1e",
+        "lock_sha256": "44c4e6aa76860221ea9e45284a072ec29a681c7c2369fe9064140b5d77870575",
         "python": "3.13.12",
         "extras": [
           "cuquantum",
           "differentiable-cuda12"
         ],
-        "env_hash": "52f05f746b350b1ad5853dff8e98ee362044e73ea33bed3a42689b6f1f753351",
+        "env_hash": "86f2a1dcacb266e37322ec5db9100478a493d92ce4a30004c4076ce24b4ba2d1",
         "platform": {
           "system": "Linux",
           "machine": "x86_64",
@@ -500,9 +500,9 @@
         }
       },
       "code": {
-        "revision": "f7f25b9c7410d2ab3d305a791e1b7e3874bfad7a",
+        "revision": "c1acaf4c52a71b2606ee1b5db1d57bdd5d35abbb",
         "dirty": true,
-        "patch_sha256": "9026fccfbcf1dfeffcbaa31a095c79ff336e210950ec73f4d4986ffdb6ffe5b5",
+        "patch_sha256": "747b7e4aa14e8f69e50e65f6a56d6e92f5b5d9126adc0829a931db5188f72646",
         "untracked_sha256": {}
       },
       "plan_sha256": "dc7aa3010ade97f20fec80d4a38ca2de15b92d9e3b5a1fb1254e1d805e8a9eb3",
@@ -510,13 +510,13 @@
         "excited_population": 0.8921401998276918
       },
       "usage": {
-        "wall_seconds": 173.80133227497572,
-        "gpu_seconds": 173.81531352299498,
+        "wall_seconds": 179.49551484099356,
+        "gpu_seconds": 180.97783650900237,
         "uncertain": false
       },
       "automatic_checks": false,
-      "verification_run_id": "r20261003T185348588981Z-8569e78a",
-      "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
+      "verification_run_id": "r20261011T163125561703Z-d62d447a",
+      "policy_version": "d67c3a1223a85c5b8b6c9e64b6795abe774bdd2fc040b77f6f86231d1934f729",
       "report": {
         "kind": "lindblad",
         "requested_checks": [
@@ -525,7 +525,7 @@
           "diagnostics"
         ],
         "refinement_origin": "source spec",
-        "work_seconds": 0.2729386099963449,
+        "work_seconds": 0.2742649859865196,
         "limit": "No built-in check measures whole-window error or the accuracy of a rotating-wave approximation.",
         "checks": [
           {

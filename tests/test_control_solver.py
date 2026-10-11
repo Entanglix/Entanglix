@@ -239,14 +239,18 @@ def test_control_invalid_solver_options(control_files, options):
 
 def test_control_active_derivative_constraints_and_termination(control_files):
     pytest.importorskip("dynamiqs")
-    problem = load_control(control_files[0]).problem_spec
-    problem["pulse"].update(T=10, init="random", seed=7)
-    problem["problem"].update(
-        free_dt=[2.5 * (1 - 1e-7), 2.5 * (1 + 1e-7)], du_bound=0.01, ddu_bound=0.003, Q=1000
-    )
+    path, definition = control_files
+    definition["pulse"].update(T=10, init="random", seed=7)
+    definition["problem"].update(du_bound=0.01, ddu_bound=0.003, Q=1000)
+    path.write_text(tomli_w.dumps(definition))
+    problem = load_control(path).problem_spec
     problem_path = control_files[0].parent / "problem.toml"
     problem_path.write_text(tomli_w.dumps(problem))
     solution = GrapeBackend().solve(problem_path, {"max_iter": 15, "tol": 1e-8})
+    from entanglix.corrector import load_policy
+    from entanglix.corrector.control import constraints
+
+    assert constraints(load_control(path), solution.pulse, load_policy())["outcome"] == "pass"
     amplitudes = solution.pulse.amplitudes_ghz
     dt = np.diff(solution.pulse.times_ns)[0]
     assert np.max(abs(amplitudes)) <= 0.1 + 1e-10

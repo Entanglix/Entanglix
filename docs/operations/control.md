@@ -63,7 +63,7 @@ uv run --locked --exact entanglix control examples/transmon-control/control.toml
 uv run --locked --exact entanglix control examples/transmon-control/control.toml --runs-root research_runs
 ```
 
-On the documented GPU workstation the established profile is `cuquantum,differentiable-cuda12`; keep that profile. A control job still runs on CPU, with CUDA hidden. `--detach`, `read-run --wait`, timeouts, cancellation and interrupted-attempt reconciliation follow the [run reference](runs.md). Control investigation admission, control replay tools and MCP exposure are not yet available.
+On the documented GPU workstation the established profile is `cuquantum,differentiable-cuda12`; keep that profile. A control job still runs on CPU, with CUDA hidden. `--detach`, `read-run --wait`, timeouts, cancellation and interrupted-attempt reconciliation follow the [run reference](runs.md). Control investigation admission, linked control reruns and MCP exposure are not yet available.
 
 Solvers are discovered through `entanglix.solvers` entry points. Each entry loads a backend factory implementing `capabilities()` and `solve(problem_spec, options)`. The `problem_spec` argument is a `Path` to the frozen, unchanged `RUN/spec/problem.toml`; `options` is the separate solver-options table. Backends may derive `RUN` from that path and list retained native files in `Solution.trace["native_artifacts"]` as names mapped to paths relative to `RUN`, for the job to digest and record. This gives every backend the same file, including one that passes it to another process. The built-in entries are `grape` and `piccolo`. An optional `validate(problem_spec, options)` method checks support before admission and again in the job; any returned runtime provenance is included in the environment hash. A missing named solver fails before any attempt is created, unless a declared `fallback` exists. A fallback is used only when the named entry is absent; it does not hide an installed solver's unsupported input or execution failure. The preview, manifest and result name the requested and actual solver, its distribution version and whether fallback was used.
 
@@ -102,3 +102,22 @@ Only declared `solver.options.max_iter` and `solver.options.tol` are passed as a
 Piccolo honours `init = "random"` with its declared seed, defaulting the seed to zero when omitted. `default` and `zeros` initialise to zero and list a declared seed as ignored. Its native template supplies additional regularisation and a second-derivative bound of 1 GHz/ns² when one is not declared. These upstream restrictions do not replace the input's declared bounds.
 
 The Julia entry exports the stored N knot values without shifting or resampling them. Interval k uses knot k, and the terminal knot participates in the discrete differences. The narrow equal-step bracket holds the declared duration within its relative half-width `1e-7`; returned times are preserved. Native `artifacts/piccolo/result.toml` and the JLD2 pulse are retained with digests beside the neutral pulse. `options.toml` is transport for the settings recorded in the frozen control spec and solver trace. Julia stays in the job's process group, so cancellation and timeout terminate it through the ordinary runner.
+
+
+## Requested checks
+
+A completed candidate has three relevant checks, shown at launch and by `read-run`:
+
+```sh
+uv run --locked --exact entanglix check RUN replay target constraints
+```
+
+With no names, `check RUN` only lists them. Named checks create one linked CPU verification attempt and report their individual outcomes. They never run automatically. Checks use the frozen system, control spec, generated ProblemSpec and neutral pulse; they verify input and artifact digests and preserve the source binding in the history. No solver installation, JAX or Julia is needed to check a retained candidate.
+
+- `replay` evolves the neutral pulse on QuTiP's `vern9` engine and compares its independently calculated leakage-aware average gate fidelity with the solver's separately reported fidelity. Missing solver-reported fidelity makes this check inapplicable. The replay uses an entangled input with a passive ancilla to retain relative column phases and leakage, in the declared control frame. Its leakage is the average probability of leaving the declared computational subspace and has no pass/fail outcome.
+- `target` compares that independently calculated fidelity with the declared `final_fidelity`. Without a target it is inapplicable. A below-target pulse can pass replay and fail only target. The replay-agreement tolerance does not lower the target.
+- `constraints` checks channel amplitudes, duration, equal intervals and every declared first/second derivative bound. It includes the terminal knot in the discrete differences, adds no endpoint constraint and lists any uncovered constraints. Malformed pulse arrays fail this check; unsupported problem semantics are inapplicable with a reason.
+
+Replay and target share one evolution when requested together. A replay of the closed RWA control model measures neither device-model accuracy nor the rotating-wave approximation. Additional evidence requires a separately requested lab-frame calculation.
+
+The versioned corrector policy sets replay agreement to `1e-7` absolute fidelity; QuTiP uses `rtol=1e-11`, `atol=1e-13`, and `max_steps=100000` per interval. The fidelity tolerance exceeds the measured native/independent discrepancies in the bundled gate probe (about `1e-9`) while detecting incorrect solver reports. Constraint slack is `1e-7` GHz, GHz/ns, and GHz/ns² for amplitude, first and second differences respectively. This tolerates floating-point feasibility residuals without certifying stricter bounds. Timing limits come from the frozen ProblemSpec’s `free_dt` bracket: every step must lie within it, and total duration within `(N-1)` times its endpoints. Only roundoff slack, `32 × machine epsilon × max(returned duration, upper duration bound)`, is added to these timing limits. The target belongs to the input, not the policy. Constructed-pulse tests cover pass/fail, complex goals, non-contiguous subspaces, leakage, missing prerequisites and source tampering.

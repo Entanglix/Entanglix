@@ -312,6 +312,7 @@ def compile_control(
         "preview": loaded.listing,
     }
     if repository is not None:
+        from entanglix.corrector.control import control_listing
         from entanglix.runner import capture_environment
 
         result.update(
@@ -327,6 +328,7 @@ def compile_control(
             protocol_sha256=loaded.input_digests["control.toml"],
         )
         result["preview"]["solver_selection"] = selection
+        result["preview"].update(control_listing(loaded))
     return result
 
 

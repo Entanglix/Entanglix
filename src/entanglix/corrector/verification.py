@@ -10,6 +10,8 @@ from pathlib import Path
 import numpy as np
 
 from entanglix.corrector import (
+    _load_check_source,
+    _source_artifact,
     create_verification_run,
     load_policy,
     load_verification,
@@ -26,7 +28,7 @@ from entanglix.corrector.dynamics import (
 from entanglix.corrector.metrics import metric_values, spectral_arrays
 from entanglix.corrector.reference import prepare_refinement
 from entanglix.evolution import normalize_input
-from entanglix.protocols.plans import Refinement, load_computation
+from entanglix.protocols.plans import Refinement
 from entanglix.runner import (
     _cpu_job_context,
     _digest,
@@ -170,7 +172,18 @@ def execute_verification(run: Path):
         name: Refinement.model_validate(value) for name, value in request["refinement"].items()
     }
     source = (run.parent / binding["source_path"]).resolve()
-    if hasattr(loaded, "points"):
+    if "problem_sha256" in binding:
+        from entanglix.corrector.control import CONTROL_LIMIT, control_checks
+        from entanglix.solvers import Pulse
+
+        result = _script_result(source)
+        with np.load(source / _source_artifact(result)["path"], allow_pickle=False) as archive:
+            pulse = Pulse(
+                archive["times_ns"], archive["amplitudes_ghz"], str(archive["kind"].item())
+            )
+        kind, has_dynamics = "control", False
+        outcomes = control_checks(loaded, pulse, result, request["checks"], policy)
+    elif hasattr(loaded, "points"):
         from entanglix.corrector.sweeps import sweep_checks
 
         kind = loaded.manifest["kind"]
@@ -204,6 +217,7 @@ def execute_verification(run: Path):
         "refinement_origin": request["refinement_origin"],
         "work_seconds": time.monotonic() - started,
         **({"limit": WHOLE_WINDOW_LIMIT} if has_dynamics else {}),
+        **({"limit": CONTROL_LIMIT} if kind == "control" else {}),
     }
     load_verification(run)
     publish_toml(
@@ -243,9 +257,13 @@ def check_run(
         if refinement is not None:
             raise ValueError("a replacement refinement requires named checks")
         record = _read_attempt(source)
-        if record["manifest"]["protocol"] not in {"plan", "simulate", "sweep"}:
+        if record["manifest"]["protocol"] not in {"plan", "simulate", "sweep", "control"}:
             return {"checks": [], "reason": "run has no trusted built-in computation definition"}
-        loaded = load_computation(source / "spec")
+        loaded = _load_check_source(source / "spec", record["manifest"]["protocol"])
+        if record["manifest"]["protocol"] == "control":
+            from entanglix.corrector.control import control_listing
+
+            return control_listing(loaded)
         if hasattr(loaded, "points"):
             from entanglix.corrector.sweeps import sweep_listing
 
@@ -277,7 +295,11 @@ def check_run(
             command,
             environment,
             timeout_seconds=timeout_seconds,
-            job_input="plan.toml",
+            job_input=(
+                "control.toml"
+                if "problem_sha256" in _load_record(owner.path / "run.toml")["launch"]
+                else "plan.toml"
+            ),
             validate_result=verification_result,
         )
 
@@ -304,7 +326,7 @@ def verification_history(source):
                 "policy_version": binding["policy_version"],
                 "source_matches": source_digest == binding["source_result_sha256"]
                 and result is not None
-                and result["artifacts"]["output"]["sha256"] == binding["source_artifact_sha256"],
+                and _source_artifact(result)["sha256"] == binding["source_artifact_sha256"],
             }
             if record["status"] == "completed" and item["source_matches"]:
                 request_path = path.parent / "spec" / binding["request_file"]

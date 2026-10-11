@@ -4,8 +4,8 @@
   "device": "cpu",
   "records": [
     {
-      "run_id": "r20261003T185113901382Z-dd1596ea",
-      "path": "/home/paimon/Projects/Entanglix/research_runs/readout/r20261003T185113901382Z-dd1596ea",
+      "run_id": "r20261011T162425023237Z-6bba83d2",
+      "path": "/home/paimon/Projects/Entanglix/research_runs/readout/r20261011T162425023237Z-6bba83d2",
       "parent_run_ids": [],
       "engine": "qutip-cpu",
       "device": "cpu",
@@ -33,21 +33,21 @@
         ]
       },
       "code": {
-        "revision": "f7f25b9c7410d2ab3d305a791e1b7e3874bfad7a",
+        "revision": "c1acaf4c52a71b2606ee1b5db1d57bdd5d35abbb",
         "dirty": true,
-        "patch_sha256": "9026fccfbcf1dfeffcbaa31a095c79ff336e210950ec73f4d4986ffdb6ffe5b5",
+        "patch_sha256": "747b7e4aa14e8f69e50e65f6a56d6e92f5b5d9126adc0829a931db5188f72646",
         "untracked_sha256": {}
       },
-      "env_hash": "293787ba24fdcde06809255e21895ae686c77cae28ac0829c0a6555d53da96f6",
+      "env_hash": "2699980e55fdcbfd137cf7d5cff9d087203bc1b224ac416527823fe82812e7ca",
       "plan_sha256": "d2f92be0c8460a76a3cfbb8727e3235feb6c926d39fa521651d474afb359f7b2",
       "usage": {
-        "wall_seconds": 4.521104281011503,
+        "wall_seconds": 4.460389208979905,
         "gpu_seconds": 0,
         "uncertain": false
       },
       "automatic_checks": false,
-      "verification_run_id": "r20261003T185118857344Z-a4240fbb",
-      "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
+      "verification_run_id": "r20261011T162429916742Z-f1179f91",
+      "policy_version": "d67c3a1223a85c5b8b6c9e64b6795abe774bdd2fc040b77f6f86231d1934f729",
       "report": {
         "kind": "lindblad",
         "requested_checks": [
@@ -56,7 +56,7 @@
           "diagnostics",
           "declared_expectation"
         ],
-        "work_seconds": 0.7408903040341102,
+        "work_seconds": 0.7676428689737804,
         "checks": [
           {
             "name": "integrity",
@@ -405,10 +405,10 @@
       }
     },
     {
-      "run_id": "r20261003T185121169349Z-3da27a0a",
-      "path": "/home/paimon/Projects/Entanglix/research_runs/readout/r20261003T185121169349Z-3da27a0a",
+      "run_id": "r20261011T162432184614Z-8f70a92e",
+      "path": "/home/paimon/Projects/Entanglix/research_runs/readout/r20261011T162432184614Z-8f70a92e",
       "parent_run_ids": [
-        "r20261003T185113901382Z-dd1596ea"
+        "r20261011T162425023237Z-6bba83d2"
       ],
       "engine": "qutip-cpu",
       "device": "cpu",
@@ -436,21 +436,21 @@
         ]
       },
       "code": {
-        "revision": "f7f25b9c7410d2ab3d305a791e1b7e3874bfad7a",
+        "revision": "c1acaf4c52a71b2606ee1b5db1d57bdd5d35abbb",
         "dirty": true,
-        "patch_sha256": "9026fccfbcf1dfeffcbaa31a095c79ff336e210950ec73f4d4986ffdb6ffe5b5",
+        "patch_sha256": "747b7e4aa14e8f69e50e65f6a56d6e92f5b5d9126adc0829a931db5188f72646",
         "untracked_sha256": {}
       },
-      "env_hash": "293787ba24fdcde06809255e21895ae686c77cae28ac0829c0a6555d53da96f6",
+      "env_hash": "2699980e55fdcbfd137cf7d5cff9d087203bc1b224ac416527823fe82812e7ca",
       "plan_sha256": "d2f92be0c8460a76a3cfbb8727e3235feb6c926d39fa521651d474afb359f7b2",
       "usage": {
-        "wall_seconds": 4.789437864965294,
+        "wall_seconds": 4.699342040054034,
         "gpu_seconds": 0,
         "uncertain": false
       },
       "automatic_checks": false,
-      "verification_run_id": "r20261003T185126296510Z-ac752734",
-      "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
+      "verification_run_id": "r20261011T162437147879Z-3afbf45e",
+      "policy_version": "d67c3a1223a85c5b8b6c9e64b6795abe774bdd2fc040b77f6f86231d1934f729",
       "report": {
         "kind": "lindblad",
         "requested_checks": [
@@ -459,7 +459,7 @@
           "diagnostics",
           "declared_expectation"
         ],
-        "work_seconds": 0.7504132610047236,
+        "work_seconds": 0.7729875319637358,
         "checks": [
           {
             "name": "integrity",
@@ -815,8 +815,8 @@
   "replay_maximum_residual": 0.0,
   "replay_atol": 1e-07,
   "static_companion": {
-    "run_id": "r20261003T185128599314Z-df297ac2",
-    "path": "/home/paimon/Projects/Entanglix/research_runs/readout/r20261003T185128599314Z-df297ac2",
+    "run_id": "r20261011T162439419954Z-b7bb808f",
+    "path": "/home/paimon/Projects/Entanglix/research_runs/readout/r20261011T162439419954Z-b7bb808f",
     "parent_run_ids": [],
     "engine": "qutip-cpu",
     "device": "cpu",
@@ -831,27 +831,27 @@
       ]
     },
     "code": {
-      "revision": "f7f25b9c7410d2ab3d305a791e1b7e3874bfad7a",
+      "revision": "c1acaf4c52a71b2606ee1b5db1d57bdd5d35abbb",
       "dirty": true,
-      "patch_sha256": "9026fccfbcf1dfeffcbaa31a095c79ff336e210950ec73f4d4986ffdb6ffe5b5",
+      "patch_sha256": "747b7e4aa14e8f69e50e65f6a56d6e92f5b5d9126adc0829a931db5188f72646",
       "untracked_sha256": {}
     },
-    "env_hash": "293787ba24fdcde06809255e21895ae686c77cae28ac0829c0a6555d53da96f6",
+    "env_hash": "2699980e55fdcbfd137cf7d5cff9d087203bc1b224ac416527823fe82812e7ca",
     "plan_sha256": "683980bfa815a2011f97221d1725f553320c724a1ce70c591f496b9cc3865c1c",
     "usage": {
-      "wall_seconds": 0.8341303300112486,
+      "wall_seconds": 0.848464818962384,
       "gpu_seconds": 0,
       "uncertain": false
     },
     "automatic_checks": false,
-    "verification_run_id": "r20261003T185129767379Z-557f0a1e",
-    "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
+    "verification_run_id": "r20261011T162440406739Z-b9c22043",
+    "policy_version": "d67c3a1223a85c5b8b6c9e64b6795abe774bdd2fc040b77f6f86231d1934f729",
     "report": {
       "kind": "spectrum",
       "requested_checks": [
         "spectral_refinement"
       ],
-      "work_seconds": 0.1616700739832595,
+      "work_seconds": 0.15814157098066062,
       "checks": [
         {
           "name": "spectral_refinement",
@@ -892,10 +892,10 @@
     }
   },
   "refined_grid": {
-    "run_id": "r20261003T185131430272Z-be3da206",
-    "path": "/home/paimon/Projects/Entanglix/research_runs/readout/r20261003T185131430272Z-be3da206",
+    "run_id": "r20261011T162441941417Z-ad51862d",
+    "path": "/home/paimon/Projects/Entanglix/research_runs/readout/r20261011T162441941417Z-ad51862d",
     "parent_run_ids": [
-      "r20261003T185113901382Z-dd1596ea"
+      "r20261011T162425023237Z-6bba83d2"
     ],
     "engine": "qutip-cpu",
     "device": "cpu",
@@ -913,21 +913,21 @@
       ]
     },
     "code": {
-      "revision": "f7f25b9c7410d2ab3d305a791e1b7e3874bfad7a",
+      "revision": "c1acaf4c52a71b2606ee1b5db1d57bdd5d35abbb",
       "dirty": true,
-      "patch_sha256": "9026fccfbcf1dfeffcbaa31a095c79ff336e210950ec73f4d4986ffdb6ffe5b5",
+      "patch_sha256": "747b7e4aa14e8f69e50e65f6a56d6e92f5b5d9126adc0829a931db5188f72646",
       "untracked_sha256": {}
     },
-    "env_hash": "293787ba24fdcde06809255e21895ae686c77cae28ac0829c0a6555d53da96f6",
+    "env_hash": "2699980e55fdcbfd137cf7d5cff9d087203bc1b224ac416527823fe82812e7ca",
     "plan_sha256": "e1a7d15ce36434bbab29b78c6484c2a0ab5bee9dda13cd16288eb7a4791d5973",
     "usage": {
-      "wall_seconds": 2.1623912490322255,
+      "wall_seconds": 2.1137879960006103,
       "gpu_seconds": 0,
       "uncertain": false
     },
     "automatic_checks": false,
-    "verification_run_id": "r20261003T185133825763Z-fa9d44ef",
-    "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
+    "verification_run_id": "r20261011T162444237460Z-5a8d5c57",
+    "policy_version": "d67c3a1223a85c5b8b6c9e64b6795abe774bdd2fc040b77f6f86231d1934f729",
     "report": {
       "kind": "lindblad",
       "requested_checks": [
@@ -936,7 +936,7 @@
         "diagnostics",
         "declared_expectation"
       ],
-      "work_seconds": 0.5005975379608572,
+      "work_seconds": 0.5034289080067538,
       "checks": [
         {
           "name": "integrity",

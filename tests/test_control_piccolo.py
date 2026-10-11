@@ -77,6 +77,11 @@ def test_piccolo_active_derivative_bound_and_neutral_knots(
     assert record["status"] == "completed", record["log_tail"]
     with np.load(Path(result["path"]) / "artifacts/pulse.npz") as pulse:
         t, u = pulse["times_ns"], pulse["amplitudes_ghz"]
+        from entanglix.corrector import load_policy
+        from entanglix.corrector.control import constraints
+        from entanglix.solvers import Pulse
+
+        assert constraints(load_control(path), Pulse(t, u), load_policy())["outcome"] == "pass"
         assert u.shape == (2, 5)
         assert t[-1] == pytest.approx(10, abs=1e-6)
         np.testing.assert_allclose(np.diff(t), np.diff(t)[0], atol=1e-9)

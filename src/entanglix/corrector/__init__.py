@@ -77,6 +77,9 @@ CHECK_DEFINITIONS = {
     "diagnostics": "Top-level population and static shifts; descriptive only, with no pass/fail outcome",
     "spectral_refinement": "Truncation sensitivity of the reported excitation energies",
     "declared_expectation": "A result contradicting the expectation declared in the sweep spec",
+    "replay": "Independent control fidelity disagrees with the solver's report",
+    "target": "Independent control fidelity misses the declared target",
+    "constraints": "The returned control pulse violates a declared constraint",
 }
 
 
@@ -85,6 +88,8 @@ def relevant_checks(kind: str) -> tuple[str, ...]:
         return ("integrity", "segments", "diagnostics")
     if kind == "spectrum":
         return ("spectral_refinement",)
+    if kind == "control":
+        return ("replay", "target", "constraints")
     raise ValueError(f"unknown computation definition: {kind!r}")
 
 
@@ -151,6 +156,20 @@ def select_evidence(
     )
 
 
+def _load_check_source(root, protocol):
+    if protocol == "control":
+        from entanglix.corrector.control import load_candidate
+
+        return load_candidate(root)
+    from entanglix.protocols.plans import load_computation
+
+    return load_computation(root)
+
+
+def _source_artifact(result):
+    return result["artifacts"]["pulse" if result.get("kind") == "control" else "output"]
+
+
 def create_verification_run(
     source: Path,
     *,
@@ -167,7 +186,7 @@ def create_verification_run(
     import tomli_w
     from pydantic import TypeAdapter
 
-    from entanglix.protocols.plans import Refinement, load_computation
+    from entanglix.protocols.plans import Refinement
     from entanglix.runner import _digest, _read_attempt, _relative_file, _script_result, create_run
 
     if not checks or set(checks) - CHECK_DEFINITIONS.keys():
@@ -180,6 +199,7 @@ def create_verification_run(
         "plan",
         "simulate",
         "sweep",
+        "control",
     }:
         raise ValueError("checks require a completed built-in computation run")
     manifest = record["manifest"]
@@ -187,20 +207,33 @@ def create_verification_run(
         if _digest((source / "spec" / _relative_file(name)).read_bytes()) != digest:
             raise ValueError(f"source input digest mismatch: {name}")
     result = _script_result(source)
-    loaded = load_computation(source / "spec")
+    is_control = manifest["protocol"] == "control"
+    loaded = _load_check_source(source / "spec", manifest["protocol"])
     point = loaded.points[0] if hasattr(loaded, "points") else loaded
-    if (
-        loaded.digest != manifest["launch"]["plan_sha256"]
-        or result.get("plan_sha256") != loaded.digest
-        or result.get("kind") != point.definition.kind
-        or manifest["launch"]["kind"] != point.definition.kind
-        or result.get("engine") != point.definition.engine
-        or manifest["engine"] != point.definition.engine
-        or result.get("dimensions") != list(loaded.system.dimensions)
-    ):
+    identity = "problem_sha256" if is_control else "plan_sha256"
+    if is_control:
+        consistent = (
+            loaded.digest == manifest["launch"][identity] == result.get(identity)
+            and result.get("kind") == manifest["launch"]["kind"] == "control"
+            and result.get("engine") == manifest["engine"]
+            and result.get("solver") == manifest["launch"]["selection"]
+        )
+    else:
+        consistent = not (
+            loaded.digest != manifest["launch"]["plan_sha256"]
+            or result.get("plan_sha256") != loaded.digest
+            or result.get("kind") != point.definition.kind
+            or manifest["launch"]["kind"] != point.definition.kind
+            or result.get("engine") != point.definition.engine
+            or manifest["engine"] != point.definition.engine
+            or result.get("dimensions") != list(loaded.system.dimensions)
+        )
+    if not consistent:
         raise ValueError("source result is inconsistent with its trusted execution plan")
-    declaration = point.definition.refinement
+    declaration = {} if is_control else point.definition.refinement
     if refinement is not None:
+        if is_control:
+            raise ValueError("control checks do not use a refinement declaration")
         document = tomllib.loads(refinement.read_text())
         if set(document) != {"refinement"}:
             raise ValueError("replacement file must contain only [refinement.*] tables")
@@ -215,8 +248,8 @@ def create_verification_run(
         "source_run_id": manifest["run_id"],
         "source_path": os.path.relpath(source, runs_root.resolve() / loaded.system.id),
         "source_result_sha256": _digest((source / "result.toml").read_bytes()),
-        "source_artifact_sha256": result["artifacts"]["output"]["sha256"],
-        "plan_sha256": loaded.digest,
+        "source_artifact_sha256": _source_artifact(result)["sha256"],
+        identity: loaded.digest,
         "policy_version": policy.version,
         **({"timeout_seconds": timeout_seconds} if timeout_seconds is not None else {}),
     }
@@ -254,7 +287,6 @@ def create_verification_run(
 
 def load_verification(run: Path):
     """Recheck request/input digests, policy, and the recorded completed parent."""
-    from entanglix.protocols.plans import load_computation
     from entanglix.runner import (
         _digest,
         _load_record,
@@ -271,8 +303,10 @@ def load_verification(run: Path):
     for name, digest in manifest["spec_sha256"].items():
         if _digest((run / "spec" / _relative_file(name)).read_bytes()) != digest:
             raise ValueError(f"verification input digest mismatch: {name}")
-    loaded = load_computation(run / "spec")
-    if loaded.digest != binding["plan_sha256"] or manifest["parent_run_ids"] != [
+    is_control = "problem_sha256" in binding
+    loaded = _load_check_source(run / "spec", "control" if is_control else "plan")
+    identity = "problem_sha256" if is_control else "plan_sha256"
+    if loaded.digest != binding[identity] or manifest["parent_run_ids"] != [
         binding["source_run_id"]
     ]:
         raise ValueError("verification source binding is inconsistent")
@@ -283,7 +317,7 @@ def load_verification(run: Path):
     result = _script_result(source)
     if (
         _digest((source / "result.toml").read_bytes()) != binding["source_result_sha256"]
-        or result["artifacts"]["output"]["sha256"] != binding["source_artifact_sha256"]
+        or _source_artifact(result)["sha256"] != binding["source_artifact_sha256"]
     ):
         raise ValueError("verification source digest mismatch")
     request = _load_record(run / "spec" / _relative_file(binding["request_file"]))

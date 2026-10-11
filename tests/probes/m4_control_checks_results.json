@@ -1,0 +1,249 @@
+{
+  "pass": true,
+  "policy_version": "d67c3a1223a85c5b8b6c9e64b6795abe774bdd2fc040b77f6f86231d1934f729",
+  "note": "Fresh CPU checks on retained first-gate candidates; no optimization or source simulation rerun.",
+  "records": [
+    {
+      "source_run_id": "r20261011T134458228287Z-2e465951",
+      "source_path": "/home/paimon/Projects/Entanglix/research_runs/m4-control/junction_with_shunt/r20261011T134458228287Z-2e465951",
+      "problem_sha256": "716bdda08b61e182e4cea833a69282136bbb558ab36d492c042042a016daa3fa",
+      "solver": {
+        "requested": "grape",
+        "actual": "grape",
+        "version": "0.1.0",
+        "fallback_used": false
+      },
+      "check_run_id": "r20261011T151156689142Z-400fd2dc",
+      "check_path": "/home/paimon/Projects/Entanglix/research_runs/m4-control/junction_with_shunt/r20261011T151156689142Z-400fd2dc",
+      "policy_version": "d67c3a1223a85c5b8b6c9e64b6795abe774bdd2fc040b77f6f86231d1934f729",
+      "code": {
+        "revision": "c1acaf4c52a71b2606ee1b5db1d57bdd5d35abbb",
+        "dirty": true,
+        "patch_sha256": "9bdc17f111d1b37275fd885e6b0bcc1b57cf806205aa8ac81b32b595a1447262",
+        "untracked_sha256": {}
+      },
+      "env_hash": "2699980e55fdcbfd137cf7d5cff9d087203bc1b224ac416527823fe82812e7ca",
+      "usage": {
+        "wall_seconds": 0.923763515020255,
+        "gpu_seconds": 0,
+        "uncertain": false
+      },
+      "checks": [
+        {
+          "name": "replay",
+          "scope": "returned neutral pulse in the declared control model",
+          "outcome": "pass",
+          "residual": 3.145106397539621e-11,
+          "tolerance": 1e-07,
+          "solver_reported_fidelity": 0.9996150466582062,
+          "fidelity": 0.9996150466896573,
+          "leakage": 2.9768638817984083e-05,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13
+        },
+        {
+          "name": "target",
+          "scope": "returned neutral pulse in the declared control model",
+          "outcome": "pass",
+          "residual": 0.9996150466896573,
+          "tolerance": 0.999,
+          "failure_meaning": "unmet declared target",
+          "fidelity": 0.9996150466896573,
+          "leakage": 2.9768638817984083e-05,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13
+        },
+        {
+          "name": "constraints",
+          "outcome": "pass",
+          "scope": "returned knots, including terminal amplitudes and differences",
+          "uncovered_constraints": [],
+          "checks": [
+            {
+              "name": "amplitude",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maxima_ghz": [
+                0.05405422522311776,
+                0.05405422522311776
+              ],
+              "bounds_ghz": [
+                0.05405422522311776,
+                0.05405422522311776
+              ]
+            },
+            {
+              "name": "duration",
+              "scope": "duration allowed by the frozen time-step bracket",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1.4210856136287477e-13,
+              "duration_ns": 20.0,
+              "declared_ns": 20.0,
+              "bounds_ns": [
+                19.999998,
+                20.000002000000002
+              ]
+            },
+            {
+              "name": "equal_steps",
+              "scope": "all propagation intervals within the frozen time-step bracket",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1.4210856136287477e-13,
+              "bounds_ns": [
+                0.9999999,
+                1.0000001
+              ]
+            },
+            {
+              "name": "du",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maximum": 0.07800276365191408,
+              "bound": 0.09009037537186294
+            },
+            {
+              "name": "ddu",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 5.703770789011742e-15,
+              "tolerance": 1e-07,
+              "maximum": 0.09009037537186865,
+              "bound": 0.09009037537186294
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "source_run_id": "r20261011T134524092210Z-875bff8c",
+      "source_path": "/home/paimon/Projects/Entanglix/research_runs/m4-control/junction_with_shunt/r20261011T134524092210Z-875bff8c",
+      "problem_sha256": "716bdda08b61e182e4cea833a69282136bbb558ab36d492c042042a016daa3fa",
+      "solver": {
+        "requested": "piccolo",
+        "actual": "piccolo",
+        "version": "0.1.0",
+        "fallback_used": false
+      },
+      "check_run_id": "r20261011T151157788103Z-7d8e94bb",
+      "check_path": "/home/paimon/Projects/Entanglix/research_runs/m4-control/junction_with_shunt/r20261011T151157788103Z-7d8e94bb",
+      "policy_version": "d67c3a1223a85c5b8b6c9e64b6795abe774bdd2fc040b77f6f86231d1934f729",
+      "code": {
+        "revision": "c1acaf4c52a71b2606ee1b5db1d57bdd5d35abbb",
+        "dirty": true,
+        "patch_sha256": "9bdc17f111d1b37275fd885e6b0bcc1b57cf806205aa8ac81b32b595a1447262",
+        "untracked_sha256": {}
+      },
+      "env_hash": "2699980e55fdcbfd137cf7d5cff9d087203bc1b224ac416527823fe82812e7ca",
+      "usage": {
+        "wall_seconds": 0.9620716529898345,
+        "gpu_seconds": 0,
+        "uncertain": false
+      },
+      "checks": [
+        {
+          "name": "replay",
+          "scope": "returned neutral pulse in the declared control model",
+          "outcome": "pass",
+          "residual": 2.0542181289329164e-09,
+          "tolerance": 1e-07,
+          "solver_reported_fidelity": 0.9999999921909182,
+          "fidelity": 0.9999999942451363,
+          "leakage": 5.438482109099141e-09,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13
+        },
+        {
+          "name": "target",
+          "scope": "returned neutral pulse in the declared control model",
+          "outcome": "pass",
+          "residual": 0.9999999942451363,
+          "tolerance": 0.999,
+          "failure_meaning": "unmet declared target",
+          "fidelity": 0.9999999942451363,
+          "leakage": 5.438482109099141e-09,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13
+        },
+        {
+          "name": "constraints",
+          "outcome": "pass",
+          "scope": "returned knots, including terminal amplitudes and differences",
+          "uncovered_constraints": [],
+          "checks": [
+            {
+              "name": "amplitude",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maxima_ghz": [
+                0.0515972199665069,
+                0.0502446944221865
+              ],
+              "bounds_ghz": [
+                0.05405422522311776,
+                0.05405422522311776
+              ]
+            },
+            {
+              "name": "duration",
+              "scope": "duration allowed by the frozen time-step bracket",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1.4210856136287477e-13,
+              "duration_ns": 19.999999999995616,
+              "declared_ns": 20.0,
+              "bounds_ns": [
+                19.999998,
+                20.000002000000002
+              ]
+            },
+            {
+              "name": "equal_steps",
+              "scope": "all propagation intervals within the frozen time-step bracket",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1.4210856136287477e-13,
+              "bounds_ns": [
+                0.9999999,
+                1.0000001
+              ]
+            },
+            {
+              "name": "du",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maximum": 0.059803117663247495,
+              "bound": 0.09009037537186294
+            },
+            {
+              "name": "ddu",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maximum": 0.07213594814805402,
+              "bound": 0.09009037537186294
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
