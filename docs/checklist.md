@@ -244,6 +244,8 @@ The [M2 guide](m2-guide.md) records the implementation approach; [ADR-0003](adr/
 
 ## M4 — Control (Block 7)
 
+The [M4 guide](m4-guide.md) records the implementation approach; [ADR-0005](adr/0005-control-problems-and-solvers.md) records the control spec, solver, adapter, and check decisions. This checklist records completion and links to acceptance evidence.
+
 ### [ ] Block 7 — Protocol `control`
 
 **Builds on:** Blocks 1–4 for standalone control; Block 6b for agent integration. Prefer to sequence after M3; that order is not a technical prerequisite. Cluster execution and calibration are optional.
