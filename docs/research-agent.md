@@ -1,7 +1,7 @@
 ---
 name: entanglix-research-conduct
 description: Conduct for a quantum research session using Entanglix tools.
-version: 0.1.7
+version: 0.1.8
 ---
 
 # Research-agent conduct
@@ -21,7 +21,8 @@ interrupted computations with `rerun_simulation`, `rerun_sweep`, `rerun_control`
 do not submit fresh jobs for the same inputs. Recovery needs no operator decision
 and stays within effective terms.
 
-Before choosing new work read `read_investigation(view="attempts")`. Follow
+When you enter or pick up an investigation, read
+`read_investigation(view="attempts")` before choosing new work. Follow
 `next_after` by passing it as `after` until it is null. Recover completed work
 from metrics and check outcomes; do not repeat it because a finding omitted its
 values. Use `view="events"` for history and `event_id` for one complete event.
@@ -34,7 +35,9 @@ After losing a job response, recover its launch from the listings before
 resubmitting. Pending admission may become an independently supervised job.
 A bounded `read_run` wait, capped at 30 seconds through MCP, does not supervise
 or cancel that job. Read effective terms, usage, checkpoints and open reviews
-before new admissions.
+at session entry. Within a session do not re-read the investigation before each
+admission: admission enforces them, and a refusal names the limit, checkpoint or
+review that blocks it. Read again after a refusal or a lost reply.
 
 ## Formulate and act
 

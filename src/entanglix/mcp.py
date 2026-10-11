@@ -121,6 +121,7 @@ def build_server(config: Configuration):
     root = config.runs_root.resolve()
     repository = config.repository.resolve()
     session_id = f"s{secrets.token_hex(16)}"
+    session_recorded = False
     audit = root / "_audit"
     instructions, supplied = supplied_guidance(repository)
     handlers = {}
@@ -133,8 +134,13 @@ def build_server(config: Configuration):
         return resolved
 
     async def audit_call(ctx, call_next):
-        if ctx.method == "initialize":
-            client = (ctx.params or {}).get("clientInfo", {})
+        nonlocal session_recorded
+        if not session_recorded:
+            client = (
+                (ctx.params or {}).get("clientInfo", {})
+                if ctx.method == "initialize"
+                else (ctx.meta or {}).get("io.modelcontextprotocol/clientInfo", {})
+            )
             publish = audit / "sessions" / f"{session_id}.toml"
             publish.parent.mkdir(parents=True, exist_ok=True)
             runner.publish_toml(
@@ -169,6 +175,7 @@ def build_server(config: Configuration):
                     "transcript_location": "unknown",
                 },
             )
+            session_recorded = True
         if ctx.method != "tools/call":
             return await call_next(ctx)
         params = ctx.params or {}

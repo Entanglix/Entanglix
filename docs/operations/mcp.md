@@ -107,6 +107,8 @@ Audit files are separate from job outputs under `<runs_root>/_audit/`:
 - `calls/<call-id>/request.toml`: an immutable event written before invoking the tool or starting a supervisor, with timestamp, connection ID, tool, permission class, argument hash, and client request metadata labelled `client-reported`. Job call IDs also identify their launch directories.
 - `calls/<call-id>/outcome.toml`: a separate immutable event with the result hash and returned/error/interrupted outcome, plus linked runs/revisions when known. The `links` table includes run and investigation/revision identifiers when known, and the recovered launch path/status for job calls.
 
+The session entry is written at the handshake or at the first request of a connection that has none, taking the client name and version from that request's metadata.
+
 The request event contains no outcome or result hash; those belong to the outcome event. The two call events form one logical call record. Neither is overwritten. An absent outcome means the server did not retain a final outcome; it does not mean a job was never admitted. Recover the recorded launch path before trying another launch. `returned` means the server produced a result, not that a client received it, and an admitted job can still be executing.
 
 Hashes are SHA-256 of canonical JSON (sorted keys, compact separators) for arguments and MCP results. If a call is interrupted without a result, its result hash is `unknown`. Client request metadata belongs to the call and never rewrites the connection entry. It is provenance, not authenticated identity.

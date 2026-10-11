@@ -1,14 +1,15 @@
 ---
 name: control
 description: Solve an Entanglix closed-system gate problem, inspect a returned pulse, request control checks, or re-solve frozen inputs.
-version: 0.1.0
+version: 0.1.1
 ---
 
 # Closed-system control
 
 Read workspace `reference/operations/control.md` for the input, units, subspace,
 solver support and neutral pulse. Use `reference/operations/investigations.md`
-for approved terms and `reference/operations/runs.md` for job recovery.
+for approved terms. Read `reference/operations/runs.md` only when an attempt is
+interrupted or its state is unknown.
 
 Declare the gate, duration, amplitude and derivative bounds, reported target and
 control frame. The supported control model is closed and uses an explicit RWA;

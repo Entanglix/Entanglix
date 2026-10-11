@@ -13,7 +13,7 @@ from pathlib import Path
 import pytest
 
 pytest.importorskip("mcp")
-from mcp import ClientSession, StdioServerParameters
+from mcp import Client, ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 from mcp.types import Implementation
 from test_detached_launches import slow_worker, wait_for
@@ -183,6 +183,39 @@ def test_tool_parity_annotations_and_immutable_audit(study, runner_repository, t
         for item in outcomes
     )
     assert not list_runs(runs)
+
+
+def test_first_request_without_initialize_records_session(runner_repository, tmp_path):
+    runs = tmp_path / "runs"
+    params = StdioServerParameters(
+        command=sys.executable,
+        args=["-m", "entanglix.mcp", "--runs-root", str(runs), "--device", "", "--runner-extras"],
+        env=os.environ | {"PYTHONPATH": str(runner_repository / "src")},
+    )
+
+    async def exercise():
+        async with Client(
+            params,
+            mode="2026-07-28",
+            client_info=Implementation(name="modern-scripted-test", version="1"),
+        ) as session:
+            await call(session, "list_capabilities")
+
+    asyncio.run(exercise())
+    sessions = list((runs / "_audit/sessions").glob("*.toml"))
+    assert len(sessions) == 1
+    connection = _load_record(sessions[0])
+    assert connection["client"] == {
+        "source": "client-reported",
+        "name": "modern-scripted-test",
+        "version": "1",
+    }
+    request = _load_record(next((runs / "_audit/calls").glob("*/request.toml")))
+    assert request["session_id"] == connection["session_id"]
+    assert (
+        json.loads(request["client_metadata"]["json"])["io.modelcontextprotocol/protocolVersion"]
+        == "2026-07-28"
+    )
 
 
 def test_investigation_views_and_finding_ack_over_stdio(study, runner_repository, tmp_path):
