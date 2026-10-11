@@ -24,6 +24,7 @@ entanglix = "entanglix.cli:main"
 
 [project.entry-points."entanglix.solvers"]
 grape = "entanglix.solvers.grape:GrapeBackend"
+piccolo = "entanglix.solvers.piccolo:PiccoloBackend"
 
 [build-system]
 requires = ["uv_build==0.12.0"]
@@ -39,7 +40,9 @@ environments = ["sys_platform == 'linux'"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--strict-markers --strict-config"
-markers = ["gpu: requires an NVIDIA GPU visible to the test process"]
+markers = [
+    "gpu: requires an NVIDIA GPU visible to the test process",
+]
 
 [tool.ruff]
 target-version = "py313"

@@ -32,7 +32,11 @@ def _digest(content: bytes) -> str:
 
 
 def capture_environment(
-    lockfile: Path, *, extras: tuple[str, ...] = (), gpu: dict[str, str] | None = None
+    lockfile: Path,
+    *,
+    extras: tuple[str, ...] = (),
+    gpu: dict[str, str] | None = None,
+    solver_runtime: dict | None = None,
 ) -> dict:
     """Fingerprint an exactly synced environment; GPU observations come from the gate."""
     gpu = gpu or {}
@@ -50,6 +54,8 @@ def capture_environment(
         "extras": sorted(set(extras)),
         "gpu": {key: gpu.get(key, "unobserved") for key in ("driver", "cuda", "cuquantum")},
     }
+    if solver_runtime is not None:
+        record["solver_runtime"] = solver_runtime
     record["env_hash"] = _digest(json.dumps(record, sort_keys=True, separators=(",", ":")).encode())
     return record
 

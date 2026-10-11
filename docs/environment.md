@@ -443,3 +443,21 @@ uv run --locked --exact python tests/probes/m4_baseline.py RUN --output tests/pr
 ```
 
 The [retained baseline summary](../tests/probes/m4_baseline_results.json) links the candidate and its trace. Timings include JAX compilation on cold calls and are workstation measurements. The example records the solver-reported fidelity and numerical constraints; independent control checks follow separately.
+
+## Piccolo adapter acceptance
+
+The workstation uses Julia 1.13.0 with the repository's pinned Piccolo 2.1.0 project. Instantiate it once; ordinary launches do not install packages:
+
+```sh
+julia --startup-file=no --project=src/entanglix/solvers/julia -e 'using Pkg; Pkg.instantiate()'
+TMPDIR=/var/tmp OPENBLAS_NUM_THREADS=1 ENTANGLIX_TEST_JULIA=1 uv run --locked --exact pytest -q tests/test_control_piccolo.py --junitxml=tests/probes/m4_piccolo.xml
+```
+
+Julia tests are opt-in through `ENTANGLIX_TEST_JULIA=1`; default CPU tests do not require Julia. The [workstation report](../tests/probes/m4_piccolo.xml) records the real adapter tests. For the first gate, preserve the workstation's exact runner profile:
+
+```sh
+TMPDIR=/var/tmp OPENBLAS_NUM_THREADS=1 ENTANGLIX_RUNNER_EXTRAS=cuquantum,differentiable-cuda12 uv run --locked --exact entanglix control examples/transmon-control/piccolo.toml --runs-root research_runs/m4-control
+uv run --locked --exact python tests/probes/m4_piccolo.py RUN --output tests/probes/m4_piccolo_results.json
+```
+
+The [candidate summary](../tests/probes/m4_piccolo_results.json) records the shared problem digest, native objective, separately reported fidelity, iteration-cap outcome, runtime provenance and pulse differences. The [example](../examples/transmon-control/README.md#piccolo-candidate) states the measurements and their limits. Independent control checks follow separately.

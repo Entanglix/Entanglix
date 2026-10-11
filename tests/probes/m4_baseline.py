@@ -41,6 +41,7 @@ def main():
         "code": manifest["code"],
         "env_hash": manifest["env_hash"],
         "problem_sha256": result["problem_sha256"],
+        "energy_origin_ghz": manifest["launch"]["control_model"]["energy_origin_ghz"],
         "solver": result["solver"],
         "solver_reported_fidelity": result["metrics"]["solver_reported_fidelity"],
         "requested_fidelity": spec["problem"].get("final_fidelity"),

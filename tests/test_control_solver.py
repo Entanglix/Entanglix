@@ -13,8 +13,9 @@ from test_control import control_files as control_files
 
 from entanglix.protocols.control import control, load_control
 from entanglix.runner import read_run
-from entanglix.solvers import Pulse, Solution, select_solver
+from entanglix.solvers import Pulse, Solution, select_solver, validate_problem
 from entanglix.solvers.grape import GrapeBackend, decode, objective, validate
+from entanglix.solvers.piccolo import PiccoloBackend
 
 
 def test_control_entry_point_and_declared_fallback():
@@ -26,6 +27,57 @@ def test_control_entry_point_and_declared_fallback():
     assert selection["version"]
     with pytest.raises(ValueError, match="solver 'absent' is unavailable"):
         select_solver("absent")
+
+
+def test_piccolo_missing_julia_is_refused_before_attempt(
+    control_files, runner_repository, tmp_path, monkeypatch
+):
+    path, definition = control_files
+    definition["solver"]["backend"] = "piccolo"
+    path.write_text(tomli_w.dumps(definition))
+    # Exercise the gate in-process with a backend-independent preflight.
+    monkeypatch.setattr("entanglix.solvers.piccolo.shutil.which", lambda _: None)
+    from entanglix.protocols.control import compile_control
+
+    directory = tmp_path / "compiled"
+    directory.mkdir()
+    with pytest.raises(ValueError, match="piccolo requires Julia"):
+        compile_control(path, directory, repository=runner_repository)
+    assert not list(directory.iterdir())
+
+
+@pytest.mark.parametrize("options", [{"max_iter": 0}, {"tol": 0}, {"alien": 3}])
+def test_piccolo_bad_options_need_no_julia(control_files, options):
+    with pytest.raises(ValueError, match="solver.options"):
+        PiccoloBackend().validate(load_control(control_files[0]).problem_spec, options)
+
+
+def test_solver_preflight_is_not_selected_by_backend_name(control_files, tmp_path, monkeypatch):
+    from entanglix.protocols.control import compile_control
+
+    calls = []
+    backend = SimpleNamespace(
+        validate=lambda problem, options: calls.append((problem, options)),
+        capabilities=lambda: GrapeBackend().capabilities(),
+    )
+    monkeypatch.setattr(
+        "entanglix.solvers.select_solver", lambda *_: (backend, {"actual": "plugin"})
+    )
+    directory = tmp_path / "compiled"
+    directory.mkdir()
+    compile_control(control_files[0], directory, repository=Path(__file__).resolve().parents[1])
+    assert len(calls) == 1
+    validate_problem(calls[0][0], calls[0][1], "plugin")
+
+
+def test_solver_runtime_participates_in_environment_hash(tmp_path):
+    from entanglix.runner import capture_environment
+
+    lock = tmp_path / "uv.lock"
+    lock.write_text("version = 1\n")
+    first = capture_environment(lock, solver_runtime={"manifest_sha256": "first"})
+    second = capture_environment(lock, solver_runtime={"manifest_sha256": "second"})
+    assert first["env_hash"] != second["env_hash"]
 
 
 def test_control_plugin_discovery_and_duplicate_names(monkeypatch):

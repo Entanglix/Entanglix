@@ -24,6 +24,7 @@ This contract defines required interfaces and guarantees enforced through suppor
 SolverBackend
   capabilities() -> {gradients: bool, constraints: [...], gpu: bool, problem_kinds: [...]}
   solve(problem_spec, options) -> Solution{pulse, objective, termination, trace, solver_reported_fidelity?}
+  validate(problem_spec, options)   # optional: refuses unsupported input before a run exists
 Integrator
   capabilities() -> {name: str, device_kind: "cpu" | "cuda",
                      differentiable: bool, open_system: bool, batched: bool}

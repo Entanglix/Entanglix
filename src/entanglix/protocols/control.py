@@ -198,6 +198,8 @@ def load_control(protocol: Path) -> LoadedControl:
     )
     prepared = prepare_dynamics(closed, normalize_input(closed, request))
     drift = matrix(prepared.hamiltonian)
+    energy_origin_ghz = float(drift[0, 0].real)
+    exported_drift = drift - energy_origin_ghz * np.eye(len(drift))
     drives = {name: matrix(terms) for name, terms in prepared.drives.items()}
     for name, operator in drives.items():
         if not np.any(operator):
@@ -229,7 +231,7 @@ def load_control(protocol: Path) -> LoadedControl:
         "system": {
             "kind": "raw",
             "params": {"drive_bounds": [channel.amplitude_bound_ghz for channel in spec.channels]},
-            "H_drift": _encoded(2 * np.pi * drift),
+            "H_drift": _encoded(2 * np.pi * exported_drift),
             "H_drives": [_encoded(2 * np.pi * drives[channel.id]) for channel in spec.channels],
         },
         "goal": goal,
@@ -245,6 +247,7 @@ def load_control(protocol: Path) -> LoadedControl:
         "channel_order": [channel.id for channel in spec.channels],
         "omitted_dissipators": sorted(original.dissipators),
         "frame": prepared.diagnostics["frame"],
+        "energy_origin_ghz": energy_origin_ghz,
         "solver": spec.solver.model_dump(exclude_none=True),
         "duration_ns": spec.pulse.T,
         "interval_count": spec.problem.N - 1,
@@ -264,16 +267,15 @@ def compile_control(
     """Prepare immutable input bytes for the runner; this creates no attempt."""
     loaded = load_control(protocol)
     selection = None
+    runtime = None
     if repository is not None:
         from entanglix.solvers import select_solver
 
         backend, selection = select_solver(
             loaded.definition.solver.backend, loaded.definition.solver.fallback
         )
-        if selection["actual"] == "grape":
-            from entanglix.solvers.grape import validate
-
-            validate(loaded.problem_spec, loaded.definition.solver.options)
+        if preflight := getattr(backend, "validate", None):
+            runtime = preflight(loaded.problem_spec, loaded.definition.solver.options)
         required = {"amplitude"}
         required.update(
             name
@@ -316,7 +318,9 @@ def compile_control(
             engine=selection["actual"],
             device="cpu",
             needs={"gradients": True, "device": "cpu"},
-            environment=capture_environment(repository / "uv.lock", extras=tuple(extras)),
+            environment=capture_environment(
+                repository / "uv.lock", extras=tuple(extras), solver_runtime=runtime
+            ),
             timeout_seconds=loaded.definition.timeout_seconds,
             kind="control",
             selection=selection,

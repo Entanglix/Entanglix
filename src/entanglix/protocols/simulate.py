@@ -380,7 +380,12 @@ def _launch_protocol(
             if operation == "control":
                 launch["control_model"] = {
                     key: gate["preview"][key]
-                    for key in ("omitted_dissipators", "channel_order", "frame")
+                    for key in (
+                        "omitted_dissipators",
+                        "channel_order",
+                        "frame",
+                        "energy_origin_ghz",
+                    )
                 }
             if investigation_id is not None:
                 launch["varied_values"] = values or {}

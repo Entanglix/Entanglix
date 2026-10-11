@@ -162,6 +162,15 @@ def test_exported_fixed_pulse_matches_reference_in_the_control_frame(control_fil
 def test_first_gate_keeps_charge_scale_and_probe_quadrature_orientation():
     loaded = load_control(EXAMPLE)
     source = load_system(EXAMPLE.parent / "system.toml")
+    origin = loaded.listing["energy_origin_ghz"]
+    assert origin == pytest.approx(source.hamiltonian_ghz[0, 0].real, abs=1e-12)
+    assert abs(origin) > 1
+    np.testing.assert_allclose(
+        decode(loaded.problem_spec["system"]["H_drift"]),
+        2 * np.pi * (loaded.system.hamiltonian_ghz - origin * np.eye(3)),
+        rtol=0,
+        atol=1e-12,
+    )
     charge = source.operators["charge"]
     scale = abs(charge[0, 1])
     lowering = np.diag(np.diag(charge, 1), 1)

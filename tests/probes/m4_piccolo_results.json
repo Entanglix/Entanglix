@@ -1,0 +1,81 @@
+{
+  "run": "/home/paimon/Projects/Entanglix/research_runs/m4-control/junction_with_shunt/r20261011T134524092210Z-875bff8c",
+  "run_id": "r20261011T134524092210Z-875bff8c",
+  "status": "completed",
+  "code": {
+    "revision": "e91c925896c4916890bbe0aadf2fc5653ca22bb6",
+    "dirty": true,
+    "patch_sha256": "0c7c82af90b8c68913fb5bd394623c1477de08c00c79b87de46021a87fd42026",
+    "untracked_sha256": {}
+  },
+  "env_hash": "8a7fdd82ade99800e46a581432a111de0e7d97f0d5cbacc20219f3c60ab9d82e",
+  "runtime": {
+    "julia_version": "julia version 1.13.0",
+    "project_sha256": "3a815a3ba7b07b58c3a50c0627d20dce884fa9c00d77c0cbcd7b2e84453fec55",
+    "manifest_sha256": "65f2d3b59d3f3dc49d019421b9f81c2a180b071eb4197c949d5e0d09756f508c"
+  },
+  "package_versions": {
+    "DirectTrajOpt": "0.10.1",
+    "Piccolo": "2.1.0",
+    "NamedTrajectories": "0.9.4"
+  },
+  "problem_sha256": "716bdda08b61e182e4cea833a69282136bbb558ab36d492c042042a016daa3fa",
+  "energy_origin_ghz": -12.183560513666507,
+  "baseline_run_id": "r20261011T134458228287Z-2e465951",
+  "same_problem_as_baseline": true,
+  "objective": 1.04719795e-05,
+  "solver_reported_fidelity": 0.9999999921909182,
+  "requested_fidelity": 0.999,
+  "termination": {
+    "converged": false,
+    "iterations": 100,
+    "convergence_rule": "Piccolo's heuristic: iterations < iteration cap; not an Ipopt status."
+  },
+  "declared_options": {
+    "max_iter": 100,
+    "tol": 1e-08
+  },
+  "effective_options": {
+    "max_iter": 100,
+    "tol": 1e-08
+  },
+  "initialization": {
+    "kind": "random",
+    "effective_seed": 7
+  },
+  "usage": {
+    "wall_seconds": 26.76936272898456,
+    "gpu_seconds": 0,
+    "uncertain": false
+  },
+  "native_solve_seconds": 18.03928188,
+  "neutral_pulse": {
+    "kind": "zero_order",
+    "duration_ns": 19.999999999995616,
+    "channel_amplitude_maxima_ghz": [
+      0.0515972199665069,
+      0.0502446944221865
+    ],
+    "du_maximum_ghz_per_ns": 0.05980311766324754,
+    "ddu_maximum_ghz_per_ns2": 0.07213594814805412
+  },
+  "artifacts": {
+    "pulse": {
+      "path": "artifacts/pulse.npz",
+      "sha256": "0497ced96025d3333f93f85cc06ac005553f3527ff315327580b04e1defda582"
+    },
+    "solver_trace": {
+      "path": "artifacts/solver-trace.toml",
+      "sha256": "a8bae280a90647d6b3da3fb31127b4c642b23b61dcddec8d41dc3851b5ace45e"
+    },
+    "native_result": {
+      "path": "artifacts/piccolo/result.toml",
+      "sha256": "cb6d4e76166c6a8aae3c336585d5dbdadb4329541d8fcd99ff7dd09dbda1dfc3"
+    },
+    "native_pulse": {
+      "path": "artifacts/piccolo/pulse-ae2927f1f6db.jld2",
+      "sha256": "9dc794c48625e181ff4e9d9c59971d20c79d90c10958b12d9255a74b3cbb69d6"
+    }
+  },
+  "evidence_note": "Solver-reported candidate and pulse differences only; no independent control check. CPU workstation solve with OPENBLAS_NUM_THREADS=1."
+}

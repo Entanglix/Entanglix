@@ -1,6 +1,6 @@
 # ADR-0005: Control Problems, Solvers, and Control Checks
 
-**Date:** 2026-10-10
+**Date:** 2026-10-11
 **Status:** Accepted
 **Purpose:** fix how a control problem is stated and shared between solvers, where the solver is named, how solvers attach and what they report, how Piccolo is run, and which checks a control result offers. Field lists, formats, and command names are documented with the implementation.
 
@@ -31,7 +31,7 @@ The harness does only what the user requests.
 - The user writes one `control` spec. It references a system spec, declares the control frame and channels, carries the `goal`, `pulse`, and `problem` tables of ProblemSpec OSS under their own names, and names the solver and its options.
 - From it the runner generates one ProblemSpec OSS file and freezes it in the run with its digest. The system is exported as explicit drift and drive matrices in the control frame. The file has no `solver` table.
 - Every solver receives that file unchanged. Two runs solve the same problem when their generated files have the same digest.
-- The export has one convention. With `H0` the control-frame drift in GHz and `D_j` the dimensionless operator of channel `j`, the file holds `H_drift = 2π H0` and `H_drives[j] = 2π D_j`. The amplitudes `u_j` are in GHz and `t` is in ns, so the propagator obeys `i dU/dt = (H_drift + Σ_j u_j(t) H_drives[j]) U`. Complex entries are written as real and imaginary parts, and channels keep their declared order.
+- The export has one convention. With `H0` the control-frame drift in GHz and `D_j` the dimensionless operator of channel `j`, the exporter subtracts the real first diagonal entry `c` of `H0` as a recorded scalar energy origin; the file holds `H_drift = 2π (H0 − c I)` and `H_drives[j] = 2π D_j`. The amplitudes `u_j` are in GHz and `t` is in ns, so the propagator obeys `i dU/dt = (H_drift + Σ_j u_j(t) H_drives[j]) U`. The scalar shift changes only global phase and preserves the declared gate fidelity. Complex entries are written as real and imaginary parts, and channels keep their declared order.
 - The generated file is TOML and conforms to ProblemSpec OSS at a recorded amicode revision.
 
 **Rationale:** a ProblemSpec must contain its system. A user-written one would state the system a second time, or name a Piccolo system template that the harness cannot replay on its own model. Its `solver` table names an optimiser inside Piccolo, so it cannot record which solver ran. A file generated once and shared unchanged is what makes two solvers' results comparable, and it is the artifact to share.

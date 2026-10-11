@@ -1,0 +1,7 @@
+[deps]
+Piccolo = "c4671d76-df94-11ed-2057-43d4fd632fad"
+TOML = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
+
+[compat]
+Piccolo = "=2.1.0"
+julia = "1.13"

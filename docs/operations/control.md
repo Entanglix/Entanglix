@@ -1,6 +1,6 @@
 # Closed-system control
 
-Control inputs can be compiled through Python or solved on CPU through `entanglix control`. The open `grape` backend uses JAX gradients through dynamiqs and SciPy SLSQP with explicit constraints. Control checks are not yet available.
+Control inputs can be compiled through Python or solved on CPU through `entanglix control`. The open `grape` backend uses JAX gradients through dynamiqs and SciPy SLSQP with explicit constraints. The optional `piccolo` backend runs Piccolo directly in Julia through a pinned project. Control checks are not yet available.
 
 The [transmon example](../../examples/transmon-control/control.toml) declares a closed-system X gate in a rotating frame, with two quadratures of the charge drive. It uses the existing [system format](system-spec.md), including its basis and tensor order.
 
@@ -37,7 +37,7 @@ print(compiled["problem_sha256"])
 
 The preview records the control frame, channel order, duration, dimensions, named solver, ProblemSpec digest, schema revision, and every omitted dissipator. The control model is closed: all dissipators are removed before frame preparation. The source system is preserved, including its original dissipators, in the frozen inputs.
 
-The exporter uses the shared rotating-wave transformation. It retains the source drive scale and applies the carrier phases, including the cosine carrier's half-amplitude convention. It does not subtract an additional energy origin from the drift. The exported `H_drift = 2π H0` and `H_drives[j] = 2π D_j` obey
+The exporter uses the shared rotating-wave transformation. It retains the source drive scale and applies the carrier phases, including the cosine carrier's half-amplitude convention. The export subtracts `c I`, where `c` is the real first diagonal entry of the control-frame drift, and records `energy_origin_ghz` in the launch listing; this changes only global phase, preserving density matrices and the declared gate fidelity. The exported `H_drift = 2π (H0 − c I)` and `H_drives[j] = 2π D_j` obey
 
 ```text
 i dU/dt = (H_drift + Σ_j u_j(t) H_drives[j]) U
@@ -55,7 +55,7 @@ These tests establish the export convention and bookkeeping. They do not measure
 
 ## Launch and solver selection
 
-Install `differentiable` in the runner environment by setting `ENTANGLIX_RUNNER_EXTRAS=differentiable` before its first job, or use the runner extras already configured for your workstation. The runner keeps one exact extras profile and refuses a different set; see [runner environment](runs.md). The calling CLI does not itself need JAX.
+For `grape`, install `differentiable` in the runner environment by setting `ENTANGLIX_RUNNER_EXTRAS=differentiable` before its first job, or use the runner extras already configured for your workstation. The runner keeps one exact extras profile and refuses a different set; see [runner environment](runs.md). The calling CLI does not itself need JAX.
 
 ```sh
 export ENTANGLIX_RUNNER_EXTRAS=differentiable
@@ -65,7 +65,7 @@ uv run --locked --exact entanglix control examples/transmon-control/control.toml
 
 On the documented GPU workstation the established profile is `cuquantum,differentiable-cuda12`; keep that profile. A control job still runs on CPU, with CUDA hidden. `--detach`, `read-run --wait`, timeouts, cancellation and interrupted-attempt reconciliation follow the [run reference](runs.md). Control investigation admission, control replay tools and MCP exposure are not yet available.
 
-Solvers are discovered through `entanglix.solvers` entry points. Each entry loads a backend factory implementing `capabilities()` and `solve(problem_spec, options)`. The `problem_spec` argument is a `Path` to the frozen, unchanged `problem.toml`; `options` is the separate solver-options table. This gives every backend the same file, including one that passes it to another process. The built-in entry is `grape`. A missing named solver fails before any attempt is created, unless a declared `fallback` exists. A fallback is used only when the named entry is absent; it does not hide an installed solver's unsupported input or execution failure. The preview, manifest and result name the requested and actual solver, its distribution version and whether fallback was used.
+Solvers are discovered through `entanglix.solvers` entry points. Each entry loads a backend factory implementing `capabilities()` and `solve(problem_spec, options)`. The `problem_spec` argument is a `Path` to the frozen, unchanged `RUN/spec/problem.toml`; `options` is the separate solver-options table. Backends may derive `RUN` from that path and list retained native files in `Solution.trace["native_artifacts"]` as names mapped to paths relative to `RUN`, for the job to digest and record. This gives every backend the same file, including one that passes it to another process. The built-in entries are `grape` and `piccolo`. An optional `validate(problem_spec, options)` method checks support before admission and again in the job; any returned runtime provenance is included in the environment hash. A missing named solver fails before any attempt is created, unless a declared `fallback` exists. A fallback is used only when the named entry is absent; it does not hide an installed solver's unsupported input or execution failure. The preview, manifest and result name the requested and actual solver, its distribution version and whether fallback was used.
 
 For `grape`, `solver.options.max_iter` is a positive integer mapped to SLSQP `maxiter`, and `solver.options.tol` is a finite positive value mapped to `ftol`. Unknown options are refused by name. Only declared settings are passed; otherwise SLSQP's defaults apply (currently 100 iterations and `1e-6`). The trace distinguishes declared settings from these upstream defaults. `timeout_seconds`, if present, is enforced independently by the runner.
 
@@ -85,3 +85,20 @@ The existing differentiable engine evolves one maximally entangled input with a 
 For fixed step `dt = T/(N-1)`, constraints act on `diff(amplitudes)/dt` (N−1 first differences) and `diff(amplitudes, n=2)/dt²` (N−2 second differences). They include the amplitude jump to the terminal knot. No zero endpoint derivative is imposed. Amplitude bounds are SciPy bounds, and derivative bounds are linear constraints, never penalties. The [solver tests](../../tests/test_control_solver.py) recompute an active bound from the pulse and compare its objective and gradient with independent matrix-exponential propagation, including leakage.
 
 The frozen `spec/` contains `control.toml`, model inputs and `problem.toml`. `result.toml` carries the pulse and trace artifact digests, actual solver/version, the solver-native `objective`, `metrics.solver_reported_fidelity` when supplied by the backend, ignored guidance fields and `termination` (`converged`, solver status/message, iterations, objective evaluations). `artifacts/solver-trace.toml` retains per-objective and per-iteration timings. A backend returns fidelity separately from its native objective, which may include regularizers; the runner never derives fidelity from that objective. These are solver-reported candidate quantities, not built-in check outcomes. A solve reaching its iteration cap can still be an executed, completed job with `converged = false`.
+
+## Piccolo
+
+Install Julia 1.13 and instantiate the repository's pinned project once before using `piccolo`:
+
+```sh
+julia --startup-file=no --project=src/entanglix/solvers/julia -e 'using Pkg; Pkg.instantiate()'
+uv run --locked --exact entanglix control examples/transmon-control/piccolo.toml --runs-root research_runs
+```
+
+The project pins Piccolo 2.1.0, with transitive dependencies (including JLD2) in its manifest. No Python extra is needed by this backend. Keep any established runner extras profile unchanged. A missing Julia executable is refused before an attempt exists. The manifest is resolved for Julia 1.13.0; its digest, the project digest and the observed Julia version are recorded under `environment.solver_runtime`. A change between the launch gate and execution is refused.
+
+Only declared `solver.options.max_iter` and `solver.options.tol` are passed as arguments to `Piccolo.Specs.solve_spec`; the shared ProblemSpec is unchanged. Without them, upstream defaults apply: 500 iterations and Ipopt tolerance `1e-8`. Integer `tol` values are transported as floating-point values to Julia. The trace records declared and effective settings. Piccolo's `converged` flag means only that it stopped before its iteration cap; its native runner does not expose Ipopt's termination status. The separately reported fidelity is retained. The native objective is the last iteration's `obj` value from Piccolo's progress output, printed to eight decimal places in scientific notation; it includes regularisation and is not an infidelity.
+
+Piccolo honours `init = "random"` with its declared seed, defaulting the seed to zero when omitted. `default` and `zeros` initialise to zero and list a declared seed as ignored. Its native template supplies additional regularisation and a second-derivative bound of 1 GHz/ns² when one is not declared. These upstream restrictions do not replace the input's declared bounds.
+
+The Julia entry exports the stored N knot values without shifting or resampling them. Interval k uses knot k, and the terminal knot participates in the discrete differences. The narrow equal-step bracket holds the declared duration within its relative half-width `1e-7`; returned times are preserved. Native `artifacts/piccolo/result.toml` and the JLD2 pulse are retained with digests beside the neutral pulse. `options.toml` is transport for the settings recorded in the frozen control spec and solver trace. Julia stays in the job's process group, so cancellation and timeout terminate it through the ordinary runner.

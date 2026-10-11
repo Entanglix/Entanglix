@@ -72,7 +72,7 @@ With the duration held, Piccolo reported 1 − 9e-10 in 100 iterations under the
 
 ## 4. Conventions to settle with the implementation
 
-- **End points.** The [neutral pulse reference](operations/control.md#neutral-pulse-and-candidate-record) settles the N-knot/N−1-interval convention, including differences to the terminal knot, zero endpoint amplitudes for the baseline and no invented endpoint derivatives. Step 7-3 tests the convention against Piccolo's output.
+- **End points.** The [neutral pulse reference](operations/control.md#neutral-pulse-and-candidate-record) settles the N-knot/N−1-interval convention, including differences to the terminal knot, zero endpoint amplitudes for both adapters and no invented endpoint derivatives. The Piccolo adapter tests exercise that convention on its returned pulse.
 - **Derivative definition.** The discrete derivative of ADR-0005 §2.3 comes from Piccolo's source. Step 7-3 tests it directly on a Piccolo pulse under an active bound, without the corrector. The constraints check applies the same definition in 7-4.
 - **Schema copy.** amicode's `problemspec.oss.schema.json` is copied into the test data with its amicode commit, digest, and an attribution line (Apache-2.0). The conformance test validates generated files against it.
 - **Extras.** The baseline needs the differentiable extra and the Piccolo adapter needs Julia. A request without either is a configuration error that names what is missing.
@@ -101,7 +101,7 @@ uv run --locked --exact ruff check .
 uv run --locked --exact ruff format --check .
 ```
 
-The default environment has neither extra, so the baseline and MCP tests are skipped there. Each step adds its tests to the existing CI jobs. The differentiable job selects by a file list and a keyword, and both are extended. The Julia tests run on the workstation.
+The default environment has neither extra, so the baseline and MCP tests are skipped there. Each step adds its tests to the existing CI jobs. The differentiable job selects by a file list and a keyword, and both are extended. The Julia tests are opt-in on the workstation; their command is in the [Piccolo acceptance reference](environment.md#piccolo-adapter-acceptance).
 
 ## 6. Exit evidence and handoff
 

@@ -18,6 +18,11 @@ def execute(problem: Path):
     backend, selection = select_solver(solver["backend"], solver.get("fallback"))
     if selection != launch["selection"]:
         raise ValueError("solver installation changed after launch validation")
+    if preflight := getattr(backend, "validate", None):
+        runtime = preflight(_load_record(problem), solver.get("options", {}))
+        expected = _load_record(run / "run.toml")["environment"].get("solver_runtime")
+        if runtime != expected:
+            raise ValueError("solver runtime changed after launch validation")
     solution = backend.solve(problem, solver.get("options", {}))
     output = run / "artifacts/pulse.npz"
     np.savez(
@@ -46,7 +51,14 @@ def execute(problem: Path):
             "ignored_guidance_fields": solution.trace.get("ignored_guidance_fields", []),
             "artifacts": {
                 name: {"path": str(path.relative_to(run)), "sha256": _digest(path.read_bytes())}
-                for name, path in (("pulse", output), ("solver_trace", trace))
+                for name, path in (
+                    ("pulse", output),
+                    ("solver_trace", trace),
+                    *(
+                        (name, run / path)
+                        for name, path in solution.trace.get("native_artifacts", {}).items()
+                    ),
+                )
             },
         },
     )
