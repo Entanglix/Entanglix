@@ -1,6 +1,6 @@
 # M4 Guide — Control
 
-**Status:** Implemented through the control spec and generated ProblemSpec, the open baseline, the Piccolo adapter, requested control checks, investigation admission and the MCP tools. Agent integration rests on a scripted MCP client; no live control session was run. Completion and acceptance evidence belong to the checklist. The decisions are recorded in [ADR-0005](adr/0005-control-problems-and-solvers.md).
+**Status:** Implemented through the control spec and generated ProblemSpec, the open baseline, the Piccolo adapter, requested control checks, investigation admission and the MCP tools. Agent integration rests on a scripted MCP client and four live control sessions, two each on Claude Code and Codex. Completion and acceptance evidence belong to the checklist. The decisions are recorded in [ADR-0005](adr/0005-control-problems-and-solvers.md).
 **Scope:** M4, Block 7 (Protocol `control`).
 **Authority:** [roadmap](roadmap.md#block-7--protocol-control), [ADR-0005](adr/0005-control-problems-and-solvers.md), and [harness contract](../HARNESS_CONTRACT.md#1-objects-and-interfaces). [The checklist](checklist.md#m4--control-block-7) owns completion status and acceptance evidence.
 **Audience:** the owner and implementation agents. This is a planning document; operational docs and production agents must work without it.

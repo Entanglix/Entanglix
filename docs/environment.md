@@ -500,4 +500,25 @@ The [scripted control client](../tests/test_mcp_control.py) exercises real CPU j
 TMPDIR=/var/tmp UV_PROJECT_ENVIRONMENT="$PWD/.venv-mcp" uv run --locked --exact --extra mcp pytest -q tests/test_mcp.py tests/test_mcp_control.py tests/test_research_guidance.py tests/test_mcp_views.py -m "not gpu" --junitxml=tests/probes/m4_mcp.xml
 ```
 
-The [retained CPU report](../tests/probes/m4_mcp.xml) covers tool parity, annotations, audit links, root confinement and the supplied conduct/skill versions. The [workspace setup](operations/mcp.md#research-workspace) includes the control reference and procedure. No live runtime session is part of this acceptance; the earlier runtime measurements remain evidence only for the configurations and guidance versions they used.
+The [retained CPU report](../tests/probes/m4_mcp.xml) covers tool parity, annotations, audit links, root confinement and the supplied conduct/skill versions. The [workspace setup](operations/mcp.md#research-workspace) includes the control reference and procedure. This report involves no live runtime session; the live control sessions are recorded below.
+
+## Live control sessions
+
+Four headless sessions on 2026-10-11 each ran one started investigation with two exact bases, the first gate with `grape` and with `piccolo`. The brief asked the agent to solve once per base, request the checks the terms name, record a report and stop; it named no tools. Each session had a fresh workspace prepared as in the [MCP setup](operations/mcp.md#research-workspace) and a job-count limit of 8, and ran without intervention. Claude Code 2.1.296 ran `claude-sonnet-5-5` with file tools and no shell; Codex 0.162.1 ran `gpt-6.1-sol` at high effort in its workspace-write sandbox.
+
+| Session | Conduct / control skill | Model requests | Input tokens (cached) | Elapsed | 5-hour window | Investigation reads |
+|---|---|---:|---:|---:|---|---:|
+| Claude Code, first | 0.1.7 / 0.1.0 | 10 | 350,055 (300,676) | 68 s | 18→19% | 2 |
+| Codex, first | 0.1.7 / 0.1.0 | 20 | 1,065,357 (994,688) | 188 s | 18→22% | 11 |
+| Claude Code, second | 0.1.8 / 0.1.1 | 12 | 420,330 (375,022) | 72 s | 27→29% | 3 |
+| Codex, second | 0.1.8 / 0.1.1 | 15 | 686,127 (637,312) | 135 s | 26→28% | 4 |
+
+All four sessions launched two solves and two check runs through MCP, used 4 of the 8 allowed jobs, recorded a `report` finding citing all four attempts, and stopped with `evidence_completion`. Every fidelity, leakage value, convergence flag and check outcome the agents reported equals the retained records, and each solve used the first gate's ProblemSpec digest. Each agent asked for run detail only on the two check runs, and reported Piccolo's iteration-cap outcome as `converged = false` on a candidate that passes its checks.
+
+The first Codex session re-read the investigation before every launch and read the whole run reference, following the conduct and skill as then written. Conduct 0.1.8 and control skill 0.1.1 tie those reads to session entry and to recovery; the second Codex session used 36% fewer input tokens. The first Claude Code session left no connection audit entry, because that client sends no handshake request; the server now writes the entry on the first request, and the second Claude Code session has one. Both Claude Code sessions first passed the investigation path relative to the workspace, received a file-not-found error, and retried with the full path.
+
+These are four sessions on one gate, with one brief that prescribed the reported quantities. They do not measure a control search, recovery of an interrupted control job, or a rerun; the scripted tests cover reruns and refusals. The account windows are shared with other use. Rebuild the [summary](../tests/probes/m4_sessions_results.json) from the retained workspaces without launching a session:
+
+```sh
+uv run --locked --exact python tests/probes/m4_sessions.py --workspace <workspace>... --output tests/probes/m4_sessions_results.json
+```
