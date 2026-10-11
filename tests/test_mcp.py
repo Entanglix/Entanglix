@@ -37,7 +37,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 @asynccontextmanager
-async def client(repository, runs, state, *, device="", extras=()):
+async def client(repository, runs, state, *, device="", extras=(), cwd=None):
     params = StdioServerParameters(
         command=sys.executable,
         args=[
@@ -52,6 +52,7 @@ async def client(repository, runs, state, *, device="", extras=()):
             *extras,
         ],
         env=os.environ | {"PYTHONPATH": str(repository / "src"), "CUDA_VISIBLE_DEVICES": ""},
+        cwd=cwd,
     )
     async with stdio_client(params) as (reader, writer):
         async with ClientSession(
@@ -191,20 +192,34 @@ def test_tool_parity_annotations_and_immutable_audit(study, runner_repository, t
     assert not list_runs(runs)
 
 
-def test_workspace_relative_record_path_explains_runs_root(study, runner_repository, tmp_path):
+def test_workspace_relative_record_path_resolves_inside_runs_root(
+    study, runner_repository, tmp_path
+):
     _, _, _, runs, investigation = study
-    given = str(Path("runs") / investigation.relative_to(runs))
+    workspace = runs.parent
+    given = str(Path(runs.name) / investigation.relative_to(runs))
+    missing = given + "-missing"
+    (workspace / "outside-record").mkdir()
 
     async def exercise():
-        async with client(runner_repository, runs, tmp_path / "state") as session:
-            result = await session.call_tool("read_investigation", {"investigation": given})
+        async with client(runner_repository, runs, tmp_path / "state", cwd=workspace) as session:
+            record = await call(session, "read_investigation", {"investigation": given})
+            assert record["investigation_id"] == investigation.name
+            result = await session.call_tool("read_investigation", {"investigation": missing})
             assert result.is_error
             message = result.content[0].text
-            assert given in message
+            assert missing in message
             assert "does not exist" in message
             assert "relative record paths resolve from the runs root" in message
             assert str(runs.resolve()) in message
+            assert "then from the server's working directory" in message
+            assert str(workspace.resolve()) in message
             assert "[Errno 2]" not in message
+            outside = await session.call_tool(
+                "read_investigation", {"investigation": "outside-record"}
+            )
+            assert outside.is_error
+            assert "outside configured runs root" in outside.content[0].text
 
     asyncio.run(exercise())
 

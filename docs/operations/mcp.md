@@ -32,7 +32,7 @@ The resolved runs root and GPU lock directory are recorded in each connection's 
 
 ## Tool surface
 
-Tools use the same backing operations as the CLI, with MCP response summaries described below. Unknown request fields, including approval claims or policy overrides, are refused. The server configuration supplies the repository, runs root, runner extras and physical device; these are not tool arguments. Attempt, launch and investigation paths must resolve inside the configured runs root, including symlink targets. Relative record paths resolve from that root. Authored input paths (system, protocol, script, additional inputs and replacement refinement) may live elsewhere.
+Tools use the same backing operations as the CLI, with MCP response summaries described below. Unknown request fields, including approval claims or policy overrides, are refused. The server configuration supplies the repository, runs root, runner extras and physical device; these are not tool arguments. Attempt, launch and investigation paths must resolve inside the configured runs root, including symlink targets. Relative record paths resolve from that root, then from the server's working directory. Authored input paths (system, protocol, script, additional inputs and replacement refinement) may live elsewhere.
 
 | Tools | Effect |
 |---|---|
@@ -63,7 +63,7 @@ Tables return `columns`, positional `rows`, `total` and `next_after`. Each page
 holds at most 50 rows, oldest first. Pass `next_after` as the integer `after`
 offset to continue until it is null. The same encoder and cursor serve
 `list_runs(after=...)`, including unresolved launches. No filters are supported.
-Paths in these tables and `list_investigations` are relative to the configured runs root and accepted by the read tools. Relative record paths resolve from that root, not from the session's workspace.
+Paths in these tables and `list_investigations` are relative to the configured runs root and accepted by the read tools. Relative record paths resolve from that root first, then from the server's working directory if no path exists under the root; the resolved path must remain inside the configured runs root.
 
 Attempt columns cover path, protocol, base, execution status, varied values,
 metrics, parents, checks and completed sweep-point count. A sweep is one row.
@@ -230,6 +230,8 @@ entanglix investigation-decision "$ENTANGLIX_WORKSPACE/runs/_investigations/<inv
 ```
 
 Only the operator runs that second command. Subsequent approvals, resumes and named review releases use the same bare command with the affected revision/review name. The agent reads the retained decision before continuing; it cannot turn a tool-approval prompt into one. At a checkpoint it records an assessment; at a named review it hands off for the operator's decision. A finding recommending stop does not itself stop jobs: use the supported `stop_investigation` tool to cancel owned work and close admission.
+
+When you tell the agent which investigation to work on, name it by its ID or as `_investigations/<investigation_id>`. The operator commands above take a path from your shell; the agent's tools resolve a relative record path from the runs root first, then from the server's working directory if it is not found. A workspace-relative `runs/_investigations/...` also works when the server starts in that workspace, provided the resolved path stays inside the configured runs root.
 
 A new session starts from listings and the effective investigation revision, findings, attempts, usage, and open gates. If a launch call lost its response, recover the launch before sending another. For a stopped investigation, the operator's resume permits new admissions and never revives cancelled attempts. Report partial results, requested/relevant checks not run, and the next useful decision without resetting history or allowances.
 

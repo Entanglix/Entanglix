@@ -129,12 +129,17 @@ def build_server(config: Configuration):
     def research_path(value):
         path = Path(value)
         resolved = (path if path.is_absolute() else root / path).resolve()
+        if not path.is_absolute() and not resolved.exists():
+            fallback = path.resolve()
+            if fallback.exists():
+                resolved = fallback
         if not resolved.is_relative_to(root):
             raise ToolError(f"research record path is outside configured runs root {root}: {value}")
         if not resolved.exists():
             raise ToolError(
                 f"research record path does not exist: {value}; "
-                f"relative record paths resolve from the runs root {root}"
+                f"relative record paths resolve from the runs root {root}, "
+                f"then from the server's working directory {Path.cwd()}"
             )
         return resolved
 
