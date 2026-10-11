@@ -9,7 +9,9 @@ from pathlib import Path
 def main(operation="simulate"):
     try:
         if sys.argv[1] == "check":
-            if operation == "sweep":
+            if operation == "control":
+                from entanglix.protocols.control import compile_control as compile_protocol
+            elif operation == "sweep":
                 from entanglix.protocols.sweep import compile_sweep as compile_protocol
             else:
                 from entanglix.protocols.simulate import compile_simulation as compile_protocol
@@ -17,9 +19,13 @@ def main(operation="simulate"):
             request = json.load(sys.stdin)
             for name in ("protocol", "directory", "repository"):
                 request[name] = Path(request[name])
+            if operation == "control":
+                request.pop("retain_base")
             print(json.dumps(compile_protocol(**request)))
         else:
-            if operation == "sweep":
+            if operation == "control":
+                from entanglix.protocols._control_job import execute
+            elif operation == "sweep":
                 from entanglix.protocols._sweep_job import execute
             else:
                 from entanglix.protocols._plan_job import execute

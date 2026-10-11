@@ -67,7 +67,7 @@ The harness does only what the user requests.
 
 ### 2.4 Solvers
 
-- A solver implements `capabilities()` and `solve(problem_spec, options)`, and returns the pulse, its objective, its termination report, and its trace.
+- A solver implements `capabilities()` and `solve(problem_spec, options)`, and returns the pulse, its objective, its termination report, and its trace. It may also report the fidelity it attained, as a quantity separate from its objective.
 - Solvers are discovered through the `entanglix.solvers` entry-point group, the open ones included. Repository code never imports a private solver.
 - The control spec names the solver and may declare a fallback. A named solver that is missing, with no fallback, is a configuration error before a run exists. The result records the solver that ran and its version.
 - Solver options hold convergence settings such as an iteration cap and a tolerance. The harness adds none. Resource limits are the runner's and are optional.

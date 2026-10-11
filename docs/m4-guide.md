@@ -68,11 +68,11 @@ Recorded in an example directory of its own. The values come from the [control p
 
 The probe normalised the quadrature operators by the 0–1 charge matrix element. The export keeps the drive's own scale, so step 7-1 restates the bounds in those units.
 
-With the duration held, Piccolo reported 1 − 9e-10 in 100 iterations under these bounds, and the independent replay on the declared grid gave 1 − 4e-11. The baseline has not run as a loop. 0.999 is the acceptance target, and each run reports the fidelity it attained.
+With the duration held, Piccolo reported 1 − 9e-10 in 100 iterations under these bounds, and the independent replay on the declared grid gave 1 − 4e-11. The open baseline loop and its measured cost are recorded with the [transmon example](../examples/transmon-control/README.md#open-baseline). 0.999 is the acceptance target, and each run reports the fidelity it attained.
 
 ## 4. Conventions to settle with the implementation
 
-- **End points.** One convention for the neutral pulse, every solver, and the constraints check: which knots are propagation intervals, and how a derivative across the first and last knot is counted. Piccolo's pulse has a final knot that is not an interval, and it forces the first interval to zero.
+- **End points.** The [neutral pulse reference](operations/control.md#neutral-pulse-and-candidate-record) settles the N-knot/N−1-interval convention, including differences to the terminal knot, zero endpoint amplitudes for the baseline and no invented endpoint derivatives. Step 7-3 tests the convention against Piccolo's output.
 - **Derivative definition.** The discrete derivative of ADR-0005 §2.3 comes from Piccolo's source. Step 7-3 tests it directly on a Piccolo pulse under an active bound, without the corrector. The constraints check applies the same definition in 7-4.
 - **Schema copy.** amicode's `problemspec.oss.schema.json` is copied into the test data with its amicode commit, digest, and an attribution line (Apache-2.0). The conformance test validates generated files against it.
 - **Extras.** The baseline needs the differentiable extra and the Piccolo adapter needs Julia. A request without either is a configuration error that names what is missing.

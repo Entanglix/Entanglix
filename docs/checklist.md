@@ -18,7 +18,7 @@ Core capability progression; users may enter, iterate within, and stop at any su
 | M1 — Model + engines | Blocks 1–2 | **complete** |
 | M2 — Local sweep with checks | Blocks 3–5 | **complete** |
 | M3 — Bounded agent-assisted exploration | Blocks 6a–6b | **complete** |
-| M4 — Control | Block 7 | open |
+| M4 — Control | Block 7 | in progress |
 | M5 — Device–control co-design | Block 8 | open |
 
 Supporting milestones, scheduled by dependency and research need:
@@ -246,18 +246,18 @@ The [M2 guide](m2-guide.md) records the implementation approach; [ADR-0003](adr/
 
 The [M4 guide](m4-guide.md) records the implementation approach; [ADR-0005](adr/0005-control-problems-and-solvers.md) records the control spec, solver, adapter, and check decisions. This checklist records completion and links to acceptance evidence.
 
-### [ ] Block 7 — Protocol `control`
+### [-] Block 7 — Protocol `control`
 
 **Builds on:** Blocks 1–4 for standalone control; Block 6b for agent integration. Prefer to sequence after M3; that order is not a technical prerequisite. Cluster execution and calibration are optional.
 
 - [x] Control decisions recorded in [ADR-0005](adr/0005-control-problems-and-solvers.md): the control spec and generated ProblemSpec, the shared problem subset, solvers, the Piccolo adapter, and control checks ([probe](../tests/probes/m4_control.py), [results](../tests/probes/m4_control_results.json))
-- [-] `control` spec and one generated ProblemSpec per run, with the system exported in the control frame ([validation and export](../src/entanglix/protocols/control.py), [schema, quadrature, pulse, freezing, and invalid-input tests](../tests/test_control.py), [control reference](operations/control.md), [first-gate input and bounds](../examples/transmon-control/README.md))
-- [ ] `SolverBackend` protocol and entry-point discovery
-- [ ] Open GRAPE-style baseline
+- [x] `control` spec and one generated ProblemSpec per run, with the system exported in the control frame ([validation and export](../src/entanglix/protocols/control.py), [schema, quadrature, pulse, freezing, and invalid-input tests](../tests/test_control.py), [control reference](operations/control.md), [first-gate input and bounds](../examples/transmon-control/README.md))
+- [x] `SolverBackend` protocol and entry-point discovery ([interface and discovery](../src/entanglix/solvers/__init__.py), [discovery tests](../tests/test_control_solver.py))
+- [x] Open GRAPE-style baseline ([solver](../src/entanglix/solvers/grape.py), [gradient, constraint, and short-solve tests](../tests/test_control_solver.py), [first-gate candidate and measured cost](../tests/probes/m4_baseline_results.json), [pulse convention](operations/control.md#neutral-pulse-and-candidate-record))
 - [ ] Piccolo adapter running Piccolo's ProblemSpec runner in Julia, with a pinned Julia project
-- [ ] Open-only operation and declared plugin fallback behavior; actual solver recorded
+- [x] Open-only operation and declared plugin fallback behavior; actual solver recorded ([fallback and refusal tests](../tests/test_control_solver.py), [launch and selection reference](operations/control.md#launch-and-solver-selection))
 - [ ] Control checks on request: pulse replay on a different engine, the declared fidelity target, and the declared constraints (contract §3); a second solver on the same ProblemSpec as a separate run
-- [ ] Standalone control from an existing system model through the CLI
+- [x] Standalone control from an existing system model through the CLI ([runner worker](../src/entanglix/protocols/_control_job.py), [CLI test](../tests/test_control_solver.py), [command and evidence](environment.md#control-baseline-acceptance))
 - [ ] `control` in investigations: admission, usage, stop, and rerun
 - [ ] When Block 6b is available: MCP capability and `control` skill with integration evidence
 - [ ] Applicable quality evidence recorded

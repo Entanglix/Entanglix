@@ -22,6 +22,9 @@ mcp = ["mcp>=2.3,<3"]
 [project.scripts]
 entanglix = "entanglix.cli:main"
 
+[project.entry-points."entanglix.solvers"]
+grape = "entanglix.solvers.grape:GrapeBackend"
+
 [build-system]
 requires = ["uv_build==0.12.0"]
 build-backend = "uv_build"

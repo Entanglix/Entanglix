@@ -420,3 +420,26 @@ between jobs, so it did not cancel a running solve; the
 [session tests](../tests/test_readout_investigation.py) cover that. On this
 workstation the run command needs the pinned runner extras,
 `export ENTANGLIX_RUNNER_EXTRAS=cuquantum,differentiable-cuda12`.
+
+
+## Control baseline acceptance
+
+The [control solver tests](../tests/test_control_solver.py) cover discovery, refusal before admission, fallback, gradient and leakage bookkeeping, active discrete derivative constraints, a short runner/CLI solve and neutral pulse artifacts:
+
+```sh
+JAX_PLATFORMS=cpu XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact --extra differentiable pytest -q tests/test_control.py tests/test_control_solver.py tests/test_cli.py -m "not gpu"
+```
+
+The workstation's existing runner profile must stay intact. Acceptance used `TMPDIR=/var/tmp` after `/tmp` reported a user quota error. This command solves the first gate on CPU while keeping that environment's installed extras:
+
+```sh
+TMPDIR=/var/tmp ENTANGLIX_RUNNER_EXTRAS=cuquantum,differentiable-cuda12 uv run --locked --exact entanglix control examples/transmon-control/control.toml --runs-root research_runs/m4-control
+```
+
+Rebuild the compact summary from a completed candidate without another solve:
+
+```sh
+uv run --locked --exact python tests/probes/m4_baseline.py RUN --output tests/probes/m4_baseline_results.json
+```
+
+The [retained baseline summary](../tests/probes/m4_baseline_results.json) links the candidate and its trace. Timings include JAX compilation on cold calls and are workstation measurements. The example records the solver-reported fidelity and numerical constraints; independent control checks follow separately.

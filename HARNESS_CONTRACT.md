@@ -23,7 +23,7 @@ This contract defines required interfaces and guarantees enforced through suppor
 ```text
 SolverBackend
   capabilities() -> {gradients: bool, constraints: [...], gpu: bool, problem_kinds: [...]}
-  solve(problem_spec, options) -> Solution{pulse, objective, termination, trace}
+  solve(problem_spec, options) -> Solution{pulse, objective, termination, trace, solver_reported_fidelity?}
 Integrator
   capabilities() -> {name: str, device_kind: "cpu" | "cuda",
                      differentiable: bool, open_system: bool, batched: bool}
@@ -34,7 +34,7 @@ Integrator
 
 Evolution requests declare carrier frequencies in GHz and phases in radians, and any rotating frame with an explicit rotating-wave approximation. Returned states and observables use the lab basis; diagnostics record the frame and removed frequency sectors. Unsupported frame or control requirements are rejected.
 
-Control is requested through a `control` spec. It references a system, declares the control frame and channels, carries the `goal`, `pulse`, and `problem` tables of amicode's ProblemSpec OSS, and names the solver and its options. From it the runner generates one ProblemSpec OSS file, with the system exported as explicit matrices and no `solver` table, and freezes it in the run. Every solver receives that file unchanged, and the result records the solver that ran. Solver options hold convergence settings; resource limits belong to the runner and are optional (§4). `termination` is the solver's own report and certifies nothing. Every solver writes the pulse in one neutral form, readable without the solver. Entry-point groups are `entanglix.solvers` and `entanglix.integrators`. The repo ships open implementations: a GRAPE-style baseline and a Piccolo adapter that runs Piccolo's ProblemSpec runner in Julia. Private implementations attach through discovery; repo code never imports them directly, and tests run with open implementations only.
+Control is requested through a `control` spec. It references a system, declares the control frame and channels, carries the `goal`, `pulse`, and `problem` tables of amicode's ProblemSpec OSS, and names the solver and its options. From it the runner generates one ProblemSpec OSS file, with the system exported as explicit matrices and no `solver` table, and freezes it in the run. Every solver receives that file unchanged, and the result records the solver that ran. Solver options hold convergence settings; resource limits belong to the runner and are optional (§4). `objective` is solver-native; optional `solver_reported_fidelity` is a separate quantity, never inferred by the runner from the objective. `termination` is the solver's own report and certifies nothing. Every solver writes the pulse in one neutral form, readable without the solver. Entry-point groups are `entanglix.solvers` and `entanglix.integrators`. The repo ships open implementations: a GRAPE-style baseline and a Piccolo adapter that runs Piccolo's ProblemSpec runner in Julia. Private implementations attach through discovery; repo code never imports them directly, and tests run with open implementations only.
 
 ## 2. Execution and artifacts
 

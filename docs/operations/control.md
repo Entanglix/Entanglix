@@ -1,6 +1,6 @@
-# Control specifications and model export
+# Closed-system control
 
-Control input validation and export are available through Python. Solver execution and control checks are not yet available.
+Control inputs can be compiled through Python or solved on CPU through `entanglix control`. The open `grape` backend uses JAX gradients through dynamiqs and SciPy SLSQP with explicit constraints. Control checks are not yet available.
 
 The [transmon example](../../examples/transmon-control/control.toml) declares a closed-system X gate in a rotating frame, with two quadratures of the charge drive. It uses the existing [system format](system-spec.md), including its basis and tensor order.
 
@@ -18,7 +18,7 @@ Optional problem fields are `Q`, `R`, `R_u`, `R_du`, `R_ddu`, `du_bound`, `ddu_b
 
 Duration is fixed: authored `free_phase` and `free_dt` may only be false or omitted. The generated file writes `options.timesteps_all_equal = true` and a time-step bracket of relative half-width `1e-7` around `T/(N-1)`. This compensates for the upstream runner's handling of fixed steps; it is recorded in the generated file.
 
-`[solver]` names `backend`, may name `fallback`, and carries an optional `options` table. Convergence settings such as `max_iter` and `tol` belong to that table. A positive top-level `timeout_seconds` is an optional runner limit. Neither table is included in the generated ProblemSpec, and the exporter does not discover or run the named solver.
+`[solver]` names `backend`, may name `fallback`, and carries an optional `options` table. Convergence settings such as `max_iter` and `tol` belong to that table. A positive top-level `timeout_seconds` is an optional runner limit. Neither table is included in the generated ProblemSpec. Plain Python export does not select a solver; the launch gate resolves and validates the solver in the runner environment before creating an attempt.
 
 ## Export and preview
 
@@ -52,3 +52,36 @@ Compilation takes an empty existing directory. It verifies the loaded input dige
 The [export tests](../../tests/test_control.py) compare a complex-state, piecewise pulse propagated from the exported matrices with QuTiP evolution of the declared control model. The QuTiP outputs are explicitly transformed from the lab basis to the control frame; the absolute state-entry agreement limit is `1e-9`. Separate quadrature checks pin the sign of the imaginary channel and the single `2π` conversion. The example verifies the relation to the probe's normalized charge operators within `1e-13` absolute error.
 
 These tests establish the export convention and bookkeeping. They do not measure device-model or rotating-wave approximation accuracy, optimize a gate, or establish that a declared target can be achieved.
+
+## Launch and solver selection
+
+Install `differentiable` in the runner environment by setting `ENTANGLIX_RUNNER_EXTRAS=differentiable` before its first job, or use the runner extras already configured for your workstation. The runner keeps one exact extras profile and refuses a different set; see [runner environment](runs.md). The calling CLI does not itself need JAX.
+
+```sh
+export ENTANGLIX_RUNNER_EXTRAS=differentiable
+uv run --locked --exact entanglix control examples/transmon-control/control.toml --dry-run
+uv run --locked --exact entanglix control examples/transmon-control/control.toml --runs-root research_runs
+```
+
+On the documented GPU workstation the established profile is `cuquantum,differentiable-cuda12`; keep that profile. A control job still runs on CPU, with CUDA hidden. `--detach`, `read-run --wait`, timeouts, cancellation and interrupted-attempt reconciliation follow the [run reference](runs.md). Control investigation admission, control replay tools and MCP exposure are not yet available.
+
+Solvers are discovered through `entanglix.solvers` entry points. Each entry loads a backend factory implementing `capabilities()` and `solve(problem_spec, options)`. The `problem_spec` argument is a `Path` to the frozen, unchanged `problem.toml`; `options` is the separate solver-options table. This gives every backend the same file, including one that passes it to another process. The built-in entry is `grape`. A missing named solver fails before any attempt is created, unless a declared `fallback` exists. A fallback is used only when the named entry is absent; it does not hide an installed solver's unsupported input or execution failure. The preview, manifest and result name the requested and actual solver, its distribution version and whether fallback was used.
+
+For `grape`, `solver.options.max_iter` is a positive integer mapped to SLSQP `maxiter`, and `solver.options.tol` is a finite positive value mapped to `ftol`. Unknown options are refused by name. Only declared settings are passed; otherwise SLSQP's defaults apply (currently 100 iterations and `1e-6`). The trace distinguishes declared settings from these upstream defaults. `timeout_seconds`, if present, is enforced independently by the runner.
+
+The baseline supports raw unitary problems, fixed equal steps, zero-order pulses, and amplitude, `du_bound` and `ddu_bound` constraints. It optimizes leakage-aware average gate fidelity on the declared subspace, with projected evolution `M` and goal `V`:
+
+```text
+F = (Tr(M†M) + |Tr(V†M)|²) / (d (d + 1))
+objective = 1 - F
+```
+
+The existing differentiable engine evolves one maximally entangled input with a passive ancilla to evaluate this expression; the ancilla is only objective bookkeeping. It uses double precision, `rtol=1e-10`, `atol=1e-12` and Tsit5. Scalar `Q`, `R`, `R_u`, `R_du` and `R_ddu` are accepted guidance but ignored by this pure-fidelity baseline, and are listed in its result and trace. `final_fidelity` declares the requested target; solver completion does not certify it. Default or random initialization samples uniformly within 10% of the amplitude bounds and scales to satisfy declared derivative constraints. The trace records `effective_seed` for every random initialization, generating one when the input omits it. Reusing that seed fixes the initialization; `zeros` uses zero amplitudes and lists any seed as ignored. Unsupported semantics are refused before launch.
+
+## Neutral pulse and candidate record
+
+`artifacts/pulse.npz` contains `kind = "zero_order"` and numeric arrays `times_ns` (N knots, starting at zero and ending exactly at T) and `amplitudes_ghz` (channels × N, in the frozen input's channel order). For interval k, the amplitude is knot k's value; the last knot is a terminal value, not another propagation interval. The baseline fixes the first and last amplitudes to zero, matching the upstream smooth-pulse default. It adds no derivative value before or after the knot sequence.
+
+For fixed step `dt = T/(N-1)`, constraints act on `diff(amplitudes)/dt` (N−1 first differences) and `diff(amplitudes, n=2)/dt²` (N−2 second differences). They include the amplitude jump to the terminal knot. No zero endpoint derivative is imposed. Amplitude bounds are SciPy bounds, and derivative bounds are linear constraints, never penalties. The [solver tests](../../tests/test_control_solver.py) recompute an active bound from the pulse and compare its objective and gradient with independent matrix-exponential propagation, including leakage.
+
+The frozen `spec/` contains `control.toml`, model inputs and `problem.toml`. `result.toml` carries the pulse and trace artifact digests, actual solver/version, the solver-native `objective`, `metrics.solver_reported_fidelity` when supplied by the backend, ignored guidance fields and `termination` (`converged`, solver status/message, iterations, objective evaluations). `artifacts/solver-trace.toml` retains per-objective and per-iteration timings. A backend returns fidelity separately from its native objective, which may include regularizers; the runner never derives fidelity from that objective. These are solver-reported candidate quantities, not built-in check outcomes. A solve reaching its iteration cap can still be an executed, completed job with `converged = false`.

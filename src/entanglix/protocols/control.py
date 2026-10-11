@@ -254,9 +254,39 @@ def load_control(protocol: Path) -> LoadedControl:
     return LoadedControl(spec, control_model, generated, data, digest, paths, hashes, listing)
 
 
-def compile_control(protocol: Path, directory: Path) -> dict:
+def compile_control(
+    protocol: Path,
+    directory: Path,
+    *,
+    repository: Path | None = None,
+    extras=(),
+) -> dict:
     """Prepare immutable input bytes for the runner; this creates no attempt."""
     loaded = load_control(protocol)
+    selection = None
+    if repository is not None:
+        from entanglix.solvers import select_solver
+
+        backend, selection = select_solver(
+            loaded.definition.solver.backend, loaded.definition.solver.fallback
+        )
+        if selection["actual"] == "grape":
+            from entanglix.solvers.grape import validate
+
+            validate(loaded.problem_spec, loaded.definition.solver.options)
+        required = {"amplitude"}
+        required.update(
+            name
+            for name, field in (("du", "du_bound"), ("ddu", "ddu_bound"))
+            if field in loaded.problem_spec["problem"]
+        )
+        capabilities = backend.capabilities()
+        if "unitary" not in capabilities["problem_kinds"] or not required <= set(
+            capabilities["constraints"]
+        ):
+            raise ValueError(
+                f"solver {selection['actual']!r} does not support the declared CPU control problem and constraints"
+            )
     frozen = {}
     for name, source in loaded.inputs.items():
         content = source.read_bytes()
@@ -272,10 +302,46 @@ def compile_control(protocol: Path, directory: Path) -> dict:
         with (directory / name).open("xb") as target:
             target.write(content)
         (directory / name).chmod(0o444)
-    return {
+    result = {
         "system_id": loaded.system.id,
         "inputs": {name: str(directory / name) for name in frozen},
         "spec_sha256": {name: hashlib.sha256(data).hexdigest() for name, data in frozen.items()},
         "problem_sha256": loaded.digest,
         "preview": loaded.listing,
     }
+    if repository is not None:
+        from entanglix.runner import capture_environment
+
+        result.update(
+            engine=selection["actual"],
+            device="cpu",
+            needs={"gradients": True, "device": "cpu"},
+            environment=capture_environment(repository / "uv.lock", extras=tuple(extras)),
+            timeout_seconds=loaded.definition.timeout_seconds,
+            kind="control",
+            selection=selection,
+            protocol_sha256=loaded.input_digests["control.toml"],
+        )
+        result["preview"]["solver_selection"] = selection
+    return result
+
+
+def control(
+    protocol: Path,
+    *,
+    runs_root: Path = Path("research_runs"),
+    repository: Path | None = None,
+    parent_run_ids=(),
+    dry_run=False,
+):
+    """Solve a closed-system control problem as one owned CPU job."""
+    from entanglix.protocols.simulate import _launch_protocol
+
+    return _launch_protocol(
+        protocol,
+        operation="control",
+        runs_root=runs_root,
+        repository=repository,
+        parent_run_ids=parent_run_ids,
+        dry_run=dry_run,
+    )

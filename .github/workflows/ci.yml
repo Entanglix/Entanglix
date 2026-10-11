@@ -36,7 +36,7 @@ jobs:
           version: "0.12.0"
           enable-cache: true
       - run: uv python install
-      - run: uv run --locked --exact --extra differentiable pytest -q tests/test_engine_dynamiqs.py tests/test_engine_acceptance.py tests/test_carriers_frames.py tests/test_corrector.py tests/test_plans.py tests/test_verification.py tests/test_simulate.py tests/test_sweep.py tests/test_verification_cost.py -m "not gpu" -k "dynamiqs or gradient"
+      - run: uv run --locked --exact --extra differentiable pytest -q tests/test_engine_dynamiqs.py tests/test_engine_acceptance.py tests/test_carriers_frames.py tests/test_corrector.py tests/test_plans.py tests/test_verification.py tests/test_simulate.py tests/test_sweep.py tests/test_verification_cost.py tests/test_control_solver.py -m "not gpu" -k "dynamiqs or gradient or control"
 
   mcp:
     runs-on: ubuntu-latest

@@ -311,7 +311,12 @@ def _launch_protocol(
 
             spec = SweepSpec.model_validate(_load_record(protocol))
             source = _adjacent(protocol.parent, spec.base)
-        device = Needs.model_validate(_load_record(source).get("needs", {})).device
+        document = _load_record(source)
+        device = (
+            "cpu"
+            if operation == "control"
+            else Needs.model_validate(document.get("needs", {})).device
+        )
     except (OSError, ValueError) as exc:
         raise ValueError(f"{operation} rejected: {exc}") from exc
     with acquire_gpu(select_gpu()) if device == "cuda" else nullcontext() as gpu:
@@ -364,8 +369,19 @@ def _launch_protocol(
                 return {"exit_code": 0, "preview": gate["preview"]}
             print(json.dumps({"preview": gate["preview"]}, indent=2), file=sys.stderr, flush=True)
             launch = {
-                key: gate[key] for key in ("kind", "plan_sha256", "selection", "protocol_sha256")
+                key: gate[key]
+                for key in (
+                    "kind",
+                    "selection",
+                    "protocol_sha256",
+                    "problem_sha256" if operation == "control" else "plan_sha256",
+                )
             }
+            if operation == "control":
+                launch["control_model"] = {
+                    key: gate["preview"][key]
+                    for key in ("omitted_dissipators", "channel_order", "frame")
+                }
             if investigation_id is not None:
                 launch["varied_values"] = values or {}
             if gate["timeout_seconds"] is not None:
@@ -406,7 +422,11 @@ def _launch_protocol(
                         environment,
                         timeout_seconds=gate["timeout_seconds"],
                         gpu=gpu,
-                        job_input="sweep-manifest.toml" if operation == "sweep" else "plan.toml",
+                        job_input={
+                            "sweep": "sweep-manifest.toml",
+                            "simulate": "plan.toml",
+                            "control": "problem.toml",
+                        }[operation],
                     )
                 except (Exception, KeyboardInterrupt) as exc:
                     status, exit_code = (
