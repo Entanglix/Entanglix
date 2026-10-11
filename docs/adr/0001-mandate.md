@@ -1,6 +1,6 @@
 # ADR-0001: Mandate and Constraints
 
-**Date:** 2026-09-28, revised 2026-10-03
+**Date:** 2026-09-28, revised 2026-10-10
 **Status:** Accepted — Decision 0 closed on 2026-09-28. The agreed modeling mandate, local target, numerical conventions, and audience/license policy are recorded in §3; concrete model schemas, supported representation details, and fixtures follow during Block 1.
 **Purpose:** record the foundation choices needed by Blocks 0–2. Implementation starting points are distinguished from mandate decisions. Sweep metrics, investigation design, and deployment mechanisms are decided when their prerequisites are available (§4).
 
@@ -18,9 +18,9 @@ Entanglix supports expert-guided superconducting-circuit research through indepe
 | Runner language | Python, `uv` | Accepted foundation mandate |
 | Substrate | scqubits · cuDensityMat (`qutip-cuquantum`) · dynamiqs · QuTiP CPU reference | Accepted foundation mandate |
 | Two-engine rule | cuDensityMat and JAX do not compose through autodiff; engine chosen by a versioned table | contract §2 |
-| Control spec | amicode ProblemSpec OSS; `solver.backend` records the solver | contract §1 |
+| Control spec | An Entanglix `control` spec, from which the runner generates one amicode ProblemSpec OSS file shared by every solver; the control spec names the solver and the result records it | contract §1, [ADR-0005](0005-control-problems-and-solvers.md) |
 | Private solvers | Entry-point plugins; repo code never imports them directly; verification remains open | contract §1, §3 |
-| amicode's role | Contracts and an open second-opinion solver (Piccolo via `amico-run`); never the dynamics substrate | Accepted foundation mandate |
+| amicode's role | Contracts and an open second-opinion solver (Piccolo, run in Julia through its ProblemSpec runner); never the dynamics substrate | Accepted foundation mandate; [ADR-0005](0005-control-problems-and-solvers.md) |
 | Research direction | Expert-guided formulation, bounded autonomy, independent entry points, professional quality | Accepted foundation mandate |
 | Preferred sequence | Local sweep with checks → bounded exploration → control → co-design; technical dependencies govern availability | Accepted foundation mandate |
 | Initial exploration | Runner investigations (6a), then cooperative agent integration (6b); progress-based continuation/stopping; calibration and cluster execution are independently scheduled | Accepted foundation mandate |
@@ -55,7 +55,7 @@ Entanglix supports expert-guided superconducting-circuit research through indepe
 ### 3.4 License, audience, and sharing policy
 
 - **Binds:** repository/license policy, permitted audience, and conditions for sharing.
-- **Decision — agreed 2026-09-28:** private development by the owner and explicitly permitted collaborators. Defer distribution-license selection until before external distribution. The Harmoniqs conversation requires a shared ProblemSpec solved by the open baseline and Piccolo, both independently verified, with inspectable run directories and corrector reports. Agent integration is not a prerequisite. Before sharing, remove private appendices and exclude files marked `*-private.md`; public text uses "private solver plugins" without product names. Collaborator access does not authorize onward distribution.
+- **Decision — agreed 2026-09-28:** private development by the owner and explicitly permitted collaborators. Defer distribution-license selection until before external distribution. The Harmoniqs conversation requires a shared ProblemSpec solved by the open baseline and Piccolo, each candidate independently checked, with inspectable run directories and corrector reports. Agent integration is not a prerequisite. Before sharing, remove private appendices and exclude files marked `*-private.md`; public text uses "private solver plugins" without product names. Collaborator access does not authorize onward distribution.
 
 ## 4. Later decisions and implementation evidence
 
@@ -69,7 +69,7 @@ These do not block acceptance of this foundation ADR:
 | After M2, before Block 6a | First investigation's scope, assumptions, evidence requirements, progress checkpoints, review/stop criteria, and any requested limits; baseline evaluation defines a scripted selection policy and comparable benchmark allowances, including an early-stop case |
 | Before Block 6a | What the harness contract leaves open: how user decisions are recorded, progress-assessment fields, default checkpoint intervals, and resume behaviour. Record these and the evaluation protocol in a follow-up ADR; ordinary investigations remain research records |
 | Before Block 6b | Runtime integration and research-agent instruction delivery (MCP instructions, skills, or a generated research-workspace instruction file); user-input event handling, progress reporting, runtime permission settings (human-action commands blocked, GPU hidden from the agent session), and cooperative execution checks; no separate grant issuer or OS-enforced security boundary required |
-| Before Block 7 | ProblemSpec OSS verbatim vs. an additive `solver.options` table |
+| Before Block 7 | ProblemSpec OSS verbatim vs. an additive `solver.options` table; recorded in [ADR-0005](0005-control-problems-and-solvers.md) |
 | Before Block 9 | Scheduler target, remote environment, and site execution requirements; the executor reuses the scheduler's time limits, GPU allocation, and accounting and is tested on the workstation against a stubbed scheduler |
 | When stronger deployment guarantees are needed | Explicit threat model and identity/process/filesystem/credential/network/device controls, reusing suitable platform facilities; bypass-resistance evidence is separate from cooperative conformance |
 

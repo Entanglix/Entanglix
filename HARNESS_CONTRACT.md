@@ -23,7 +23,7 @@ This contract defines required interfaces and guarantees enforced through suppor
 ```text
 SolverBackend
   capabilities() -> {gradients: bool, constraints: [...], gpu: bool, problem_kinds: [...]}
-  solve(problem_spec, system, budget) -> Solution{pulse, objective, certificate, trace}
+  solve(problem_spec, options) -> Solution{pulse, objective, termination, trace}
 Integrator
   capabilities() -> {name: str, device_kind: "cpu" | "cuda",
                      differentiable: bool, open_system: bool, batched: bool}
@@ -34,7 +34,7 @@ Integrator
 
 Evolution requests declare carrier frequencies in GHz and phases in radians, and any rotating frame with an explicit rotating-wave approximation. Returned states and observables use the lab basis; diagnostics record the frame and removed frequency sectors. Unsupported frame or control requirements are rejected.
 
-Control uses amicode's ProblemSpec OSS schema; `solver.backend` records a string identifier. Entry-point groups are `entanglix.solvers` and `entanglix.integrators`. The repo ships open implementations: a GRAPE-style baseline and a Piccolo adapter through `amico-run`. Private implementations attach through discovery; repo code never imports them directly, and tests run with open implementations only.
+Control is requested through a `control` spec. It references a system, declares the control frame and channels, carries the `goal`, `pulse`, and `problem` tables of amicode's ProblemSpec OSS, and names the solver and its options. From it the runner generates one ProblemSpec OSS file, with the system exported as explicit matrices and no `solver` table, and freezes it in the run. Every solver receives that file unchanged, and the result records the solver that ran. Solver options hold convergence settings; resource limits belong to the runner and are optional (§4). `termination` is the solver's own report and certifies nothing. Every solver writes the pulse in one neutral form, readable without the solver. Entry-point groups are `entanglix.solvers` and `entanglix.integrators`. The repo ships open implementations: a GRAPE-style baseline and a Piccolo adapter that runs Piccolo's ProblemSpec runner in Julia. Private implementations attach through discovery; repo code never imports them directly, and tests run with open implementations only.
 
 ## 2. Execution and artifacts
 
@@ -62,7 +62,7 @@ research_runs/<system_id>/<run_id>/
 ```
 
 - The runner writes each applicable record once; jobs write only `result.toml` and `artifacts/`. `FINISHED.status` is `completed`, `failed`, or `aborted`. Without a valid terminal marker, a run is incomplete and cannot substantiate a completed scientific result. After runner loss, reconciliation records the last observed state and uncertain usage in `runner/reconciled.toml` and never writes `FINISHED`. Completed execution does not show that a result is accurate; requested checks provide evidence within their scope (§3).
-- `result.toml` is published by temporary-file rename. Frozen inputs include authored code and data references with versions or content digests, and a patch of uncommitted code. Record seeds, solver settings, and `env_hash` covering pinned CUDA, cuQuantum, driver, and Python packages. Jobs sharing an environment run exactly synced with the same declared extras.
+- `result.toml` is published by temporary-file rename. Frozen inputs include authored code and data references with versions or content digests, and a patch of uncommitted code. Record seeds, solver settings, and `env_hash` covering pinned CUDA, cuQuantum, driver, and Python packages. A Piccolo run also records the Julia version and the digest of its pinned Julia project. Jobs sharing an environment run exactly synced with the same declared extras.
 - A sweep is one run. Its points run inside the job, completed points remain in `artifacts/` after interruption, and a rerun is a new linked run.
 - Units and time-grid conventions are explicit; no implicit conversion. Every completed scientific result records its truncation and solver settings; convergence is checked only on request (§3). Reproduction uses determinism checks where supported and declared tolerances otherwise.
 - Exit codes follow amicode: `0` completed; `130` aborted; `64` usage/configuration/orchestrator fault; otherwise the job's return code. Run directories follow amicode's layout, terminal marker, atomic result, run-ID form, and exit codes; amicode's Julia- and control-specific fields and Run Inspector files (`index`, `latest`) are not yet provided.
@@ -82,7 +82,7 @@ Verification is a separate run linked to its source run. Its result holds a repo
 | Dynamics `simulate` / `sweep` | Integrity: trace, hermiticity, and positivity of stored states, the first stored state matching the declared initial state, and reported values consistent with the stored states. Segments: short windows restarted from stored states in the run's frame, on CPU at tightened tolerances and refined truncation, which detect local disagreement. Diagnostics: top retained-level population and static shifts, reported without a pass or fail outcome |
 | Spectral `simulate` / `sweep` | Truncation refinement of the reported quantities |
 | `sweep` (additional check) | A declared expectation, such as a metric's direction along a sweep axis |
-| `control` | Pulse rollout on a different engine; comparison on the same ProblemSpec with an open solver; independently calculated metric and constraint satisfaction for each candidate |
+| `control` | For each candidate, on the returned pulse. Replay: in the control model on an engine other than the solver's, the independently calculated fidelity agrees with the solver's report; leakage is reported without a pass or fail outcome. Target: that fidelity meets the problem's declared target, inapplicable when none is declared. Constraints: amplitude bounds, declared derivative bounds, and duration hold. A second solve of the same ProblemSpec by another solver is a separate run the user requests |
 | `calibrate` | Fitting receives training data only; corrector evaluates holdout data without refitting; identifiability report using covariance or profile likelihood |
 
 The corrector derives the checks relevant to a run from trusted protocol/metric definitions and the validated execution plan, not from labels in specs or results. A check requested where it does not apply is reported as inapplicable. A check's prerequisites, such as a declared refinement or the evidence-point bound, never restrict a run; a check that lacks one is reported as inapplicable with that reason. A check request may supply a replacement refinement declaration, which is frozen in the verification run and leaves the source run unchanged. A declared expectation is checked as the user wrote it, and its failure is reported as a violated declared expectation. Runs without a trusted definition have no built-in checks. The `control` and `calibrate` rows follow the same on-request rule when those protocols are built. Reports identify:
@@ -140,7 +140,7 @@ CLI and MCP share backing operations and expose available capabilities. Research
 | `simulate` / `sweep` / `control` / `calibrate` | Controlled job | Execute through the runner, enforcing any configured limits |
 | `run_script` | Controlled job | Execute an authored script through the runner, enforcing any configured limits |
 | `rerun_script` | Controlled job | Replay frozen script inputs as a new attempt linked to the prior run |
-| `rerun_simulation` / `rerun_sweep` | Controlled job | Replay frozen simulation inputs or recompute a frozen sweep grid as a new linked attempt, recording current code/environment provenance |
+| `rerun_simulation` / `rerun_sweep` / `rerun_control` | Controlled job | Replay frozen simulation inputs, recompute a frozen sweep grid, or re-solve a frozen control problem as a new linked attempt, recording current code/environment provenance |
 | `check` | Controlled job | Run the named built-in checks on a completed run (§3) |
 | `abort_run` / `stop_investigation` | Controlled job | Cancel work; investigation stop also closes admission and records its reason |
 | `create_investigation` / `revise_investigation` | Controlled write | Draft a new investigation or propose a revision; a revision takes effect on a user decision |

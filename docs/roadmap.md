@@ -42,9 +42,9 @@ Every milestone must demonstrate these qualities for the capabilities it introdu
 
 - **Python-first, single substrate.** Modeling with `scqubits`; dynamics on cuQuantum's cuDensityMat through `qutip-cuquantum`; differentiable dynamics with `dynamiqs` (JAX); QuTiP CPU as the exact small-size reference.
 - **Two engines that do not compose through autodiff.** cuDensityMat is large-scale, batched, non-differentiable. JAX (dynamiqs) is differentiable and moderate-size. When a workflow needs direct cross-engine array exchange, use DLPack / CuPy with measured copy/zero-copy behavior; gradients do not cross. Build that boundary with its first consumer, potentially control or co-design. Engine selection is a declared property of a protocol run ("needs gradients?" × declared device × Hilbert-space size), never an agent's judgment call.
-- **Solver-agnostic control spec.** amicode's ProblemSpec OSS schema (`system`, `goal`, `pulse`, `problem`, `integrator`, `solver.backend`) is adopted as the control problem file. `solver.backend` is a string; which solver ran is recorded, never assumed.
+- **Solver-agnostic control spec.** A control problem is one generated file in amicode's ProblemSpec OSS schema (`system`, `goal`, `pulse`, `problem`), shared unchanged by every solver. The solver is named in Entanglix's `control` spec; which solver ran is recorded, never assumed.
 - **Private solver plugins.** High-performance solvers may be proprietary. They attach through a `SolverBackend` / `Integrator` protocol via Python entry points and are never imported by this repo. The repo's tests run with open solvers only; an import-boundary test enforces it. Verification never depends on a private solver (contract §1, §3).
-- **amicode's role is contracts and a corrector, not substrate.** Run-dir shape and schemas are adopted for interoperability; Piccolo (via `amico-run`) is an open second-opinion control solver. Dynamics never route through Julia.
+- **amicode's role is contracts and a corrector, not substrate.** Run-dir shape and schemas are adopted for interoperability; Piccolo, run through its ProblemSpec runner, is an open second-opinion control solver. Dynamics never route through Julia.
 
 ### Key principles
 
@@ -65,9 +65,9 @@ Model plane      system.toml ──► scqubits circuit ──► truncated oper
 Engine plane     QuTiP CPU (reference) │ cuDensityMat via qutip-cuquantum (large, batched) │ dynamiqs (JAX, differentiable)
 Protocol plane   simulate │ sweep │ calibrate │ control        (each: spec in, run dir out)
 Workflow plane   problem formulation │ bounded sweep/search │ device–control co-design
-Solver plane     open GRAPE baseline │ Piccolo via amico-run │ private plugins (entry points)
+Solver plane     open GRAPE baseline │ Piccolo (Julia) │ private plugins (entry points)
 Run plane        research_runs/<system_id>/<run_id>/ … FINISHED   (amicode run-dir shape)
-Verify plane     corrector, on request: integrity, convergence, cross-solver, holdout    (versioned, outside candidate workspace)
+Verify plane     corrector, on request: integrity, convergence, pulse replay, holdout    (versioned, outside candidate workspace)
 Evidence plane   run ledger (all attempts, lineage, trial counts) + human-promoted results catalog
 Harness plane    entanglix CLI  ⇄  MCP server  ⇄  skills + research instructions  ⇄  Codex (or any runtime)
 Executors        local GPU │ Slurm │ Kubernetes   (artifacts mirrored back; large arrays stay on the cluster)
@@ -189,10 +189,10 @@ The evaluation protocol names a scripted experiment-selection policy, comparable
 ### Block 7 — Protocol `control`
 
 - **Builds on:** Blocks 1–4 for standalone control; Block 6b for agent integration. Prefer to sequence after M3; that order is not a technical prerequisite. Cluster execution and calibration are optional.
-- Adopt ProblemSpec OSS, resolving the additive `solver.options` choice before implementation; `SolverBackend` protocol and entry-point discovery; open GRAPE-style baseline; Piccolo adapter via `amico-run`.
-- Cross-solver corrector check (contract §3) and re-simulation on a different engine.
+- A `control` spec from which the runner generates one ProblemSpec OSS file shared by every solver ([ADR-0005](adr/0005-control-problems-and-solvers.md)); `SolverBackend` protocol and entry-point discovery; open GRAPE-style baseline; Piccolo adapter that runs Piccolo's ProblemSpec runner in Julia.
+- Control checks on request (contract §3): pulse replay on a different engine, the declared fidelity target, and the declared constraints. A second solve of the same ProblemSpec is a separate requested run.
 - Standalone control on an existing system model through the CLI; extend MCP and add the `control` skill when Block 6b is available. Existing sweep/search workflows remain independently supported.
-- **Done when:** one gate (Decision-0 platform) is solved by the open baseline and by Piccolo from the same ProblemSpec, both results verified, both in run dirs; a private plugin, if present, is discovered and its result is verified by the open solver.
+- **Done when:** one gate (Decision-0 platform) is solved by the open baseline and by Piccolo from the same ProblemSpec, each candidate passing the checks requested with their scope reported, both in run dirs; a private plugin, if present, is discovered and its candidate is checked by the same open replay.
 
 ### Block 8 — Device–Control Co-design
 
@@ -280,7 +280,7 @@ Core progression (capability development; users may enter or stop at any support
 | M1 — Model + engines | Blocks 1–2 | spectra match scqubits; engines agree at reference size |
 | M2 — Local sweep with checks | Blocks 3–5 | documented local GPU sweep, reproducible, with its requested checks passing; run history and interruption diagnostics available |
 | M3 — Bounded agent-assisted exploration | Blocks 6a–6b | declared evidence, progress-based continuation/stopping, reliable local execution, configured-limit enforcement, independent usability, and baseline comparison pass Block 6b criteria; no performance advantage required |
-| M4 — Control | Block 7 | standalone control workflow; open baseline and Piccolo solve the same gate problem, both verified; agent integration demonstrated when Block 6b is available |
+| M4 — Control | Block 7 | standalone control workflow; open baseline and Piccolo solve the same gate problem, each candidate passing the checks requested; agent integration demonstrated when Block 6b is available |
 | M5 — Device–control co-design | Block 8 | joint device/control investigation produces a verified comparison and supported findings under declared constraints and uncertainty |
 
 Supporting milestones are scheduled by their dependencies and research need:
@@ -292,7 +292,7 @@ Supporting milestones are scheduled by their dependencies and research need:
 | S3 — Results catalog | Block 11 | promoted candidate reused with lineage; pulse warm-start demonstrated when control is available |
 | S4 — Interoperability | Block 12 | Run Inspector opens a run; `amico-run` accepts a ProblemSpec |
 
-The Harmoniqs conversation is gated by concrete artifacts: the shared ProblemSpec solved by the open baseline and Piccolo, both verified, with inspectable run directories and corrector reports. These are normally delivered at M4, but standalone control may supply them before M3. Agent integration is not a sharing prerequisite; the audience/license decision and removal of Appendix A still apply.
+The Harmoniqs conversation is gated by concrete artifacts: the shared ProblemSpec solved by the open baseline and Piccolo, each candidate with its requested check reports, in inspectable run directories. These are normally delivered at M4, but standalone control may supply them before M3. Agent integration is not a sharing prerequisite; the audience/license decision and removal of Appendix A still apply.
 
 ---
 
@@ -315,7 +315,7 @@ Settled: project name Entanglix; command `entanglix`; runner in Python (`uv`), s
 - **Settled in 5A:** dynamics metric, drive, parameter region, windows, grids, refinement, and candidate frame bounds for the first GPU sweep ([readout example](../examples/readout/README.md)); independent-engine acceptance of the frame bounds remains in 5B.
 - **Settled in [ADR-0004](adr/0004-investigations-and-agent-sessions.md):** user-decision recording, progress-assessment fields, a checkpoint the user declares with no default, resume behaviour, the evaluation protocol with its scripted selection policy and user-declared allowances, and the user's own agent runtime. The first investigation is recorded in the [readout example](../examples/readout/README.md#threshold-characterization). Usage recording and optional limits are fixed by contract §4; ordinary investigations do not require preallocated budgets.
 - **Settled in [ADR-0004 §2.8](adr/0004-investigations-and-agent-sessions.md#28-agent-sessions):** instruction delivery, the operator CLI as the decision path, job tools with a wait and recoverable launches, the permission settings and what holds in a runtime without them, session audit per connection, and busy-device admission ([probe results](../tests/probes/m3_agent_session_results.json)).
-- **Before Block 7:** ProblemSpec OSS verbatim vs. an additive `solver.options` table.
+- **Settled in [ADR-0005](adr/0005-control-problems-and-solvers.md):** the control spec and the generated ProblemSpec, where the solver is named, the shared problem subset, solver options and termination reports, the direct Piccolo adapter, and the control checks ([probe results](../tests/probes/m4_control_results.json)).
 - **Before Block 9:** scheduler target (Slurm or Kubernetes), remote environment, and site execution requirements when needed.
 - **When stronger deployment guarantees are needed:** threat model, authorization/identity mechanism, process/filesystem/network/device controls, and evidence of bypass resistance. This is not a Decision-0 or M3 prerequisite.
 

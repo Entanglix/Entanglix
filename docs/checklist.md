@@ -30,7 +30,7 @@ Supporting milestones, scheduled by dependency and research need:
 | S3 — Results catalog | Block 11 | open |
 | S4 — Interoperability | Block 12 | open |
 
-The Harmoniqs conversation requires the verified shared ProblemSpec and open-solver artifacts specified in roadmap §5, normally delivered at M4. Agent integration is not a prerequisite. The audience/license decision applies, and `roadmap.md` Appendix A must be removed before sharing.
+The Harmoniqs conversation requires the shared ProblemSpec and the checked open-solver artifacts specified in roadmap §5, normally delivered at M4. Agent integration is not a prerequisite. The audience/license decision applies, and `roadmap.md` Appendix A must be removed before sharing.
 
 ## Acceptance Evidence for Every Block
 
@@ -248,17 +248,19 @@ The [M2 guide](m2-guide.md) records the implementation approach; [ADR-0003](adr/
 
 **Builds on:** Blocks 1–4 for standalone control; Block 6b for agent integration. Prefer to sequence after M3; that order is not a technical prerequisite. Cluster execution and calibration are optional.
 
-- [ ] Resolve the roadmap's open ProblemSpec choice: verbatim adoption or documented additive `solver.options` extension
+- [x] Control decisions recorded in [ADR-0005](adr/0005-control-problems-and-solvers.md): the control spec and generated ProblemSpec, the shared problem subset, solvers, the Piccolo adapter, and control checks ([probe](../tests/probes/m4_control.py), [results](../tests/probes/m4_control_results.json))
+- [ ] `control` spec and one generated ProblemSpec per run, with the system exported in the control frame
 - [ ] `SolverBackend` protocol and entry-point discovery
 - [ ] Open GRAPE-style baseline
-- [ ] Piccolo adapter via `amico-run`
+- [ ] Piccolo adapter running Piccolo's ProblemSpec runner in Julia, with a pinned Julia project
 - [ ] Open-only operation and declared plugin fallback behavior; actual solver recorded
-- [ ] Independent pulse rollout, metric and constraint checks; cross-solver comparison on the same ProblemSpec (contract §3)
+- [ ] Control checks on request: pulse replay on a different engine, the declared fidelity target, and the declared constraints (contract §3); a second solver on the same ProblemSpec as a separate run
 - [ ] Standalone control from an existing system model through the CLI
+- [ ] `control` in investigations: admission, usage, stop, and rerun
 - [ ] When Block 6b is available: MCP capability and `control` skill with integration evidence
 - [ ] Applicable quality evidence recorded
-- [ ] **Done:** open baseline and Piccolo solve the same gate problem, both results verified and in run dirs; a private plugin, if present, is discovered and its result is verified through the open path
-- **Unblocks:** the Harmoniqs conversation once the shared ProblemSpec, verified open-baseline/Piccolo runs, and corrector reports are inspectable; audience/license and Appendix A rules still apply.
+- [ ] **Done:** open baseline and Piccolo solve the same gate problem from one generated ProblemSpec, each candidate passing the checks requested, both in run dirs; a private plugin, if present, is discovered and its candidate is checked by the same open replay
+- **Unblocks:** the Harmoniqs conversation once the shared ProblemSpec, the open-baseline and Piccolo runs, and their check reports are inspectable; audience/license and Appendix A rules still apply.
 
 ---
 

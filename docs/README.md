@@ -44,6 +44,7 @@ This index supports project planning and implementation. Operational entry point
 - [adr/0002-system-model-representation.md](adr/0002-system-model-representation.md) — Accepted system model representation: model kinds, units, circuit coordinates, cutoffs, biases, operator names, and composite basis.
 - [adr/0003-runs-verification-and-dispatch.md](adr/0003-runs-verification-and-dispatch.md) — Accepted run records, verification checks on request, engine dispatch by declared needs, and drives and frames.
 - [adr/0004-investigations-and-agent-sessions.md](adr/0004-investigations-and-agent-sessions.md) — Accepted investigation records, revision authority and user decisions, admission and stopping, checkpoints and reviews, the evaluation protocol, and the user's own agent runtime.
+- [adr/0005-control-problems-and-solvers.md](adr/0005-control-problems-and-solvers.md) — Accepted control spec and generated ProblemSpec, shared problem subset, solver interface, direct Piccolo adapter, and control checks on request.
 
 ## Sharing rule
 
