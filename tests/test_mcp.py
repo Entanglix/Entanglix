@@ -131,11 +131,17 @@ def test_tool_parity_annotations_and_immutable_audit(study, runner_repository, t
             assert (await call(session, "list_runs"))["rows"] == json.loads(
                 await cli_result(runner_repository, "list-runs", "--runs-root", str(runs))
             )
-            assert (await call(session, "list_investigations"))["result"] == json.loads(
+            listed = (await call(session, "list_investigations"))["result"]
+            cli_listed = json.loads(
                 await cli_result(runner_repository, "list-investigations", "--runs-root", str(runs))
             )
+            assert all(Path(item["path"]).is_absolute() for item in cli_listed)
+            assert listed == [
+                item | {"path": str(Path(item["path"]).relative_to(runs))} for item in cli_listed
+            ]
+            assert listed[0]["path"] == str(investigation.relative_to(runs))
             inspected = await call(
-                session, "read_investigation", {"investigation": str(investigation)}
+                session, "read_investigation", {"investigation": listed[0]["path"]}
             )
             cli = json.loads(
                 await cli_result(runner_repository, "read-investigation", str(investigation))
@@ -183,6 +189,24 @@ def test_tool_parity_annotations_and_immutable_audit(study, runner_repository, t
         for item in outcomes
     )
     assert not list_runs(runs)
+
+
+def test_workspace_relative_record_path_explains_runs_root(study, runner_repository, tmp_path):
+    _, _, _, runs, investigation = study
+    given = str(Path("runs") / investigation.relative_to(runs))
+
+    async def exercise():
+        async with client(runner_repository, runs, tmp_path / "state") as session:
+            result = await session.call_tool("read_investigation", {"investigation": given})
+            assert result.is_error
+            message = result.content[0].text
+            assert given in message
+            assert "does not exist" in message
+            assert "relative record paths resolve from the runs root" in message
+            assert str(runs.resolve()) in message
+            assert "[Errno 2]" not in message
+
+    asyncio.run(exercise())
 
 
 def test_first_request_without_initialize_records_session(runner_repository, tmp_path):

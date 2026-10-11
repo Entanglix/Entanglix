@@ -63,7 +63,7 @@ Tables return `columns`, positional `rows`, `total` and `next_after`. Each page
 holds at most 50 rows, oldest first. Pass `next_after` as the integer `after`
 offset to continue until it is null. The same encoder and cursor serve
 `list_runs(after=...)`, including unresolved launches. No filters are supported.
-Paths are relative to the configured runs root and accepted by the read tools.
+Paths in these tables and `list_investigations` are relative to the configured runs root and accepted by the read tools. Relative record paths resolve from that root, not from the session's workspace.
 
 Attempt columns cover path, protocol, base, execution status, varied values,
 metrics, parents, checks and completed sweep-point count. A sweep is one row.

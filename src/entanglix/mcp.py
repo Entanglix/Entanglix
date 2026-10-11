@@ -25,7 +25,7 @@ from entanglix.launches import (
     start_supervisor,
     validate_wait,
 )
-from entanglix.mcp_views import finding_ack, investigation_view, run_view, runs_view
+from entanglix.mcp_views import finding_ack, investigation_view, relative_path, run_view, runs_view
 
 JOBS = {
     "control",
@@ -131,6 +131,11 @@ def build_server(config: Configuration):
         resolved = (path if path.is_absolute() else root / path).resolve()
         if not resolved.is_relative_to(root):
             raise ToolError(f"research record path is outside configured runs root {root}: {value}")
+        if not resolved.exists():
+            raise ToolError(
+                f"research record path does not exist: {value}; "
+                f"relative record paths resolve from the runs root {root}"
+            )
         return resolved
 
     async def audit_call(ctx, call_next):
@@ -420,7 +425,8 @@ def build_server(config: Configuration):
     @tool
     async def list_investigations() -> list[dict[str, object]]:
         """List investigation states in the configured runs root."""
-        return await backing(investigations.list_investigations, root)
+        records = await backing(investigations.list_investigations, root)
+        return [record | {"path": relative_path(record["path"], root)} for record in records]
 
     @tool
     async def read_investigation(
