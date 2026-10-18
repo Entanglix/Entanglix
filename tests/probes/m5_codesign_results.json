@@ -1,0 +1,3328 @@
+{
+  "measured_at": "2026-10-18T03:15:05.190577+00:00",
+  "workspace": "/home/paimon/Projects/entanglix-research/m5-probe",
+  "source_revision": "6b9fafee9e148b0b37d50f8aa07fb1586493c159",
+  "script_sha256": "350cf1012abd0d3c7c4f854ce34cabd8843d4319afda75e80a048e2d8ec97845",
+  "provenance_note": "script_sha256 identifies this rebuild/evaluation script. Indexed solves and checks retain their original executed probe source in the recorded code snapshots.",
+  "versions": {
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "qutip": "5.3.1",
+    "scqubits": "4.3.1",
+    "jax": "0.6.2",
+    "dynamiqs": "0.3.6",
+    "tomli-w": "1.2.0"
+  },
+  "runner_extras": [
+    "cuquantum",
+    "differentiable-cuda12"
+  ],
+  "conventions": {
+    "comparison": "Fixed nominal 0-1 Rabi-rate bound: amplitude 0.06/|n01|, du and ddu 0.1/|n01|, in authored units. Alternate: unchanged first-gate raw bounds.",
+    "best": "Highest replay fidelity among the three primary GRAPE seeds passing constraints; failures retained.",
+    "evaluation": "Returned amplitudes and knots; nominal carriers, phases, frame and bounds fixed. Perturbed charge operator at authored scale. Closed RWA model only.",
+    "logical_states": "Each perturbed model's eigenstates, with overlapping charge-basis eigenvectors matched in sign. Quasistatic variation, preparation in actual levels.",
+    "resolution": "Sampled refinement sensitivity only: nominal separation exceeds 1e-7 and the sum of nominal refinement changes. This says nothing about optimizer resolution; solver variability prevents a nominal device ranking. 1e-7 is an agreement floor, not an error bound; uncertainty rankings also remain unresolved.",
+    "sampling": "Five charge samples, two one-at-a-time EJ samples and the combined individually worst pair; worst sampled, not worst case over a region.",
+    "EJ_fraction": 0.001,
+    "EJ_sampling_reason": "A common +/-0.1% EJ perturbation gives approximately 2.9-5.5 MHz detunings across the selected devices, a visible fixed-pulse stress over 20 ns while remaining a small fractional parameter change. This is a declared probe assumption, not a fabrication distribution.",
+    "refinement": "Four replays per candidate: nominal/original worst point, levels 3->5 and cutoff 30->40 separately. No inference about which refined sample is worst.",
+    "timings": "CPU workstation, OPENBLAS_NUM_THREADS=1. Runner job wall time excludes launch checks; launch elapsed includes them. First objective call includes compilation; evaluations include model/sign construction. Dynamiqs open-system time includes cold compilation."
+  },
+  "spectrum_screen": [
+    {
+      "Csh_fF": 2.0,
+      "EJ_over_EC": 9.04876844755827,
+      "f01_ghz": 12.161488039984883,
+      "anharmonicity_ghz": -2.9454428260503267,
+      "n01": 0.6728617284019685,
+      "n12": 0.8091413700262502,
+      "charge_samples": [
+        0.0,
+        0.125,
+        0.25,
+        0.375,
+        0.5
+      ],
+      "charge_f01_ghz": [
+        12.41772638085505,
+        12.32857740969584,
+        12.127040389946632,
+        11.941552032988335,
+        11.868670087445185
+      ],
+      "sampled_charge_dispersion_ghz": 0.5490562934098655,
+      "EJ_fraction": 0.001,
+      "EJ_shifted_f01_ghz": [
+        12.15422949327952,
+        12.168742646317096
+      ],
+      "selected": false
+    },
+    {
+      "Csh_fF": 5.0,
+      "EJ_over_EC": 11.371921118895678,
+      "f01_ghz": 11.06864041490416,
+      "anharmonicity_ghz": -2.1962623081496435,
+      "n01": 0.7218545976518054,
+      "n12": 0.9041171578941563,
+      "charge_samples": [
+        0.0,
+        0.125,
+        0.25,
+        0.375,
+        0.5
+      ],
+      "charge_f01_ghz": [
+        11.169614307316612,
+        11.135208001267504,
+        11.054592798847242,
+        10.977153845247013,
+        10.945933293034404
+      ],
+      "sampled_charge_dispersion_ghz": 0.22368101428220832,
+      "EJ_fraction": 0.001,
+      "EJ_shifted_f01_ghz": [
+        11.062218726568197,
+        11.075058708234991
+      ],
+      "selected": false
+    },
+    {
+      "Csh_fF": 10.0,
+      "EJ_over_EC": 15.243842237791355,
+      "f01_ghz": 9.763244745976356,
+      "anharmonicity_ghz": -1.440293593077218,
+      "n01": 0.7862710960311526,
+      "n12": 1.022405415270917,
+      "charge_samples": [
+        0.0,
+        0.125,
+        0.25,
+        0.375,
+        0.5
+      ],
+      "charge_f01_ghz": [
+        9.788686092719566,
+        9.780121457516463,
+        9.759632131403432,
+        9.739401127091313,
+        9.731094886731965
+      ],
+      "sampled_charge_dispersion_ghz": 0.0575912059876007,
+      "EJ_fraction": 0.001,
+      "EJ_shifted_f01_ghz": [
+        9.757733726332402,
+        9.768752919213002
+      ],
+      "selected": true
+    },
+    {
+      "Csh_fF": 20.0,
+      "EJ_over_EC": 22.987684475582707,
+      "f01_ghz": 8.13546317619235,
+      "anharmonicity_ghz": -0.8353603392825892,
+      "n01": 0.8821286198335754,
+      "n12": 1.1798762071151823,
+      "charge_samples": [
+        0.0,
+        0.125,
+        0.25,
+        0.375,
+        0.5
+      ],
+      "charge_f01_ghz": [
+        8.137898650250591,
+        8.13708256063204,
+        8.135114587815902,
+        8.133149775146904,
+        8.132336845689395
+      ],
+      "sampled_charge_dispersion_ghz": 0.005561804561196482,
+      "EJ_fraction": 0.001,
+      "EJ_shifted_f01_ghz": [
+        8.130999187632675,
+        8.139924887818996
+      ],
+      "selected": false
+    },
+    {
+      "Csh_fF": 30.0,
+      "EJ_over_EC": 30.731526713374063,
+      "f01_ghz": 7.127118340199971,
+      "anharmonicity_ghz": -0.5923595569651123,
+      "n01": 0.9548809608952991,
+      "n12": 1.2917467250658352,
+      "charge_samples": [
+        0.0,
+        0.125,
+        0.25,
+        0.375,
+        0.5
+      ],
+      "charge_f01_ghz": [
+        7.127446297106835,
+        7.127336464793123,
+        7.127071355094776,
+        7.126806314604482,
+        7.126696551498698
+      ],
+      "sampled_charge_dispersion_ghz": 0.0007497456081368981,
+      "EJ_fraction": 0.001,
+      "EJ_shifted_f01_ghz": [
+        7.123267320533989,
+        7.130967406424416
+      ],
+      "selected": true
+    },
+    {
+      "Csh_fF": 45.0,
+      "EJ_over_EC": 42.34729007006109,
+      "f01_ghz": 6.142719030958245,
+      "anharmonicity_ghz": -0.4133426906413522,
+      "n01": 1.0407852676521687,
+      "n12": 1.4206072735435977,
+      "charge_samples": [
+        0.0,
+        0.125,
+        0.25,
+        0.375,
+        0.5
+      ],
+      "charge_f01_ghz": [
+        6.1427431836368305,
+        6.142735095728849,
+        6.142715570117119,
+        6.142696044965355,
+        6.14268795751739
+      ],
+      "sampled_charge_dispersion_ghz": 5.5226119440199284e-05,
+      "EJ_fraction": 0.001,
+      "EJ_shifted_f01_ghz": [
+        6.139444840189061,
+        6.145991568793043
+      ],
+      "selected": false
+    },
+    {
+      "Csh_fF": 60.0,
+      "EJ_over_EC": 53.963053426748125,
+      "f01_ghz": 5.482065688844835,
+      "anharmonicity_ghz": -0.31721417601815105,
+      "n01": 1.1099964850544073,
+      "n12": 1.523003954317361,
+      "charge_samples": [
+        0.0,
+        0.125,
+        0.25,
+        0.375,
+        0.5
+      ],
+      "charge_f01_ghz": [
+        5.482068141698207,
+        5.4820673203282855,
+        5.482065337369902,
+        5.482063354417175,
+        5.482062533052826
+      ],
+      "sampled_charge_dispersion_ghz": 5.608645381016686e-06,
+      "EJ_fraction": 0.001,
+      "EJ_shifted_f01_ghz": [
+        5.4791682221864075,
+        5.484961696564041
+      ],
+      "selected": true
+    },
+    {
+      "Csh_fF": 90.0,
+      "EJ_over_EC": 77.1945801401222,
+      "f01_ghz": 4.625733995842136,
+      "anharmonicity_ghz": -0.21607936360295632,
+      "n01": 1.2196006391775618,
+      "n12": 1.6835582113339678,
+      "charge_samples": [
+        0.0,
+        0.125,
+        0.25,
+        0.375,
+        0.5
+      ],
+      "charge_f01_ghz": [
+        4.625734042865982,
+        4.625734027119336,
+        4.625733989103981,
+        4.62573395108846,
+        4.625733935342019
+      ],
+      "sampled_charge_dispersion_ghz": 1.075239630665692e-07,
+      "EJ_fraction": 0.001,
+      "EJ_shifted_f01_ghz": [
+        4.6233139947176785,
+        4.628152781608332
+      ],
+      "selected": false
+    }
+  ],
+  "candidate_choice": "10, 30, 60 fF span sampled dispersion of about 58 MHz, 0.75 MHz and 5.6 kHz; smaller Csh increases anharmonicity while increasing charge sensitivity. 60 fF retains the first gate. Actual gate sensitivity is measured below, not inferred from dispersion alone.",
+  "detuning": [
+    {
+      "case": "frame_and_carriers",
+      "accepted": true,
+      "rotating_f01_ghz": -0.0010000000000012221,
+      "listing": {
+        "protocol": "control",
+        "system_id": "junction_with_shunt",
+        "dimensions": [
+          3
+        ],
+        "channel_order": [
+          "x",
+          "y"
+        ],
+        "omitted_dissipators": [],
+        "frame": {
+          "kind": "rotating",
+          "rwa": true,
+          "frequencies_ghz": {
+            "junction_with_shunt": 5.483065688844835
+          },
+          "excitation_numbers": {
+            "junction_with_shunt": [
+              0,
+              1,
+              2
+            ]
+          },
+          "frequency_atol_ghz": 1e-10,
+          "removed_hamiltonian_frobenius_ghz": 0.0,
+          "removed_hamiltonian_shifts_ghz": [],
+          "removed_drive_frobenius": {
+            "x": 0.0002553354821901828,
+            "y": 0.0002553354821901828
+          },
+          "removed_drive_shifts_ghz": {
+            "x": [
+              -10.96613137768967,
+              0.0,
+              10.96613137768967
+            ],
+            "y": [
+              -10.96613137768967,
+              0.0,
+              10.96613137768967
+            ]
+          },
+          "returned_state_basis": "lab"
+        },
+        "energy_origin_ghz": -12.183560513666507,
+        "solver": {
+          "backend": "grape",
+          "options": {
+            "max_iter": 100,
+            "tol": 1e-08
+          }
+        },
+        "duration_ns": 20.0,
+        "interval_count": 20,
+        "problem_sha256": "adcba1f32ebbbe857a2683c2c0a026f7e530ad41663cb0f65c349b427d9ab6cc",
+        "amicode_revision": "cb717f57cb63fa292917188c8ca32f50ddcca539"
+      }
+    },
+    {
+      "case": "carriers_only",
+      "accepted": false,
+      "error": "channel 'x': exported drive is zero under the declared frame; check its carrier frequency and source operator"
+    }
+  ],
+  "jobs": [
+    {
+      "label": "c10-rabi_bound-s7",
+      "path": "/home/paimon/Projects/entanglix-research/m5-probe/runs/junction_with_shunt/r20261018T030055272285Z-1f29f79b",
+      "run_id": "r20261018T030055272285Z-1f29f79b",
+      "status": "completed",
+      "usage": {
+        "wall_seconds": 18.52093313500518,
+        "gpu_seconds": 0,
+        "uncertain": false
+      },
+      "launch_elapsed_seconds": 19.348596660012845,
+      "env_hash": "2699980e55fdcbfd137cf7d5cff9d087203bc1b224ac416527823fe82812e7ca",
+      "problem_sha256": "28b17cd990cd64ae35618cbd492c568f651f43f06dca588e8ef9e3a03f9e6b34",
+      "solver_fidelity": 0.9770530197266927,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 38,
+        "objective_evaluations": 46
+      },
+      "first_objective_gradient_seconds": 12.60529153997777,
+      "later_objective_gradient_median_seconds": 0.06998961500357836,
+      "check_run_id": "r20261018T030113935192Z-07ebfc86",
+      "check_path": "/home/paimon/Projects/entanglix-research/m5-probe/runs/junction_with_shunt/r20261018T030113935192Z-07ebfc86",
+      "check_usage": {
+        "wall_seconds": 0.7301879279548302,
+        "gpu_seconds": 0,
+        "uncertain": false
+      },
+      "checks": [
+        {
+          "name": "replay",
+          "scope": "returned neutral pulse in the declared control model",
+          "outcome": "pass",
+          "residual": 3.331779296900095e-13,
+          "tolerance": 1e-07,
+          "solver_reported_fidelity": 0.9770530197266927,
+          "fidelity": 0.9770530197270259,
+          "leakage": 0.0012461580198918076,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13
+        },
+        {
+          "name": "constraints",
+          "outcome": "pass",
+          "scope": "returned knots, including terminal amplitudes and differences",
+          "uncovered_constraints": [],
+          "checks": [
+            {
+              "name": "amplitude",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maxima_ghz": [
+                0.0763095582463364,
+                0.0763095582463364
+              ],
+              "bounds_ghz": [
+                0.0763095582463364,
+                0.0763095582463364
+              ]
+            },
+            {
+              "name": "duration",
+              "scope": "duration allowed by the frozen time-step bracket",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1.4210856136287477e-13,
+              "duration_ns": 20.0,
+              "declared_ns": 20.0,
+              "bounds_ns": [
+                19.999998,
+                20.000002000000002
+              ]
+            },
+            {
+              "name": "equal_steps",
+              "scope": "all propagation intervals within the frozen time-step bracket",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1.4210856136287477e-13,
+              "bounds_ns": [
+                0.9999999,
+                1.0000001
+              ]
+            },
+            {
+              "name": "du",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maximum": 0.08904008992096202,
+              "bound": 0.12718259707722734
+            },
+            {
+              "name": "ddu",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maximum": 0.11531532430660368,
+              "bound": 0.12718259707722734
+            }
+          ]
+        }
+      ],
+      "replay_fidelity": 0.9770530197270259,
+      "replay_leakage": 0.0012461580198918076,
+      "constraints_outcome": "pass",
+      "iteration_cap_reached": false,
+      "Csh_fF": 10.0,
+      "comparison_policy": "rabi_bound",
+      "seed": 7,
+      "backend": "grape"
+    },
+    {
+      "label": "c10-rabi_bound-s19",
+      "path": "/home/paimon/Projects/entanglix-research/m5-probe/runs/junction_with_shunt/r20261018T030115408689Z-ed37a2ab",
+      "run_id": "r20261018T030115408689Z-ed37a2ab",
+      "status": "completed",
+      "usage": {
+        "wall_seconds": 16.453905226953793,
+        "gpu_seconds": 0,
+        "uncertain": false
+      },
+      "launch_elapsed_seconds": 17.214284420013428,
+      "env_hash": "2699980e55fdcbfd137cf7d5cff9d087203bc1b224ac416527823fe82812e7ca",
+      "problem_sha256": "b4470e7c8d01a2550d2006de939172a6e61fbd9bc88fb0d84833b644e3bee356",
+      "solver_fidelity": 0.9770530141411558,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 39,
+        "objective_evaluations": 44
+      },
+      "first_objective_gradient_seconds": 12.31363654899178,
+      "later_objective_gradient_median_seconds": 0.06579302798490971,
+      "check_run_id": "r20261018T030132019489Z-46538539",
+      "check_path": "/home/paimon/Projects/entanglix-research/m5-probe/runs/junction_with_shunt/r20261018T030132019489Z-46538539",
+      "check_usage": {
+        "wall_seconds": 0.7395832919864915,
+        "gpu_seconds": 0,
+        "uncertain": false
+      },
+      "checks": [
+        {
+          "name": "replay",
+          "scope": "returned neutral pulse in the declared control model",
+          "outcome": "pass",
+          "residual": 2.6978419498391304e-13,
+          "tolerance": 1e-07,
+          "solver_reported_fidelity": 0.9770530141411558,
+          "fidelity": 0.9770530141414255,
+          "leakage": 0.001251593633388448,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13
+        },
+        {
+          "name": "constraints",
+          "outcome": "pass",
+          "scope": "returned knots, including terminal amplitudes and differences",
+          "uncovered_constraints": [],
+          "checks": [
+            {
+              "name": "amplitude",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maxima_ghz": [
+                0.0763095582463364,
+                0.0763095582463364
+              ],
+              "bounds_ghz": [
+                0.0763095582463364,
+                0.0763095582463364
+              ]
+            },
+            {
+              "name": "duration",
+              "scope": "duration allowed by the frozen time-step bracket",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1.4210856136287477e-13,
+              "duration_ns": 20.0,
+              "declared_ns": 20.0,
+              "bounds_ns": [
+                19.999998,
+                20.000002000000002
+              ]
+            },
+            {
+              "name": "equal_steps",
+              "scope": "all propagation intervals within the frozen time-step bracket",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1.4210856136287477e-13,
+              "bounds_ns": [
+                0.9999999,
+                1.0000001
+              ]
+            },
+            {
+              "name": "du",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maximum": 0.08905571321994993,
+              "bound": 0.12718259707722734
+            },
+            {
+              "name": "ddu",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maximum": 0.11553346639347686,
+              "bound": 0.12718259707722734
+            }
+          ]
+        }
+      ],
+      "replay_fidelity": 0.9770530141414255,
+      "replay_leakage": 0.001251593633388448,
+      "constraints_outcome": "pass",
+      "iteration_cap_reached": false,
+      "Csh_fF": 10.0,
+      "comparison_policy": "rabi_bound",
+      "seed": 19,
+      "backend": "grape"
+    },
+    {
+      "label": "c10-rabi_bound-s43",
+      "path": "/home/paimon/Projects/entanglix-research/m5-probe/runs/junction_with_shunt/r20261018T030133492904Z-1daa1cdf",
+      "run_id": "r20261018T030133492904Z-1daa1cdf",
+      "status": "completed",
+      "usage": {
+        "wall_seconds": 14.529670527030248,
+        "gpu_seconds": 0,
+        "uncertain": false
+      },
+      "launch_elapsed_seconds": 15.261783466034103,
+      "env_hash": "2699980e55fdcbfd137cf7d5cff9d087203bc1b224ac416527823fe82812e7ca",
+      "problem_sha256": "2aa7244a565e305a76c6bb230b5c99af5d27aacb1fab204a1e36c48592fe7f71",
+      "solver_fidelity": 0.9999999967348094,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 10,
+        "objective_evaluations": 18
+      },
+      "first_objective_gradient_seconds": 12.22865056397859,
+      "later_objective_gradient_median_seconds": 0.0606441919808276,
+      "check_run_id": "r20261018T030148171754Z-f1c9dcac",
+      "check_path": "/home/paimon/Projects/entanglix-research/m5-probe/runs/junction_with_shunt/r20261018T030148171754Z-f1c9dcac",
+      "check_usage": {
+        "wall_seconds": 0.7401852570474148,
+        "gpu_seconds": 0,
+        "uncertain": false
+      },
+      "checks": [
+        {
+          "name": "replay",
+          "scope": "returned neutral pulse in the declared control model",
+          "outcome": "pass",
+          "residual": 8.518741267948826e-13,
+          "tolerance": 1e-07,
+          "solver_reported_fidelity": 0.9999999967348094,
+          "fidelity": 0.9999999967356613,
+          "leakage": 3.252302538392371e-09,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13
+        },
+        {
+          "name": "constraints",
+          "outcome": "pass",
+          "scope": "returned knots, including terminal amplitudes and differences",
+          "uncovered_constraints": [],
+          "checks": [
+            {
+              "name": "amplitude",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maxima_ghz": [
+                0.041312723984183765,
+                0.008550667412735588
+              ],
+              "bounds_ghz": [
+                0.0763095582463364,
+                0.0763095582463364
+              ]
+            },
+            {
+              "name": "duration",
+              "scope": "duration allowed by the frozen time-step bracket",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1.4210856136287477e-13,
+              "duration_ns": 20.0,
+              "declared_ns": 20.0,
+              "bounds_ns": [
+                19.999998,
+                20.000002000000002
+              ]
+            },
+            {
+              "name": "equal_steps",
+              "scope": "all propagation intervals within the frozen time-step bracket",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1.4210856136287477e-13,
+              "bounds_ns": [
+                0.9999999,
+                1.0000001
+              ]
+            },
+            {
+              "name": "du",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maximum": 0.039298470501517246,
+              "bound": 0.12718259707722734
+            },
+            {
+              "name": "ddu",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maximum": 0.03737970294488716,
+              "bound": 0.12718259707722734
+            }
+          ]
+        }
+      ],
+      "replay_fidelity": 0.9999999967356613,
+      "replay_leakage": 3.252302538392371e-09,
+      "constraints_outcome": "pass",
+      "iteration_cap_reached": false,
+      "Csh_fF": 10.0,
+      "comparison_policy": "rabi_bound",
+      "seed": 43,
+      "backend": "grape"
+    },
+    {
+      "label": "c10-raw_bound-s7",
+      "path": "/home/paimon/Projects/entanglix-research/m5-probe/runs/junction_with_shunt/r20261018T030149643024Z-3bb37497",
+      "run_id": "r20261018T030149643024Z-3bb37497",
+      "status": "completed",
+      "usage": {
+        "wall_seconds": 14.61473966104677,
+        "gpu_seconds": 0,
+        "uncertain": false
+      },
+      "launch_elapsed_seconds": 15.341135570022743,
+      "env_hash": "2699980e55fdcbfd137cf7d5cff9d087203bc1b224ac416527823fe82812e7ca",
+      "problem_sha256": "099c96c97e38ed0772bf98797770fd407f4fac826eed5dd823ef1bdd3e1bc317",
+      "solver_fidelity": 0.9999999997775567,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 11,
+        "objective_evaluations": 19
+      },
+      "first_objective_gradient_seconds": 12.311929602001328,
+      "later_objective_gradient_median_seconds": 0.05872012898907997,
+      "check_run_id": "r20261018T030204401487Z-faddc46b",
+      "check_path": "/home/paimon/Projects/entanglix-research/m5-probe/runs/junction_with_shunt/r20261018T030204401487Z-faddc46b",
+      "check_usage": {
+        "wall_seconds": 0.7288141719764099,
+        "gpu_seconds": 0,
+        "uncertain": false
+      },
+      "checks": [
+        {
+          "name": "replay",
+          "scope": "returned neutral pulse in the declared control model",
+          "outcome": "pass",
+          "residual": 8.534284390293578e-13,
+          "tolerance": 1e-07,
+          "solver_reported_fidelity": 0.9999999997775567,
+          "fidelity": 0.9999999997784101,
+          "leakage": 3.7218561566021435e-11,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13
+        },
+        {
+          "name": "constraints",
+          "outcome": "pass",
+          "scope": "returned knots, including terminal amplitudes and differences",
+          "uncovered_constraints": [],
+          "checks": [
+            {
+              "name": "amplitude",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maxima_ghz": [
+                0.03600024875294282,
+                0.006491844397534959
+              ],
+              "bounds_ghz": [
+                0.05405422522311776,
+                0.05405422522311776
+              ]
+            },
+            {
+              "name": "duration",
+              "scope": "duration allowed by the frozen time-step bracket",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1.4210856136287477e-13,
+              "duration_ns": 20.0,
+              "declared_ns": 20.0,
+              "bounds_ns": [
+                19.999998,
+                20.000002000000002
+              ]
+            },
+            {
+              "name": "equal_steps",
+              "scope": "all propagation intervals within the frozen time-step bracket",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1.4210856136287477e-13,
+              "bounds_ns": [
+                0.9999999,
+                1.0000001
+              ]
+            },
+            {
+              "name": "du",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maximum": 0.034531473589669764,
+              "bound": 0.09009037537186294
+            },
+            {
+              "name": "ddu",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maximum": 0.03484081251254952,
+              "bound": 0.09009037537186294
+            }
+          ]
+        }
+      ],
+      "replay_fidelity": 0.9999999997784101,
+      "replay_leakage": 3.7218561566021435e-11,
+      "constraints_outcome": "pass",
+      "iteration_cap_reached": false,
+      "Csh_fF": 10.0,
+      "comparison_policy": "raw_bound",
+      "seed": 7,
+      "backend": "grape"
+    },
+    {
+      "label": "c30-rabi_bound-s7",
+      "path": "/home/paimon/Projects/entanglix-research/m5-probe/runs/junction_with_shunt/r20261018T030205873073Z-4404353e",
+      "run_id": "r20261018T030205873073Z-4404353e",
+      "status": "completed",
+      "usage": {
+        "wall_seconds": 14.40355341497343,
+        "gpu_seconds": 0,
+        "uncertain": false
+      },
+      "launch_elapsed_seconds": 15.140609423979186,
+      "env_hash": "2699980e55fdcbfd137cf7d5cff9d087203bc1b224ac416527823fe82812e7ca",
+      "problem_sha256": "bfe1b127940cee362aedb61a07cc4e0ea832dab06ce0d6b7376babf09cd30125",
+      "solver_fidelity": 0.9896013401524201,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 20,
+        "objective_evaluations": 26
+      },
+      "first_objective_gradient_seconds": 12.295656692003831,
+      "later_objective_gradient_median_seconds": 0.03336401400156319,
+      "check_run_id": "r20261018T030220417961Z-7c926777",
+      "check_path": "/home/paimon/Projects/entanglix-research/m5-probe/runs/junction_with_shunt/r20261018T030220417961Z-7c926777",
+      "check_usage": {
+        "wall_seconds": 0.7174575540120713,
+        "gpu_seconds": 0,
+        "uncertain": false
+      },
+      "checks": [
+        {
+          "name": "replay",
+          "scope": "returned neutral pulse in the declared control model",
+          "outcome": "pass",
+          "residual": 1.1288636692086129e-11,
+          "tolerance": 1e-07,
+          "solver_reported_fidelity": 0.9896013401524201,
+          "fidelity": 0.9896013401637087,
+          "leakage": 0.00016780550461137356,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13
+        },
+        {
+          "name": "constraints",
+          "outcome": "pass",
+          "scope": "returned knots, including terminal amplitudes and differences",
+          "uncovered_constraints": [],
+          "checks": [
+            {
+              "name": "amplitude",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maxima_ghz": [
+                0.06283505741070053,
+                0.06283505741254264
+              ],
+              "bounds_ghz": [
+                0.06283505741254264,
+                0.06283505741254264
+              ]
+            },
+            {
+              "name": "duration",
+              "scope": "duration allowed by the frozen time-step bracket",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1.4210856136287477e-13,
+              "duration_ns": 20.0,
+              "declared_ns": 20.0,
+              "bounds_ns": [
+                19.999998,
+                20.000002000000002
+              ]
+            },
+            {
+              "name": "equal_steps",
+              "scope": "all propagation intervals within the frozen time-step bracket",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1.4210856136287477e-13,
+              "bounds_ns": [
+                0.9999999,
+                1.0000001
+              ]
+            },
+            {
+              "name": "du",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maximum": 0.07287834940188162,
+              "bound": 0.10472509568757107
+            },
+            {
+              "name": "ddu",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 4.071659231996705e-09,
+              "tolerance": 1e-07,
+              "maximum": 0.1047250997592303,
+              "bound": 0.10472509568757107
+            }
+          ]
+        }
+      ],
+      "replay_fidelity": 0.9896013401637087,
+      "replay_leakage": 0.00016780550461137356,
+      "constraints_outcome": "pass",
+      "iteration_cap_reached": false,
+      "Csh_fF": 30.0,
+      "comparison_policy": "rabi_bound",
+      "seed": 7,
+      "backend": "grape"
+    },
+    {
+      "label": "c30-rabi_bound-s19",
+      "path": "/home/paimon/Projects/entanglix-research/m5-probe/runs/junction_with_shunt/r20261018T030221883827Z-81128959",
+      "run_id": "r20261018T030221883827Z-81128959",
+      "status": "completed",
+      "usage": {
+        "wall_seconds": 14.462598389014602,
+        "gpu_seconds": 0,
+        "uncertain": false
+      },
+      "launch_elapsed_seconds": 15.181234327959828,
+      "env_hash": "2699980e55fdcbfd137cf7d5cff9d087203bc1b224ac416527823fe82812e7ca",
+      "problem_sha256": "13463e63ab21aa2139e149ab6d15a267fcb561d7b914c15f7d750fd9b788f114",
+      "solver_fidelity": 0.989769780827314,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 19,
+        "objective_evaluations": 29
+      },
+      "first_objective_gradient_seconds": 12.252496792003512,
+      "later_objective_gradient_median_seconds": 0.03279203549027443,
+      "check_run_id": "r20261018T030236476698Z-2dac0d9a",
+      "check_path": "/home/paimon/Projects/entanglix-research/m5-probe/runs/junction_with_shunt/r20261018T030236476698Z-2dac0d9a",
+      "check_usage": {
+        "wall_seconds": 0.7198165109730326,
+        "gpu_seconds": 0,
+        "uncertain": false
+      },
+      "checks": [
+        {
+          "name": "replay",
+          "scope": "returned neutral pulse in the declared control model",
+          "outcome": "pass",
+          "residual": 1.1266321209291164e-11,
+          "tolerance": 1e-07,
+          "solver_reported_fidelity": 0.989769780827314,
+          "fidelity": 0.9897697808385804,
+          "leakage": 0.00014691745074191243,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13
+        },
+        {
+          "name": "constraints",
+          "outcome": "pass",
+          "scope": "returned knots, including terminal amplitudes and differences",
+          "uncovered_constraints": [],
+          "checks": [
+            {
+              "name": "amplitude",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maxima_ghz": [
+                0.06283505741254264,
+                0.06283505741254264
+              ],
+              "bounds_ghz": [
+                0.06283505741254264,
+                0.06283505741254264
+              ]
+            },
+            {
+              "name": "duration",
+              "scope": "duration allowed by the frozen time-step bracket",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1.4210856136287477e-13,
+              "duration_ns": 20.0,
+              "declared_ns": 20.0,
+              "bounds_ns": [
+                19.999998,
+                20.000002000000002
+              ]
+            },
+            {
+              "name": "equal_steps",
+              "scope": "all propagation intervals within the frozen time-step bracket",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1.4210856136287477e-13,
+              "bounds_ns": [
+                0.9999999,
+                1.0000001
+              ]
+            },
+            {
+              "name": "du",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maximum": 0.08378007656596567,
+              "bound": 0.10472509568757107
+            },
+            {
+              "name": "ddu",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 3.181763186255182e-11,
+              "tolerance": 1e-07,
+              "maximum": 0.1047250957193887,
+              "bound": 0.10472509568757107
+            }
+          ]
+        }
+      ],
+      "replay_fidelity": 0.9897697808385804,
+      "replay_leakage": 0.00014691745074191243,
+      "constraints_outcome": "pass",
+      "iteration_cap_reached": false,
+      "Csh_fF": 30.0,
+      "comparison_policy": "rabi_bound",
+      "seed": 19,
+      "backend": "grape"
+    },
+    {
+      "label": "c30-rabi_bound-s43",
+      "path": "/home/paimon/Projects/entanglix-research/m5-probe/runs/junction_with_shunt/r20261018T030237919451Z-db1170a8",
+      "run_id": "r20261018T030237919451Z-db1170a8",
+      "status": "completed",
+      "usage": {
+        "wall_seconds": 14.718381382001098,
+        "gpu_seconds": 0,
+        "uncertain": false
+      },
+      "launch_elapsed_seconds": 15.466845118964557,
+      "env_hash": "2699980e55fdcbfd137cf7d5cff9d087203bc1b224ac416527823fe82812e7ca",
+      "problem_sha256": "7ea2e84c70780f6988e129139b90495509bc814c26d3d13603c821244bf2f037",
+      "solver_fidelity": 0.9896013441714745,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 27,
+        "objective_evaluations": 34
+      },
+      "first_objective_gradient_seconds": 12.383371758973226,
+      "later_objective_gradient_median_seconds": 0.032502817979548126,
+      "check_run_id": "r20261018T030252800272Z-1a42a2e2",
+      "check_path": "/home/paimon/Projects/entanglix-research/m5-probe/runs/junction_with_shunt/r20261018T030252800272Z-1a42a2e2",
+      "check_usage": {
+        "wall_seconds": 0.7384547599940561,
+        "gpu_seconds": 0,
+        "uncertain": false
+      },
+      "checks": [
+        {
+          "name": "replay",
+          "scope": "returned neutral pulse in the declared control model",
+          "outcome": "pass",
+          "residual": 1.1464051929976904e-11,
+          "tolerance": 1e-07,
+          "solver_reported_fidelity": 0.9896013441714745,
+          "fidelity": 0.9896013441829385,
+          "leakage": 0.0001678050525024677,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13
+        },
+        {
+          "name": "constraints",
+          "outcome": "pass",
+          "scope": "returned knots, including terminal amplitudes and differences",
+          "uncovered_constraints": [],
+          "checks": [
+            {
+              "name": "amplitude",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maxima_ghz": [
+                0.06283505741254264,
+                0.06283505741254264
+              ],
+              "bounds_ghz": [
+                0.06283505741254264,
+                0.06283505741254264
+              ]
+            },
+            {
+              "name": "duration",
+              "scope": "duration allowed by the frozen time-step bracket",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1.4210856136287477e-13,
+              "duration_ns": 20.0,
+              "declared_ns": 20.0,
+              "bounds_ns": [
+                19.999998,
+                20.000002000000002
+              ]
+            },
+            {
+              "name": "equal_steps",
+              "scope": "all propagation intervals within the frozen time-step bracket",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1.4210856136287477e-13,
+              "bounds_ns": [
+                0.9999999,
+                1.0000001
+              ]
+            },
+            {
+              "name": "du",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maximum": 0.07287301698649479,
+              "bound": 0.10472509568757107
+            },
+            {
+              "name": "ddu",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 3.0531133177191805e-16,
+              "tolerance": 1e-07,
+              "maximum": 0.10472509568757138,
+              "bound": 0.10472509568757107
+            }
+          ]
+        }
+      ],
+      "replay_fidelity": 0.9896013441829385,
+      "replay_leakage": 0.0001678050525024677,
+      "constraints_outcome": "pass",
+      "iteration_cap_reached": false,
+      "Csh_fF": 30.0,
+      "comparison_policy": "rabi_bound",
+      "seed": 43,
+      "backend": "grape"
+    },
+    {
+      "label": "c30-raw_bound-s7",
+      "path": "/home/paimon/Projects/entanglix-research/m5-probe/runs/junction_with_shunt/r20261018T030254268701Z-e266470c",
+      "run_id": "r20261018T030254268701Z-e266470c",
+      "status": "completed",
+      "usage": {
+        "wall_seconds": 14.313070277043153,
+        "gpu_seconds": 0,
+        "uncertain": false
+      },
+      "launch_elapsed_seconds": 15.031070554978214,
+      "env_hash": "2699980e55fdcbfd137cf7d5cff9d087203bc1b224ac416527823fe82812e7ca",
+      "problem_sha256": "5609e3d7fb349acf5be96746419ee48c18370c1fb277844895e0bae7ba98086d",
+      "solver_fidelity": 0.9999999996028986,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 11,
+        "objective_evaluations": 26
+      },
+      "first_objective_gradient_seconds": 12.30680908501381,
+      "later_objective_gradient_median_seconds": 0.03022927895653993,
+      "check_run_id": "r20261018T030308719048Z-66091666",
+      "check_path": "/home/paimon/Projects/entanglix-research/m5-probe/runs/junction_with_shunt/r20261018T030308719048Z-66091666",
+      "check_usage": {
+        "wall_seconds": 0.7269357810146175,
+        "gpu_seconds": 0,
+        "uncertain": false
+      },
+      "checks": [
+        {
+          "name": "replay",
+          "scope": "returned neutral pulse in the declared control model",
+          "outcome": "pass",
+          "residual": 1.6560086635308835e-12,
+          "tolerance": 1e-07,
+          "solver_reported_fidelity": 0.9999999996028986,
+          "fidelity": 0.9999999996045547,
+          "leakage": 5.5963012002280266e-12,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13
+        },
+        {
+          "name": "constraints",
+          "outcome": "pass",
+          "scope": "returned knots, including terminal amplitudes and differences",
+          "uncovered_constraints": [],
+          "checks": [
+            {
+              "name": "amplitude",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maxima_ghz": [
+                0.03587610588533072,
+                0.008902122330773955
+              ],
+              "bounds_ghz": [
+                0.05405422522311776,
+                0.05405422522311776
+              ]
+            },
+            {
+              "name": "duration",
+              "scope": "duration allowed by the frozen time-step bracket",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1.4210856136287477e-13,
+              "duration_ns": 20.0,
+              "declared_ns": 20.0,
+              "bounds_ns": [
+                19.999998,
+                20.000002000000002
+              ]
+            },
+            {
+              "name": "equal_steps",
+              "scope": "all propagation intervals within the frozen time-step bracket",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1.4210856136287477e-13,
+              "bounds_ns": [
+                0.9999999,
+                1.0000001
+              ]
+            },
+            {
+              "name": "du",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maximum": 0.028145245073146866,
+              "bound": 0.09009037537186294
+            },
+            {
+              "name": "ddu",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maximum": 0.03131754904845398,
+              "bound": 0.09009037537186294
+            }
+          ]
+        }
+      ],
+      "replay_fidelity": 0.9999999996045547,
+      "replay_leakage": 5.5963012002280266e-12,
+      "constraints_outcome": "pass",
+      "iteration_cap_reached": false,
+      "Csh_fF": 30.0,
+      "comparison_policy": "raw_bound",
+      "seed": 7,
+      "backend": "grape"
+    },
+    {
+      "label": "c60-rabi_bound-s7",
+      "path": "/home/paimon/Projects/entanglix-research/m5-probe/runs/junction_with_shunt/r20261018T030310177582Z-df34ca2f",
+      "run_id": "r20261018T030310177582Z-df34ca2f",
+      "status": "completed",
+      "usage": {
+        "wall_seconds": 14.549599853984546,
+        "gpu_seconds": 0,
+        "uncertain": false
+      },
+      "launch_elapsed_seconds": 15.271777057962026,
+      "env_hash": "2699980e55fdcbfd137cf7d5cff9d087203bc1b224ac416527823fe82812e7ca",
+      "problem_sha256": "716bdda08b61e182e4cea833a69282136bbb558ab36d492c042042a016daa3fa",
+      "solver_fidelity": 0.9996150434507506,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 32,
+        "objective_evaluations": 49
+      },
+      "first_objective_gradient_seconds": 12.279073868994601,
+      "later_objective_gradient_median_seconds": 0.02046766201965511,
+      "check_run_id": "r20261018T030324865821Z-b95f21fc",
+      "check_path": "/home/paimon/Projects/entanglix-research/m5-probe/runs/junction_with_shunt/r20261018T030324865821Z-b95f21fc",
+      "check_usage": {
+        "wall_seconds": 0.7266032000188716,
+        "gpu_seconds": 0,
+        "uncertain": false
+      },
+      "checks": [
+        {
+          "name": "replay",
+          "scope": "returned neutral pulse in the declared control model",
+          "outcome": "pass",
+          "residual": 3.1447289217112484e-11,
+          "tolerance": 1e-07,
+          "solver_reported_fidelity": 0.9996150434507506,
+          "fidelity": 0.9996150434821979,
+          "leakage": 2.9700406473653906e-05,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13
+        },
+        {
+          "name": "constraints",
+          "outcome": "pass",
+          "scope": "returned knots, including terminal amplitudes and differences",
+          "uncovered_constraints": [],
+          "checks": [
+            {
+              "name": "amplitude",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maxima_ghz": [
+                0.05405422522311776,
+                0.05405422522311776
+              ],
+              "bounds_ghz": [
+                0.05405422522311776,
+                0.05405422522311776
+              ]
+            },
+            {
+              "name": "duration",
+              "scope": "duration allowed by the frozen time-step bracket",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1.4210856136287477e-13,
+              "duration_ns": 20.0,
+              "declared_ns": 20.0,
+              "bounds_ns": [
+                19.999998,
+                20.000002000000002
+              ]
+            },
+            {
+              "name": "equal_steps",
+              "scope": "all propagation intervals within the frozen time-step bracket",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1.4210856136287477e-13,
+              "bounds_ns": [
+                0.9999999,
+                1.0000001
+              ]
+            },
+            {
+              "name": "du",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maximum": 0.07800723870378258,
+              "bound": 0.09009037537186294
+            },
+            {
+              "name": "ddu",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 1.6792123247455493e-15,
+              "tolerance": 1e-07,
+              "maximum": 0.09009037537186462,
+              "bound": 0.09009037537186294
+            }
+          ]
+        }
+      ],
+      "replay_fidelity": 0.9996150434821979,
+      "replay_leakage": 2.9700406473653906e-05,
+      "constraints_outcome": "pass",
+      "iteration_cap_reached": false,
+      "Csh_fF": 60.0,
+      "comparison_policy": "rabi_bound",
+      "seed": 7,
+      "backend": "grape"
+    },
+    {
+      "label": "c60-rabi_bound-s19",
+      "path": "/home/paimon/Projects/entanglix-research/m5-probe/runs/junction_with_shunt/r20261018T030326353086Z-78ad085e",
+      "run_id": "r20261018T030326353086Z-78ad085e",
+      "status": "completed",
+      "usage": {
+        "wall_seconds": 14.130621275049634,
+        "gpu_seconds": 0,
+        "uncertain": false
+      },
+      "launch_elapsed_seconds": 14.876519035955425,
+      "env_hash": "2699980e55fdcbfd137cf7d5cff9d087203bc1b224ac416527823fe82812e7ca",
+      "problem_sha256": "0ab1414371f7fd5f7716afbc642c49bd0592248e8a869b31b91c922ea2c932ce",
+      "solver_fidelity": 0.9996150474521939,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 21,
+        "objective_evaluations": 29
+      },
+      "first_objective_gradient_seconds": 12.28680716000963,
+      "later_objective_gradient_median_seconds": 0.020737571991048753,
+      "check_run_id": "r20261018T030340634565Z-54915d6d",
+      "check_path": "/home/paimon/Projects/entanglix-research/m5-probe/runs/junction_with_shunt/r20261018T030340634565Z-54915d6d",
+      "check_usage": {
+        "wall_seconds": 0.7282528399955481,
+        "gpu_seconds": 0,
+        "uncertain": false
+      },
+      "checks": [
+        {
+          "name": "replay",
+          "scope": "returned neutral pulse in the declared control model",
+          "outcome": "pass",
+          "residual": 3.130939951745404e-11,
+          "tolerance": 1e-07,
+          "solver_reported_fidelity": 0.9996150474521939,
+          "fidelity": 0.9996150474835033,
+          "leakage": 2.9683609574227e-05,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13
+        },
+        {
+          "name": "constraints",
+          "outcome": "pass",
+          "scope": "returned knots, including terminal amplitudes and differences",
+          "uncovered_constraints": [],
+          "checks": [
+            {
+              "name": "amplitude",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maxima_ghz": [
+                0.05405422522311776,
+                0.05405422522311776
+              ],
+              "bounds_ghz": [
+                0.05405422522311776,
+                0.05405422522311776
+              ]
+            },
+            {
+              "name": "duration",
+              "scope": "duration allowed by the frozen time-step bracket",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1.4210856136287477e-13,
+              "duration_ns": 20.0,
+              "declared_ns": 20.0,
+              "bounds_ns": [
+                19.999998,
+                20.000002000000002
+              ]
+            },
+            {
+              "name": "equal_steps",
+              "scope": "all propagation intervals within the frozen time-step bracket",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1.4210856136287477e-13,
+              "bounds_ns": [
+                0.9999999,
+                1.0000001
+              ]
+            },
+            {
+              "name": "du",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maximum": 0.07800278820925426,
+              "bound": 0.09009037537186294
+            },
+            {
+              "name": "ddu",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 2.6922908347160046e-15,
+              "tolerance": 1e-07,
+              "maximum": 0.09009037537186564,
+              "bound": 0.09009037537186294
+            }
+          ]
+        }
+      ],
+      "replay_fidelity": 0.9996150474835033,
+      "replay_leakage": 2.9683609574227e-05,
+      "constraints_outcome": "pass",
+      "iteration_cap_reached": false,
+      "Csh_fF": 60.0,
+      "comparison_policy": "rabi_bound",
+      "seed": 19,
+      "backend": "grape"
+    },
+    {
+      "label": "c60-rabi_bound-s43",
+      "path": "/home/paimon/Projects/entanglix-research/m5-probe/runs/junction_with_shunt/r20261018T030342114848Z-e1ccfd86",
+      "run_id": "r20261018T030342114848Z-e1ccfd86",
+      "status": "completed",
+      "usage": {
+        "wall_seconds": 14.222173430025578,
+        "gpu_seconds": 0,
+        "uncertain": false
+      },
+      "launch_elapsed_seconds": 14.96344769303687,
+      "env_hash": "2699980e55fdcbfd137cf7d5cff9d087203bc1b224ac416527823fe82812e7ca",
+      "problem_sha256": "795db47206f3fd4a848acfbb9ab7288ccbeb0a74ae60ceb469744a3146828507",
+      "solver_fidelity": 0.9999999993348642,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 15,
+        "objective_evaluations": 34
+      },
+      "first_objective_gradient_seconds": 12.333246692025568,
+      "later_objective_gradient_median_seconds": 0.018999895022716373,
+      "check_run_id": "r20261018T030356473583Z-ea0ceef4",
+      "check_path": "/home/paimon/Projects/entanglix-research/m5-probe/runs/junction_with_shunt/r20261018T030356473583Z-ea0ceef4",
+      "check_usage": {
+        "wall_seconds": 0.7009265279630199,
+        "gpu_seconds": 0,
+        "uncertain": false
+      },
+      "checks": [
+        {
+          "name": "replay",
+          "scope": "returned neutral pulse in the declared control model",
+          "outcome": "pass",
+          "residual": 4.357181282443889e-12,
+          "tolerance": 1e-07,
+          "solver_reported_fidelity": 0.9999999993348642,
+          "fidelity": 0.9999999993392213,
+          "leakage": 4.994222813081706e-10,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13
+        },
+        {
+          "name": "constraints",
+          "outcome": "pass",
+          "scope": "returned knots, including terminal amplitudes and differences",
+          "uncovered_constraints": [],
+          "checks": [
+            {
+              "name": "amplitude",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maxima_ghz": [
+                0.035962019453437376,
+                0.022370654213947298
+              ],
+              "bounds_ghz": [
+                0.05405422522311776,
+                0.05405422522311776
+              ]
+            },
+            {
+              "name": "duration",
+              "scope": "duration allowed by the frozen time-step bracket",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1.4210856136287477e-13,
+              "duration_ns": 20.0,
+              "declared_ns": 20.0,
+              "bounds_ns": [
+                19.999998,
+                20.000002000000002
+              ]
+            },
+            {
+              "name": "equal_steps",
+              "scope": "all propagation intervals within the frozen time-step bracket",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1.4210856136287477e-13,
+              "bounds_ns": [
+                0.9999999,
+                1.0000001
+              ]
+            },
+            {
+              "name": "du",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maximum": 0.025676713742038764,
+              "bound": 0.09009037537186294
+            },
+            {
+              "name": "ddu",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maximum": 0.03604425856947456,
+              "bound": 0.09009037537186294
+            }
+          ]
+        }
+      ],
+      "replay_fidelity": 0.9999999993392213,
+      "replay_leakage": 4.994222813081706e-10,
+      "constraints_outcome": "pass",
+      "iteration_cap_reached": false,
+      "Csh_fF": 60.0,
+      "comparison_policy": "rabi_bound",
+      "seed": 43,
+      "backend": "grape"
+    },
+    {
+      "label": "c60-piccolo-s7",
+      "path": "/home/paimon/Projects/entanglix-research/m5-probe/runs/junction_with_shunt/r20261018T030358042884Z-40270435",
+      "run_id": "r20261018T030358042884Z-40270435",
+      "status": "completed",
+      "usage": {
+        "wall_seconds": 28.621921576035675,
+        "gpu_seconds": 0,
+        "uncertain": false
+      },
+      "launch_elapsed_seconds": 29.480695996026043,
+      "env_hash": "8a7fdd82ade99800e46a581432a111de0e7d97f0d5cbacc20219f3c60ab9d82e",
+      "problem_sha256": "716bdda08b61e182e4cea833a69282136bbb558ab36d492c042042a016daa3fa",
+      "solver_fidelity": 0.9999999921909182,
+      "termination": {
+        "converged": false,
+        "iterations": 100,
+        "convergence_rule": "Piccolo's heuristic: iterations < iteration cap; not an Ipopt status."
+      },
+      "first_objective_gradient_seconds": null,
+      "later_objective_gradient_median_seconds": null,
+      "native_solve_seconds": 17.794241727,
+      "check_run_id": "r20261018T030426833812Z-40534f49",
+      "check_path": "/home/paimon/Projects/entanglix-research/m5-probe/runs/junction_with_shunt/r20261018T030426833812Z-40534f49",
+      "check_usage": {
+        "wall_seconds": 0.7266867099679075,
+        "gpu_seconds": 0,
+        "uncertain": false
+      },
+      "checks": [
+        {
+          "name": "replay",
+          "scope": "returned neutral pulse in the declared control model",
+          "outcome": "pass",
+          "residual": 2.0542181289329164e-09,
+          "tolerance": 1e-07,
+          "solver_reported_fidelity": 0.9999999921909182,
+          "fidelity": 0.9999999942451363,
+          "leakage": 5.438482109099141e-09,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13
+        },
+        {
+          "name": "constraints",
+          "outcome": "pass",
+          "scope": "returned knots, including terminal amplitudes and differences",
+          "uncovered_constraints": [],
+          "checks": [
+            {
+              "name": "amplitude",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maxima_ghz": [
+                0.0515972199665069,
+                0.0502446944221865
+              ],
+              "bounds_ghz": [
+                0.05405422522311776,
+                0.05405422522311776
+              ]
+            },
+            {
+              "name": "duration",
+              "scope": "duration allowed by the frozen time-step bracket",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1.4210856136287477e-13,
+              "duration_ns": 19.999999999995616,
+              "declared_ns": 20.0,
+              "bounds_ns": [
+                19.999998,
+                20.000002000000002
+              ]
+            },
+            {
+              "name": "equal_steps",
+              "scope": "all propagation intervals within the frozen time-step bracket",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1.4210856136287477e-13,
+              "bounds_ns": [
+                0.9999999,
+                1.0000001
+              ]
+            },
+            {
+              "name": "du",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maximum": 0.059803117663247495,
+              "bound": 0.09009037537186294
+            },
+            {
+              "name": "ddu",
+              "scope": "returned knots, including terminal amplitudes and differences",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-07,
+              "maximum": 0.07213594814805402,
+              "bound": 0.09009037537186294
+            }
+          ]
+        }
+      ],
+      "replay_fidelity": 0.9999999942451363,
+      "replay_leakage": 5.438482109099141e-09,
+      "constraints_outcome": "pass",
+      "iteration_cap_reached": true,
+      "Csh_fF": 60.0,
+      "comparison_policy": "rabi_bound",
+      "seed": 7,
+      "backend": "piccolo"
+    }
+  ],
+  "installed_or_downloaded": "No packages requested or installed by this probe; runner uses its existing locked extras and Piccolo project. Runner logs retain any uv synchronization output.",
+  "runtime_session_launched": false,
+  "gpu_job_run": false,
+  "reused_cases": [
+    {
+      "case": "c60-raw_bound-s7",
+      "reuse": "c60-rabi_bound-s7"
+    }
+  ],
+  "provenance_by_env_hash": {
+    "2699980e55fdcbfd137cf7d5cff9d087203bc1b224ac416527823fe82812e7ca": {
+      "environment": {
+        "lock_sha256": "44c4e6aa76860221ea9e45284a072ec29a681c7c2369fe9064140b5d77870575",
+        "python": "3.13.12",
+        "extras": [
+          "cuquantum",
+          "differentiable-cuda12"
+        ],
+        "env_hash": "2699980e55fdcbfd137cf7d5cff9d087203bc1b224ac416527823fe82812e7ca",
+        "platform": {
+          "system": "Linux",
+          "machine": "x86_64",
+          "libc": [
+            "glibc",
+            "2.43"
+          ]
+        },
+        "gpu": {
+          "driver": "unobserved",
+          "cuda": "unobserved",
+          "cuquantum": "unobserved"
+        }
+      },
+      "code": {
+        "revision": "6b9fafee9e148b0b37d50f8aa07fb1586493c159",
+        "dirty": true,
+        "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "untracked_sha256": {
+          "tests/probes/m5_codesign.py": "b2c7d661182b342bc6e156e6fc9f8e654de44989274bf472d3a2d34c129bd0e8"
+        }
+      }
+    },
+    "8a7fdd82ade99800e46a581432a111de0e7d97f0d5cbacc20219f3c60ab9d82e": {
+      "environment": {
+        "lock_sha256": "44c4e6aa76860221ea9e45284a072ec29a681c7c2369fe9064140b5d77870575",
+        "python": "3.13.12",
+        "extras": [
+          "cuquantum",
+          "differentiable-cuda12"
+        ],
+        "env_hash": "8a7fdd82ade99800e46a581432a111de0e7d97f0d5cbacc20219f3c60ab9d82e",
+        "platform": {
+          "system": "Linux",
+          "machine": "x86_64",
+          "libc": [
+            "glibc",
+            "2.43"
+          ]
+        },
+        "gpu": {
+          "driver": "unobserved",
+          "cuda": "unobserved",
+          "cuquantum": "unobserved"
+        },
+        "solver_runtime": {
+          "julia_version": "julia version 1.13.0",
+          "project_sha256": "3a815a3ba7b07b58c3a50c0627d20dce884fa9c00d77c0cbcd7b2e84453fec55",
+          "manifest_sha256": "65f2d3b59d3f3dc49d019421b9f81c2a180b071eb4197c949d5e0d09756f508c"
+        }
+      },
+      "code": {
+        "revision": "6b9fafee9e148b0b37d50f8aa07fb1586493c159",
+        "dirty": true,
+        "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "untracked_sha256": {
+          "tests/probes/m5_codesign.py": "b2c7d661182b342bc6e156e6fc9f8e654de44989274bf472d3a2d34c129bd0e8"
+        }
+      }
+    }
+  },
+  "best_pulses": [
+    {
+      "Csh_fF": 10.0,
+      "source_run_id": "r20261018T030133492904Z-1daa1cdf",
+      "label": "c10-rabi_bound-s43",
+      "nominal_fidelity": 0.9999999967356613,
+      "seed_spread": 0.022946982594235776
+    },
+    {
+      "Csh_fF": 30.0,
+      "source_run_id": "r20261018T030221883827Z-81128959",
+      "label": "c30-rabi_bound-s19",
+      "nominal_fidelity": 0.9897697808385804,
+      "seed_spread": 0.0001684406748716505
+    },
+    {
+      "Csh_fF": 60.0,
+      "source_run_id": "r20261018T030342114848Z-e1ccfd86",
+      "label": "c60-rabi_bound-s43",
+      "nominal_fidelity": 0.9999999993392213,
+      "seed_spread": 0.00038495585702347235
+    }
+  ],
+  "uncertainty": [
+    {
+      "Csh_fF": 10.0,
+      "source_run_id": "r20261018T030133492904Z-1daa1cdf",
+      "samples": [
+        {
+          "label": "nominal",
+          "ng": 0.23,
+          "ej_fraction": 0.0,
+          "fidelity": 0.9999999967356613,
+          "leakage": 3.252302538392371e-09,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.9999999999999997,
+              1.0,
+              1.0000000000000002
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 0
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c10/nominal-l3-c30/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c10/nominal-l3-c30/control.toml",
+          "retained_levels": 3,
+          "theta1_cutoff": 30,
+          "elapsed_seconds": 0.027665336965583265
+        },
+        {
+          "label": "ng0",
+          "ng": 0.0,
+          "ej_fraction": 0.0,
+          "fidelity": 0.5608094976398005,
+          "leakage": 3.461734766674329e-05,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.9894595622054302,
+              0.9632658126147015,
+              0.9498994457448089
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 0
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c10/ng0-l3-c30/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c10/ng0-l3-c30/control.toml",
+          "retained_levels": 3,
+          "theta1_cutoff": 30,
+          "elapsed_seconds": 0.02974950399948284
+        },
+        {
+          "label": "ng0.125",
+          "ng": 0.125,
+          "ej_fraction": 0.0,
+          "fidelity": 0.7642119770157861,
+          "leakage": 0.00035926953991716193,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.9977894912390277,
+              0.9924308651413926,
+              0.9885825086638285
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 0
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c10/ng0.125-l3-c30/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c10/ng0.125-l3-c30/control.toml",
+          "retained_levels": 3,
+          "theta1_cutoff": 30,
+          "elapsed_seconds": 0.04387220798525959
+        },
+        {
+          "label": "ng0.25",
+          "ng": 0.25,
+          "ej_fraction": 0.0,
+          "fidelity": 0.9874228480354091,
+          "leakage": 9.852053636205671e-05,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.9999195061242006,
+              0.9997322559050378,
+              0.9995218541113253
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 0
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c10/ng0.25-l3-c30/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c10/ng0.25-l3-c30/control.toml",
+          "retained_levels": 3,
+          "theta1_cutoff": 30,
+          "elapsed_seconds": 0.03311423194827512
+        },
+        {
+          "label": "ng0.375",
+          "ng": 0.375,
+          "ej_fraction": 0.0,
+          "fidelity": 0.6010566718236839,
+          "leakage": 0.00010192207383874496,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.995767263633245,
+              0.9863637486457252,
+              0.9695274867197166
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 0
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c10/ng0.375-l3-c30/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c10/ng0.375-l3-c30/control.toml",
+          "retained_levels": 3,
+          "theta1_cutoff": 30,
+          "elapsed_seconds": 0.028069411986507475
+        },
+        {
+          "label": "ng0.5",
+          "ng": 0.5,
+          "ej_fraction": 0.0,
+          "fidelity": 0.4363416817434607,
+          "leakage": 0.00016428053440831203,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.9853747052131889,
+              0.9541407531282886,
+              0.8751282781597067
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 0
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c10/ng0.5-l3-c30/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c10/ng0.5-l3-c30/control.toml",
+          "retained_levels": 3,
+          "theta1_cutoff": 30,
+          "elapsed_seconds": 0.027886155003216118
+        },
+        {
+          "label": "ej-0.001",
+          "ng": 0.23,
+          "ej_fraction": -0.001,
+          "fidelity": 0.9711094858670481,
+          "leakage": 1.8810735319618743e-05,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.9999999813107915,
+              0.9999999319618403,
+              0.9999997416539672
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 0
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c10/ej-0.001-l3-c30/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c10/ej-0.001-l3-c30/control.toml",
+          "retained_levels": 3,
+          "theta1_cutoff": 30,
+          "elapsed_seconds": 0.030984119977802038
+        },
+        {
+          "label": "ej0.001",
+          "ng": 0.23,
+          "ej_fraction": 0.001,
+          "fidelity": 0.9710699183630331,
+          "leakage": 1.3486830057307664e-05,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.9999999813505724,
+              0.9999999321222429,
+              0.9999997423476544
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 0
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c10/ej0.001-l3-c30/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c10/ej0.001-l3-c30/control.toml",
+          "retained_levels": 3,
+          "theta1_cutoff": 30,
+          "elapsed_seconds": 0.031037972017657012
+        },
+        {
+          "label": "combined",
+          "ng": 0.5,
+          "ej_fraction": 0.001,
+          "fidelity": 0.5421468256273622,
+          "leakage": 0.0003457158804609506,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.9853786307890543,
+              0.9541592294560864,
+              0.8751417040646279
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 0
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c10/combined-l3-c30/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c10/combined-l3-c30/control.toml",
+          "retained_levels": 3,
+          "theta1_cutoff": 30,
+          "elapsed_seconds": 0.028819177008699626
+        }
+      ],
+      "worst_sample": "ng0.5",
+      "worst_sampled_fidelity": 0.4363416817434607,
+      "nominal_replay_agreement": 0.0,
+      "offset_charge_fidelity_span": 0.5510811662919484,
+      "refinements": [
+        {
+          "label": "nominal",
+          "ng": 0.23,
+          "ej_fraction": 0.0,
+          "fidelity": 0.9999999904742386,
+          "leakage": 9.515460974718337e-09,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.9999999999999999,
+              1.0,
+              1.0000000000000002
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 2
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c10/nominal-l5-c30/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c10/nominal-l5-c30/control.toml",
+          "retained_levels": 5,
+          "theta1_cutoff": 30,
+          "elapsed_seconds": 0.037607145961374044,
+          "fidelity_change": 6.261422713649267e-09,
+          "leakage_change": 6.263158436325966e-09
+        },
+        {
+          "label": "nominal",
+          "ng": 0.23,
+          "ej_fraction": 0.0,
+          "fidelity": 0.9999999967356642,
+          "leakage": 3.2523000959017168e-09,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.9999999999999999,
+              1.0,
+              1.0000000000000002
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 0
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c10/nominal-l3-c40/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c10/nominal-l3-c40/control.toml",
+          "retained_levels": 3,
+          "theta1_cutoff": 40,
+          "elapsed_seconds": 0.028753229998983443,
+          "fidelity_change": 2.886579864025407e-15,
+          "leakage_change": 2.4424906541753444e-15
+        },
+        {
+          "label": "ng0.5",
+          "ng": 0.5,
+          "ej_fraction": 0.0,
+          "fidelity": 0.43634117003295564,
+          "leakage": 0.00016705846452014228,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.9853747052131893,
+              0.9541407531282885,
+              0.8751282781597067
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 2
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c10/ng0.5-l5-c30/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c10/ng0.5-l5-c30/control.toml",
+          "retained_levels": 5,
+          "theta1_cutoff": 30,
+          "elapsed_seconds": 0.03900600003544241,
+          "fidelity_change": 5.117105050800319e-07,
+          "leakage_change": 2.7779301118302513e-06
+        },
+        {
+          "label": "ng0.5",
+          "ng": 0.5,
+          "ej_fraction": 0.0,
+          "fidelity": 0.43634168174926174,
+          "leakage": 0.00016428053439099255,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.9853747052131893,
+              0.9541407531282886,
+              0.8751282781597068
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 0
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c10/ng0.5-l3-c40/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c10/ng0.5-l3-c40/control.toml",
+          "retained_levels": 3,
+          "theta1_cutoff": 40,
+          "elapsed_seconds": 0.028708625002764165,
+          "fidelity_change": 5.8010263259689054e-12,
+          "leakage_change": 1.7319479184152442e-14
+        }
+      ],
+      "nominal_refinement_change": 6.261422713649267e-09,
+      "original_worst_point_refinement_change": 5.117105050800319e-07,
+      "uncertainty_ranking": "unresolved: only the original worst sample was refined; the minimum over the sample set was not refined"
+    },
+    {
+      "Csh_fF": 30.0,
+      "source_run_id": "r20261018T030221883827Z-81128959",
+      "samples": [
+        {
+          "label": "nominal",
+          "ng": 0.23,
+          "ej_fraction": 0.0,
+          "fidelity": 0.9897697808385804,
+          "leakage": 0.00014691745074191243,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              1.0,
+              1.0,
+              0.9999999999999998
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 0
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c30/nominal-l3-c30/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c30/nominal-l3-c30/control.toml",
+          "retained_levels": 3,
+          "theta1_cutoff": 30,
+          "elapsed_seconds": 0.025989010988269
+        },
+        {
+          "label": "ng0",
+          "ng": 0.0,
+          "ej_fraction": 0.0,
+          "fidelity": 0.9880587784237994,
+          "leakage": 0.00303974335421342,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.9927858243933603,
+              0.9771108818786529,
+              0.9590132328219554
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 0
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c30/ng0-l3-c30/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c30/ng0-l3-c30/control.toml",
+          "retained_levels": 3,
+          "theta1_cutoff": 30,
+          "elapsed_seconds": 0.02745045500341803
+        },
+        {
+          "label": "ng0.125",
+          "ng": 0.125,
+          "ej_fraction": 0.0,
+          "fidelity": 0.9891706946668042,
+          "leakage": 0.001530253365723655,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.9984920009072074,
+              0.9952072220880749,
+              0.991324040090776
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 0
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c30/ng0.125-l3-c30/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c30/ng0.125-l3-c30/control.toml",
+          "retained_levels": 3,
+          "theta1_cutoff": 30,
+          "elapsed_seconds": 0.028360522992443293
+        },
+        {
+          "label": "ng0.25",
+          "ng": 0.25,
+          "ej_fraction": 0.0,
+          "fidelity": 0.9896102798724393,
+          "leakage": 0.0001457795986515853,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.9999452447416197,
+              0.999826011499566,
+              0.9996814949287444
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 0
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c30/ng0.25-l3-c30/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c30/ng0.25-l3-c30/control.toml",
+          "retained_levels": 3,
+          "theta1_cutoff": 30,
+          "elapsed_seconds": 0.026903546997345984
+        },
+        {
+          "label": "ng0.375",
+          "ng": 0.375,
+          "ej_fraction": 0.0,
+          "fidelity": 0.9869196447437157,
+          "leakage": 0.002034052745968018,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.9971259685701599,
+              0.9908851545635443,
+              0.9831671324975821
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 0
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c30/ng0.375-l3-c30/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c30/ng0.375-l3-c30/control.toml",
+          "retained_levels": 3,
+          "theta1_cutoff": 30,
+          "elapsed_seconds": 0.027087246999144554
+        },
+        {
+          "label": "ng0.5",
+          "ng": 0.5,
+          "ej_fraction": 0.0,
+          "fidelity": 0.9850355339187818,
+          "leakage": 0.0036440709900423807,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.9900707677410151,
+              0.9686178102514778,
+              0.9418456986675077
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 0
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c30/ng0.5-l3-c30/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c30/ng0.5-l3-c30/control.toml",
+          "retained_levels": 3,
+          "theta1_cutoff": 30,
+          "elapsed_seconds": 0.02615219005383551
+        },
+        {
+          "label": "ej-0.001",
+          "ng": 0.23,
+          "ej_fraction": -0.001,
+          "fidelity": 0.9723871373759451,
+          "leakage": 0.002636350797157405,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.9999999824962371,
+              0.999999941761661,
+              0.9999998446045395
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 0
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c30/ej-0.001-l3-c30/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c30/ej-0.001-l3-c30/control.toml",
+          "retained_levels": 3,
+          "theta1_cutoff": 30,
+          "elapsed_seconds": 0.02813653805060312
+        },
+        {
+          "label": "ej0.001",
+          "ng": 0.23,
+          "ej_fraction": 0.001,
+          "fidelity": 0.9967523674330664,
+          "leakage": 0.001613051673684307,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.9999999825323903,
+              0.9999999418866418,
+              0.9999998449742367
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 0
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c30/ej0.001-l3-c30/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c30/ej0.001-l3-c30/control.toml",
+          "retained_levels": 3,
+          "theta1_cutoff": 30,
+          "elapsed_seconds": 0.02781932201469317
+        },
+        {
+          "label": "combined",
+          "ng": 0.5,
+          "ej_fraction": -0.001,
+          "fidelity": 0.9722469770024897,
+          "leakage": 0.0005010692483689017,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.9900680872274593,
+              0.9686086270295274,
+              0.9418287935373509
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 0
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c30/combined-l3-c30/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c30/combined-l3-c30/control.toml",
+          "retained_levels": 3,
+          "theta1_cutoff": 30,
+          "elapsed_seconds": 0.028301224985625595
+        }
+      ],
+      "worst_sample": "combined",
+      "worst_sampled_fidelity": 0.9722469770024897,
+      "nominal_replay_agreement": 0.0,
+      "offset_charge_fidelity_span": 0.0045747459536574775,
+      "refinements": [
+        {
+          "label": "nominal",
+          "ng": 0.23,
+          "ej_fraction": 0.0,
+          "fidelity": 0.9894820604663609,
+          "leakage": 0.00041162909795811053,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 2
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c30/nominal-l5-c30/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c30/nominal-l5-c30/control.toml",
+          "retained_levels": 5,
+          "theta1_cutoff": 30,
+          "elapsed_seconds": 0.06364414701238275,
+          "fidelity_change": 0.0002877203722194688,
+          "leakage_change": 0.0002647116472161981
+        },
+        {
+          "label": "nominal",
+          "ng": 0.23,
+          "ej_fraction": 0.0,
+          "fidelity": 0.9897697808380364,
+          "leakage": 0.0001469174507363613,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 0
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c30/nominal-l3-c40/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c30/nominal-l3-c40/control.toml",
+          "retained_levels": 3,
+          "theta1_cutoff": 40,
+          "elapsed_seconds": 0.02741344802780077,
+          "fidelity_change": 5.440092820663267e-13,
+          "leakage_change": 5.551115123125783e-15
+        },
+        {
+          "label": "combined",
+          "ng": 0.5,
+          "ej_fraction": -0.001,
+          "fidelity": 0.971282326454311,
+          "leakage": 0.001513216002319906,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.9900680872274593,
+              0.9686086270295275,
+              0.9418287935373509
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 2
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c30/combined-l5-c30/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c30/combined-l5-c30/control.toml",
+          "retained_levels": 5,
+          "theta1_cutoff": 30,
+          "elapsed_seconds": 0.037089369958266616,
+          "fidelity_change": 0.000964650548178736,
+          "leakage_change": 0.0010121467539510043
+        },
+        {
+          "label": "combined",
+          "ng": 0.5,
+          "ej_fraction": -0.001,
+          "fidelity": 0.9722469770004826,
+          "leakage": 0.0005010692483443657,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.9900680872274593,
+              0.9686086270295275,
+              0.941828793537351
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 0
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c30/combined-l3-c40/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c30/combined-l3-c40/control.toml",
+          "retained_levels": 3,
+          "theta1_cutoff": 40,
+          "elapsed_seconds": 0.02854880498489365,
+          "fidelity_change": 2.0071722062198205e-12,
+          "leakage_change": 2.453592884421596e-14
+        }
+      ],
+      "nominal_refinement_change": 0.0002877203722194688,
+      "original_worst_point_refinement_change": 0.000964650548178736,
+      "uncertainty_ranking": "unresolved: only the original worst sample was refined; the minimum over the sample set was not refined",
+      "pulse_interpretation": "These uncertainty figures use the selected primary-policy local-optimum pulse, not the higher-fidelity raw-bound pulse that also satisfies the primary bounds; they do not establish the device's best attainable robustness."
+    },
+    {
+      "Csh_fF": 60.0,
+      "source_run_id": "r20261018T030342114848Z-e1ccfd86",
+      "samples": [
+        {
+          "label": "nominal",
+          "ng": 0.23,
+          "ej_fraction": 0.0,
+          "fidelity": 0.9999999993392213,
+          "leakage": 4.994222813081706e-10,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.9999999999999999,
+              1.0,
+              1.0
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 0
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c60/nominal-l3-c30/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c60/nominal-l3-c30/control.toml",
+          "retained_levels": 3,
+          "theta1_cutoff": 30,
+          "elapsed_seconds": 0.02402595296734944
+        },
+        {
+          "label": "ng0",
+          "ng": 0.0,
+          "ej_fraction": 0.0,
+          "fidelity": 0.999999904559254,
+          "leakage": 9.212023932558822e-08,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.9946515340524551,
+              0.9833390868373822,
+              0.9705685100512613
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 0
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c60/ng0-l3-c30/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c60/ng0-l3-c30/control.toml",
+          "retained_levels": 3,
+          "theta1_cutoff": 30,
+          "elapsed_seconds": 0.024741903005633503
+        },
+        {
+          "label": "ng0.125",
+          "ng": 0.125,
+          "ej_fraction": 0.0,
+          "fidelity": 0.9999999588412992,
+          "leakage": 3.96531949498069e-08,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.9988829019738814,
+              0.996514613738514,
+              0.9938274030715207
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 0
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c60/ng0.125-l3-c30/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c60/ng0.125-l3-c30/control.toml",
+          "retained_levels": 3,
+          "theta1_cutoff": 30,
+          "elapsed_seconds": 0.024146598996594548
+        },
+        {
+          "label": "ng0.25",
+          "ng": 0.25,
+          "ej_fraction": 0.0,
+          "fidelity": 0.9999999962794591,
+          "leakage": 3.454845298733744e-09,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.99995944809818,
+              0.9998734266485035,
+              0.9997756578049257
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 0
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c60/ng0.25-l3-c30/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c60/ng0.25-l3-c30/control.toml",
+          "retained_levels": 3,
+          "theta1_cutoff": 30,
+          "elapsed_seconds": 0.024393190979026258
+        },
+        {
+          "label": "ng0.375",
+          "ng": 0.375,
+          "ej_fraction": 0.0,
+          "fidelity": 0.9999999001887264,
+          "leakage": 9.633932607222562e-08,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.9978707593279972,
+              0.9933593641482598,
+              0.9882414104481922
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 0
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c60/ng0.375-l3-c30/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c60/ng0.375-l3-c30/control.toml",
+          "retained_levels": 3,
+          "theta1_cutoff": 30,
+          "elapsed_seconds": 0.024324337020516396
+        },
+        {
+          "label": "ng0.5",
+          "ng": 0.5,
+          "ej_fraction": 0.0,
+          "fidelity": 0.9999998209407258,
+          "leakage": 1.7295626753011106e-07,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.9926370217815088,
+              0.977082032752476,
+              0.9595331592646738
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 0
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c60/ng0.5-l3-c30/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c60/ng0.5-l3-c30/control.toml",
+          "retained_levels": 3,
+          "theta1_cutoff": 30,
+          "elapsed_seconds": 0.02435432595666498
+        },
+        {
+          "label": "ej-0.001",
+          "ng": 0.23,
+          "ej_fraction": -0.001,
+          "fidelity": 0.991180190373537,
+          "leakage": 0.0002426985550295635,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.9999999830373666,
+              0.9999999455322065,
+              0.9999998644061161
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 0
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c60/ej-0.001-l3-c30/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c60/ej-0.001-l3-c30/control.toml",
+          "retained_levels": 3,
+          "theta1_cutoff": 30,
+          "elapsed_seconds": 0.02652479102835059
+        },
+        {
+          "label": "ej0.001",
+          "ng": 0.23,
+          "ej_fraction": 0.001,
+          "fidelity": 0.9912590159536405,
+          "leakage": 0.00036667905298004566,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.9999999830720347,
+              0.9999999456461458,
+              0.9999998646983621
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 0
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c60/ej0.001-l3-c30/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c60/ej0.001-l3-c30/control.toml",
+          "retained_levels": 3,
+          "theta1_cutoff": 30,
+          "elapsed_seconds": 0.02583367098122835
+        },
+        {
+          "label": "combined",
+          "ng": 0.5,
+          "ej_fraction": -0.001,
+          "fidelity": 0.9911768137448026,
+          "leakage": 0.00023300759623168243,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.9926350673653941,
+              0.9770756816373597,
+              0.9595211307875307
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 0
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c60/combined-l3-c30/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c60/combined-l3-c30/control.toml",
+          "retained_levels": 3,
+          "theta1_cutoff": 30,
+          "elapsed_seconds": 0.02638946403749287
+        }
+      ],
+      "worst_sample": "combined",
+      "worst_sampled_fidelity": 0.9911768137448026,
+      "nominal_replay_agreement": 0.0,
+      "offset_charge_fidelity_span": 1.7533873331032623e-07,
+      "refinements": [
+        {
+          "label": "nominal",
+          "ng": 0.23,
+          "ej_fraction": 0.0,
+          "fidelity": 0.9999834360482645,
+          "leakage": 1.6477667268088858e-05,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.9999999999999999,
+              1.0,
+              1.0
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 2
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c60/nominal-l5-c30/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c60/nominal-l5-c30/control.toml",
+          "retained_levels": 5,
+          "theta1_cutoff": 30,
+          "elapsed_seconds": 0.02985073596937582,
+          "fidelity_change": 1.6563290956894683e-05,
+          "leakage_change": 1.647716784580755e-05
+        },
+        {
+          "label": "nominal",
+          "ng": 0.23,
+          "ej_fraction": 0.0,
+          "fidelity": 0.9999999993392198,
+          "leakage": 4.994243907319174e-10,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              1.0000000000000002,
+              1.0000000000000002,
+              1.0
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 0
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c60/nominal-l3-c40/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c60/nominal-l3-c40/control.toml",
+          "retained_levels": 3,
+          "theta1_cutoff": 40,
+          "elapsed_seconds": 0.025968610018026084,
+          "fidelity_change": 1.5543122344752192e-15,
+          "leakage_change": 2.1094237467877974e-15
+        },
+        {
+          "label": "combined",
+          "ng": 0.5,
+          "ej_fraction": -0.001,
+          "fidelity": 0.9912690689302517,
+          "leakage": 0.00017492200705471195,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.9926350673653941,
+              0.9770756816373597,
+              0.9595211307875307
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 2
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c60/combined-l5-c30/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c60/combined-l5-c30/control.toml",
+          "retained_levels": 5,
+          "theta1_cutoff": 30,
+          "elapsed_seconds": 0.03147310798522085,
+          "fidelity_change": 9.225518544908606e-05,
+          "leakage_change": 5.808558917697049e-05
+        },
+        {
+          "label": "combined",
+          "ng": 0.5,
+          "ej_fraction": -0.001,
+          "fidelity": 0.9911768137457524,
+          "leakage": 0.00023300759622824074,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13,
+          "basis_matching": {
+            "matching_overlaps": [
+              0.9926350673653941,
+              0.9770756816373595,
+              0.9595211307875307
+            ],
+            "signs": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "unmatched_extra_levels": 0
+          },
+          "system_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c60/combined-l3-c40/system.toml",
+          "control_path": "/home/paimon/Projects/entanglix-research/m5-probe/evaluations/c60/combined-l3-c40/control.toml",
+          "retained_levels": 3,
+          "theta1_cutoff": 40,
+          "elapsed_seconds": 0.02671462600119412,
+          "fidelity_change": 9.497957975668214e-13,
+          "leakage_change": 3.4416913763379853e-15
+        }
+      ],
+      "nominal_refinement_change": 1.6563290956894683e-05,
+      "original_worst_point_refinement_change": 9.225518544908606e-05,
+      "uncertainty_ranking": "unresolved: only the original worst sample was refined; the minimum over the sample set was not refined"
+    }
+  ],
+  "timings": {
+    "item_3_to_5_elapsed_seconds": 1.3853258789749816,
+    "reused_indexed_jobs": true,
+    "solve_job_seconds": 193.5411681481637,
+    "check_job_seconds": 8.723904532904271,
+    "evaluation_seconds": 1.156910260906443,
+    "initial_full_pass_elapsed_seconds": 214.28386514703743
+  },
+  "nominal_comparisons": [
+    {
+      "Csh_pair_fF": [
+        10.0,
+        30.0
+      ],
+      "separation": 0.010230215897080952,
+      "combined_refinement_change": 0.00028772663364218243,
+      "exceeds_refinement_resolution": true,
+      "scope": "Fixed returned pulses and sampled refinements only; not optimizer resolution or a device ranking.",
+      "optimizer_ranking": "unresolved"
+    },
+    {
+      "Csh_pair_fF": [
+        10.0,
+        60.0
+      ],
+      "separation": 2.6035600342311227e-09,
+      "combined_refinement_change": 1.6569552379608332e-05,
+      "exceeds_refinement_resolution": false,
+      "scope": "Fixed returned pulses and sampled refinements only; not optimizer resolution or a device ranking.",
+      "optimizer_ranking": "unresolved"
+    },
+    {
+      "Csh_pair_fF": [
+        30.0,
+        60.0
+      ],
+      "separation": 0.010230218500640986,
+      "combined_refinement_change": 0.00030428366317636346,
+      "exceeds_refinement_resolution": true,
+      "scope": "Fixed returned pulses and sampled refinements only; not optimizer resolution or a device ranking.",
+      "optimizer_ranking": "unresolved"
+    }
+  ],
+  "open_system": {
+    "source_run_id": "r20261018T030342114848Z-e1ccfd86",
+    "operator": "A=sum(sqrt(k)|k-1><k|), collapse=sqrt(gamma)*A tensor I_ancilla; gamma=1e-5/ns (assumed 100 us T1)",
+    "measurements": [
+      {
+        "fidelity": 0.9999999993392213,
+        "leakage": 4.994222813081706e-10,
+        "engine": "qutip-cpu",
+        "method": "vern9",
+        "device": "cpu",
+        "rate_per_ns": 0.0,
+        "elapsed_seconds": 0.005153492034878582
+      },
+      {
+        "fidelity": 0.999933124114946,
+        "leakage": 1.1724422810388546e-07,
+        "engine": "qutip-cpu",
+        "method": "vern9",
+        "device": "cpu",
+        "rate_per_ns": 1e-05,
+        "elapsed_seconds": 0.00718049198621884
+      },
+      {
+        "fidelity": 0.9999999993388268,
+        "leakage": 4.997933178430003e-10,
+        "engine": "dynamiqs",
+        "method": "Tsit5",
+        "device": "TFRT_CPU_0",
+        "rate_per_ns": 0.0,
+        "elapsed_seconds": 1.074576925020665
+      },
+      {
+        "fidelity": 0.9999331241145516,
+        "leakage": 1.1724459736406345e-07,
+        "engine": "dynamiqs",
+        "method": "Tsit5",
+        "device": "TFRT_CPU_0",
+        "rate_per_ns": 1e-05,
+        "elapsed_seconds": 0.4417919989791699
+      }
+    ],
+    "zero_rate_closed_replay_residuals": {
+      "qutip-cpu": 0.0,
+      "dynamiqs": 3.9457326295178063e-13
+    },
+    "finite_rate_engine_fidelity_difference": 3.943512183468556e-13,
+    "scope": "Feasibility/cost within the declared RWA model; assumed common relaxation rate, no design-dependent relaxation claim. Authored data, no new check."
+  },
+  "reading": {
+    "transition": "entanglix.corrector.metrics.spectral_arrays(system, 2, {}) returns energies; f01 is their difference. There is no dedicated named-transition resolver.",
+    "per_candidate_inputs": "Copy system.toml and change Csh; compute f01; set the same nominal frame and both carriers; set amplitude/du/ddu bounds under the declared policy. Evaluation retains those values.",
+    "perturbed_inputs": "EJ is a named parameter, but control has no parameter override. Offset charge is literal model data. Both currently need a separate system file and adjacent control spec; evaluations here are probe code.",
+    "sweep_point": "A copied adjacent sweep-point system.toml can be control.system. CLI/Python parent_run_ids can name the sweep run, but no field binds its point index. MCP control exposes no parent_run_ids. A referenced file inside spec/points cannot be named directly because control.system must be beside the control input.",
+    "decisions": "Three known exact control bases can share one revision and one start decision, provided all job/check operations are allowed. A fourth adaptive candidate requires one approve-revision decision. Checkpoint assessments are findings, not user decisions; optional reviews or limits can add decisions only if declared.",
+    "authored_evaluation": "An exact run-script base can hold the evaluation script, system.toml, pulse.npz and numerical data beside the system. Each candidate/perturbation-dependent bundle needs its own approved base. Its authored fidelity metrics and evidence stay authored data, not built-in check outcomes.",
+    "variation_binding": "Control variation would need to bind system parameter overrides, nominal transition selection, frame/carrier derivation and the chosen amplitude/derivative-bound policy. Current admission accepts exact control bundles only.",
+    "sources": [
+      "src/entanglix/protocols/control.py:load_control, control",
+      "src/entanglix/corrector/metrics.py:spectral_arrays",
+      "src/entanglix/mcp.py:control",
+      "src/entanglix/investigations.py:_in_scope",
+      "src/entanglix/runner.py:_script_gate, _system_inputs",
+      "docs/operations/investigations.md:Launch work within scope"
+    ]
+  },
+  "optimizer_interpretation": {
+    "nominal_candidate_ranking": "unresolved: solver variability prevents interpreting the nominal candidate differences",
+    "c30_raw_pulse_under_rabi_bounds": {
+      "source_run_id": "r20261018T030254268701Z-e266470c",
+      "rabi_input_run_id": "r20261018T030205873073Z-4404353e",
+      "same_model_and_drives": true,
+      "replay_fidelity": 0.9999999996045547,
+      "constraints": {
+        "name": "constraints",
+        "outcome": "pass",
+        "scope": "returned knots, including terminal amplitudes and differences",
+        "checks": [
+          {
+            "name": "amplitude",
+            "scope": "returned knots, including terminal amplitudes and differences",
+            "outcome": "pass",
+            "residual": 0.0,
+            "tolerance": 1e-07,
+            "maxima_ghz": [
+              0.03587610588533072,
+              0.008902122330773955
+            ],
+            "bounds_ghz": [
+              0.06283505741254264,
+              0.06283505741254264
+            ]
+          },
+          {
+            "name": "duration",
+            "scope": "duration allowed by the frozen time-step bracket",
+            "outcome": "pass",
+            "residual": 0.0,
+            "tolerance": 1.4210856136287477e-13,
+            "duration_ns": 20.0,
+            "declared_ns": 20.0,
+            "bounds_ns": [
+              19.999998,
+              20.000002000000002
+            ]
+          },
+          {
+            "name": "equal_steps",
+            "scope": "all propagation intervals within the frozen time-step bracket",
+            "outcome": "pass",
+            "residual": 0.0,
+            "tolerance": 1.4210856136287477e-13,
+            "bounds_ns": [
+              0.9999999,
+              1.0000001
+            ]
+          },
+          {
+            "name": "du",
+            "scope": "returned knots, including terminal amplitudes and differences",
+            "outcome": "pass",
+            "residual": 0.0,
+            "tolerance": 1e-07,
+            "maximum": 0.028145245073146866,
+            "bound": 0.10472509568757107
+          },
+          {
+            "name": "ddu",
+            "scope": "returned knots, including terminal amplitudes and differences",
+            "outcome": "pass",
+            "residual": 0.0,
+            "tolerance": 1e-07,
+            "maximum": 0.03131754904845398,
+            "bound": 0.10472509568757107
+          }
+        ],
+        "uncovered_constraints": []
+      },
+      "evidence": "In-process constraints evaluation of the retained raw-bound pulse against the retained Rabi-rate input; no solve or verification job added."
+    },
+    "extra_solves_not_run": [
+      {
+        "Csh_fF": 10.0,
+        "backend": "grape",
+        "comparison_policy": "rabi_bound",
+        "seeds": [
+          73,
+          101,
+          211
+        ],
+        "max_iter": 100,
+        "tol": 1e-08
+      },
+      {
+        "Csh_fF": 30.0,
+        "backend": "grape",
+        "comparison_policy": "rabi_bound",
+        "seeds": [
+          73,
+          101,
+          211
+        ],
+        "max_iter": 100,
+        "tol": 1e-08
+      },
+      {
+        "Csh_fF": 60.0,
+        "backend": "grape",
+        "comparison_policy": "rabi_bound",
+        "seeds": [
+          73,
+          101,
+          211
+        ],
+        "max_iter": 100,
+        "tol": 1e-08
+      }
+    ],
+    "followup_scope": "The named matched-seed solves would test whether the attained fidelities stabilize under the primary policy; a finite seed set cannot certify a global optimum. The retained admissible raw-bound pulse already disproves a device-limited explanation for the 30 fF primary deficit."
+  },
+  "answers": {
+    "1": "At Csh=10/30/60 fF, sampled charge dispersions are 57.5912/0.749746/0.00560865 MHz and anharmonicities are -1.44029/-0.59236/-0.317214 GHz. The selected set spans charge sensitivity and leakage-related level spacing while retaining the first-gate device.",
+    "2": "Frame and carriers shifted together by 1 MHz are accepted; carriers shifted alone are refused by channel name. See the retained detuning entries for exact outcomes.",
+    "3": "The 12 retained solves include a 30 fF raw-bound pulse with replay fidelity 0.9999999996 that also passes the Rabi-rate constraints, versus the primary best 0.9897697808; the primary results are suboptimal local solutions. Solver variability prevents interpreting nominal candidate differences: seed spreads at 10/30/60 fF are 0.022947/0.000168441/0.000384956, versus the 10-to-60 fF separation 2.6e-09; the additional matched-seed solves are named but were not run.",
+    "4": "Worst sampled fidelities at 10/30/60 fF are 0.436341682/0.972246977/0.991176814; the 30 fF values come from the selected local-optimum pulse, not the higher-fidelity admissible raw-bound pulse. All uncertainty rankings remain unresolved because only each original worst point was refined, and the samples do not establish a continuous-region worst case.",
+    "5": "Levels 3->5 change nominal fidelity by 6.26e-09/0.000288/1.66e-05 and original-worst-point fidelity by 5.12e-07/0.000965/9.23e-05 at 10/30/60 fF; cutoff 30->40 changes fidelity by at most 5.8e-12. Four replays per candidate cover only those selected points and do not establish convergence of the sampled minimum.",
+    "6": "With the assumed 1e-5/ns relaxation rate, the passive-ancilla evaluations agree between CPU engines within 3.94e-13 in fidelity. This is feasibility evidence for an assumed channel, not design-dependent relaxation.",
+    "7": "Existing operations compose with exact bases. Particular sweep-point binding, MCP parent lineage and parameter-dependent control data are the recorded gaps; authored evaluation is another exact script bundle.",
+    "8": "The original item 3-5 full-pass elapsed time is 214.284 s; retained solver job time totals 193.541 s and check job time 8.724 s. This invocation took 1.385 s for items 3-5, including 1.157 s of direct evaluations; indexed-job reuse is True."
+  }
+}
