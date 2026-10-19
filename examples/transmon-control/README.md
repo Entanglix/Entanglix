@@ -31,9 +31,9 @@ ENTANGLIX_RUNNER_EXTRAS=differentiable uv run --locked --exact entanglix control
 
 For the documented GPU workstation use its existing `cuquantum,differentiable-cuda12` runner profile instead. This solve still uses CPU only. The [control reference](../../docs/operations/control.md#launch-and-solver-selection) describes the environment, solver options and neutral pulse. [Baseline evidence](../../tests/probes/m4_baseline_results.json) retains the run, convergence and first/later objective-call costs. The candidate's objective is solver-reported; the requested independent checks are recorded below.
 
-The retained `grape` candidate reports fidelity **0.9996150467**, against the declared 0.999 target, after 30 SLSQP iterations and 39 objective/gradient calls. It reports successful convergence and took 16.2 s of job time. The first call took 12.4 s with tracing/compilation included; the second took 0.079 s. Subsequent calls had a median of 0.061 s, and subsequent iterations 0.074 s. These are CPU workstation measurements; the solve ran before the regression checks.
+The retained `grape` candidate uses the matrix-exponential propagator and reports fidelity **0.9996150467**, against the declared 0.999 target, after 30 SLSQP iterations and 39 objective/gradient calls. SLSQP reported success on its `ftol` test; the job took 1.21 s. The first call took 0.289 s with tracing/compilation included; the second took 0.00382 s. Subsequent calls had a median of 0.000954 s, and subsequent iterations 0.00239 s. These are CPU workstation measurements.
 
-The neutral pulse lasts exactly 20 ns. Both channels reach their `0.0540542252 GHz` amplitude bound; the largest first difference is `0.0780027637 GHz/ns`, and the second difference reaches its `0.0900903754 GHz/ns²` bound within floating-point roundoff. Q and R are listed as ignored guidance by the pure-fidelity baseline. Random initialization uses the declared seed with 10% of the amplitude bounds. A preliminary full-bound initialization converged to only 0.97468 on this problem; convergence alone therefore does not establish the target. This candidate remains a closed-model RWA result; its requested replay, target and constraints checks pass as recorded below.
+The neutral pulse lasts exactly 20 ns. Both channels reach their `0.0540542252 GHz` amplitude bound; the largest first difference is `0.0780027612 GHz/ns`, and the second difference reaches its `0.0900903754 GHz/ns²` bound within floating-point roundoff. Q and R are listed as ignored guidance by the pure-fidelity baseline. Random initialization uses the declared seed with 10% of the amplitude bounds. A preliminary full-bound initialization converged to only 0.97468 on this problem; convergence alone therefore does not establish the target. This candidate remains a closed-model RWA result; its requested replay, target and constraints checks pass as recorded below.
 
 ## Piccolo candidate
 
@@ -53,7 +53,7 @@ The [retained check summary](../../tests/probes/m4_control_checks_results.json) 
 
 | Candidate | Replayed fidelity | Difference from solver report | Leakage | Replay / target / constraints |
 |---|---:|---:|---:|---|
-| GRAPE | 0.9996150466896573 | 3.15e-11 | 2.98e-5 | pass / pass / pass |
+| GRAPE | 0.9996150466863017 | 3.90e-13 | 2.98e-5 | pass / pass / pass |
 | Piccolo | 0.9999999942451363 | 2.05e-9 | 5.44e-9 | pass / pass / pass |
 
 The target is 0.999; replay agreement is checked within `1e-7`. Constraints cover the returned amplitudes, the frozen time-step bracket, and first and second differences including the terminal knot. Leakage is reported without a threshold. Piccolo's iteration-cap outcome remains `converged = false` even though its candidate passes these checks.

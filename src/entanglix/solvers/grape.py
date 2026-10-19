@@ -1,4 +1,4 @@
-"""JAX gradients through the existing engine, with SciPy's constrained optimizer."""
+"""JAX matrix-exponential gradients, with SciPy's constrained optimizer."""
 
 import secrets
 import time
@@ -9,7 +9,6 @@ from pathlib import Path
 import numpy as np
 from scipy.optimize import Bounds, LinearConstraint, minimize
 
-from entanglix.models import ConstructedSystem
 from entanglix.protocols.control import Goal
 from entanglix.solvers import Pulse, Solution, validate_problem
 
@@ -21,65 +20,52 @@ def decode(value):
 
 def validate(problem_spec, options):
     """Refuse unsupported semantics before an attempt is admitted."""
-    for package in ("jax", "dynamiqs"):
-        try:
-            version(package)
-        except PackageNotFoundError as exc:
-            raise ValueError(
-                "grape requires the differentiable extra in the runner environment"
-            ) from exc
+    try:
+        version("jax")
+    except PackageNotFoundError as exc:
+        raise ValueError(
+            "grape requires the differentiable extra in the runner environment"
+        ) from exc
     validate_problem(problem_spec, options, "grape")
 
 
 def objective(problem_spec):
-    """One passive ancilla evaluates the leakage-aware average gate fidelity."""
-    import dynamiqs as dq
+    """Propagate subspace columns on CPU for the leakage-aware average fidelity."""
     import jax
     import jax.numpy as jnp
+    from jax.scipy.linalg import expm
+    from jax.sharding import SingleDeviceSharding
 
-    from entanglix.engines.dynamiqs_jax import DynamiqsIntegrator
-    from entanglix.evolution import EvolutionInput
-
-    dq.set_precision("double")
+    jax.config.update("jax_enable_x64", True)
+    device = jax.devices("cpu")[0]
+    placement = SingleDeviceSharding(device)
     goal = Goal.model_validate(problem_spec["goal"])
     indices = np.asarray(goal.subspace[0]) - 1
     dimension = len(indices)
-    drift = decode(problem_spec["system"]["H_drift"])
-    identity = np.eye(dimension)
-    model = ConstructedSystem(
-        id="control-objective",
-        hamiltonian_ghz=np.kron(drift, identity) / (2 * np.pi),
-        operators={},
-        dissipators={},
-        dimensions=(len(drift) * dimension,),
-        basis="declared-control-frame",
-        provenance={},
-        drives={
-            str(index): np.kron(decode(operator), identity) / (2 * np.pi)
-            for index, operator in enumerate(problem_spec["system"]["H_drives"])
-        },
+    drift = jax.device_put(decode(problem_spec["system"]["H_drift"]), device)
+    drives = jax.device_put(
+        np.asarray([decode(operator) for operator in problem_spec["system"]["H_drives"]]),
+        device,
     )
-    initial = np.zeros((len(drift), dimension), dtype=complex)
-    initial[indices, np.arange(dimension)] = 1 / np.sqrt(dimension)
-    target = np.zeros_like(initial)
-    target[indices] = goal.operator() / np.sqrt(dimension)
-    target = jnp.asarray(target.ravel())
-    surviving = np.repeat(np.isin(np.arange(len(drift)), indices), dimension)
+    initial = jax.device_put(np.eye(len(drift), dtype=complex)[:, indices], device)
+    target = jax.device_put(goal.operator(), device)
     times = np.linspace(0, problem_spec["pulse"]["T"], problem_spec["problem"]["N"])
-    request = EvolutionInput(initial.ravel(), times)
-    engine = DynamiqsIntegrator(device_kind="cpu")
+    dt = problem_spec["pulse"]["T"] / (len(times) - 1)
 
     def loss(amplitudes):
-        rho = engine.evolve_jax(
-            model,
-            request,
-            drive_amplitudes_ghz={name: amplitudes[int(name), :-1] for name in model.drives},
-        ).states[-1]
-        survival = jnp.real(jnp.sum(jnp.diag(rho) * surviving))
-        overlap = jnp.real(target.conj() @ rho @ target)
-        return 1 - (survival + dimension * overlap) / (dimension + 1)
+        def step(columns, values):
+            hamiltonian = drift + jnp.einsum("c,cij->ij", values.astype(drives.dtype), drives)
+            return expm(-1j * dt * hamiltonian) @ columns, None
 
-    return jax.jit(jax.value_and_grad(loss)), times
+        columns, _ = jax.lax.scan(step, initial, amplitudes[:, :-1].T)
+        block = columns[indices]
+        survival = jnp.sum(jnp.abs(block) ** 2)
+        overlap = jnp.abs(jnp.trace(target.conj().T @ block)) ** 2
+        return 1 - (survival + overlap) / (dimension * (dimension + 1))
+
+    return jax.jit(
+        jax.value_and_grad(loss), in_shardings=placement, out_shardings=(placement, placement)
+    ), times
 
 
 class GrapeBackend:
@@ -189,8 +175,7 @@ class GrapeBackend:
                 "method": "SLSQP",
                 "optimizer_version": version("scipy"),
                 "gradient_backend_version": version("jax"),
-                "engine": "dynamiqs",
-                "engine_version": version("dynamiqs"),
+                "propagator": "jax.scipy.linalg.expm per constant interval",
             },
             solver_reported_fidelity=1 - float(result.fun),
         )

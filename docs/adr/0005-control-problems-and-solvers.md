@@ -1,6 +1,6 @@
 # ADR-0005: Control Problems, Solvers, and Control Checks
 
-**Date:** 2026-10-11
+**Date:** 2026-10-11, revised 2026-10-19
 **Status:** Accepted
 **Purpose:** fix how a control problem is stated and shared between solvers, where the solver is named, how solvers attach and what they report, how Piccolo is run, and which checks a control result offers. Field lists, formats, and command names are documented with the implementation.
 
@@ -20,7 +20,7 @@ The [control probe](../../tests/probes/m4_control.py) measured the boundaries on
 - Calling Piccolo's ProblemSpec runner in Julia directly returns the same result as `amico-run`. Through `amico-run` the iteration cap reaches Piccolo only through the file. The runner's source takes the cap and solver options as arguments; the probe did not exercise them.
 - `amico-run` starts Julia in a process group of its own. A termination signal did not end Julia; the wrapper's forced termination after 5 s did. Forced termination of the wrapper left Julia running with no terminal record.
 - Piccolo reports convergence as "stopped before the iteration cap". It returns the pulse as a Julia object in a JLD2 file. Its source bounds the discrete derivatives of the pulse, and applies a second-derivative bound of its own when the problem declares none.
-- The existing differentiable engine gives the gradient of the gate infidelity with respect to piecewise-constant amplitudes, matching finite differences on the reference engine to 4e-9. The optimisers that come with it are unconstrained; SciPy, already in the locked environment, has optimisers that take bounds and linear constraints.
+- The existing differentiable engine gives the gradient of the gate infidelity with respect to piecewise-constant amplitudes. At the three intervals with the largest derivatives it matched finite differences on the reference engine to 4e-9. The optimisers that come with it are unconstrained; SciPy, already in the locked environment, has optimisers that take bounds and linear constraints.
 
 The harness does only what the user requests.
 
@@ -71,18 +71,20 @@ The harness does only what the user requests.
 - Solvers are discovered through the `entanglix.solvers` entry-point group, the open ones included. Repository code never imports a private solver.
 - The control spec names the solver and may declare a fallback. A named solver that is missing, with no fallback, is a configuration error before a run exists. The result records the solver that ran and its version.
 - Solver options hold convergence settings such as an iteration cap and a tolerance. The harness adds none. Resource limits are the runner's and are optional.
+- Each solver reads its options in its own meaning. An option name that two solvers share does not make their settings equal.
 - The termination report is the solver's own: the status it gives, its iteration count, and whether a cap was reached. It and the solver's reported objective are labelled as solver-reported and certify nothing.
 - Every solver writes the pulse in one neutral form, readable without the solver: knot times in ns, amplitudes per channel in GHz, and the interpolation kind. A solver's native file is kept beside it.
 
-**Rationale:** the problem file carries the system, so a solver needs no second system argument. A solver's convergence settings are not a resource limit, and absence of a limit stays valid. Piccolo's convergence flag shows that a solver's report can be a heuristic.
+**Rationale:** the problem file carries the system, so a solver needs no second system argument. A solver's convergence settings are not a resource limit, and absence of a limit stays valid. Solvers stop by different rules on different objectives, so equal option values do not mean equal work. Piccolo's convergence flag shows that a solver's report can be a heuristic.
 
 ### 2.5 The open baseline
 
-- The baseline is GRAPE-style: the gate infidelity is differentiated with respect to the piecewise-constant amplitudes on the existing differentiable engine, and a constrained optimiser from SciPy takes the steps.
+- The baseline is GRAPE-style: the gate infidelity is differentiated with respect to the piecewise-constant amplitudes, and a constrained optimiser from SciPy takes the steps.
+- The baseline has its own propagator. Each interval's propagator is the matrix exponential of that interval's constant Hamiltonian, built from the exported matrices; one compiled loop runs over the intervals, and JAX differentiates it. The shared simulation engine is not used.
 - Amplitude bounds and derivative bounds are explicit constraints of that optimiser, subject to its numerical feasibility tolerances. They are not penalty terms. Whether a returned pulse holds its bounds is established by the requested check.
-- The baseline adds no propagation code and no optimiser of its own. A dedicated propagator is adopted only on a measured need.
+- The baseline adds no optimiser of its own.
 
-**Rationale:** the engine already gives a correct gradient of the gate objective. On a piecewise-constant pulse, amplitude and derivative bounds are bounds and linear constraints on the amplitudes, which an existing optimiser takes as explicit constraints. The baseline's cost per iteration is measured once it runs as a loop.
+**Rationale:** the control model is closed and constant within each interval (§2.2, §2.3). The matrix exponential gives the exact-arithmetic propagator for each constant interval, without adaptive time stepping; its numerical evaluation and derivatives remain subject to floating-point error. The engine-based loss unrolled one adaptive solve per interval at compilation, so compile time dominated each job and grew faster than the interval count, and its gradient deviated from finite differences at a zero-amplitude first interval. On a piecewise-constant pulse, amplitude and derivative bounds are bounds and linear constraints on the amplitudes, which an existing optimiser takes as explicit constraints. Evolution that needs an integrator, such as lab-frame or open-system simulation, stays with the shared engine.
 
 ### 2.6 The Piccolo adapter
 
@@ -117,7 +119,7 @@ The harness does only what the user requests.
 
 **Rationale:** exact matching uses the digests that admission already checks. A second solver is a second approved base.
 
-Measurements: [control probe results](../../tests/probes/m4_control_results.json).
+Measurements: [control probe results](../../tests/probes/m4_control_results.json), [compile probe results](../../tests/probes/solver_compile_results.json).
 
 ## 3. Alternatives not adopted
 
@@ -134,7 +136,10 @@ Measurements: [control probe results](../../tests/probes/m4_control_results.json
 | Reads that find other runs with the same problem digest | Needs a search over runs; the digest is enough for a comparison the user requests |
 | A Julia project path configured by the user | The Piccolo environment would not be reproducible from the repository |
 | Reading Piccolo's native pulse file in the checks | It holds a Julia object, so the check would depend on the solver |
-| A dedicated propagator for the baseline from the start | The existing engine gives the gradient; its cost is not yet measured in a loop |
+| The baseline on the shared differentiable engine | Compilation dominated each job and grew faster than the interval count, and its gradient deviated at a zero-amplitude first interval |
+| The engine's interval loop compiled once, with the baseline still on the engine | Removes most of the compile cost but keeps the engine's gradient deviation |
+| One engine solve with a piecewise-constant drive | The measured single-solve variant retained the gradient discrepancy and had a higher warm evaluation cost than the matrix-exponential variant |
+| The persistent compilation cache | It stores none of the engine's losses, which use host callbacks |
 
 ## 4. Consequences
 
@@ -147,4 +152,4 @@ Measurements: [control probe results](../../tests/probes/m4_control_results.json
 - The roadmap and checklist replace the open ProblemSpec choice, the `amico-run` adapter, and "both verified" with the control spec, the direct adapter, and candidates passing the checks requested.
 - Acceptance of a generated ProblemSpec by `amico-run` stays with the interoperability block.
 - The first gate problem, with its duration, bounds, and fidelity target, is recorded with its example.
-- Tests cover: one generated file for every solver; the export convention against an independent replay; a solver name the registry lacks, with and without a fallback; a field outside a solver's support refused by name; a pulse from each open solver with an active derivative bound, the bound recomputed from the neutral pulse; ignored guidance fields listed; the iteration cap and tolerance reaching Piccolo as arguments; a stop ending a Piccolo solve with a terminal record; the duration held within tolerance; each control check passing and failing on a constructed pulse, including an accurately reported pulse below its target; a check requested outside the subset reported as inapplicable; and `control` admitted, refused, counted, and rerun inside an investigation.
+- Tests cover: one generated file for every solver; the export convention against an independent replay; a solver name the registry lacks, with and without a fallback; a field outside a solver's support refused by name; a pulse from each open solver with an active derivative bound, the bound recomputed from the neutral pulse; ignored guidance fields listed; the baseline's gradient against finite differences at every interval, zero-amplitude ones included; the iteration cap and tolerance reaching Piccolo as arguments; a stop ending a Piccolo solve with a terminal record; the duration held within tolerance; each control check passing and failing on a constructed pulse, including an accurately reported pulse below its target; a check requested outside the subset reported as inapplicable; and `control` admitted, refused, counted, and rerun inside an investigation.

@@ -1,11 +1,11 @@
 {
   "pass": true,
   "policy_version": "d67c3a1223a85c5b8b6c9e64b6795abe774bdd2fc040b77f6f86231d1934f729",
-  "note": "Fresh CPU checks on retained first-gate candidates; no optimization or source simulation rerun.",
+  "note": "Fresh CPU replay, target and constraints checks on the re-solved matrix-exponential GRAPE candidate; the Piccolo record is retained unchanged. Rebuilt the GRAPE entry from the source manifest/result and the linked check manifest, FINISHED usage and result.report.checks.",
   "records": [
     {
-      "source_run_id": "r20261011T134458228287Z-2e465951",
-      "source_path": "/home/paimon/Projects/Entanglix/research_runs/m4-control/junction_with_shunt/r20261011T134458228287Z-2e465951",
+      "source_run_id": "r20261019T054641201696Z-fa6642bb",
+      "source_path": "/home/paimon/Projects/Entanglix/research_runs/m4-control/junction_with_shunt/r20261019T054641201696Z-fa6642bb",
       "problem_sha256": "716bdda08b61e182e4cea833a69282136bbb558ab36d492c042042a016daa3fa",
       "solver": {
         "requested": "grape",
@@ -13,18 +13,18 @@
         "version": "0.1.0",
         "fallback_used": false
       },
-      "check_run_id": "r20261011T151156689142Z-400fd2dc",
-      "check_path": "/home/paimon/Projects/Entanglix/research_runs/m4-control/junction_with_shunt/r20261011T151156689142Z-400fd2dc",
+      "check_run_id": "r20261019T054657116896Z-ce6d3f23",
+      "check_path": "/home/paimon/Projects/Entanglix/research_runs/m4-control/junction_with_shunt/r20261019T054657116896Z-ce6d3f23",
       "policy_version": "d67c3a1223a85c5b8b6c9e64b6795abe774bdd2fc040b77f6f86231d1934f729",
       "code": {
-        "revision": "c1acaf4c52a71b2606ee1b5db1d57bdd5d35abbb",
+        "revision": "dd9b69fd2b92d72082c427cf70528b7ec1a2f3d9",
         "dirty": true,
-        "patch_sha256": "9bdc17f111d1b37275fd885e6b0bcc1b57cf806205aa8ac81b32b595a1447262",
+        "patch_sha256": "b0305b3c782a2d4e460981f90b460696f025405271413b40f3398ddcf88537a6",
         "untracked_sha256": {}
       },
       "env_hash": "2699980e55fdcbfd137cf7d5cff9d087203bc1b224ac416527823fe82812e7ca",
       "usage": {
-        "wall_seconds": 0.923763515020255,
+        "wall_seconds": 0.7788110180408694,
         "gpu_seconds": 0,
         "uncertain": false
       },
@@ -33,11 +33,11 @@
           "name": "replay",
           "scope": "returned neutral pulse in the declared control model",
           "outcome": "pass",
-          "residual": 3.145106397539621e-11,
+          "residual": 3.902433931557425e-13,
           "tolerance": 1e-07,
-          "solver_reported_fidelity": 0.9996150466582062,
-          "fidelity": 0.9996150466896573,
-          "leakage": 2.9768638817984083e-05,
+          "solver_reported_fidelity": 0.999615046686692,
+          "fidelity": 0.9996150466863017,
+          "leakage": 2.9768592997969634e-05,
           "engine": "qutip-cpu",
           "method": "vern9",
           "rtol": 1e-11,
@@ -47,11 +47,11 @@
           "name": "target",
           "scope": "returned neutral pulse in the declared control model",
           "outcome": "pass",
-          "residual": 0.9996150466896573,
+          "residual": 0.9996150466863017,
           "tolerance": 0.999,
           "failure_meaning": "unmet declared target",
-          "fidelity": 0.9996150466896573,
-          "leakage": 2.9768638817984083e-05,
+          "fidelity": 0.9996150466863017,
+          "leakage": 2.9768592997969634e-05,
           "engine": "qutip-cpu",
           "method": "vern9",
           "rtol": 1e-11,
@@ -108,16 +108,16 @@
               "outcome": "pass",
               "residual": 0.0,
               "tolerance": 1e-07,
-              "maximum": 0.07800276365191408,
+              "maximum": 0.07800276115225455,
               "bound": 0.09009037537186294
             },
             {
               "name": "ddu",
               "scope": "returned knots, including terminal amplitudes and differences",
               "outcome": "pass",
-              "residual": 5.703770789011742e-15,
+              "residual": 1.2365108936762681e-14,
               "tolerance": 1e-07,
-              "maximum": 0.09009037537186865,
+              "maximum": 0.09009037537187531,
               "bound": 0.09009037537186294
             }
           ]

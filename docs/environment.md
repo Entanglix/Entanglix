@@ -424,7 +424,7 @@ workstation the run command needs the pinned runner extras,
 
 ## Control baseline acceptance
 
-The [control solver tests](../tests/test_control_solver.py) cover discovery, refusal before admission, fallback, gradient and leakage bookkeeping, active discrete derivative constraints, a short runner/CLI solve and neutral pulse artifacts:
+The [control solver tests](../tests/test_control_solver.py) cover discovery, refusal before admission, fallback, gradients at every knot including undriven intervals, complex goals and leakage bookkeeping, CPU placement and double precision, active discrete derivative constraints, independent QuTiP replay, a short runner/CLI solve and neutral pulse artifacts:
 
 ```sh
 JAX_PLATFORMS=cpu XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact --extra differentiable pytest -q tests/test_control.py tests/test_control_solver.py tests/test_cli.py -m "not gpu"
@@ -443,6 +443,12 @@ uv run --locked --exact python tests/probes/m4_baseline.py RUN --output tests/pr
 ```
 
 The [retained baseline summary](../tests/probes/m4_baseline_results.json) links the candidate and its trace. Timings include JAX compilation on cold calls and are workstation measurements. The example records the solver-reported fidelity and numerical constraints; its independent checks are linked under [control check acceptance](#control-check-acceptance).
+
+The [propagator probe](../tests/probes/grape_propagator.py) compares the matrix-exponential loss with a copy of the previous production loss from revision `dd9b69f`, using the unchanged dynamics adapter. Its [results](../tests/probes/grape_propagator_results.json) separate lowering, compilation, first execution, warm gradients and warm SLSQP optimization on the three-level gate with 20 and 40 intervals, six- and ten-level versions, and a qubit–resonator control input. The measurements use fresh CPU processes and one BLAS thread; they exclude process/import startup. Re-run with the existing runner environment, or use `--rebuild` to summarize retained measurements without solving:
+
+```sh
+JAX_PLATFORMS=cpu CUDA_VISIBLE_DEVICES='' .venv-runner/bin/python tests/probes/grape_propagator.py
+```
 
 ## Piccolo adapter acceptance
 
@@ -465,20 +471,20 @@ The [candidate summary](../tests/probes/m4_piccolo_results.json) records the sha
 
 ## Control check acceptance
 
-The [control check tests](../tests/test_control_checks.py) cover independent replay, target failures on accurately reported pulses, constraints, complex goals and leakage, linked CLI checks, and source binding. The active-bound tests for [GRAPE](../tests/test_control_solver.py) and [Piccolo](../tests/test_control_piccolo.py) also apply the corrector's constraints check to the returned neutral pulse.
+The [control check tests](../tests/test_control_checks.py) cover independent replay, target failures on accurately reported pulses, constraints, complex goals and leakage, linked CLI checks, and source binding. The active-bound tests for [GRAPE](../tests/test_control_solver.py) and [Piccolo](../tests/test_control_piccolo.py) also apply the corrector's constraints check to the returned neutral pulse; the GRAPE test applies the replay check as well.
 
 ```sh
 uv run --locked --exact pytest -q tests/test_control_checks.py tests/test_corrector.py tests/test_verification.py
 JAX_PLATFORMS=cpu XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact --extra differentiable pytest -q tests/test_control_checks.py tests/test_control_solver.py -m "not gpu"
 ```
 
-The [Julia report](../tests/probes/m4_piccolo.xml), regenerated with the Piccolo adapter acceptance command above, also retains the active-bound constraints result. The [retained first-gate check summary](../tests/probes/m4_control_checks_results.json) records fresh replay, target and constraints checks on both solvers’ existing candidates. Control checks run on CPU and require no cuQuantum or GPU. After a corrector change, rerun the Simulation acceptance and Sweep acceptance commands above once and replace their retained summaries and reports after all studies finish. Keep the tree and runner profile fixed throughout. No live agent session is used.
+The [Julia report](../tests/probes/m4_piccolo.xml), regenerated with the Piccolo adapter acceptance command above, also retains the active-bound constraints result. The [retained first-gate check summary](../tests/probes/m4_control_checks_results.json) records fresh replay, target and constraints checks on the re-solved matrix-exponential GRAPE candidate; the Piccolo entry is retained unchanged. The GRAPE entry was rebuilt from the source manifest/result and the linked check manifest, `FINISHED` usage and `result.report.checks`. Control checks run on CPU and require no cuQuantum or GPU. After a corrector change, rerun the Simulation acceptance and Sweep acceptance commands above once and replace their retained summaries and reports after all studies finish. Keep the tree and runner profile fixed throughout. No live agent session is used.
 
-The two check runs in the first-gate summary were produced with the workstation's runner profile:
+The checks in the first-gate summary use the workstation's runner profile. The first command produced the fresh GRAPE check; the second records how the retained Piccolo check was requested:
 
 ```sh
 export ENTANGLIX_RUNNER_EXTRAS=cuquantum,differentiable-cuda12
-JAX_PLATFORMS=cpu XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact entanglix check research_runs/m4-control/junction_with_shunt/r20261011T134458228287Z-2e465951 replay target constraints
+JAX_PLATFORMS=cpu XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact entanglix check research_runs/m4-control/junction_with_shunt/r20261019T054641201696Z-fa6642bb replay target constraints
 JAX_PLATFORMS=cpu XLA_PYTHON_CLIENT_PREALLOCATE=false uv run --locked --exact entanglix check research_runs/m4-control/junction_with_shunt/r20261011T134524092210Z-875bff8c replay target constraints
 ```
 

@@ -182,8 +182,21 @@ def exact_fidelity(problem, controls):
     )
 
 
-def test_control_gradient_and_leakage_aware_objective(control_files):
-    pytest.importorskip("dynamiqs")
+@pytest.mark.filterwarnings("error::numpy.exceptions.ComplexWarning")
+@pytest.mark.parametrize("noncontiguous_goal", [False, True])
+def test_control_gradient_and_leakage_aware_objective(
+    control_files, noncontiguous_goal, monkeypatch
+):
+    pytest.importorskip("jax")
+    from jax.scipy import linalg
+
+    original_expm = linalg.expm
+
+    def complex128_expm(matrix):
+        assert str(matrix.dtype) == "complex128"
+        return original_expm(matrix)
+
+    monkeypatch.setattr(linalg, "expm", complex128_expm)
     path, _ = control_files
     problem = copy.deepcopy(load_control(path).problem_spec)
     # A complex drive leaks from the declared subspace into a third state.
@@ -196,18 +209,33 @@ def test_control_gradient_and_leakage_aware_objective(control_files):
 
     problem["system"]["H_drift"] = encoded(h)
     problem["system"]["H_drives"] = [encoded(dx), encoded(dy)]
+    if noncontiguous_goal:
+        problem["goal"] = {
+            "kind": "unitary",
+            "subspace": [[3, 1]],
+            "matrix": encoded(np.array([[1, 1j], [1j, 1]]) / np.sqrt(2)),
+        }
     controls = np.array([[0, 0.07, -0.03, 0.08, 0], [0, -0.02, 0.04, 0.06, 0]])
+    interior_zero = controls.copy()
+    interior_zero[:, 2] = 0
     value_and_grad, _ = objective(problem)
-    value, gradient = value_and_grad(controls)
-    assert float(value) == pytest.approx(1 - exact_fidelity(problem, controls), abs=2e-9)
-    delta = 1e-5
-    for index in ((0, 2), (1, 3)):
-        plus, minus = controls.copy(), controls.copy()
-        plus[index] += delta
-        minus[index] -= delta
-        expected = (exact_fidelity(problem, minus) - exact_fidelity(problem, plus)) / (2 * delta)
-        assert float(gradient[index]) == pytest.approx(expected, abs=2e-7)
-    assert np.all(np.asarray(gradient)[:, -1] == 0)
+    for amplitudes in (controls, interior_zero, np.zeros_like(controls)):
+        value, gradient = value_and_grad(amplitudes)
+        assert str(value.dtype) == str(gradient.dtype) == "float64"
+        assert all(
+            device.platform == "cpu" for item in (value, gradient) for device in item.devices()
+        )
+        assert float(value) == pytest.approx(1 - exact_fidelity(problem, amplitudes), abs=2e-9)
+        delta = 1e-5
+        for index in np.ndindex(amplitudes.shape):
+            plus, minus = amplitudes.copy(), amplitudes.copy()
+            plus[index] += delta
+            minus[index] -= delta
+            expected = (exact_fidelity(problem, minus) - exact_fidelity(problem, plus)) / (
+                2 * delta
+            )
+            assert float(gradient[index]) == pytest.approx(expected, abs=2e-7)
+        assert np.all(np.asarray(gradient)[:, -1] == 0)
 
 
 @pytest.mark.parametrize(
@@ -220,7 +248,7 @@ def test_control_gradient_and_leakage_aware_objective(control_files):
     ],
 )
 def test_control_unsupported_problem_fields_are_named(control_files, field, value):
-    pytest.importorskip("dynamiqs")
+    pytest.importorskip("jax")
     problem = load_control(control_files[0]).problem_spec
     problem["problem"][field] = value
     with pytest.raises(ValueError, match=f"problem.{field}"):
@@ -232,13 +260,13 @@ def test_control_unsupported_problem_fields_are_named(control_files, field, valu
     [{"max_iter": 0}, {"max_iter": True}, {"tol": float("nan")}, {"tol": 0}, {"alien": 3}],
 )
 def test_control_invalid_solver_options(control_files, options):
-    pytest.importorskip("dynamiqs")
+    pytest.importorskip("jax")
     with pytest.raises(ValueError, match="solver.options"):
         validate(load_control(control_files[0]).problem_spec, options)
 
 
 def test_control_active_derivative_constraints_and_termination(control_files):
-    pytest.importorskip("dynamiqs")
+    pytest.importorskip("jax")
     path, definition = control_files
     definition["pulse"].update(T=10, init="random", seed=7)
     definition["problem"].update(du_bound=0.01, ddu_bound=0.003, Q=1000)
@@ -248,9 +276,16 @@ def test_control_active_derivative_constraints_and_termination(control_files):
     problem_path.write_text(tomli_w.dumps(problem))
     solution = GrapeBackend().solve(problem_path, {"max_iter": 15, "tol": 1e-8})
     from entanglix.corrector import load_policy
-    from entanglix.corrector.control import constraints
+    from entanglix.corrector.control import control_checks
 
-    assert constraints(load_control(path), solution.pulse, load_policy())["outcome"] == "pass"
+    checks = control_checks(
+        load_control(path),
+        solution.pulse,
+        {"metrics": {"solver_reported_fidelity": solution.solver_reported_fidelity}},
+        ["replay", "constraints"],
+        load_policy(),
+    )
+    assert all(item["outcome"] == "pass" for item in checks)
     amplitudes = solution.pulse.amplitudes_ghz
     dt = np.diff(solution.pulse.times_ns)[0]
     assert np.max(abs(amplitudes)) <= 0.1 + 1e-10
@@ -328,7 +363,7 @@ def test_control_cli_retains_fallback_pulse_and_nonconvergence(
 
 
 def test_control_fixed_zero_pulse_handles_upstream_no_variables(control_files):
-    pytest.importorskip("dynamiqs")
+    pytest.importorskip("jax")
     problem = load_control(control_files[0]).problem_spec
     problem["system"]["params"]["drive_bounds"] = [0, 0]
     problem["pulse"].update(init="zeros")

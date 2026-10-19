@@ -1,11 +1,11 @@
 {
-  "run": "/home/paimon/Projects/Entanglix/research_runs/m4-control/junction_with_shunt/r20261011T134458228287Z-2e465951",
-  "run_id": "r20261011T134458228287Z-2e465951",
+  "run": "/home/paimon/Projects/Entanglix/research_runs/m4-control/junction_with_shunt/r20261019T054641201696Z-fa6642bb",
+  "run_id": "r20261019T054641201696Z-fa6642bb",
   "status": "completed",
   "code": {
-    "revision": "e91c925896c4916890bbe0aadf2fc5653ca22bb6",
+    "revision": "dd9b69fd2b92d72082c427cf70528b7ec1a2f3d9",
     "dirty": true,
-    "patch_sha256": "0c7c82af90b8c68913fb5bd394623c1477de08c00c79b87de46021a87fd42026",
+    "patch_sha256": "b0305b3c782a2d4e460981f90b460696f025405271413b40f3398ddcf88537a6",
     "untracked_sha256": {}
   },
   "env_hash": "2699980e55fdcbfd137cf7d5cff9d087203bc1b224ac416527823fe82812e7ca",
@@ -17,7 +17,7 @@
     "version": "0.1.0",
     "fallback_used": false
   },
-  "solver_reported_fidelity": 0.9996150466582062,
+  "solver_reported_fidelity": 0.999615046686692,
   "requested_fidelity": 0.999,
   "termination": {
     "converged": true,
@@ -27,7 +27,7 @@
     "objective_evaluations": 39
   },
   "usage": {
-    "wall_seconds": 16.183456808968913,
+    "wall_seconds": 1.2121276729740202,
     "gpu_seconds": 0,
     "uncertain": false
   },
@@ -43,8 +43,8 @@
       0.05405422522311776,
       0.05405422522311776
     ],
-    "du_maximum_ghz_per_ns": 0.07800276365191408,
-    "ddu_maximum_ghz_per_ns2": 0.09009037537186865
+    "du_maximum_ghz_per_ns": 0.07800276115225455,
+    "ddu_maximum_ghz_per_ns2": 0.09009037537187531
   },
   "declared_bounds": {
     "channel_amplitude_ghz": [
@@ -56,12 +56,12 @@
   },
   "timings_seconds": {
     "first_two_objective_gradient_calls": [
-      12.430106956977397,
-      0.07928393100155517
+      0.2885208179941401,
+      0.0038171510095708072
     ],
-    "subsequent_objective_gradient_median": 0.0612329370342195,
-    "subsequent_iteration_median": 0.07439508248353377
+    "subsequent_objective_gradient_median": 0.0009543620399199426,
+    "subsequent_iteration_median": 0.0023881649831309915
   },
   "timing_note": "The first call includes tracing and JAX compilation; the second call is reported separately. Subsequent costs are medians after the first two calls/iterations. CPU workstation measurements.",
-  "evidence_note": "Solver-reported fidelity and pulse differences only; independent control checks are not yet available."
+  "evidence_note": "Solver-reported fidelity and pulse differences only; independent control checks are recorded separately in m4_control_checks_results.json."
 }
