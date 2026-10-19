@@ -1,18 +1,22 @@
 {
-  "run": "/home/paimon/Projects/Entanglix/research_runs/m4-control/junction_with_shunt/r20261011T134524092210Z-875bff8c",
-  "run_id": "r20261011T134524092210Z-875bff8c",
+  "run": "/home/paimon/Projects/Entanglix/research_runs/m4-control/junction_with_shunt/r20261019T205806344100Z-ce68e10a",
+  "run_id": "r20261019T205806344100Z-ce68e10a",
   "status": "completed",
   "code": {
-    "revision": "e91c925896c4916890bbe0aadf2fc5653ca22bb6",
+    "revision": "399a983954b7909b40f8ff2d4e8434762a859eeb",
     "dirty": true,
-    "patch_sha256": "0c7c82af90b8c68913fb5bd394623c1477de08c00c79b87de46021a87fd42026",
-    "untracked_sha256": {}
+    "patch_sha256": "f16afb8bde08def9b2d4abfe94a891b1f46ed70248020133b70f2a0e6c89e479",
+    "untracked_sha256": {
+      "src/entanglix/solvers/julia/EntanglixPiccolo/Project.toml": "5ab272514fd769c6da12d9d65f302c43754b2d0c57c20d8e707d4c0d077aea03",
+      "src/entanglix/solvers/julia/EntanglixPiccolo/src/EntanglixPiccolo.jl": "8a1016b901c7f06a505c9dc8f9f9064686b90e39d6cb8add07d0b83a3571b5ac",
+      "src/entanglix/solvers/julia/EntanglixPiccolo/src/workload.toml": "98af76a9f75b6aacd615e358e95f01a1e0cd280f2764372b7b7dac2c8c56ebc8"
+    }
   },
-  "env_hash": "8a7fdd82ade99800e46a581432a111de0e7d97f0d5cbacc20219f3c60ab9d82e",
+  "env_hash": "3e5c96e9da50257593609ddb8a06ff3e9a361d6bc3c3d0fe64d7696f97bc5a67",
   "runtime": {
     "julia_version": "julia version 1.13.0",
-    "project_sha256": "3a815a3ba7b07b58c3a50c0627d20dce884fa9c00d77c0cbcd7b2e84453fec55",
-    "manifest_sha256": "65f2d3b59d3f3dc49d019421b9f81c2a180b071eb4197c949d5e0d09756f508c"
+    "project_sha256": "6510859654c1fc36f04358fdfae0a321a7bab936f01dc99493b3ce089d382eeb",
+    "manifest_sha256": "0547fa6ba883171744975ecabbfdbcf6222b4a24e0c52ab11d1e3295e9faca87"
   },
   "package_versions": {
     "DirectTrajOpt": "0.10.1",
@@ -21,7 +25,7 @@
   },
   "problem_sha256": "716bdda08b61e182e4cea833a69282136bbb558ab36d492c042042a016daa3fa",
   "energy_origin_ghz": -12.183560513666507,
-  "baseline_run_id": "r20261011T134458228287Z-2e465951",
+  "baseline_run_id": "r20261019T054641201696Z-fa6642bb",
   "same_problem_as_baseline": true,
   "objective": 1.04719795e-05,
   "solver_reported_fidelity": 0.9999999921909182,
@@ -44,11 +48,11 @@
     "effective_seed": 7
   },
   "usage": {
-    "wall_seconds": 26.76936272898456,
+    "wall_seconds": 19.365341211901978,
     "gpu_seconds": 0,
     "uncertain": false
   },
-  "native_solve_seconds": 18.03928188,
+  "native_solve_seconds": 15.020356536,
   "neutral_pulse": {
     "kind": "zero_order",
     "duration_ns": 19.999999999995616,
@@ -70,7 +74,7 @@
     },
     "native_result": {
       "path": "artifacts/piccolo/result.toml",
-      "sha256": "cb6d4e76166c6a8aae3c336585d5dbdadb4329541d8fcd99ff7dd09dbda1dfc3"
+      "sha256": "c36d1cf96b62fa4c8e6db25d5f8e398e69eac4633fc1883402b77df2726d9669"
     },
     "native_pulse": {
       "path": "artifacts/piccolo/pulse-ae2927f1f6db.jld2",

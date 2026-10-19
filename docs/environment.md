@@ -459,6 +459,8 @@ julia --startup-file=no --project=src/entanglix/solvers/julia -e 'using Pkg; Pkg
 TMPDIR=/var/tmp OPENBLAS_NUM_THREADS=1 ENTANGLIX_TEST_JULIA=1 uv run --locked --exact pytest -q tests/test_control_piccolo.py --junitxml=tests/probes/m4_piccolo.xml
 ```
 
+Instantiating also precompiles the adapter's workload once, which takes about 14 s.
+
 Julia tests are opt-in through `ENTANGLIX_TEST_JULIA=1`; default CPU tests do not require Julia. The [workstation report](../tests/probes/m4_piccolo.xml) records the real adapter tests. For the first gate, preserve the workstation's exact runner profile:
 
 ```sh

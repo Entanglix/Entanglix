@@ -2,7 +2,7 @@
 
 julia_version = "1.13.0"
 manifest_format = "2.1"
-project_hash = "d127498b7a1a64b5c6904647f3dbbb075fc95d09"
+project_hash = "fabfa3aa5803b98b82d0e608231db0e46c22005f"
 
 [[deps.ADTypes]]
 deps = ["PrecompileTools"]
@@ -671,6 +671,12 @@ git-tree-sha1 = "e3290f2d49e661fbd94046d7e3726ffcb2d41053"
 registries = "General"
 uuid = "5ae413db-bbd1-5e63-b57d-d24a61df00f5"
 version = "2.2.4+0"
+
+[[deps.EntanglixPiccolo]]
+deps = ["Piccolo", "PrecompileTools", "TOML"]
+path = "EntanglixPiccolo"
+uuid = "30f1f32b-2bc0-4f63-a43a-31f8818de558"
+version = "0.1.0"
 
 [[deps.EnumX]]
 git-tree-sha1 = "c49898e8438c828577f04b92fc9368c388ac783c"
