@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import cache
 from typing import Any, Literal
 
 import numpy as np
@@ -28,6 +29,66 @@ class JaxEvolutionResult:
     dimensions: tuple[int, ...]
     device: str
     diagnostics: dict[str, object]
+
+
+@cache
+def _compiled_evolution():
+    import jax
+
+    return jax.jit(_evolve, static_argnames=("carrier_mask",))
+
+
+def _evolve(state, base, drives, collapse, controls, times, carriers, method, carrier_mask):
+    import dynamiqs as dq
+    import jax
+    import jax.numpy as jnp
+
+    def hamiltonian(values):
+        total = base
+        for index, (value, operator) in enumerate(zip(values, drives, strict=True)):
+            if carrier_mask[index]:
+                frequency, phase = carriers[index]
+
+                def coefficient(t, value=value, frequency=frequency, phase=phase):
+                    return value * jnp.cos(2 * jnp.pi * frequency * t + phase)
+
+                total = total + dq.modulated(coefficient, operator)
+            else:
+                total = total + value * operator
+        return total
+
+    if any(value.ndim for value in controls):
+
+        def step(raw, inputs):
+            start, end, interval_values = inputs
+            selected = iter(interval_values)
+            values = tuple(next(selected) if value.ndim else value for value in controls)
+            solved = dq.mesolve(
+                hamiltonian(values),
+                collapse,
+                dq.asqarray(raw, dims=state.dims),
+                jnp.stack([start, end]),
+                method=method,
+                progress_meter=False,
+            )
+            raw = solved.states[-1].to_jax()
+            return raw, raw
+
+        initial = state.to_jax()
+        _, states = jax.lax.scan(
+            step,
+            initial,
+            (times[:-1], times[1:], tuple(value for value in controls if value.ndim)),
+        )
+        return jnp.concatenate([initial[None], states])
+    return dq.mesolve(
+        hamiltonian(controls),
+        collapse,
+        state,
+        times,
+        method=method,
+        progress_meter=False,
+    ).states.to_jax()
 
 
 class DynamiqsIntegrator:
@@ -120,51 +181,30 @@ class DynamiqsIntegrator:
                 for name, terms in prepared.drives.items()
             }
 
-            def hamiltonian(index: int):
-                total = base_hamiltonian
-                for name, amplitude in controls.items():
-                    value = amplitude[index] if amplitude.ndim else amplitude
-                    operator = drives[name]
-                    carrier = normalized.carriers.get(name) if normalized.frame is None else None
-                    if carrier is None:
-                        total = total + value * operator
-                    else:
-
-                        def coefficient(t, value=value, carrier=carrier):
-                            return value * jnp.cos(
-                                2 * jnp.pi * carrier.frequency_ghz * t + carrier.phase_rad
-                            )
-
-                        total = total + dq.modulated(coefficient, operator)
-                return total
-
             method = dq.method.Tsit5(
                 atol=normalized.atol, rtol=normalized.rtol, max_steps=normalized.max_steps
             )
-            if piecewise:
-                states = [state.to_jax()[None]]
-                for index in range(len(normalized.times_ns) - 1):
-                    solved = dq.mesolve(
-                        hamiltonian(index),
-                        collapse,
-                        state,
-                        normalized.times_ns[index : index + 2],
-                        method=method,
-                        progress_meter=False,
-                    )
-                    state = solved.states[-1]
-                    states.append(state.to_jax()[None])
-                raw = jnp.concatenate(states)
-            else:
-                solved = dq.mesolve(
-                    hamiltonian(0),
-                    collapse,
-                    state,
-                    normalized.times_ns,
-                    method=method,
-                    progress_meter=False,
-                )
-                raw = solved.states.to_jax()
+            names = sorted(controls)
+            carriers = [
+                normalized.carriers.get(name) if normalized.frame is None else None
+                for name in names
+            ]
+            raw = _compiled_evolution()(
+                state,
+                base_hamiltonian,
+                tuple(drives[name] for name in names),
+                tuple(collapse),
+                tuple(controls[name] for name in names),
+                jnp.asarray(normalized.times_ns),
+                jnp.asarray(
+                    [
+                        (carrier.frequency_ghz, carrier.phase_rad) if carrier else (0.0, 0.0)
+                        for carrier in carriers
+                    ]
+                ).reshape(len(names), 2),
+                method,
+                carrier_mask=tuple(carrier is not None for carrier in carriers),
+            )
             if str(raw.dtype) != "complex128":
                 raise RuntimeError("dynamiqs returned states with the wrong dtype")
             if not isinstance(raw, jax.core.Tracer):
