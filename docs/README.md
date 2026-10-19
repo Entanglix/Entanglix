@@ -22,6 +22,7 @@ This index supports project planning and implementation. Operational entry point
 - [m2-guide.md](m2-guide.md) — Implementation guide for M2 (Blocks 3–5): run records, verification, drives and frames, and the first simulation and sweep.
 - [m3-guide.md](m3-guide.md) — Implementation guide for M3 (Blocks 6a–6b): the first investigation and its evaluation, investigation records, admission, checkpoints and reviews, and agent integration.
 - [m4-guide.md](m4-guide.md) — Completed implementation guide for M4 (Block 7): the control spec and generated ProblemSpec, the open baseline, the Piccolo adapter, control checks, and the first gate.
+- [m5-guide.md](m5-guide.md) — Implementation guide for M5 (Block 8): control parameters and seed variation, named transitions and Rabi-rate bounds, lineage through MCP, the uncertainty diagnostic, comparison guidance, and the co-design example.
 - [development.md](development.md) — Maintainer and coding-agent instructions. Root [AGENTS.md](../AGENTS.md) and [CLAUDE.md](../CLAUDE.md) are one-line pointers here; they are excluded from research-runtime guidance.
 - Phase guides may be added as needed, including before code exists.
 
@@ -47,6 +48,7 @@ This index supports project planning and implementation. Operational entry point
 - [adr/0003-runs-verification-and-dispatch.md](adr/0003-runs-verification-and-dispatch.md) — Accepted run records, verification checks on request, engine dispatch by declared needs, and drives and frames.
 - [adr/0004-investigations-and-agent-sessions.md](adr/0004-investigations-and-agent-sessions.md) — Accepted investigation records, revision authority and user decisions, admission and stopping, checkpoints and reviews, the evaluation protocol, and the user's own agent runtime.
 - [adr/0005-control-problems-and-solvers.md](adr/0005-control-problems-and-solvers.md) — Accepted control spec and generated ProblemSpec, shared problem subset, solver interface, direct Piccolo adapter, and control checks on request.
+- [adr/0006-device-control-co-design.md](adr/0006-device-control-co-design.md) — Accepted device–control co-design: composition of existing operations, device and seed variation within one base, the named transition and Rabi-rate bounds, the uncertainty diagnostic, lineage, comparison guidance, budget policy, and first-version scope.
 
 ## Sharing rule
 
