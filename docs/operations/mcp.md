@@ -43,7 +43,7 @@ Tools use the same backing operations as the CLI, with MCP response summaries de
 
 Only the first row carries the MCP read-only annotation. Jobs and writes may require runtime approval. Unavailable catalog and calibration operations, promotion, and investigation start/approval/resume/review release are absent. A proposed revision never changes the effective terms. See [investigations](investigations.md) for the operator decision path.
 
-Control tools take an authored protocol path, or a source run path for `rerun_control`. An investigation control request names an exact approved base and accepts no varied values. Control solves and their requested checks run on CPU; see the [control reference](control.md).
+Control tools take an authored protocol path, or a source run path for `rerun_control`. An investigation control request names an approved base and passes varied values in `values`, as `simulate` does. Control solves and their requested checks run on CPU; see the [control reference](control.md).
 
 Job tools do not expose dry runs. Use the CLI's `--dry-run` for protocol previews where the required device is visible; an agent session with no CUDA device has no CUDA preview through this server. `check` requires named checks; `read_run` includes the relevant-check listing without launching a check. Each successful tool reply carries one JSON text payload, without a duplicate structured-content payload. Lists are wrapped under `result`; objects are carried directly.
 

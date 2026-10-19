@@ -739,11 +739,13 @@ def _construct_composite(spec: SystemSpec, source: Path):
     )
 
 
-def _load_system(path: str | Path, *, allow_composite: bool) -> ConstructedSystem:
+def _load_system(
+    path: str | Path, *, allow_composite: bool, content: bytes | None = None
+) -> ConstructedSystem:
     """Validate a v1 system file and construct the supported CPU model."""
     source = Path(path).resolve()
     try:
-        content = source.read_bytes()
+        content = source.read_bytes() if content is None else content
         spec = SystemSpec.model_validate(tomllib.loads(content.decode("utf-8")))
     except OSError as exc:
         raise SpecError(f"cannot read system file {source}: {exc}") from exc
@@ -828,5 +830,6 @@ def _load_system(path: str | Path, *, allow_composite: bool) -> ConstructedSyste
     )
 
 
-def load_system(path: str | Path) -> ConstructedSystem:
-    return _load_system(path, allow_composite=True)
+def load_system(path: str | Path, *, content: bytes | None = None) -> ConstructedSystem:
+    """Load a system file; ``content`` replaces its bytes, resolving references beside it."""
+    return _load_system(path, allow_composite=True, content=content)

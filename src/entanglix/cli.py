@@ -52,6 +52,20 @@ def _print_circuit_diagnostics(provenance: dict[str, object], label: str) -> Non
         _print_circuit_diagnostics(child, name)
 
 
+def _varied_values(items: list[str]) -> dict[str, int | float] | None:
+    values = {}
+    for item in items:
+        target, separator, value = item.partition("=")
+        if not separator or not target or target in values:
+            raise ValueError("--vary requires a unique TARGET=VALUE")
+        # Integer literals stay exact, so seeds above 2**53 keep their value.
+        try:
+            values[target] = int(value)
+        except ValueError:
+            values[target] = float(value)
+    return values or None
+
+
 def main(argv: list[str] | None = None) -> int:
     try:
         return _main(argv)
@@ -227,13 +241,14 @@ def _main(argv: list[str] | None = None) -> int:
             "--investigation", help="started investigation ID under the runs root"
         )
         launch_parser.add_argument("--base", help="permitted investigation base name")
-    simulation.add_argument(
-        "--vary",
-        action="append",
-        default=[],
-        metavar="TARGET=VALUE",
-        help="varied value within the investigation scope; repeat as needed",
-    )
+    for launch_parser in (simulation, controlling):
+        launch_parser.add_argument(
+            "--vary",
+            action="append",
+            default=[],
+            metavar="TARGET=VALUE",
+            help="varied value within the investigation scope; repeat as needed",
+        )
     args = parser.parse_args(argv)
     if args.command in {
         "create-investigation",
@@ -413,6 +428,7 @@ def _main(argv: list[str] | None = None) -> int:
                     execute(
                         control,
                         args.protocol,
+                        values=_varied_values(args.vary),
                         runs_root=args.runs_root,
                         parent_run_ids=tuple(args.parent_run),
                         dry_run=args.dry_run,
@@ -425,19 +441,11 @@ def _main(argv: list[str] | None = None) -> int:
             elif args.command in {"simulate", "rerun-simulation"}:
                 from entanglix.protocols.simulate import rerun_simulation, simulate
 
-                values = None
-                if args.command == "simulate" and args.vary:
-                    values = {}
-                    for item in args.vary:
-                        target, separator, value = item.partition("=")
-                        if not separator or not target or target in values:
-                            raise ValueError("--vary requires a unique TARGET=VALUE")
-                        values[target] = float(value)
                 result = (
                     execute(
                         simulate,
                         args.protocol,
-                        values=values,
+                        values=_varied_values(args.vary),
                         runs_root=args.runs_root,
                         parent_run_ids=tuple(args.parent_run),
                         dry_run=args.dry_run,

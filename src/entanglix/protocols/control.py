@@ -91,7 +91,8 @@ class Pulse(StrictModel):
     kind: Literal["zero_order"]
     T: float = Field(gt=0, allow_inf_nan=False)
     init: Literal["default", "random", "zeros"] | None = None
-    seed: int | None = Field(default=None, strict=True, ge=0)
+    # Seeds stay within the 64-bit integers of TOML records and the Julia adapter.
+    seed: int | None = Field(default=None, strict=True, ge=0, lt=2**63)
 
 
 class Problem(StrictModel):
@@ -118,6 +119,7 @@ class Solver(StrictModel):
 class ControlSpec(StrictModel):
     format_version: Literal[1]
     system: str
+    parameters: dict[str, Finite] = Field(default_factory=dict)
     frame: FrameSpec
     channels: list[Channel] = Field(min_length=1)
     goal: Goal
@@ -150,18 +152,58 @@ class LoadedControl:
     listing: dict
 
 
-def load_control(protocol: Path) -> LoadedControl:
+def _vary(document: dict, values: dict) -> None:
+    """Apply investigation values to a parsed control input; its authored bytes stay unchanged."""
+    from entanglix.protocols.sweep import _set_target
+
+    for target, value in values.items():
+        if (
+            isinstance(value, bool)
+            or not isinstance(value, (int, float))
+            or not math.isfinite(value)
+        ):
+            raise ValueError(f"varied value must be finite: {target}")
+        if target == "pulse.seed":
+            if not isinstance(document.get("pulse"), dict) or "seed" not in document["pulse"]:
+                raise ValueError("varied target must name a declared value: pulse.seed")
+            if value < 0 or value != int(value):
+                raise ValueError("pulse.seed must vary over non-negative integers")
+            document["pulse"]["seed"] = int(value)
+        elif target.startswith("parameters."):
+            _set_target(document, target, value)
+        else:
+            raise ValueError(f"control varies only parameters.<name> and pulse.seed: {target}")
+
+
+def _with_parameters(content: bytes, parameters: dict[str, float]) -> bytes:
+    """Override declared system parameters as simulate does; the result is the frozen system."""
+    if not parameters:
+        return content
+    document = tomllib.loads(content.decode("utf-8"))
+    for name, value in parameters.items():
+        if name not in document.get("parameters", {}):
+            raise ValueError(f"parameter override must name a finite declared parameter: {name}")
+        document["parameters"][name]["value"] = value
+    return tomli_w.dumps(document).encode("utf-8")
+
+
+def load_control(protocol: Path, *, values: dict[str, float] | None = None) -> LoadedControl:
     """Validate a control input and build the matrices, without selecting a solver."""
     from entanglix.runner import _system_inputs
 
     protocol = protocol.resolve()
     content = protocol.read_bytes()
-    spec = ControlSpec.model_validate(tomllib.loads(content.decode("utf-8")))
+    document = tomllib.loads(content.decode("utf-8"))
+    _vary(document, values or {})
+    spec = ControlSpec.model_validate(document)
     source = protocol.parent / spec.system
     if Path(spec.system).name != spec.system or source.resolve().parent != protocol.parent:
         raise ValueError("control.system must name a file beside the control spec")
-    original = load_system(source)
+    authored = source.read_bytes()
+    original = load_system(source, content=_with_parameters(authored, spec.parameters))
     paths, hashes = _system_inputs(source, original, reserved={"control.toml", "problem.toml"})
+    # Base digests and freezing checks use the authored bytes, before any override.
+    hashes["system.toml"] = hashlib.sha256(authored).hexdigest()
     if protocol in {path.resolve() for path in paths.values()}:
         raise ValueError("control spec must be distinct from its system inputs")
     paths["control.toml"] = protocol
@@ -264,9 +306,10 @@ def compile_control(
     repository: Path | None = None,
     extras=(),
     retain_base=False,
+    values=None,
 ) -> dict:
     """Prepare immutable input bytes for the runner; this creates no attempt."""
-    loaded = load_control(protocol)
+    loaded = load_control(protocol, values=values)
     selection = None
     runtime = None
     if repository is not None:
@@ -307,6 +350,7 @@ def compile_control(
     definition = loaded.definition.model_dump(exclude_none=True)
     definition["system"] = "system.toml"
     frozen["control.toml"] = tomli_w.dumps(definition).encode("utf-8")
+    frozen["system.toml"] = _with_parameters(frozen["system.toml"], loaded.definition.parameters)
     frozen["problem.toml"] = loaded.problem_bytes
     frozen.update(base_files)
     for name, content in frozen.items():
@@ -321,7 +365,7 @@ def compile_control(
         "problem_sha256": loaded.digest,
         "preview": loaded.listing,
         "base_inputs": base_inputs,
-        "scope_values": [{}],
+        "scope_values": [values or {}],
     }
     if repository is not None:
         from entanglix.corrector.control import control_listing
@@ -353,6 +397,7 @@ def control(
     dry_run=False,
     investigation_id: str | None = None,
     base: str | None = None,
+    values: dict[str, float] | None = None,
 ):
     """Solve a closed-system control problem as one owned CPU job."""
     from entanglix.protocols.simulate import _launch_protocol
@@ -366,6 +411,7 @@ def control(
         dry_run=dry_run,
         investigation_id=investigation_id,
         base=base,
+        values=values,
     )
 
 

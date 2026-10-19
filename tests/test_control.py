@@ -228,6 +228,57 @@ def test_compilation_freezes_inputs_in_existing_run_records(control_files, tmp_p
         record_finish(owner, status="failed", exit_code=64, wall_seconds=0, gpu_seconds=0)
 
 
+def test_parameters_and_varied_values_override_only_the_frozen_inputs(tmp_path):
+    for name in ("system.toml", "control.toml"):
+        shutil.copyfile(EXAMPLE.parent / name, tmp_path / name)
+    path = tmp_path / "control.toml"
+    definition = tomllib.loads(path.read_text())
+    definition["parameters"] = {"Csh": 60.0}
+    path.write_text(tomli_w.dumps(definition))
+    nominal = load_control(path)
+    assert nominal.problem_bytes == load_control(EXAMPLE).problem_bytes
+    values = {"parameters.Csh": 30.0, "pulse.seed": 3}
+    varied = load_control(path, values=values)
+    # Varied values leave the authored base and its digests unchanged.
+    assert varied.input_digests == nominal.input_digests
+    assert varied.system.provenance["parameters"]["Csh"]["value"] == 30.0
+    assert varied.problem_spec["pulse"]["seed"] == 3
+    assert varied.problem_spec["system"]["H_drift"] != nominal.problem_spec["system"]["H_drift"]
+    directory = tmp_path / "compiled"
+    directory.mkdir()
+    compiled = compile_control(path, directory, retain_base=True, values=values)
+    assert compiled["base_inputs"] == nominal.input_digests
+    assert compiled["scope_values"] == [values]
+    frozen = tomllib.loads((directory / "control.toml").read_text())
+    assert frozen["parameters"] == {"Csh": 30.0} and frozen["pulse"]["seed"] == 3
+    system = tomllib.loads((directory / "system.toml").read_text())
+    assert system["parameters"]["Csh"]["value"] == 30.0
+    assert (directory / "base/control.toml").read_bytes() == path.read_bytes()
+    assert (directory / "base/system.toml").read_bytes() == (tmp_path / "system.toml").read_bytes()
+    generated = (directory / "problem.toml").read_bytes()
+    assert generated == varied.problem_bytes
+    assert load_control(directory / "control.toml").problem_bytes == generated
+    seeded = load_control(path, values={"pulse.seed": 2**53 + 1})
+    assert seeded.problem_spec["pulse"]["seed"] == 2**53 + 1
+    for values, message in (
+        ({"solver.options.max_iter": 10}, "control varies only parameters"),
+        ({"parameters.EJ": 14.0}, "must name a declared scalar: parameters.EJ"),
+        ({"parameters.Csh": float("nan")}, "must be finite: parameters.Csh"),
+        ({"pulse.seed": 1.5}, "non-negative integers"),
+        ({"pulse.seed": -1}, "non-negative integers"),
+        ({"pulse.seed": 2**63}, "pulse.seed"),
+    ):
+        with pytest.raises(ValueError, match=message):
+            load_control(path, values=values)
+    del definition["pulse"]["seed"]
+    definition["parameters"] = {"Cx": 1.0}
+    path.write_text(tomli_w.dumps(definition))
+    with pytest.raises(ValueError, match="declared value: pulse.seed"):
+        load_control(path, values={"pulse.seed": 1})
+    with pytest.raises(ValueError, match="declared parameter: Cx"):
+        load_control(path)
+
+
 def test_composite_local_factors_and_leaf_inputs_are_retained(control_files, tmp_path):
     path, definition = control_files
     for name in ("system.toml", "qubit.toml"):
@@ -323,8 +374,8 @@ def test_changed_system_input_is_refused_before_freezing(control_files, tmp_path
     path, _ = control_files
     real_load = control.load_control
 
-    def load_then_mutate(protocol):
-        loaded = real_load(protocol)
+    def load_then_mutate(protocol, **kwargs):
+        loaded = real_load(protocol, **kwargs)
         (path.parent / "operators.npz").write_bytes(b"changed after loading")
         return loaded
 

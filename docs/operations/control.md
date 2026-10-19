@@ -8,11 +8,13 @@ The [transmon example](../../examples/transmon-control/control.toml) declares a 
 
 A `control.toml` requires `format_version = 1`, `system`, `[frame]`, ordered `[[channels]]`, `[goal]`, `[pulse]`, `[problem]`, and `[solver]`. The system and its referenced files stay beside the control input. The frame has the same syntax as an evolution frame: `frequencies_ghz`, explicit `rwa = true`, and `excitation_numbers` when the system's basis requires them.
 
+An optional `[parameters]` table overrides declared system parameters by name, as in a simulation, for example `Csh = 30.0`. The run's frozen `system.toml` holds the values used; the authored files are unchanged.
+
 Each channel has a unique `id`, a system `drive`, a positive `frequency_ghz`, a `phase_rad` (zero when omitted), and a nonnegative `amplitude_bound_ghz`. Several channels may use the same system drive with different carrier phases. Order is preserved in the exported matrices and bounds. A channel whose projected operator is zero is rejected by name; check its carrier frequency against the declared frame and its source operator. The operator's scale is preserved; changing that scale requires inverse scaling of amplitudes and their derivative bounds.
 
 `[goal]` has `kind = "unitary"`, exactly one of `gate` or `matrix`, and `subspace = [[...]]`. The subspace is one ordered list of distinct **one-based flattened basis indices**, including for a composite system. The rightmost subsystem index varies fastest. Named gates are `I`, `X`, `Y`, `Z`, and `H`; other unitary goals use `matrix`. A matrix entry is a real number or `[real, imaginary]`. The matrix dimension must match the declared subspace, and it must be unitary within `1e-10` absolute tolerance. The goal is expressed in the control frame at the final time.
 
-`[pulse]` has `kind = "zero_order"` and positive duration `T` in ns. `init` (`default`, `random`, or `zeros`) and a nonnegative integer `seed` may be declared. `[problem]` requires `template = "SmoothPulseProblem"` and an integer `N >= 2`. There are `N` knots and `N - 1` equal propagation intervals, of length `T/(N-1)`.
+`[pulse]` has `kind = "zero_order"` and positive duration `T` in ns. `init` (`default`, `random`, or `zeros`) and an integer `seed` from 0 to 2**63 - 1 may be declared. `[problem]` requires `template = "SmoothPulseProblem"` and an integer `N >= 2`. There are `N` knots and `N - 1` equal propagation intervals, of length `T/(N-1)`.
 
 Optional problem fields are `Q`, `R`, `R_u`, `R_du`, `R_ddu`, `du_bound`, `ddu_bound`, `final_fidelity`, `free_dt`, and `free_phase`. An authored `[problem.options]` table is rejected; solver settings belong in `[solver.options]`. Weights and bounds are finite nonnegative scalars, matching the OSS schema. `du_bound` has units GHz/ns, and `ddu_bound` GHz/ns². `final_fidelity`, when declared, is the target in `[0, 1]`; no target is supplied otherwise. A solver must support the fields the problem declares.
 
@@ -94,10 +96,11 @@ The frozen `spec/` contains `control.toml`, model inputs and `problem.toml`. `re
 
 ## Investigations and reruns
 
-An investigation may permit `control` and `check` with an exact-match base. Its input digests cover the authored control, system and referenced assets, using the canonical names `control.toml` and `system.toml`; the generated `problem.toml` is not an authored base input. Control accepts no varied targets. A different solver or solver-options table needs a separately approved base, even when it generates the same ProblemSpec. See the [investigation reference](investigations.md) for complete terms and user decisions.
+An investigation may permit `control` and `check` with an approved base. Its input digests cover the authored control, system and referenced assets, using the canonical names `control.toml` and `system.toml`; the generated `problem.toml` is not an authored base input. A control base may vary `parameters.<name>`, by range or values, and `pulse.seed`, by non-negative integer values; both must be declared in the base control input. Pass candidate values at launch with `--vary TARGET=VALUE`, or `values` over MCP; the authored base is unchanged, and values left out keep the base's own. The solver, its options and every other input stay exact: a different solver or solver-options table needs a separately approved base, even when it generates the same ProblemSpec. Each run freezes the values used, the parameters and seed in `spec/control.toml` and the overridden system in `spec/system.toml`. `rerun-control` reuses the original base and values under the current approved revision. See the [investigation reference](investigations.md) for complete terms and user decisions.
 
 ```sh
 entanglix control control.toml --runs-root research_runs --investigation <investigation_id> --base <base_name>
+entanglix control control.toml --runs-root research_runs --investigation <investigation_id> --base <base_name> --vary parameters.Csh=30.0 --vary pulse.seed=2
 entanglix check research_runs/<system_id>/<run_id> replay target constraints
 entanglix rerun-control research_runs/<system_id>/<run_id> --detach
 ```

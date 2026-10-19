@@ -469,10 +469,19 @@ def build_server(config: Configuration):
 
     @tool
     async def control(
-        protocol: str, investigation_id: str | None = None, base: str | None = None
+        protocol: str,
+        investigation_id: str | None = None,
+        base: str | None = None,
+        values: dict[str, int | float] | None = None,
     ) -> dict[str, object]:
-        """Admit a CPU control solve against an exact approved base when investigating."""
-        return await job("control", protocol=protocol, investigation_id=investigation_id, base=base)
+        """Admit a CPU control solve against an approved base when investigating."""
+        return await job(
+            "control",
+            protocol=protocol,
+            investigation_id=investigation_id,
+            base=base,
+            values=values,
+        )
 
     @tool
     async def rerun_control(run: str) -> dict[str, object]:

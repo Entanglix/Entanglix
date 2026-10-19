@@ -17,6 +17,7 @@ from test_control import control_files as control_files
 
 from entanglix.corrector.verification import check_run
 from entanglix.investigations import (
+    Variation,
     create_investigation,
     read_investigation,
     record_finding,
@@ -26,7 +27,7 @@ from entanglix.investigations import (
 )
 from entanglix.mcp_views import attempt_data
 from entanglix.protocols.control import control, load_control, rerun_control
-from entanglix.runner import _cpu_job_context, read_run
+from entanglix.runner import _cpu_job_context, _load_record, read_run
 
 
 @pytest.fixture
@@ -76,6 +77,35 @@ def control_study(control_files, plugin_repository, tmp_path):
     path = Path(create_investigation(terms, runs_root=root)["path"])
     record_user_decision(path, "start", revision=1)
     return protocol, terms, root, path, plugin_repository
+
+
+SEED = 2**53 + 1  # Not representable as a float.
+
+
+@pytest.fixture
+def varied_study(control_study):
+    protocol, terms, root, path, repository = control_study
+    # Control omits dissipators, so the parameter changes the frozen system only.
+    # The system's name must not be mistaken for simulation defaults at admission.
+    system = protocol.with_name("simulate.toml")
+    protocol.with_name("device.toml").rename(system)
+    document = tomllib.loads(system.read_text())
+    document["parameters"] = {"gamma": {"value": 0.01, "unit": "1/ns"}}
+    document["dissipators"][0]["rate"] = {"parameter": "gamma"}
+    system.write_text(tomli_w.dumps(document))
+    definition = tomllib.loads(protocol.read_text())
+    definition.update(system="simulate.toml", parameters={"gamma": 0.01})
+    protocol.write_text(tomli_w.dumps(definition))
+    terms = copy.deepcopy(terms)
+    terms["scope"]["bases"][0].update(
+        inputs=load_control(protocol).input_digests,
+        variations=[
+            {"target": "parameters.gamma", "range": [0.0, 0.05]},
+            {"target": "pulse.seed", "values": [7, 8, SEED]},
+        ],
+    )
+    approve(control_study, **terms)
+    return protocol, terms, root, path, repository
 
 
 def launch(study, **kwargs):
@@ -229,6 +259,94 @@ def test_control_cli_and_rerun_keep_original_base_and_current_revision(control_s
     assert repeated["result"]["problem_sha256"] == original_digest
     assert Path(repeated["path"]).name != run.name
     assert read_investigation(path)["usage"]["jobs"] == 2
+
+
+@pytest.mark.parametrize(
+    ("variation", "message"),
+    [
+        ({"target": "pulse.seed", "range": [0, 3]}, "pulse.seed varies by values"),
+        ({"target": "pulse.seed", "values": [1, 2.5]}, "integers from 0 to 2\\*\\*63 - 1"),
+        ({"target": "pulse.seed", "values": [2**63]}, "integers from 0 to 2\\*\\*63 - 1"),
+        (
+            {"target": "parameters.g", "values": [0.1], "linked_values": {"pulse.seed": [-1]}},
+            "integers from 0 to 2\\*\\*63 - 1",
+        ),
+    ],
+)
+def test_seed_variations_declare_nonnegative_integer_values(variation, message):
+    with pytest.raises(ValueError, match=message):
+        Variation.model_validate(variation)
+
+
+def test_control_varies_parameters_and_seeds_inside_one_base(varied_study):
+    protocol, terms, root, path, repository = varied_study
+    command, environment, _ = _cpu_job_context(repository, "entanglix")
+    first = subprocess.run(
+        [
+            *command, "control", str(protocol), "--runs-root", str(root),
+            "--investigation", path.name, "--base", "gate",
+            "--vary", "parameters.gamma=0.02", "--vary", f"pulse.seed={SEED}",
+        ],
+        env=environment,
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )  # fmt: skip
+    assert first.returncode == 0, first.stderr
+    run = Path(json.loads(first.stdout)["path"])
+    record = read_run(run)
+    assert record["status"] == "completed", record["log_tail"]
+    manifest = record["manifest"]
+    assert manifest["investigation_revision"] == 2
+    assert manifest["launch"]["varied_values"] == {"parameters.gamma": 0.02, "pulse.seed": SEED}
+    frozen = tomllib.loads((run / "spec/control.toml").read_text())
+    assert frozen["parameters"] == {"gamma": 0.02} and frozen["pulse"]["seed"] == SEED
+    assert tomllib.loads((run / "spec/problem.toml").read_text())["pulse"]["seed"] == SEED
+    system = tomllib.loads((run / "spec/system.toml").read_text())
+    assert system["parameters"]["gamma"]["value"] == 0.02
+    assert (run / "spec/base/control.toml").read_bytes() == protocol.read_bytes()
+    # An omitted value keeps the base's own and still passes the scope check.
+    nominal = launch(varied_study, values={"pulse.seed": 7})
+    assert read_run(Path(nominal["path"]))["status"] == "completed"
+    count = len(list(root.glob("*/*/run.toml")))
+    for values, message in (
+        ({"parameters.gamma": 0.1}, "outside permitted range: parameters.gamma"),
+        ({"pulse.seed": 10}, "outside permitted set: pulse.seed"),
+    ):
+        with pytest.raises(ValueError, match=message):
+            launch(varied_study, values=values)
+    # Solver settings and every other input stay exact.
+    definition = tomllib.loads(protocol.read_text())
+    definition["solver"]["options"] = {"delay_seconds": 0}
+    changed = protocol.with_name("changed.toml")
+    changed.write_text(tomli_w.dumps(definition))
+    with pytest.raises(ValueError, match="changed digests: control.toml"):
+        control(
+            changed,
+            runs_root=root,
+            investigation_id=path.name,
+            base="gate",
+            repository=repository,
+            values={"pulse.seed": 8},
+        )
+    with pytest.raises(ValueError, match="require an investigation"):
+        control(protocol, runs_root=root, repository=repository, values={"pulse.seed": 8})
+    assert len(list(root.glob("*/*/run.toml"))) == count
+    replay = rerun_control(run, repository=repository)
+    repeated = Path(replay["path"])
+    assert read_run(repeated)["status"] == "completed"
+    assert _load_record(repeated / "run.toml")["launch"]["varied_values"] == {
+        "parameters.gamma": 0.02,
+        "pulse.seed": SEED,
+    }
+    for name in ("control.toml", "system.toml", "problem.toml"):
+        assert (repeated / "spec" / name).read_bytes() == (run / "spec" / name).read_bytes()
+    narrowed = copy.deepcopy(terms)
+    narrowed["scope"]["bases"][0]["variations"][1]["values"] = [7, 8]
+    approve(varied_study, **narrowed)
+    with pytest.raises(ValueError, match="outside permitted set: pulse.seed"):
+        rerun_control(run, repository=repository)
+    assert len(list(root.glob("*/*/run.toml"))) == count + 1
 
 
 @pytest.mark.parametrize("reason", ["stop", "deadline", "job_seconds"])

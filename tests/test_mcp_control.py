@@ -9,9 +9,10 @@ import pytest
 
 pytest.importorskip("mcp")
 from test_control import control_files as control_files
-from test_control_investigations import approve
+from test_control_investigations import SEED, approve
 from test_control_investigations import control_study as control_study
 from test_control_investigations import plugin_repository as plugin_repository
+from test_control_investigations import varied_study as varied_study
 from test_mcp import call, cli_result, client
 
 from entanglix.investigations import read_investigation
@@ -100,7 +101,10 @@ def test_mcp_control_refusals_leave_no_attempt_or_allowance(control_study, tmp_p
             }
             for request, message in (
                 (args | {"base": "missing"}, "unknown investigation base: missing"),
-                (args | {"values": {}}, "unsupported request fields: values"),
+                (
+                    args | {"values": {"pulse.seed": 8}},
+                    "varied values name targets outside the investigation scope",
+                ),
             ):
                 refused = await session.call_tool("control", request)
                 assert refused.is_error and message in refused.content[0].text
@@ -117,3 +121,30 @@ def test_mcp_control_refusals_leave_no_attempt_or_allowance(control_study, tmp_p
 
     asyncio.run(exercise())
     assert read_investigation(investigation)["usage"]["jobs"] == 1
+
+
+def test_mcp_control_values_vary_inside_the_base(varied_study, tmp_path):
+    protocol, _, root, investigation, repository = varied_study
+
+    async def exercise():
+        async with client(repository, root, tmp_path / "state") as session:
+            job = await call(
+                session,
+                "control",
+                {
+                    "protocol": str(protocol),
+                    "investigation_id": investigation.name,
+                    "base": "gate",
+                    "values": {"parameters.gamma": 0.03, "pulse.seed": SEED},
+                },
+            )
+            record = await call(
+                session, "read_run", {"run": job["path"], "wait_seconds": 30, "detail": True}
+            )
+            assert record["status"] == "completed", record["log_tail"]
+            return Path(record["path"]), record["manifest"]
+
+    run, manifest = asyncio.run(exercise())
+    assert manifest["launch"]["varied_values"] == {"parameters.gamma": 0.03, "pulse.seed": SEED}
+    assert _load_record(run / "spec/control.toml")["pulse"]["seed"] == SEED
+    assert _load_record(run / "spec/system.toml")["parameters"]["gamma"]["value"] == 0.03

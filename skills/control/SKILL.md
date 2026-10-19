@@ -1,7 +1,7 @@
 ---
 name: control
 description: Solve an Entanglix closed-system gate problem, inspect a returned pulse, request control checks, or re-solve frozen inputs.
-version: 0.1.1
+version: 0.1.2
 ---
 
 # Closed-system control
@@ -17,7 +17,8 @@ omitted dissipators appear in the launch listing. These choices do not establish
 lab-frame or device-model accuracy. Control solves and their checks run on CPU.
 
 Call `control` with the authored protocol. In an investigation read effective
-terms first and name an exact approved base; there are no varied control targets.
+terms first and name an approved base; pass the device parameters and seeds it
+permits in `values`, leaving the authored protocol unchanged.
 A different solver or options table needs another approved base, even when the
 generated ProblemSpec digest is identical. A fallback applies only to an absent
 named solver; it does not hide unsupported input or a failed solve.

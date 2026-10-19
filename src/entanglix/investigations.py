@@ -26,6 +26,8 @@ Text = Annotated[str, Field(min_length=1)]
 Name = Annotated[str, Field(pattern=r"^[A-Za-z][A-Za-z0-9_-]*$")]
 PositiveCount = Annotated[int, Field(strict=True, gt=0)]
 Number = Annotated[float, Field(strict=True, allow_inf_nan=False)]
+# Integers stay exact, so seeds above 2**53 keep their declared value.
+Value = Annotated[int, Field(strict=True)] | Number
 PositiveSeconds = Annotated[Number, Field(gt=0)]
 Digest = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
 Operation = Literal["simulate", "sweep", "check", "run_script", "control"]
@@ -40,7 +42,8 @@ STOP_REASONS = (
 )
 TARGET = re.compile(
     r"^(parameters\.[^.]+|evolution\.drive_amplitudes_ghz\.[^.]+|"
-    r"evolution\.carriers\.[^.]+\.frequency_ghz|evolution\.frame\.frequencies_ghz\.[^.]+)$"
+    r"evolution\.carriers\.[^.]+\.frequency_ghz|evolution\.frame\.frequencies_ghz\.[^.]+|"
+    r"pulse\.seed)$"
 )
 
 
@@ -50,9 +53,9 @@ class Fields(BaseModel):
 
 class Variation(Fields):
     target: Text
-    values: list[Number] | None = Field(default=None, min_length=1)
+    values: list[Value] | None = Field(default=None, min_length=1)
     range: tuple[Number, Number] | None = None
-    linked_values: dict[Text, list[Number]] = Field(default_factory=dict)
+    linked_values: dict[Text, list[Value]] = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def valid_region(self):
@@ -62,6 +65,15 @@ class Variation(Fields):
             raise ValueError("declare exactly one of values or range")
         if self.range is not None and self.range[0] > self.range[1]:
             raise ValueError("range must be ordered lower to upper")
+        seeds = [values for name, values in self.linked_values.items() if name == "pulse.seed"]
+        if self.target == "pulse.seed":
+            if self.values is None:
+                raise ValueError("pulse.seed varies by values")
+            seeds.append(self.values)
+        if any(
+            not 0 <= value < 2**63 or value != int(value) for values in seeds for value in values
+        ):
+            raise ValueError("pulse.seed values must be integers from 0 to 2**63 - 1")
         if self.values is not None and len(set(self.values)) != len(self.values):
             raise ValueError("values must be unique")
         if self.linked_values and (

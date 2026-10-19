@@ -62,7 +62,8 @@ A variation declares either a closed
 `range = [lower, upper]` or unique `values = [...]`. The supported targets are
 `parameters.<name>`, `evolution.drive_amplitudes_ghz.<drive>`,
 `evolution.carriers.<drive>.frequency_ghz`, and
-`evolution.frame.frequencies_ghz.<subsystem>`. Discrete values can have
+`evolution.frame.frequencies_ghz.<subsystem>`; a control base may also vary
+`pulse.seed`, by non-negative integer values. Discrete values can have
 `linked_values = { "<other target>" = [...] }`, one linked value per entry.
 An exact bundle has no variations. Parameter-dependent data requires a separate
 base for each value that changes that data.
@@ -140,10 +141,11 @@ the same runs root.
 An authored script uses `run-script ... --investigation <investigation_id> --base
 <base_name>` and must match an exact bundle, including the script, system, and data.
 
-A [control solve](control.md#investigations-and-reruns) also requires an exact
-bundle, including the authored control input, system and data. Control has no
-varied targets; changing the solver requires another approved base. `rerun-control`
-inherits membership and uses current approved terms.
+A [control solve](control.md#investigations-and-reruns) passes varied values in
+the same way, with `--vary`; it varies only `parameters.<name>` and `pulse.seed`.
+The authored control input, system and data stay exact, and changing the solver or
+its options requires another approved base. `rerun-control` inherits membership,
+reuses the original values, and uses current approved terms.
 
 A named check on a linked source automatically belongs to its investigation:
 

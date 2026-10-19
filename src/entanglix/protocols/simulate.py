@@ -335,7 +335,7 @@ def _launch_protocol(
                         "repository": str(repository),
                         "extras": extras,
                         "retain_base": investigation_id is not None,
-                        **({"values": values} if operation == "simulate" else {}),
+                        **({"values": values} if operation in {"simulate", "control"} else {}),
                     }
                 ),
                 env=gate_environment,
@@ -360,7 +360,7 @@ def _launch_protocol(
                     hashes=gate["base_inputs"],
                     points=gate["scope_values"],
                     defaults=_scope_defaults(
-                        {name: Path(path) for name, path in gate["inputs"].items()}
+                        {name: Path(path) for name, path in gate["inputs"].items()}, operation
                     ),
                     timeout_seconds=gate["timeout_seconds"],
                 ):
@@ -480,7 +480,7 @@ def _rerun_protocol(run, *, operation, repository=None, runs_root=None):
         investigation_id=investigation_id,
         base=manifest.get("investigation_base"),
         values=manifest.get("launch", {}).get("varied_values")
-        if operation == "simulate" and investigation_id
+        if operation in {"simulate", "control"} and investigation_id
         else None,
     )
     replay = _read_attempt(Path(result["path"]))["manifest"]

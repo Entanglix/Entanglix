@@ -281,8 +281,10 @@ class RunHandle:
         self.close()
 
 
-def _scope_defaults(inputs):
-    path = inputs.get("base/simulate.toml")
+def _scope_defaults(inputs, protocol):
+    # Choose by operation: an authored system may itself be named simulate.toml.
+    name = {"simulate": "simulate.toml", "sweep": "simulate.toml", "control": "control.toml"}
+    path = inputs.get(f"base/{name[protocol]}") if protocol in name else None
     return _load_record(path) if path is not None else None
 
 
@@ -349,7 +351,7 @@ def create_run(
         base_name=base,
         hashes=hashes,
         points=values or [{}],
-        defaults=_scope_defaults(inputs),
+        defaults=_scope_defaults(inputs, protocol),
         timeout_seconds=(launch or {}).get("timeout_seconds"),
     ) as binding:
         return _create_run(
