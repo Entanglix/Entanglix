@@ -18,16 +18,42 @@ from entanglix.protocols.plans import FrameSpec
 
 AMICODE_REVISION = "cb717f57cb63fa292917188c8ca32f50ddcca539"
 STEP_RELATIVE_HALF_WIDTH = 1e-7
+# Derived values agree with declared ones, and across channels, within this tolerance.
+RESOLVED_RELATIVE_TOLERANCE = 1e-9
 Finite = Annotated[float, Field(allow_inf_nan=False)]
 Nonnegative = Annotated[float, Field(ge=0, allow_inf_nan=False)]
+Level = Annotated[int, Field(strict=True, ge=0)]
+
+
+class ControlFrame(FrameSpec):
+    frequencies_ghz: dict[str, float] = Field(default_factory=dict)
+    transitions: dict[str, Annotated[list[Level], Field(min_length=2, max_length=2)]] = Field(
+        default_factory=dict
+    )
+
+    @model_validator(mode="after")
+    def check_transitions(self):
+        if not self.frequencies_ghz and not self.transitions:
+            raise ValueError("frame requires frequencies_ghz or transitions")
+        if any(lower == upper for lower, upper in self.transitions.values()):
+            raise ValueError("frame.transitions require two distinct levels")
+        return self
 
 
 class Channel(StrictModel):
     id: str = Field(min_length=1)
     drive: str = Field(min_length=1)
-    frequency_ghz: float = Field(gt=0, allow_inf_nan=False)
+    frequency_ghz: float | None = Field(default=None, gt=0, allow_inf_nan=False)
+    follows: str | None = Field(default=None, min_length=1)
     phase_rad: Finite = 0.0
-    amplitude_bound_ghz: Nonnegative
+    amplitude_bound_ghz: Nonnegative | None = None
+
+
+class RabiBounds(StrictModel):
+    subsystem: str = Field(min_length=1)
+    amplitude_ghz: Nonnegative | None = None
+    du_ghz_per_ns: Nonnegative | None = None
+    ddu_ghz_per_ns2: Nonnegative | None = None
 
 
 class Goal(StrictModel):
@@ -120,8 +146,9 @@ class ControlSpec(StrictModel):
     format_version: Literal[1]
     system: str
     parameters: dict[str, Finite] = Field(default_factory=dict)
-    frame: FrameSpec
+    frame: ControlFrame
     channels: list[Channel] = Field(min_length=1)
+    rabi_bounds: RabiBounds | None = None
     goal: Goal
     pulse: Pulse
     problem: Problem
@@ -187,6 +214,122 @@ def _with_parameters(content: bytes, parameters: dict[str, float]) -> bytes:
     return tomli_w.dumps(document).encode("utf-8")
 
 
+def _agreed(declared, derived, label):
+    """Keep a declared value that agrees with the derived one; frozen inputs carry both."""
+    if declared is None:
+        return derived
+    if not math.isclose(declared, derived, rel_tol=RESOLVED_RELATIVE_TOLERANCE, abs_tol=0):
+        raise ValueError(f"{label}: declared {declared!r} disagrees with derived {derived!r}")
+    return declared
+
+
+def _resolve(spec: ControlSpec, system: ConstructedSystem) -> tuple[ControlSpec, dict]:
+    """Resolve named transitions, following carriers and Rabi-rate bounds on the model."""
+    ids = system.subsystem_ids or (system.id,)
+    bases = system.provenance.get("subsystem_bases", {ids[0]: system.basis})
+    data = spec.model_dump()
+    frequencies = data["frame"]["frequencies_ghz"]
+    resolved = {}
+    for name, (lower, upper) in spec.frame.transitions.items():
+        if name not in ids:
+            raise ValueError(
+                f"frame.transitions: unknown subsystem {name!r}; available: {list(ids)}"
+            )
+        if bases.get(name) != "isolated_eigenstates":
+            raise ValueError(f"frame.transitions.{name}: named levels need isolated eigenstates")
+        index = ids.index(name)
+        # Local Hamiltonians precede interactions, in subsystem order.
+        energies = np.diag(system.hamiltonian_terms[index].factors[index]).real
+        if max(lower, upper) >= len(energies):
+            raise ValueError(f"frame.transitions.{name}: {len(energies)} levels are retained")
+        frequency = float(energies[upper] - energies[lower])
+        if frequency <= 0:
+            raise ValueError(f"frame.transitions.{name}: the first level must lie lower")
+        frequencies[name] = _agreed(frequencies.get(name), frequency, f"frame.{name}")
+        resolved.setdefault("transition_frequencies_ghz", {})[name] = frequency
+    for channel in data["channels"]:
+        label = f"channel {channel['id']!r}"
+        if channel["follows"] is not None:
+            if channel["follows"] not in frequencies:
+                raise ValueError(
+                    f"{label}: follows {channel['follows']!r}, which has no frame frequency"
+                )
+            # Followers use the frame's own number, so the RWA projection keeps them.
+            _agreed(channel["frequency_ghz"], frequencies[channel["follows"]], label)
+            channel["frequency_ghz"] = frequencies[channel["follows"]]
+        if channel["frequency_ghz"] is None:
+            raise ValueError(f"{label}: declare frequency_ghz or follows")
+    rabi = spec.rabi_bounds
+    if rabi is not None:
+        if rabi.subsystem not in spec.frame.transitions:
+            raise ValueError("rabi_bounds.subsystem must name a frame transition")
+        lower, upper = spec.frame.transitions[rabi.subsystem]
+        index = ids.index(rabi.subsystem)
+        elements = {}
+        for channel in spec.channels:
+            factors = system.drive_factors.get(channel.drive, (system.drives[channel.drive],))
+            if any(
+                not np.array_equal(factor, np.eye(len(factor)))
+                for position, factor in enumerate(factors)
+                if position != index
+            ):
+                raise ValueError(
+                    f"channel {channel.id!r}: a Rabi-rate bound needs drive {channel.drive!r} "
+                    f"to act on {rabi.subsystem!r} alone"
+                )
+            # The cosine-carrier convention: Rabi rate = amplitude x |<lower|drive|upper>|.
+            local = factors[index]
+            element = float(abs(local[lower, upper]))
+            if element <= 1e-12 * np.abs(local).max():
+                raise ValueError(
+                    f"channel {channel.id!r}: drive {channel.drive!r} has a zero "
+                    f"{lower}-{upper} matrix element"
+                )
+            elements[channel.id] = element
+        resolved["rabi_matrix_elements"] = elements
+        if rabi.amplitude_ghz is not None:
+            for channel in data["channels"]:
+                channel["amplitude_bound_ghz"] = _agreed(
+                    channel["amplitude_bound_ghz"],
+                    rabi.amplitude_ghz / elements[channel["id"]],
+                    f"channel {channel['id']!r} amplitude_bound_ghz",
+                )
+        for field, rate in (("du_bound", rabi.du_ghz_per_ns), ("ddu_bound", rabi.ddu_ghz_per_ns2)):
+            if rate is None:
+                continue
+            bounds = {name: rate / element for name, element in elements.items()}
+            if max(bounds.values()) > min(bounds.values()) * (1 + RESOLVED_RELATIVE_TOLERANCE):
+                raise ValueError(
+                    f"rabi_bounds: derived {field} differs across channels "
+                    f"({', '.join(f'{name}={value!r}' for name, value in bounds.items())}); "
+                    f"declare an explicit problem.{field}"
+                )
+            data["problem"][field] = _agreed(
+                data["problem"][field], min(bounds.values()), f"problem.{field}"
+            )
+    for channel in data["channels"]:
+        if channel["amplitude_bound_ghz"] is None:
+            raise ValueError(
+                f"channel {channel['id']!r}: declare amplitude_bound_ghz or rabi_bounds.amplitude_ghz"
+            )
+    if spec.frame.transitions or rabi is not None:
+        resolved["frame_frequencies_ghz"] = frequencies
+        resolved["carrier_frequencies_ghz"] = {
+            c["id"]: c["frequency_ghz"] for c in data["channels"]
+        }
+        resolved["amplitude_bounds_ghz"] = {
+            c["id"]: c["amplitude_bound_ghz"] for c in data["channels"]
+        }
+        resolved.update(
+            {
+                field: data["problem"][field]
+                for field in ("du_bound", "ddu_bound")
+                if data["problem"][field] is not None
+            }
+        )
+    return ControlSpec.model_validate(data), resolved
+
+
 def load_control(protocol: Path, *, values: dict[str, float] | None = None) -> LoadedControl:
     """Validate a control input and build the matrices, without selecting a solver."""
     from entanglix.runner import _system_inputs
@@ -216,6 +359,7 @@ def load_control(protocol: Path, *, values: dict[str, float] | None = None) -> L
                 f"channel {channel.id!r}: unknown drive {channel.drive!r}; "
                 f"available: {sorted(original.drives)}"
             )
+    spec, resolved = _resolve(spec, original)
     closed = replace(
         original,
         drives={channel.id: original.drives[channel.drive] for channel in spec.channels},
@@ -236,7 +380,7 @@ def load_control(protocol: Path, *, values: dict[str, float] | None = None) -> L
             channel.id: Carrier(channel.frequency_ghz, channel.phase_rad)
             for channel in spec.channels
         },
-        frame=RotatingFrame(**spec.frame.model_dump()),
+        frame=RotatingFrame(**spec.frame.model_dump(exclude={"transitions"})),
     )
     prepared = prepare_dynamics(closed, normalize_input(closed, request))
     drift = matrix(prepared.hamiltonian)
@@ -249,6 +393,25 @@ def load_control(protocol: Path, *, values: dict[str, float] | None = None) -> L
                 f"channel {name!r}: exported drive is zero under the declared frame; "
                 "check its carrier frequency and source operator"
             )
+    if spec.rabi_bounds is not None:
+        subsystem = spec.rabi_bounds.subsystem
+        lower, upper = spec.frame.transitions[subsystem]
+        ids = original.subsystem_ids or (original.id,)
+        states = []
+        for level in (lower, upper):
+            state = [0] * len(original.dimensions)
+            state[ids.index(subsystem)] = level
+            states.append(np.ravel_multi_index(state, original.dimensions))
+        first, second = states
+        for name, element in resolved["rabi_matrix_elements"].items():
+            # A transition kept by the RWA carries half its element under the cosine convention.
+            retained = max(abs(drives[name][first, second]), abs(drives[name][second, first]))
+            if not math.isclose(retained, element / 2, rel_tol=RESOLVED_RELATIVE_TOLERANCE):
+                raise ValueError(
+                    f"channel {name!r}: the exported drive does not retain the {lower}-{upper} "
+                    f"transition of {subsystem!r}; check its carrier against the frame "
+                    "and excitation numbers"
+                )
     control_model = replace(
         closed,
         hamiltonian_ghz=drift,
@@ -295,6 +458,7 @@ def load_control(protocol: Path, *, values: dict[str, float] | None = None) -> L
         "interval_count": spec.problem.N - 1,
         "problem_sha256": digest,
         "amicode_revision": AMICODE_REVISION,
+        **({"resolved": resolved} if resolved else {}),
     }
     return LoadedControl(spec, control_model, generated, data, digest, paths, hashes, listing)
 

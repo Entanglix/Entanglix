@@ -1,7 +1,9 @@
 """Control export agrees with the shared frame and CPU evolution conventions."""
 
+import copy
 import hashlib
 import json
+import math
 import shutil
 import tomllib
 from dataclasses import replace
@@ -16,7 +18,12 @@ from scipy.linalg import expm
 from entanglix.engines import QuTiPIntegrator
 from entanglix.evolution import Carrier, EvolutionInput, RotatingFrame
 from entanglix.models import load_system
-from entanglix.protocols.control import AMICODE_REVISION, compile_control, load_control
+from entanglix.protocols.control import (
+    AMICODE_REVISION,
+    RESOLVED_RELATIVE_TOLERANCE,
+    compile_control,
+    load_control,
+)
 from entanglix.runner import CodeSnapshot, capture_environment, create_run, record_finish
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -277,6 +284,191 @@ def test_parameters_and_varied_values_override_only_the_frozen_inputs(tmp_path):
         load_control(path, values={"pulse.seed": 1})
     with pytest.raises(ValueError, match="declared parameter: Cx"):
         load_control(path)
+
+
+@pytest.fixture
+def transmon_control(tmp_path):
+    """The first gate, declared by its 0-1 transition and a nominal Rabi-rate bound."""
+    root = tmp_path / "transmon"
+    root.mkdir()
+    for name in ("system.toml", "control.toml"):
+        shutil.copyfile(EXAMPLE.parent / name, root / name)
+    path = root / "control.toml"
+    definition = tomllib.loads(path.read_text())
+    subsystem = "junction_with_shunt"
+    definition["frame"] = {"rwa": True, "transitions": {subsystem: [0, 1]}}
+    for channel in definition["channels"]:
+        del channel["frequency_ghz"], channel["amplitude_bound_ghz"]
+        channel["follows"] = subsystem
+    del definition["problem"]["du_bound"], definition["problem"]["ddu_bound"]
+    definition["rabi_bounds"] = {
+        "subsystem": subsystem,
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.1,
+        "ddu_ghz_per_ns2": 0.1,
+    }
+    path.write_text(tomli_w.dumps(definition))
+    return path, definition
+
+
+def test_named_transition_and_rabi_bounds_reproduce_the_first_gate(transmon_control, tmp_path):
+    path, _ = transmon_control
+    loaded = load_control(path)
+    explicit = load_control(EXAMPLE)
+    resolved = loaded.listing["resolved"]
+    channels = tomllib.loads(EXAMPLE.read_text())["channels"]
+    frequency = resolved["frame_frequencies_ghz"]["junction_with_shunt"]
+    assert math.isclose(
+        frequency,
+        explicit.definition.frame.frequencies_ghz["junction_with_shunt"],
+        rel_tol=RESOLVED_RELATIVE_TOLERANCE,
+    )
+    assert resolved["carrier_frequencies_ghz"] == {"x": frequency, "y": frequency}
+    for channel in channels:
+        assert math.isclose(
+            resolved["amplitude_bounds_ghz"][channel["id"]],
+            channel["amplitude_bound_ghz"],
+            rel_tol=RESOLVED_RELATIVE_TOLERANCE,
+        )
+    for field in ("du_bound", "ddu_bound"):
+        assert math.isclose(
+            resolved[field],
+            getattr(explicit.definition.problem, field),
+            rel_tol=RESOLVED_RELATIVE_TOLERANCE,
+        )
+    # The generated ProblemSpec holds only resolved numbers, here the explicit gate's.
+    system, reference = loaded.problem_spec["system"], explicit.problem_spec["system"]
+    for key in ("H_drift", "H_drives"):
+        np.testing.assert_allclose(system[key], reference[key], rtol=0, atol=1e-8)
+    np.testing.assert_allclose(
+        system["params"]["drive_bounds"],
+        reference["params"]["drive_bounds"],
+        rtol=RESOLVED_RELATIVE_TOLERANCE,
+    )
+    directory = tmp_path / "compiled"
+    directory.mkdir()
+    compile_control(path, directory)
+    frozen = tomllib.loads((directory / "control.toml").read_text())
+    assert frozen["frame"]["transitions"] == {"junction_with_shunt": [0, 1]}
+    assert frozen["frame"]["frequencies_ghz"] == resolved["frame_frequencies_ghz"]
+    assert frozen["channels"][0]["follows"] == "junction_with_shunt"
+    assert frozen["channels"][0]["amplitude_bound_ghz"] == resolved["amplitude_bounds_ghz"]["x"]
+    assert frozen["problem"]["du_bound"] == resolved["du_bound"]
+    assert load_control(directory / "control.toml").problem_bytes == loaded.problem_bytes
+
+
+def test_named_transition_resolves_on_the_overridden_model(transmon_control, tmp_path):
+    path, definition = transmon_control
+    definition["parameters"] = {"Csh": 60.0}
+    path.write_text(tomli_w.dumps(definition))
+    loaded = load_control(path, values={"parameters.Csh": 30.0})
+    system = tomllib.loads((path.parent / "system.toml").read_text())
+    system["parameters"]["Csh"]["value"] = 30.0
+    reference = tmp_path / "reference" / "system.toml"
+    reference.parent.mkdir()
+    reference.write_text(tomli_w.dumps(system))
+    model = load_system(reference)
+    energies = np.linalg.eigvalsh(model.hamiltonian_ghz)
+    element = abs(model.operators["charge"][0, 1])
+    resolved = loaded.listing["resolved"]
+    assert math.isclose(
+        resolved["transition_frequencies_ghz"]["junction_with_shunt"],
+        energies[1] - energies[0],
+        rel_tol=1e-12,
+    )
+    assert math.isclose(resolved["amplitude_bounds_ghz"]["x"], 0.06 / element, rel_tol=1e-12)
+    assert resolved["frame_frequencies_ghz"] != load_control(path).definition.frame.frequencies_ghz
+
+
+def test_named_transition_and_rabi_bound_refusals(transmon_control, control_files, tmp_path):
+    path, definition = transmon_control
+    system_path = path.parent / "system.toml"
+    system = tomllib.loads(system_path.read_text())
+
+    def refused(message, *, control=None, model=None):
+        path.write_text(tomli_w.dumps(control or definition))
+        system_path.write_text(tomli_w.dumps(model or system))
+        with pytest.raises(ValueError, match=message):
+            load_control(path)
+
+    changed = copy.deepcopy(definition)
+    changed["frame"]["frequencies_ghz"] = {"junction_with_shunt": 5.48}
+    refused("frame.junction_with_shunt: declared 5.48 disagrees with derived", control=changed)
+    changed = copy.deepcopy(definition)
+    changed["frame"]["transitions"] = {"other": [0, 1]}
+    refused("unknown subsystem 'other'", control=changed)
+    changed = copy.deepcopy(definition)
+    changed["frame"]["transitions"]["junction_with_shunt"] = [1, 0]
+    refused("the first level must lie lower", control=changed)
+    changed = copy.deepcopy(definition)
+    changed["channels"][0]["follows"] = "missing"
+    refused("channel 'x': follows 'missing', which has no frame frequency", control=changed)
+    changed = copy.deepcopy(definition)
+    del changed["channels"][0]["follows"]
+    refused("channel 'x': declare frequency_ghz or follows", control=changed)
+    changed = copy.deepcopy(definition)
+    del changed["rabi_bounds"]["amplitude_ghz"]
+    refused("channel 'x': declare amplitude_bound_ghz or rabi_bounds", control=changed)
+    changed = copy.deepcopy(definition)
+    changed["rabi_bounds"]["subsystem"] = "other"
+    refused("rabi_bounds.subsystem must name a frame transition", control=changed)
+    # A parity-forbidden transition has a zero charge matrix element.
+    model = copy.deepcopy(system)
+    model["model"]["offset_charges"] = {"1": 0.0}
+    changed = copy.deepcopy(definition)
+    changed["frame"]["transitions"]["junction_with_shunt"] = [0, 2]
+    refused(
+        "channel 'x': drive 'charge_drive' has a zero 0-2 matrix element",
+        control=changed,
+        model=model,
+    )
+    # Different matrix elements give different raw derivative bounds, which are refused.
+    model = copy.deepcopy(system)
+    model["drives"].append({"id": "sin_drive", "factors": ["sin_phase"]})
+    changed = copy.deepcopy(definition)
+    changed["channels"][1]["drive"] = "sin_drive"
+    refused(
+        r"derived du_bound differs across channels \(x=0\.09009\d*, y=0\.2465\d*\)",
+        control=changed,
+        model=model,
+    )
+    changed["problem"]["du_bound"] = 0.09
+    del changed["rabi_bounds"]["du_ghz_per_ns"]
+    refused(r"derived ddu_bound differs", control=changed, model=model)
+    del changed["rabi_bounds"]["ddu_ghz_per_ns2"]
+    changed["problem"]["ddu_bound"] = 0.09
+    path.write_text(tomli_w.dumps(changed))
+    system_path.write_text(tomli_w.dumps(model))
+    loaded = load_control(path)
+    element = abs(load_system(system_path).operators["sin_phase"][0, 1])
+    assert math.isclose(
+        loaded.problem_spec["system"]["params"]["drive_bounds"][1],
+        0.06 / element,
+        rel_tol=RESOLVED_RELATIVE_TOLERANCE,
+    )
+    # Nonzero authored elements that the RWA projection removes are refused.
+    changed = copy.deepcopy(definition)
+    changed["frame"]["transitions"]["junction_with_shunt"] = [0, 2]
+    refused("channel 'x': the exported drive does not retain the 0-2 transition", control=changed)
+    changed = copy.deepcopy(definition)
+    del changed["channels"][0]["follows"]
+    changed["channels"][0]["frequency_ghz"] = (
+        2 * load_control(EXAMPLE).definition.frame.frequencies_ghz["junction_with_shunt"]
+    )
+    refused("channel 'x': the exported drive does not retain the 0-1 transition", control=changed)
+    # A follower nearly equal to its frame takes the frame's own frequency.
+    changed = copy.deepcopy(definition)
+    frequency = load_control(EXAMPLE).definition.frame.frequencies_ghz["junction_with_shunt"]
+    changed["channels"][0]["frequency_ghz"] = frequency * (1 + 1e-10)
+    path.write_text(tomli_w.dumps(changed))
+    system_path.write_text(tomli_w.dumps(system))
+    assert load_control(path).listing["resolved"]["carrier_frequencies_ghz"]["x"] == frequency
+    # Explicit-operator subsystems have no named eigenstate levels.
+    two_level, two_level_definition = control_files
+    two_level_definition["frame"]["transitions"] = {"two_level_reference": [0, 1]}
+    two_level.write_text(tomli_w.dumps(two_level_definition))
+    with pytest.raises(ValueError, match="named levels need isolated eigenstates"):
+        load_control(two_level)
 
 
 def test_composite_local_factors_and_leaf_inputs_are_retained(control_files, tmp_path):
