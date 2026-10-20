@@ -1,6 +1,6 @@
 # ADR-0006: Device–Control Co-design
 
-**Date:** 2026-10-19
+**Date:** 2026-10-20
 **Status:** Accepted
 **Purpose:** fix how a co-design investigation composes the existing operations, how device candidates and seeds vary within one approved base, which frequency and bound quantities are derived from the model, how a returned pulse is evaluated under declared uncertainty, how lineage is carried, how candidates are compared, how the solve budget is declared, and what the first version leaves out. Field lists, formats, and command names are documented with the implementation.
 
@@ -105,9 +105,10 @@ The [co-design probe](../../tests/probes/m5_codesign.py) exercised these operati
 ### 2.8 Scope of the first version
 
 - Evaluation is closed-system. Open-system evaluation is a later addition: it needs a device-dependent relaxation model, not only an operator convention.
+- Uncertainty evaluation follows logical states by correspondence for a single periodic circuit coordinate. For other models it is inapplicable, with its reason, and those models can still be modelled, solved and checked. General state correspondence, dressed-transition calibration and lab-frame validation of the control model are later additions, each scheduled with the workflow that needs it.
 - The `target` check remains available and unchanged; the first co-design example does not request it.
 
-**Rationale:** an assumed common relaxation rate shows that open-system evaluation is feasible, but a comparison between devices needs relaxation that depends on the device. The example compares performance; a target would turn that comparison into a pass or fail.
+**Rationale:** an assumed common relaxation rate shows that open-system evaluation is feasible, but a comparison between devices needs relaxation that depends on the device. The example compares performance; a target would turn that comparison into a pass or fail. General correspondence needs a declared logical encoding, physical overlaps across bases, and subspace agreement near degeneracy. That is a design of its own, not an extension of the single-coordinate case.
 
 Measurements: [co-design probe results](../../tests/probes/m5_codesign_results.json), [solver propagator results](../../tests/probes/grape_propagator_results.json), [Piccolo precompile results](../../tests/probes/piccolo_precompile_results.json).
 

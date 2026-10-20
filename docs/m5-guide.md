@@ -57,15 +57,15 @@ Recorded in an example directory of its own. The probe's values come from the [c
 
 | Item | Choice |
 |---|---|
-| System | The first gate's junction-shunt circuit, with three retained levels and a charge drive |
+| System | The first gate's junction-shunt circuit, with five retained levels and a charge drive. The pilot showed that pulses optimised on three levels are truncation-sensitive |
 | Device region | A `Csh` range at fixed `EJ` and `ECJ`, screened first with the existing spectrum tools. The probe covered 10, 30, and 60 fF |
 | Frame and channels | The 0–1 transition, with both quadratures following it |
 | Bound policy | A fixed nominal 0–1 Rabi-rate bound for amplitude and both derivatives. The two quadratures share one matrix element magnitude, so the derived derivative bounds are common |
 | Solver and seeds | `grape`, with an allowed seed set in the base. The evidence requirements declare the required seeds per candidate and how additional attempts are allocated. The probe used three seeds per candidate. Piccolo results, if requested, are a separate solver comparison |
-| Evaluation table | Offset charge over half a period, drifting; `EJ` at a small relative offset each way, calibrated; and their combinations, as an explicit small grid. All samples are declared in the base before the comparison. Refinements of retained levels and the charge cutoff |
+| Evaluation table | Offset charge 0, 0.25 and 0.5, drifting, crossed with `EJ` at 0.1% each way, calibrated: nine samples declared in the base. Refinement adds two retained levels and ten charge-cutoff units |
 | Requested checks | Replay and constraints on every solve, and the uncertainty diagnostic on the pulses being compared. Target is not requested |
 | Comparison quantity | Chosen before the duration or the bound is changed. Nominal fidelity saturated in the probe, while the response to offset charge differed by orders of magnitude between candidates |
-| Duration and bound | Chosen in 8-6 by a bounded pilot. The probe's 20 ns and 0.06 GHz bound saturate nominal fidelity |
+| Duration and bound | 6 ns and 0.15 GHz, with derivative bounds scaled to the duration, chosen by the [pilot](../tests/probes/m5_pilot_results.json) to exercise the workflow with distinguishable outcomes. Not a preferred-regime finding |
 | Ending | A recommendation, or a stated reason to stop. An unresolved comparison that the evidence supports is a valid endpoint; a pilot need not produce a resolved ranking |
 
 ## 4. Conventions to settle with the implementation

@@ -197,10 +197,10 @@ The evaluation protocol names a scripted experiment-selection policy, comparable
 ### Block 8 — Device–Control Co-design
 
 - **Depends on:** Blocks 5, 6a, and 7; Block 6b for agent-driven co-design.
-- Compose device search and control: propose circuit parameters → construct the model → optimize admissible controls → evaluate verified performance → refine the device search.
+- Compose device search and control: propose circuit parameters → construct the model → optimize admissible controls → evaluate performance with the checks requested → refine the device search.
 - Declare device and control constraints, relevant parameter uncertainty, and a consistent evaluation and optimization-budget policy for comparing candidates; report any limits and differing conditions explicitly.
 - Support expert checkpoints and bounded agent execution, with evidence linking device candidates to their control runs. Calibration can supply model updates once available.
-- **Done when:** one documented investigation iterates jointly on circuit parameters and controls, reports a verified candidate comparison under the declared constraints and uncertainty, and ends with a supported recommendation or an explicit account of limitations. Users can still choose the standalone sweep/search or control workflows.
+- **Done when:** one documented investigation iterates jointly on circuit parameters and controls, reports a candidate comparison under the declared constraints and uncertainty, with the checks requested and their scope reported, and ends with a supported recommendation or an explicit account of limitations. Users can still choose the standalone sweep/search or control workflows.
 
 ### Block 9 — Cluster Executor
 
@@ -281,7 +281,7 @@ Core progression (capability development; users may enter or stop at any support
 | M2 — Local sweep with checks | Blocks 3–5 | documented local GPU sweep, reproducible, with its requested checks passing; run history and interruption diagnostics available |
 | M3 — Bounded agent-assisted exploration | Blocks 6a–6b | declared evidence, progress-based continuation/stopping, reliable local execution, configured-limit enforcement, independent usability, and baseline comparison pass Block 6b criteria; no performance advantage required |
 | M4 — Control | Block 7 | standalone control workflow; open baseline and Piccolo solve the same gate problem, each candidate passing the checks requested; agent integration demonstrated when Block 6b is available |
-| M5 — Device–control co-design | Block 8 | joint device/control investigation produces a verified comparison and supported findings under declared constraints and uncertainty |
+| M5 — Device–control co-design | Block 8 | joint device/control investigation produces a candidate comparison, with the checks requested and their scope reported, and supported findings under declared constraints and uncertainty |
 
 Supporting milestones are scheduled by their dependencies and research need:
 
@@ -304,6 +304,7 @@ The Harmoniqs conversation is gated by concrete artifacts: the shared ProblemSpe
 - Hardware drivers.
 - Unattended multi-day campaigns before bounded workflows and their operational quality are demonstrated.
 - A Julia substrate.
+- Co-design extensions, until a concrete workflow needs them: uncertainty evaluation beyond a single periodic circuit coordinate, flux correspondence, dressed-transition calibration, device-dependent relaxation, and lab-frame validation of the control model.
 
 ---
 

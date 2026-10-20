@@ -19,7 +19,7 @@ Core capability progression; users may enter, iterate within, and stop at any su
 | M2 — Local sweep with checks | Blocks 3–5 | **complete** |
 | M3 — Bounded agent-assisted exploration | Blocks 6a–6b | **complete** |
 | M4 — Control | Block 7 | **complete** |
-| M5 — Device–control co-design | Block 8 | open |
+| M5 — Device–control co-design | Block 8 | **complete** |
 
 Supporting milestones, scheduled by dependency and research need:
 
@@ -268,18 +268,18 @@ The [M4 guide](m4-guide.md) records the implementation approach; [ADR-0005](adr/
 
 ## M5 — Device–Control Co-design (Block 8)
 
-### [ ] Block 8 — Device–Control Co-design
+### [x] Block 8 — Device–Control Co-design
 
 **Depends on:** Blocks 5, 6a, and 7; Block 6b for agent-driven co-design.
 
-- [ ] Compose circuit-parameter proposal, model construction, admissible-control optimization, verified evaluation, and device-search refinement
-- [ ] Declared device/control constraints, relevant parameter uncertainty, and a consistent candidate comparison/optimization-budget policy; report any limits and differing conditions
-- [ ] Candidate lineage links device/model, control, and evaluation runs, including unsuccessful attempts
-- [ ] Nested work retains investigation usage accounting, verification, user-chosen review points, and any configured limits
-- [ ] Comparison report preserves failed candidates, limitations, and any differences in evaluation conditions
-- [ ] Documented co-design example; standalone sweep/search and control entry points remain supported
-- [ ] Applicable quality evidence recorded
-- [ ] **Done:** one joint device/control investigation produces a verified candidate comparison and supported recommendation or explicit account of limitations under the declared constraints and uncertainty
+- [x] Compose circuit-parameter proposal, model construction, admissible-control optimization, evaluation with the checks requested, and device-search refinement ([example](../examples/transmon-codesign/README.md), [CLI run](../tests/probes/m5_example_cli.json), [MCP run](../tests/probes/m5_example_mcp.json))
+- [x] Declared device/control constraints, relevant parameter uncertainty, and a consistent candidate comparison/optimization-budget policy; report any limits and differing conditions ([named transitions and Rabi-rate bounds](operations/control.md#named-transitions-and-rabi-rate-bounds), [evaluation samples](operations/control.md#evaluation-samples), [uncertainty diagnostic tests](../tests/test_control_uncertainty.py), [comparison guidance and budget policy](operations/control.md#co-design-comparison), [pilot](../tests/probes/m5_pilot_results.json))
+- [x] Candidate lineage links device/model, control, and evaluation runs, including unsuccessful attempts ([parent runs through MCP](../tests/test_mcp.py), [attempt fields on failed and interrupted attempts](../tests/test_control_investigations.py), [example lineage](../tests/probes/m5_example_mcp.json))
+- [x] Nested work retains investigation usage accounting, verification, user-chosen review points, and any configured limits ([control investigation tests](../tests/test_control_investigations.py), [example checkpoints and usage](../tests/probes/m5_example_cli.json))
+- [x] Comparison report preserves failed candidates, limitations, and any differences in evaluation conditions ([attempt table tests](../tests/test_control_investigations.py), [example report](../examples/transmon-codesign/README.md#results))
+- [x] Documented co-design example; standalone sweep/search and control entry points remain supported ([example](../examples/transmon-codesign/README.md), [example terms and rule tests](../tests/test_codesign_example.py))
+- [x] Applicable quality evidence recorded ([co-design acceptance](environment.md#co-design-example))
+- [x] **Done:** one joint device/control investigation produces a candidate comparison, with the checks requested and their scope reported, and supported recommendation or explicit account of limitations under the declared constraints and uncertainty ([results and limits](../examples/transmon-codesign/README.md#results))
 
 ---
 

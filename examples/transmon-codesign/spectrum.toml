@@ -1,0 +1,7 @@
+format_version = 1
+system = "system.toml"
+kind = "spectrum"
+levels = 3
+
+[parameters]
+Csh = 60.0

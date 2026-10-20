@@ -177,3 +177,10 @@ The following guidance is for findings; the harness does not certify it.
 - Keep spreads per solver; solvers optimise different objectives under different stopping rules.
 - State how the selected pulse and the ranked quantity were chosen.
 - Report a comparison the evidence does not support as unresolved; that is a valid endpoint.
+
+**Scope of a comparison.** The operations above compose into investigations for every supported model. The uncertainty diagnostic currently supports a single periodic circuit coordinate. For other models it is inapplicable, with its reason, and those models can still be modelled, solved and checked. A comparison's conclusions are conditional on its declared model, samples, constraints and search policy.
+
+- State what was not sampled. Evaluation samples are quasistatic offsets, not time-dependent noise, and a calibrated sample assumes perfect recalibration of the named transition.
+- Equal Rabi-rate bounds, or equal raw coefficients, do not imply equal hardware drive voltage or power.
+- A ranking found under one duration, bound policy or truncation can change under another; check it there before generalising it.
+- Report the evaluated candidates. Performance between them is not evaluated.

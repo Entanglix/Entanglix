@@ -530,3 +530,18 @@ These are four sessions on one gate, with one brief that prescribed the reported
 ```sh
 uv run --locked --exact python tests/probes/m4_sessions.py --workspace <workspace>... --output tests/probes/m4_sessions_results.json
 ```
+
+## Co-design example
+
+The [pilot](../tests/probes/m5_pilot.py) solves the [example](../examples/transmon-codesign/README.md) base in-process, with no runner jobs, in three regimes at three and five levels. It takes about 80 s on CPU:
+
+```sh
+JAX_PLATFORMS=cpu CUDA_VISIBLE_DEVICES='' OPENBLAS_NUM_THREADS=1 uv run --locked --exact --extra differentiable python tests/probes/m5_pilot.py --output tests/probes/m5_pilot_results.json
+```
+
+The example ran once through the CLI and once through a scripted MCP client, each in its own investigation started by the operator, with the runner profile `cuquantum,differentiable-cuda12`. Each run took about 70 s and 25 jobs. The [CLI summary](../tests/probes/m5_example_cli.json) and [MCP summary](../tests/probes/m5_example_mcp.json) retain:
+- the screen and every pulse's checks and diagnostics;
+- the scores, spreads and refinement changes;
+- the stop reason, the retained candidates, the usage and the run IDs.
+
+Full attempts remain under `research_runs/`. The [example tests](../tests/test_codesign_example.py) check that the drafted terms admit the screen and the candidates inside the range, refuse a value outside it, and follow the declared next-candidate rule.
