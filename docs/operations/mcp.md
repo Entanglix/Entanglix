@@ -74,6 +74,9 @@ Paths in these tables and `list_investigations` are relative to the configured r
 
 Attempt columns cover path, protocol, base, execution status, varied values,
 metrics, parents, checks and completed sweep-point count. A sweep is one row.
+Control rows add `seed`, the seed the solver reported using or, for an attempt
+without a result, the declared seed; `transition`, each named frame transition's
+levels and resolved frequency; and `termination`, the solver's termination record.
 Target and metric names appear once in `values.<target>` and `metrics.<name>`
 column headers. Sweep rows omit per-point varied values; use `read_run` or the
 retained point files for those values.

@@ -63,9 +63,9 @@ Compilation takes an empty existing directory. It verifies the loaded input dige
 
 ## MCP and research procedure
 
-The stdio server offers `control(protocol, investigation_id=None, base=None)` and `rerun_control(run)`. Its configuration supplies the runs root and runner environment; neither is a tool argument. A successful call returns admission while a separate supervisor executes the CPU job. Pass its returned path to `read_run`, optionally with a bounded wait. Source run paths must resolve inside the configured runs root. The same admission, check, cancellation and rerun rules apply as through the CLI.
+The stdio server offers `control(protocol, investigation_id=None, base=None, values=None, parent_run_ids=None)` and `rerun_control(run)`. Its configuration supplies the runs root and runner environment; neither is a tool argument. A successful call returns admission while a separate supervisor executes the CPU job. Pass its returned path to `read_run`, optionally with a bounded wait. Source run paths must resolve inside the configured runs root. The same admission, check, cancellation and rerun rules apply as through the CLI.
 
-The versioned `skills/control/SKILL.md` procedure directs a research agent to this reference, distinguishes solver completion from candidate checks, and explains exact bases and recovery. Copy it and this reference into the research workspace following the [MCP setup](mcp.md#research-workspace). Runtime approval may be needed for these job tools; a tool approval does not approve investigation terms.
+The versioned `skills/control/SKILL.md` procedure directs a research agent to this reference, distinguishes solver completion from candidate checks, and explains approved bases, recovery and the co-design procedure. Copy it and this reference into the research workspace following the [MCP setup](mcp.md#research-workspace). Runtime approval may be needed for these job tools; a tool approval does not approve investigation terms.
 
 ## Numerical evidence and limits
 
@@ -161,3 +161,19 @@ Replay and target share one evolution when requested together. A replay of the c
 The versioned corrector policy sets replay agreement to `1e-7` absolute fidelity; QuTiP uses `rtol=1e-11`, `atol=1e-13`, and `max_steps=100000` per interval. The fidelity tolerance exceeds the measured native/independent discrepancies in the bundled gate probe (about `1e-9`) while detecting incorrect solver reports. Constraint slack is `1e-7` GHz, GHz/ns, and GHz/ns² for amplitude, first and second differences respectively. This tolerates floating-point feasibility residuals without certifying stricter bounds. Timing limits come from the frozen ProblemSpec’s `free_dt` bracket: every step must lie within it, and total duration within `(N-1)` times its endpoints. Only roundoff slack, `32 × machine epsilon × max(returned duration, upper duration bound)`, is added to these timing limits. The target belongs to the input, not the policy. Constructed-pulse tests cover pass/fail, complex goals, non-contiguous subspaces, leakage, missing prerequisites and source tampering.
 
 A sample whose logical state overlaps its nominal state by less than `0.7` is listed under `ambiguous_samples` and still evaluated. The uncertainty diagnostics are closed-system evaluations under the rotating-wave approximation, and they say nothing about conditions that were not sampled.
+
+## Co-design comparison
+
+A co-design investigation composes these operations: screen device candidates with `simulate` or `sweep`, solve chosen candidates inside one approved control base with the screening runs as `parent_run_ids`, and evaluate returned pulses with requested checks and the uncertainty diagnostic. There is no comparison view. The investigation report's attempt table shows each control attempt's varied values, `seed`, derived `transition` and solver `termination`; record a comparison as a finding linked to its runs and checks.
+
+**Budget policy.** The approved base fixes the solver settings and the allowed seed set. The evidence requirements declare the seeds each candidate requires and how any additional attempts are allocated; these are recorded terms, which the harness does not enforce. The harness never adds seeds or solves. Solvers stop by different rules, so a comparison reports differing termination, such as a run that reached its iteration cap with `converged = false`.
+
+The following guidance is for findings; the harness does not certify it.
+
+- Measured performance of the returned pulses under the declared search policy is distinct from a device's attainable performance.
+- An independently checked admissible pulse establishes a lower bound on what its device attains, within the declared model and the reported numerical evidence. It is not a hardware guarantee. Finite search establishes no upper bound.
+- Consider every independently checked pulse known for each candidate, including pulses from other bound policies and other solvers. Each must satisfy the comparison's constraints and be evaluated, on the compared quantity, under the comparison's declared conditions.
+- Report seed spread and refinement change as evidence, not as thresholds that resolve a comparison. A small spread can mean every start found the same poor solution.
+- Keep spreads per solver; solvers optimise different objectives under different stopping rules.
+- State how the selected pulse and the ranked quantity were chosen.
+- Report a comparison the evidence does not support as unresolved; that is a valid endpoint.

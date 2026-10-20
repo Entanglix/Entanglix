@@ -26,4 +26,6 @@ class Backend:
         time.sleep(options.get("delay_seconds", 0))
         # The two middle intervals each rotate by pi/4 around X.
         pulse = Pulse(np.linspace(0, 10, 5), np.array([[0, 0.1, 0.1, 0, 0], [0, 0, 0, 0, 0]]))
-        return Solution(pulse, 0.0, {"converged": True}, {}, solver_reported_fidelity=1.0)
+        # Like the bundled solvers, report the seed used.
+        trace = {"effective_seed": problem["pulse"]["seed"]} if "seed" in problem["pulse"] else {}
+        return Solution(pulse, 0.0, {"converged": True}, trace, solver_reported_fidelity=1.0)

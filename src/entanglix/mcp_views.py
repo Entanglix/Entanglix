@@ -123,6 +123,31 @@ def investigation_status(record):
     return result
 
 
+def control_fields(run, result):
+    """The seed used, derived frame transition and solver termination of a control attempt."""
+    frozen = runner._load_record(run / "spec/control.toml")
+    trace = result.get("artifacts", {}).get("solver_trace")
+    if trace:
+        # GRAPE records the seed at top level, Piccolo under its initialization.
+        recorded = runner._load_record(run / trace["path"])
+        seed = recorded.get(
+            "effective_seed", recorded.get("initialization", {}).get("effective_seed")
+        )
+    else:
+        # Without a result, the declared seed is the one the attempt was launched with.
+        seed = frozen["pulse"].get("seed")
+    frame = frozen["frame"]
+    transition = {
+        name: {"levels": levels, "frequency_ghz": frame["frequencies_ghz"][name]}
+        for name, levels in frame.get("transitions", {}).items()
+    }
+    return {
+        "seed": seed,
+        "transition": transition or None,
+        "termination": result.get("termination"),
+    }
+
+
 def attempt_data(record):
     from entanglix.corrector.verification import verification_history
 
@@ -151,6 +176,8 @@ def attempt_data(record):
                     ]
                     for h in verification_history(Path(a["path"]))
                 ]
+                if protocol == "control":
+                    item.update(control_fields(Path(a["path"]), result))
             if protocol == "sweep":
                 from entanglix.protocols.sweep import partial_results
 

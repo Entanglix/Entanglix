@@ -1,7 +1,7 @@
 ---
 name: control
 description: Solve an Entanglix closed-system gate problem, inspect a returned pulse, request control checks, or re-solve frozen inputs.
-version: 0.1.2
+version: 0.1.3
 ---
 
 # Closed-system control
@@ -37,6 +37,20 @@ the default summary lists under `detail_omitted`. Leakage is diagnostic.
 Passing checks applies to the declared control model, not the
 RWA or device-model approximation. Different pulses from two solvers can both
 pass; compare their shared ProblemSpec digests and requested check outcomes.
+
+For device–control co-design, follow the control reference's co-design
+comparison. Use the approved base's declared frame, carriers, bounds and
+evaluation conditions. Screen candidates with `simulate` or `sweep`, then solve
+each chosen candidate inside the approved base, with its parameters and seed in
+`values` and the screening runs in `parent_run_ids`. Launch the seeds the
+evidence requirements name for each candidate, and add attempts only as they
+allocate them. Issue the checks and diagnostics explicitly or standing-requested
+in the evidence requirements. A declared evaluation or refinement table alone
+does not request a diagnostic. Compare in a finding: weigh every checked pulse
+known for each candidate, report seed spread, refinement change and differing
+termination as evidence, keep spreads per solver, state how the pulse and the
+compared quantity were chosen, and report an unsupported comparison as
+unresolved.
 
 Settle an interrupted attempt once ownership and group-liveness checks permit
 reconciliation. Use `rerun_control`, not a fresh solve of the same inputs, to

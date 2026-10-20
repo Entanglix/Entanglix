@@ -14,6 +14,7 @@ from pathlib import Path
 import pytest
 import tomli_w
 from test_control import control_files as control_files
+from test_control import transmon_control as transmon_control
 
 from entanglix.corrector.verification import check_run
 from entanglix.investigations import (
@@ -124,6 +125,15 @@ def approve(study, **changes):
     _, terms, _, path, _ = study
     revision = revise_investigation(path, copy.deepcopy(terms) | changes)["proposed_revision"]
     record_user_decision(path, "approve-revision", revision=revision)
+
+
+def attempt_row(path, run):
+    columns, rows = attempt_data(read_investigation(path))
+    return next(
+        dict(zip(columns, row, strict=True))
+        for row in rows
+        if Path(row[columns.index("path")]).name == run.name
+    )
 
 
 def finding(runs):
@@ -304,6 +314,10 @@ def test_control_varies_parameters_and_seeds_inside_one_base(varied_study):
     assert tomllib.loads((run / "spec/problem.toml").read_text())["pulse"]["seed"] == SEED
     system = tomllib.loads((run / "spec/system.toml").read_text())
     assert system["parameters"]["gamma"]["value"] == 0.02
+    row = attempt_row(path, run)
+    assert row["values.parameters.gamma"] == 0.02 and row["values.pulse.seed"] == SEED
+    assert row["seed"] == SEED and row["transition"] is None
+    assert row["termination"] == {"converged": True}
     assert (run / "spec/base/control.toml").read_bytes() == protocol.read_bytes()
     # An omitted value keeps the base's own and still passes the scope check.
     nominal = launch(varied_study, values={"pulse.seed": 7})
@@ -315,6 +329,7 @@ def test_control_varies_parameters_and_seeds_inside_one_base(varied_study):
     ):
         with pytest.raises(ValueError, match=message):
             launch(varied_study, values=values)
+    assert len(attempt_data(read_investigation(path))[1]) == 2
     # Solver settings and every other input stay exact.
     definition = tomllib.loads(protocol.read_text())
     definition["solver"]["options"] = {"delay_seconds": 0}
@@ -385,6 +400,8 @@ def test_control_execution_obeys_investigation_lifecycle(control_study, reason):
     record = read_run(Path(job["path"]))
     assert record["status"] == "aborted", record["log_tail"]
     assert job["exit_code"] == 130
+    row = attempt_row(path, Path(job["path"]))
+    assert row["status"] == "aborted" and row["seed"] == 7 and row["termination"] is None
     with pytest.raises(ProcessLookupError):
         os.killpg(record["start"]["process_group"], 0)
     usage = read_investigation(path)["usage"]
@@ -394,6 +411,28 @@ def test_control_execution_obeys_investigation_lifecycle(control_study, reason):
     if reason == "stop":
         record_user_decision(path, "resume")
         assert read_investigation(path)["state"] == "active"
+
+
+def test_attempt_table_shows_the_derived_transition(control_study, transmon_control):
+    _, terms, root, path, repository = control_study
+    protocol, definition = transmon_control
+    definition["solver"] = {"backend": "fixture"}
+    definition["pulse"]["T"], definition["problem"]["N"] = 10.0, 5
+    protocol.write_text(tomli_w.dumps(definition))
+    loaded = load_control(protocol)
+    scope = copy.deepcopy(terms["scope"])
+    scope["bases"][0]["inputs"] = loaded.input_digests
+    approve(control_study, scope=scope)
+    job = control(
+        protocol, runs_root=root, investigation_id=path.name, base="gate", repository=repository
+    )
+    assert read_run(Path(job["path"]))["status"] == "completed"
+    row = attempt_row(path, Path(job["path"]))
+    frequency = loaded.listing["resolved"]["transition_frequencies_ghz"]["junction_with_shunt"]
+    assert row["transition"] == {
+        "junction_with_shunt": {"levels": [0, 1], "frequency_ghz": frequency}
+    }
+    assert row["seed"] == 7
 
 
 def test_standalone_control_rerun_and_frozen_input_tampering(control_study):

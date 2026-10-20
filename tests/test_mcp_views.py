@@ -5,10 +5,11 @@ import json
 from pathlib import Path
 
 import pytest
+import tomli_w
 
 from entanglix import runner
 from entanglix.cli import main
-from entanglix.mcp_views import PAGE_SIZE, investigation_view, runs_view, table
+from entanglix.mcp_views import PAGE_SIZE, control_fields, investigation_view, runs_view, table
 
 
 def records(tmp_path, count):
@@ -263,3 +264,19 @@ def test_report_with_no_findings_says_none_recorded(tmp_path, monkeypatch):
     )
     report = investigation_report.report_investigation(tmp_path)
     assert "## Latest finding\n\nNo finding recorded." in report
+
+
+def test_control_seed_is_read_from_either_solver_trace_format(tmp_path):
+    for name in ("spec", "artifacts"):
+        (tmp_path / name).mkdir()
+    frozen = {"frame": {"frequencies_ghz": {"q": 5.0}}, "pulse": {"seed": 3}}
+    (tmp_path / "spec/control.toml").write_text(tomli_w.dumps(frozen))
+    result = {"artifacts": {"solver_trace": {"path": "artifacts/solver-trace.toml"}}}
+    for trace, seed in (
+        ({"effective_seed": 7}, 7),  # GRAPE
+        ({"initialization": {"kind": "random", "effective_seed": 7}}, 7),  # Piccolo
+        ({"initialization": {"kind": "zeros"}}, None),  # No seed was used.
+    ):
+        (tmp_path / "artifacts/solver-trace.toml").write_text(tomli_w.dumps(trace))
+        assert control_fields(tmp_path, result)["seed"] == seed
+    assert control_fields(tmp_path, {})["seed"] == 3

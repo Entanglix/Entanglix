@@ -142,6 +142,13 @@ def test_mcp_control_values_vary_inside_the_base(varied_study, tmp_path):
                 session, "read_run", {"run": job["path"], "wait_seconds": 30, "detail": True}
             )
             assert record["status"] == "completed", record["log_tail"]
+            table = await call(
+                session,
+                "read_investigation",
+                {"investigation": str(investigation), "view": "attempts"},
+            )
+            row = dict(zip(table["columns"], table["rows"][-1], strict=True))
+            assert row["seed"] == SEED and row["termination"] == {"converged": True}
             return Path(record["path"]), record["manifest"]
 
     run, manifest = asyncio.run(exercise())
