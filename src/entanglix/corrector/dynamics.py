@@ -28,6 +28,13 @@ def refinement_reason(loaded, policy):
         )
     except ValueError as exc:
         return str(exc)
+    frame = loaded.definition.evolution.frame if loaded.definition.evolution else None
+    for name, numbers in (frame.excitation_numbers if frame else {}).items():
+        if name in loaded.definition.refinement and numbers != list(range(len(numbers))):
+            return (
+                "refinement extends only the canonical frame excitation numbers 0, 1, ...; "
+                f"{name} declares {numbers}"
+            )
     return ""
 
 

@@ -54,9 +54,12 @@ Optional `[refinement.<subsystem>]` declares `retained_levels_step` and applicab
 truncated subsystem to be covered, at least one added retained level and two cutoff
 units. A missing or below-policy declaration does not block computation: the launch
 lists the affected checks as unavailable, with the reason. Explicit finite matrices
-have no truncation refinement. A check request can replace the entire declaration
-with `--refinement FILE`, using the same `[refinement.*]` tables. The request is frozen
-with its linked check run, and the source remains unchanged.
+have no truncation refinement. When a rotating frame declares `excitation_numbers` for
+a refined subsystem, they must be the canonical `0, 1, …`; refinement extends them to
+the added levels. Other numbers make the refinement checks unavailable, with the
+reason. A check request can replace the entire declaration with `--refinement FILE`,
+using the same `[refinement.*]` tables. The request is frozen with its linked check
+run, and the source remains unchanged.
 
 `[metrics.<name>]` may declare `kind = "endpoint_real"` for a Hermitian observable,
 with `observable = "excited"`. An observable `{kind = "coherence", subsystem = "q"}`

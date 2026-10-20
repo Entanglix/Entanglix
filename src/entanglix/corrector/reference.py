@@ -121,6 +121,12 @@ def prepare_refinement(loaded, directory: Path, policy):
         plan["engine"] = plan["engine"] if plan["device"] == "cpu" else "qutip-cpu"
         plan["device"] = "cpu"
         evolution = plan["evolution"]
+        if "frame" in evolution:
+            # Canonical excitation numbers extend with the added retained levels.
+            sizes = dict(zip(refined.subsystem_ids or (refined.id,), refined.dimensions))
+            for name, numbers in evolution["frame"]["excitation_numbers"].items():
+                if numbers == list(range(len(numbers))):
+                    numbers[:] = range(sizes[name])
         factor = policy.thresholds["refinement"]["tolerance_factor"]
         evolution["rtol"] = min(evolution["rtol"] * factor, policy.thresholds["refinement"]["rtol"])
         evolution["atol"] = min(evolution["atol"] * factor, policy.thresholds["refinement"]["atol"])

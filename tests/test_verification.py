@@ -15,6 +15,7 @@ from test_plans import simulation_file
 
 from entanglix.corrector import load_policy
 from entanglix.corrector.checks import output_checks, series_checks
+from entanglix.corrector.dynamics import check_listing, refined_segments
 from entanglix.corrector.reference import embed_state, prepare_refinement
 from entanglix.corrector.verification import check_run
 from entanglix.models import load_system
@@ -116,6 +117,54 @@ def test_reference_refines_every_subsystem_and_keeps_tensor_order(tmp_path):
     assert abs(reference.request.initial_state.reshape(7, 6)[1, 2]) == pytest.approx(1)
     assert reference.definition.engine == "qutip-cpu"
     assert reference.definition.evolution.rtol <= 1e-11
+
+
+def framed_refinement(tmp_path, numbers):
+    for name in ("system.toml", "qubit.toml"):
+        shutil.copyfile(ROOT / "examples/qubit-resonator" / name, tmp_path / name)
+    np.savez(tmp_path / "state.npz", initial=np.eye(30)[7])
+    plan = {
+        "format_version": 1,
+        "kind": "lindblad",
+        "refinement": {
+            "q": {"retained_levels_step": 1, "cutoff_steps": {"theta1": 2}},
+            "r": {"retained_levels_step": 1},
+        },
+        "evolution": {
+            "array_file": "state.npz",
+            "initial_state": "initial",
+            "times_ns": [0, 0.01],
+            "observables": {"number": "r.number"},
+            "frame": {
+                "frequencies_ghz": {"q": 5.0, "r": 7.0},
+                "rwa": True,
+                "excitation_numbers": numbers,
+            },
+        },
+    }
+    (tmp_path / "plan.toml").write_text(tomli_w.dumps(plan))
+    return load_plan(tmp_path / "system.toml", tmp_path / "plan.toml")
+
+
+def test_reference_extends_canonical_frame_excitation_numbers(tmp_path):
+    loaded = framed_refinement(tmp_path, {"q": [0, 1, 2, 3, 4, 5], "r": [0, 1, 2, 3, 4]})
+    target = tmp_path / "refined"
+    target.mkdir()
+    reference = prepare_refinement(loaded, target, load_policy())
+    assert reference.system.dimensions == (7, 6)
+    assert reference.definition.evolution.frame.excitation_numbers == {
+        "q": list(range(7)),
+        "r": list(range(6)),
+    }
+
+
+def test_noncanonical_frame_excitation_numbers_make_refinement_inapplicable(tmp_path):
+    loaded = framed_refinement(tmp_path, {"q": [0, 1, 2, 3, 4, 6]})
+    item = refined_segments(loaded, {}, load_policy())
+    assert item["outcome"] == "inapplicable"
+    assert "canonical frame excitation numbers" in item["reason"] and "q declares" in item["reason"]
+    listing = {entry["name"]: entry for entry in check_listing(loaded)["checks"]}
+    assert not listing["segments"]["available"] and listing["segments"]["reason"] == item["reason"]
 
 
 def test_reference_does_not_overwrite_another_leaf_with_a_generated_name(tmp_path):
