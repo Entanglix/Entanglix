@@ -2,6 +2,7 @@
 
 import hashlib
 import math
+import re
 import tomllib
 from dataclasses import dataclass, replace
 from pathlib import Path
@@ -14,7 +15,7 @@ from pydantic import Field, model_validator
 from entanglix.engines.frames import matrix, prepare_dynamics
 from entanglix.evolution import Carrier, EvolutionInput, RotatingFrame, normalize_input
 from entanglix.models import ConstructedSystem, StrictModel, load_system
-from entanglix.protocols.plans import FrameSpec
+from entanglix.protocols.plans import FrameSpec, Refinement
 
 AMICODE_REVISION = "cb717f57cb63fa292917188c8ca32f50ddcca539"
 STEP_RELATIVE_HALF_WIDTH = 1e-7
@@ -23,6 +24,7 @@ RESOLVED_RELATIVE_TOLERANCE = 1e-9
 Finite = Annotated[float, Field(allow_inf_nan=False)]
 Nonnegative = Annotated[float, Field(ge=0, allow_inf_nan=False)]
 Level = Annotated[int, Field(strict=True, ge=0)]
+EVALUATION_TARGET = re.compile(r"^(parameters|model\.offset_charges)\.[^.]+$")
 
 
 class ControlFrame(FrameSpec):
@@ -142,6 +144,29 @@ class Solver(StrictModel):
     options: dict[str, Any] = Field(default_factory=dict)
 
 
+class Evaluation(StrictModel):
+    """Samples for the requested uncertainty diagnostic; not part of the ProblemSpec."""
+
+    quantities: dict[str, Literal["drifting", "calibrated"]] = Field(min_length=1)
+    samples: list[dict[str, Finite]] = Field(min_length=1)
+    refinement: dict[str, Refinement] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def check_samples(self):
+        unknown = sorted(name for name in self.quantities if not EVALUATION_TARGET.fullmatch(name))
+        if unknown:
+            raise ValueError(
+                f"evaluation quantities must be parameters.<name> or "
+                f"model.offset_charges.<node>: {unknown}"
+            )
+        for index, sample in enumerate(self.samples):
+            if not sample or sample.keys() - self.quantities.keys():
+                raise ValueError(f"evaluation.samples[{index}] must set declared quantities")
+        if len({tuple(sorted(sample.items())) for sample in self.samples}) != len(self.samples):
+            raise ValueError("evaluation samples must be unique")
+        return self
+
+
 class ControlSpec(StrictModel):
     format_version: Literal[1]
     system: str
@@ -149,6 +174,7 @@ class ControlSpec(StrictModel):
     frame: ControlFrame
     channels: list[Channel] = Field(min_length=1)
     rabi_bounds: RabiBounds | None = None
+    evaluation: Evaluation | None = None
     goal: Goal
     pulse: Pulse
     problem: Problem
@@ -202,16 +228,33 @@ def _vary(document: dict, values: dict) -> None:
             raise ValueError(f"control varies only parameters.<name> and pulse.seed: {target}")
 
 
-def _with_parameters(content: bytes, parameters: dict[str, float]) -> bytes:
-    """Override declared system parameters as simulate does; the result is the frozen system."""
-    if not parameters:
+def override_system(content: bytes, changes: dict[str, float]) -> bytes:
+    """Set declared parameters and circuit offset charges, named by evaluation target."""
+    if not changes:
         return content
     document = tomllib.loads(content.decode("utf-8"))
-    for name, value in parameters.items():
-        if name not in document.get("parameters", {}):
-            raise ValueError(f"parameter override must name a finite declared parameter: {name}")
-        document["parameters"][name]["value"] = value
+    for target, value in changes.items():
+        if target.startswith("parameters."):
+            name = target.removeprefix("parameters.")
+            if name not in document.get("parameters", {}):
+                raise ValueError(
+                    f"parameter override must name a finite declared parameter: {name}"
+                )
+            document["parameters"][name]["value"] = value
+        else:
+            node = target.removeprefix("model.offset_charges.")
+            charges = document["model"].get("offset_charges", {})
+            if node not in charges:
+                raise ValueError(f"offset charge must name a declared circuit node: {node}")
+            charges[node] = value
     return tomli_w.dumps(document).encode("utf-8")
+
+
+def _with_parameters(content: bytes, parameters: dict[str, float]) -> bytes:
+    """Override declared system parameters as simulate does; the result is the frozen system."""
+    return override_system(
+        content, {f"parameters.{name}": value for name, value in parameters.items()}
+    )
 
 
 def _agreed(declared, derived, label):
@@ -344,6 +387,9 @@ def load_control(protocol: Path, *, values: dict[str, float] | None = None) -> L
         raise ValueError("control.system must name a file beside the control spec")
     authored = source.read_bytes()
     original = load_system(source, content=_with_parameters(authored, spec.parameters))
+    if spec.evaluation is not None:
+        # Only the names are checked here; the corrector builds each sampled model.
+        override_system(authored, dict.fromkeys(spec.evaluation.quantities, 0.0))
     paths, hashes = _system_inputs(source, original, reserved={"control.toml", "problem.toml"})
     # Base digests and freezing checks use the authored bytes, before any override.
     hashes["system.toml"] = hashlib.sha256(authored).hexdigest()

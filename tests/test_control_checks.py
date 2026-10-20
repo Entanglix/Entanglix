@@ -301,10 +301,10 @@ def test_control_check_rejects_inconsistent_source_and_refinement(
     candidate, runner_repository, tmp_path
 ):
     run = retained_candidate(candidate, tmp_path)
-    with pytest.raises(ValueError, match="do not use a refinement"):
-        check_run(
-            run, ("replay",), repository=runner_repository, refinement=tmp_path / "absent.toml"
-        )
+    replacement = tmp_path / "refinement.toml"
+    replacement.write_text("[refinement]\n[other]\n")
+    with pytest.raises(ValueError, match="only \\[refinement"):
+        check_run(run, ("replay",), repository=runner_repository, refinement=replacement)
     result = read_run(run)["result"]
     result["problem_sha256"] = "wrong"
     publish_toml(run / "result.toml", result, replace=True)

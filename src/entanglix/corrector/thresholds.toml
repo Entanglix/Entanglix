@@ -31,3 +31,7 @@ ddu_atol_ghz_per_ns2 = 1e-7
 rtol = 1e-11
 atol = 1e-13
 max_steps = 100000
+
+[uncertainty]
+# A sampled logical state whose overlap with its nominal state is below this is reported as ambiguous.
+min_state_overlap = 0.7

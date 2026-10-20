@@ -4,8 +4,8 @@
   "device": "cuda",
   "records": [
     {
-      "run_id": "r20261011T163128667115Z-e159d81b",
-      "path": "/home/paimon/Projects/Entanglix/research_runs/readout/r20261011T163128667115Z-e159d81b",
+      "run_id": "r20261020T022623292026Z-874724bd",
+      "path": "/home/paimon/Projects/Entanglix/research_runs/readout/r20261020T022623292026Z-874724bd",
       "parent_run_ids": [],
       "engine": "cudensitymat",
       "device": "cuda",
@@ -17,37 +17,37 @@
         "coherence": [
           [
             0.9972712431775534,
-            0.9964493162451323,
-            0.9933265913194013
+            0.9964493162451209,
+            0.9933265913194089
           ],
           [
             0.995635134032313,
-            0.9916079302267833,
-            0.9838385935789918
+            0.9916079302267916,
+            0.9838385935789774
           ],
           [
             0.9938898176676282,
-            0.9884011896651095,
-            0.9766143307629942
+            0.988401189665096,
+            0.9766143307629733
           ]
         ]
       },
       "code": {
-        "revision": "c1acaf4c52a71b2606ee1b5db1d57bdd5d35abbb",
+        "revision": "554336e0c2aac53b62a2d912fd001a0b426ce9b8",
         "dirty": true,
-        "patch_sha256": "747b7e4aa14e8f69e50e65f6a56d6e92f5b5d9126adc0829a931db5188f72646",
+        "patch_sha256": "2bde1d0894f2f71ad9ecefefd4bd0c98d6333bdbcb2430f4e2ab448d6703b470",
         "untracked_sha256": {}
       },
       "env_hash": "86f2a1dcacb266e37322ec5db9100478a493d92ce4a30004c4076ce24b4ba2d1",
       "plan_sha256": "f447c5ebd97288507aaf0d8e1864b861d5122c3eb03a9a08f2a405d5ac503a9c",
       "usage": {
-        "wall_seconds": 468.3707427350455,
-        "gpu_seconds": 470.00472959998297,
+        "wall_seconds": 465.4656803460093,
+        "gpu_seconds": 467.05134319805074,
         "uncertain": false
       },
       "automatic_checks": false,
-      "verification_run_id": "r20261011T163917415102Z-0b8c51d8",
-      "policy_version": "d67c3a1223a85c5b8b6c9e64b6795abe774bdd2fc040b77f6f86231d1934f729",
+      "verification_run_id": "r20261020T023409111503Z-c7696dd2",
+      "policy_version": "ee3237e19301045bb9e12c86e28d5f78bab0c031ead112dad000fe71b085bcf6",
       "report": {
         "kind": "lindblad",
         "requested_checks": [
@@ -56,7 +56,7 @@
           "diagnostics",
           "declared_expectation"
         ],
-        "work_seconds": 0.7600022190017626,
+        "work_seconds": 0.7654059879714623,
         "checks": [
           {
             "name": "integrity",
@@ -83,12 +83,12 @@
               {
                 "name": "trace",
                 "tolerance": 1e-08,
-                "maximum_residual": 1.313559730683336e-14
+                "maximum_residual": 1.0308400130926732e-14
               },
               {
                 "name": "hermiticity",
                 "tolerance": 1e-08,
-                "maximum_residual": 1.8203058063600982e-14
+                "maximum_residual": 1.772041143048501e-14
               },
               {
                 "name": "positivity",
@@ -109,7 +109,7 @@
                 "name": "observable_consistency",
                 "observable": "photons",
                 "tolerance": 1e-06,
-                "maximum_residual": 4.903438401264081e-16
+                "maximum_residual": 4.675713294630378e-16
               },
               {
                 "name": "observable_consistency",
@@ -121,7 +121,7 @@
                 "name": "observable_consistency",
                 "observable": "excited",
                 "tolerance": 1e-06,
-                "maximum_residual": 5.934584987618619e-15
+                "maximum_residual": 6.442119641549196e-15
               },
               {
                 "name": "metric_consistency",
@@ -186,12 +186,12 @@
               {
                 "name": "trace",
                 "tolerance": 1e-08,
-                "maximum_residual": 1.3325233004809218e-14
+                "maximum_residual": 9.490702426058111e-15
               },
               {
                 "name": "hermiticity",
                 "tolerance": 1e-08,
-                "maximum_residual": 1.773166987954833e-14
+                "maximum_residual": 1.5711163142554514e-14
               },
               {
                 "name": "positivity",
@@ -202,25 +202,25 @@
                 "name": "observable",
                 "observable": "photons",
                 "tolerance": 1e-06,
-                "maximum_residual": 1.7279738195874472e-09
+                "maximum_residual": 1.7279720848639712e-09
               },
               {
                 "name": "observable",
                 "observable": "coherence",
                 "tolerance": 1e-06,
-                "maximum_residual": 1.0673468705012097e-08
+                "maximum_residual": 1.0673452974157562e-08
               },
               {
                 "name": "observable",
                 "observable": "excited",
                 "tolerance": 1e-06,
-                "maximum_residual": 5.791886970030191e-10
+                "maximum_residual": 5.791862545123649e-10
               },
               {
                 "name": "metric",
                 "metric": "coherence",
                 "tolerance": 1e-06,
-                "maximum_residual": 2.122323738973364e-08
+                "maximum_residual": 2.1223231727596215e-08
               }
             ],
             "local_coverage": [
@@ -360,13 +360,13 @@
             "top_level_population": [
               {
                 "subsystem_index": 0,
-                "maximum_population": 8.368088350272641e-13,
+                "maximum_population": 8.368088350271292e-13,
                 "warning_points": 0,
                 "threshold": 1e-06
               },
               {
                 "subsystem_index": 1,
-                "maximum_population": 1.2701682459287351e-07,
+                "maximum_population": 1.2701682459284858e-07,
                 "warning_points": 0,
                 "threshold": 1e-06
               }
@@ -405,10 +405,10 @@
       }
     },
     {
-      "run_id": "r20261011T163920442057Z-75b93a67",
-      "path": "/home/paimon/Projects/Entanglix/research_runs/readout/r20261011T163920442057Z-75b93a67",
+      "run_id": "r20261020T023412104275Z-5f08cd6b",
+      "path": "/home/paimon/Projects/Entanglix/research_runs/readout/r20261020T023412104275Z-5f08cd6b",
       "parent_run_ids": [
-        "r20261011T163128667115Z-e159d81b"
+        "r20261020T022623292026Z-874724bd"
       ],
       "engine": "cudensitymat",
       "device": "cuda",
@@ -420,37 +420,37 @@
         "coherence": [
           [
             0.9972712431775534,
-            0.9964493162451036,
-            0.9933265913193994
+            0.9964493162451153,
+            0.9933265913194147
           ],
           [
             0.995635134032313,
-            0.9916079302267902,
-            0.9838385935789851
+            0.9916079302267762,
+            0.983838593579
           ],
           [
             0.9938898176676282,
-            0.9884011896651269,
-            0.9766143307629844
+            0.9884011896651129,
+            0.976614330762996
           ]
         ]
       },
       "code": {
-        "revision": "c1acaf4c52a71b2606ee1b5db1d57bdd5d35abbb",
+        "revision": "554336e0c2aac53b62a2d912fd001a0b426ce9b8",
         "dirty": true,
-        "patch_sha256": "747b7e4aa14e8f69e50e65f6a56d6e92f5b5d9126adc0829a931db5188f72646",
+        "patch_sha256": "2bde1d0894f2f71ad9ecefefd4bd0c98d6333bdbcb2430f4e2ab448d6703b470",
         "untracked_sha256": {}
       },
       "env_hash": "86f2a1dcacb266e37322ec5db9100478a493d92ce4a30004c4076ce24b4ba2d1",
       "plan_sha256": "f447c5ebd97288507aaf0d8e1864b861d5122c3eb03a9a08f2a405d5ac503a9c",
       "usage": {
-        "wall_seconds": 462.4415127019747,
-        "gpu_seconds": 464.01861539599486,
+        "wall_seconds": 460.15241717000026,
+        "gpu_seconds": 461.7209901569877,
         "uncertain": false
       },
       "automatic_checks": false,
-      "verification_run_id": "r20261011T164703091207Z-01f663c0",
-      "policy_version": "d67c3a1223a85c5b8b6c9e64b6795abe774bdd2fc040b77f6f86231d1934f729",
+      "verification_run_id": "r20261020T024152471155Z-6c1ae9a3",
+      "policy_version": "ee3237e19301045bb9e12c86e28d5f78bab0c031ead112dad000fe71b085bcf6",
       "report": {
         "kind": "lindblad",
         "requested_checks": [
@@ -459,7 +459,7 @@
           "diagnostics",
           "declared_expectation"
         ],
-        "work_seconds": 0.7722502679680474,
+        "work_seconds": 0.7637568620266393,
         "checks": [
           {
             "name": "integrity",
@@ -486,12 +486,12 @@
               {
                 "name": "trace",
                 "tolerance": 1e-08,
-                "maximum_residual": 1.1860613309526596e-14
+                "maximum_residual": 1.0308400130926732e-14
               },
               {
                 "name": "hermiticity",
                 "tolerance": 1e-08,
-                "maximum_residual": 1.859829606543303e-14
+                "maximum_residual": 1.772041143048501e-14
               },
               {
                 "name": "positivity",
@@ -512,19 +512,19 @@
                 "name": "observable_consistency",
                 "observable": "photons",
                 "tolerance": 1e-06,
-                "maximum_residual": 4.2407475274862873e-16
+                "maximum_residual": 4.86031912945262e-16
               },
               {
                 "name": "observable_consistency",
                 "observable": "coherence",
                 "tolerance": 1e-06,
-                "maximum_residual": 1.5700924586837752e-16
+                "maximum_residual": 1.2412670766236366e-16
               },
               {
                 "name": "observable_consistency",
                 "observable": "excited",
                 "tolerance": 1e-06,
-                "maximum_residual": 5.1041637004225145e-15
+                "maximum_residual": 5.157705864963351e-15
               },
               {
                 "name": "metric_consistency",
@@ -589,12 +589,12 @@
               {
                 "name": "trace",
                 "tolerance": 1e-08,
-                "maximum_residual": 1.0537866028004367e-14
+                "maximum_residual": 9.490702426058111e-15
               },
               {
                 "name": "hermiticity",
                 "tolerance": 1e-08,
-                "maximum_residual": 1.5711163142554514e-14
+                "maximum_residual": 1.7751356512805815e-14
               },
               {
                 "name": "positivity",
@@ -605,25 +605,25 @@
                 "name": "observable",
                 "observable": "photons",
                 "tolerance": 1e-06,
-                "maximum_residual": 1.7279635639022572e-09
+                "maximum_residual": 1.7279746800102913e-09
               },
               {
                 "name": "observable",
                 "observable": "coherence",
                 "tolerance": 1e-06,
-                "maximum_residual": 1.0673388449412723e-08
+                "maximum_residual": 1.0673475860394885e-08
               },
               {
                 "name": "observable",
                 "observable": "excited",
                 "tolerance": 1e-06,
-                "maximum_residual": 5.791773727281679e-10
+                "maximum_residual": 5.791893631368339e-10
               },
               {
                 "name": "metric",
                 "metric": "coherence",
                 "tolerance": 1e-06,
-                "maximum_residual": 2.1223226842614906e-08
+                "maximum_residual": 2.1223235502354498e-08
               }
             ],
             "local_coverage": [
@@ -763,13 +763,13 @@
             "top_level_population": [
               {
                 "subsystem_index": 0,
-                "maximum_population": 8.368088350267194e-13,
+                "maximum_population": 8.368088350269093e-13,
                 "warning_points": 0,
                 "threshold": 1e-06
               },
               {
                 "subsystem_index": 1,
-                "maximum_population": 1.27016824592869e-07,
+                "maximum_population": 1.2701682459290107e-07,
                 "warning_points": 0,
                 "threshold": 1e-06
               }
@@ -812,6 +812,6 @@
     "code_matches": true,
     "environment_matches": true
   },
-  "replay_maximum_residual": 2.7464571460754892e-12,
+  "replay_maximum_residual": 3.125480291956629e-12,
   "replay_atol": 1e-07
 }

@@ -251,6 +251,8 @@ class ConstructedSystem:
     operator_factors: dict[str, tuple[np.ndarray, ...]] = field(default_factory=dict)
     drive_factors: dict[str, tuple[np.ndarray, ...]] = field(default_factory=dict)
     dissipator_factors: dict[str, tuple[np.ndarray, ...]] = field(default_factory=dict)
+    # Retained eigenstates in the charge basis of a single periodic circuit coordinate.
+    charge_basis_vectors: np.ndarray | None = None
 
     def qutip_hamiltonian(self):
         import qutip as qt
@@ -512,6 +514,9 @@ def _construct_circuit(spec: SystemSpec):
         for index in categories["periodic"]:
             setattr(circuit, f"ng{index}", -coordinate_offsets[index - 1])
         eigenvalues, eigenvectors = circuit.eigensys(evals_count=truncation.retained_levels)
+        charge_vectors = (
+            np.asarray(eigenvectors) if count == 1 and categories["periodic"] == [1] else None
+        )
         projection = eigenvectors.conj().T
         identity = np.eye(truncation.retained_levels)
         coordinate_charges = {}
@@ -590,6 +595,7 @@ def _construct_circuit(spec: SystemSpec):
         (truncation.retained_levels,),
         "isolated_eigenstates",
         provenance,
+        charge_vectors,
     )
 
 
@@ -758,6 +764,7 @@ def _load_system(
             f"{'.'.join(map(str, error['loc']))}: {error['msg']}" for error in exc.errors()
         )
         raise SpecError(issues) from exc
+    charge_vectors = None
     if isinstance(spec.model, CompositeSpec):
         if not allow_composite:
             raise SpecError("referenced subsystem cannot itself be a composite")
@@ -777,7 +784,9 @@ def _load_system(
         operator_factors = {name: (operator,) for name, operator in operators.items()}
         subsystem_ids = (spec.id,)
     else:
-        hamiltonian, operators, dimensions, basis, provenance = _construct_circuit(spec)
+        hamiltonian, operators, dimensions, basis, provenance, charge_vectors = _construct_circuit(
+            spec
+        )
         terms = (TensorTerm(1, (hamiltonian,)),)
         operator_factors = {name: (operator,) for name, operator in operators.items()}
         subsystem_ids = (spec.id,)
@@ -827,6 +836,7 @@ def _load_system(
         operator_factors,
         drive_factors,
         dissipator_factors,
+        charge_vectors,
     )
 
 

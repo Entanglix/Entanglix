@@ -182,7 +182,9 @@ def execute_verification(run: Path):
                 archive["times_ns"], archive["amplitudes_ghz"], str(archive["kind"].item())
             )
         kind, has_dynamics = "control", False
-        outcomes = control_checks(loaded, pulse, result, request["checks"], policy)
+        outcomes = control_checks(
+            loaded, pulse, result, request["checks"], policy, declaration=declaration
+        )
     elif hasattr(loaded, "points"):
         from entanglix.corrector.sweeps import sweep_checks
 

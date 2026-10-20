@@ -80,6 +80,8 @@ CHECK_DEFINITIONS = {
     "replay": "Independent control fidelity disagrees with the solver's report",
     "target": "Independent control fidelity misses the declared target",
     "constraints": "The returned control pulse violates a declared constraint",
+    "uncertainty": "Fidelity and leakage of the returned pulse over the declared evaluation samples; descriptive only, with no pass/fail outcome",
+    "uncertainty_refinement": "Truncation sensitivity of the sampled fidelities and their minimum; descriptive only, with no pass/fail outcome",
 }
 
 
@@ -89,7 +91,7 @@ def relevant_checks(kind: str) -> tuple[str, ...]:
     if kind == "spectrum":
         return ("spectral_refinement",)
     if kind == "control":
-        return ("replay", "target", "constraints")
+        return ("replay", "target", "constraints", "uncertainty", "uncertainty_refinement")
     raise ValueError(f"unknown computation definition: {kind!r}")
 
 
@@ -230,10 +232,12 @@ def create_verification_run(
         )
     if not consistent:
         raise ValueError("source result is inconsistent with its trusted execution plan")
-    declaration = {} if is_control else point.definition.refinement
+    if is_control:
+        evaluation = loaded.definition.evaluation
+        declaration = evaluation.refinement if evaluation is not None else {}
+    else:
+        declaration = point.definition.refinement
     if refinement is not None:
-        if is_control:
-            raise ValueError("control checks do not use a refinement declaration")
         document = tomllib.loads(refinement.read_text())
         if set(document) != {"refinement"}:
             raise ValueError("replacement file must contain only [refinement.*] tables")

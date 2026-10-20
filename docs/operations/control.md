@@ -30,6 +30,10 @@ An optional `[rabi_bounds]` table names a frame transition by `subsystem` and de
 
 A declared number next to its derivation must agree within the same tolerance; the declared frame frequency or bound is then used, and following carriers take their frame's number. The frozen `control.toml` keeps both the declaration and the resolved numbers. The launch listing shows them under `resolved`, and the generated ProblemSpec holds only numbers.
 
+### Evaluation samples
+
+An optional `[evaluation]` table declares the conditions for the requested uncertainty diagnostic. It belongs to the control input, so an approved base fixes it for every candidate, and it is not part of the generated ProblemSpec. `quantities` maps each sampled target, `parameters.<name>` or `model.offset_charges.<node>`, to `drifting` (drive frequencies are not recalibrated for it) or `calibrated` (the named transition and its following carriers are re-resolved for it). `samples` is a list of distinct, nonempty tables of absolute values for declared quantities, for example `{ "parameters.EJ" = 14.985, "model.offset_charges.1" = 0.5 }`. Quantities a sample omits keep the run's values. An optional `[evaluation.refinement.<subsystem>]` uses the simulation refinement form (`retained_levels_step`, `cutoff_steps`). Targets are checked against the system at launch.
+
 ## Export and preview
 
 ```python
@@ -137,7 +141,7 @@ The Julia entry exports the stored N knot values without shifting or resampling 
 
 ## Requested checks
 
-A completed candidate has three relevant checks, shown at launch and by `read-run`:
+A completed candidate has three relevant checks, five when the run declares an evaluation table, shown at launch and by `read-run`:
 
 ```sh
 uv run --locked --exact entanglix check RUN replay target constraints
@@ -148,7 +152,12 @@ With no names, `check RUN` only lists them. Named checks create one linked CPU v
 - `replay` evolves the neutral pulse on QuTiP's `vern9` engine and compares its independently calculated leakage-aware average gate fidelity with the solver's separately reported fidelity. Missing solver-reported fidelity makes this check inapplicable. The replay uses an entangled input with a passive ancilla to retain relative column phases and leakage, in the declared control frame. Its leakage is the average probability of leaving the declared computational subspace and has no pass/fail outcome.
 - `target` compares that independently calculated fidelity with the declared `final_fidelity`. Without a target it is inapplicable. A below-target pulse can pass replay and fail only target. The replay-agreement tolerance does not lower the target.
 - `constraints` checks channel amplitudes, duration, equal intervals and every declared first/second derivative bound. It includes the terminal knot in the discrete differences, adds no endpoint constraint and lists any uncovered constraints. Malformed pulse arrays fail this check; unsupported problem semantics are inapplicable with a reason.
+- `uncertainty` evaluates the returned pulse, unchanged and not renormalised, on each declared evaluation sample. The figure of merit is the replay check's fidelity and leakage, on QuTiP. A calibration model applies only the sample's calibrated changes, and the named transition and following carriers are resolved on it; the model with every change applied is evaluated at those frequencies. Without calibrated changes, the run's own frame and carriers are used. Logical states are each sample's own eigenstates, phase-aligned to the nominal ones by charge-basis overlap. Each sample reports its values, calibrated quantities, frame and carrier frequencies, dimensions, integration settings, fidelity, leakage and state overlaps. The nominal model is reported separately and is not part of the minimum, which is the lowest declared-sample fidelity with its index in table order. There is no pass/fail outcome.
+- `uncertainty_refinement` re-evaluates the nominal model and every sample at the declared refinement, keeping each one's resolved drive. Each refined row keeps the sample's identity and reports its fidelity and leakage changes; the item reports the refined minimum, the unrefined minimum and the change in the minimum. `check RUN … --refinement FILE`, with `[refinement.<subsystem>]` tables, replaces the declared refinement, and the replacement is frozen in the verification run.
+- The two uncertainty diagnostics are inapplicable, with a reason, without an evaluation table; for anything other than a single periodic circuit coordinate, where state correspondence is unsupported; and for calibrated samples without a named frame transition followed by every carrier. Refinement is also inapplicable without a declaration, below the policy minimum steps, or with frame `excitation_numbers` other than the canonical `0, 1, …`, which refinement extends.
 
 Replay and target share one evolution when requested together. A replay of the closed RWA control model measures neither device-model accuracy nor the rotating-wave approximation. Additional evidence requires a separately requested lab-frame calculation.
 
 The versioned corrector policy sets replay agreement to `1e-7` absolute fidelity; QuTiP uses `rtol=1e-11`, `atol=1e-13`, and `max_steps=100000` per interval. The fidelity tolerance exceeds the measured native/independent discrepancies in the bundled gate probe (about `1e-9`) while detecting incorrect solver reports. Constraint slack is `1e-7` GHz, GHz/ns, and GHz/ns² for amplitude, first and second differences respectively. This tolerates floating-point feasibility residuals without certifying stricter bounds. Timing limits come from the frozen ProblemSpec’s `free_dt` bracket: every step must lie within it, and total duration within `(N-1)` times its endpoints. Only roundoff slack, `32 × machine epsilon × max(returned duration, upper duration bound)`, is added to these timing limits. The target belongs to the input, not the policy. Constructed-pulse tests cover pass/fail, complex goals, non-contiguous subspaces, leakage, missing prerequisites and source tampering.
+
+A sample whose logical state overlaps its nominal state by less than `0.7` is listed under `ambiguous_samples` and still evaluated. The uncertainty diagnostics are closed-system evaluations under the rotating-wave approximation, and they say nothing about conditions that were not sampled.
