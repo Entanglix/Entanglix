@@ -45,6 +45,13 @@ Only the first row carries the MCP read-only annotation. Jobs and writes may req
 
 Control tools take an authored protocol path, or a source run path for `rerun_control`. An investigation control request names an approved base and passes varied values in `values`, as `simulate` does. Control solves and their requested checks run on CPU; see the [control reference](control.md).
 
+`simulate`, `sweep`, `control` and `run_script` accept an optional `parent_run_ids` list, recorded in the new run's `parent_run_ids` in the given order, as the CLI's repeated `--parent-run ID` is. IDs are recorded as given; pass the `run_id` values returned by earlier job tools. Reruns and checks set their own parent. For example, a candidate solve linked to the screening sweep that chose it:
+
+```json
+{"tool": "sweep", "arguments": {"protocol": "co-design/sweep.toml"}}
+{"tool": "control", "arguments": {"protocol": "co-design/control.toml", "parent_run_ids": ["<run_id returned by sweep>"]}}
+```
+
 Job tools do not expose dry runs. Use the CLI's `--dry-run` for protocol previews where the required device is visible; an agent session with no CUDA device has no CUDA preview through this server. `check` requires named checks; `read_run` includes the relevant-check listing without launching a check. Each successful tool reply carries one JSON text payload, without a duplicate structured-content payload. Lists are wrapped under `result`; objects are carried directly.
 
 ### Investigation views and tables

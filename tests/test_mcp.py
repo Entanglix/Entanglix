@@ -11,6 +11,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 import pytest
+import tomli_w
 
 pytest.importorskip("mcp")
 from mcp import Client, ClientSession, StdioServerParameters
@@ -692,6 +693,74 @@ def test_transport_checks_replay_and_admission_refusals(study, runner_repository
 
     asyncio.run(exercise())
     assert read_investigation(investigation)["usage"]["jobs"] == 2
+
+
+def test_job_tools_record_parent_lineage_as_the_cli(study, runner_repository, tmp_path):
+    protocol, _, _, runs, investigation = study
+    system = protocol.parent / "system.toml"
+    script = protocol.parent / "script.py"
+    script.write_text(
+        "import os\nfrom pathlib import Path\nfrom entanglix.runner import publish_toml\n"
+        "publish_toml(Path(os.environ['ENTANGLIX_RUN_DIR'])/'result.toml', "
+        "{'engine':'authored','metrics':{'value':1}}, replace=True)\n"
+    )
+    grid = protocol.parent / "sweep.toml"
+    grid.write_text(
+        tomli_w.dumps(
+            {
+                "format_version": 1,
+                "base": "simulate.toml",
+                "axes": [{"id": "frequency", "target": "parameters.frequency", "values": [0.2]}],
+            }
+        )
+    )
+    requests = {
+        "simulate": ({"protocol": str(protocol)}, ["simulate", str(protocol)]),
+        "sweep": ({"protocol": str(grid)}, ["sweep", str(grid)]),
+        "run_script": (
+            {"system": str(system), "script": str(script)},
+            ["run-script", str(script), "--system", str(system)],
+        ),
+    }
+
+    async def exercise():
+        async with client(runner_repository, runs, tmp_path / "state") as session:
+            first = await call(session, "simulate", {"protocol": str(protocol)})
+            second = json.loads(
+                await cli_result(
+                    runner_repository, "simulate", str(protocol), "--runs-root", str(runs)
+                )
+            )
+            parents = [first["run_id"], Path(second["path"]).name]
+            flags = [item for parent in parents for item in ("--parent-run", parent)]
+            for name, (arguments, command) in requests.items():
+                launch = await call(session, name, arguments | {"parent_run_ids": parents})
+                record = await call(
+                    session, "read_run", {"run": launch["path"], "wait_seconds": 30, "detail": True}
+                )
+                assert record["status"] == "completed", record["log_tail"]
+                cli = json.loads(
+                    await cli_result(runner_repository, *command, "--runs-root", str(runs), *flags)
+                )
+                assert (
+                    record["manifest"]["parent_run_ids"]
+                    == read_run(Path(cli["path"]))["manifest"]["parent_run_ids"]
+                    == parents
+                ), name
+            count = len(list(runs.glob("*/*/run.toml")))
+            refused = await session.call_tool(
+                "simulate",
+                {
+                    "protocol": str(protocol),
+                    "investigation_id": investigation.name,
+                    "base": "missing",
+                    "parent_run_ids": parents,
+                },
+            )
+            assert refused.is_error
+            assert len(list(runs.glob("*/*/run.toml"))) == count
+
+    asyncio.run(exercise())
 
 
 @pytest.mark.gpu

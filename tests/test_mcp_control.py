@@ -148,3 +148,32 @@ def test_mcp_control_values_vary_inside_the_base(varied_study, tmp_path):
     assert manifest["launch"]["varied_values"] == {"parameters.gamma": 0.03, "pulse.seed": SEED}
     assert _load_record(run / "spec/control.toml")["pulse"]["seed"] == SEED
     assert _load_record(run / "spec/system.toml")["parameters"]["gamma"]["value"] == 0.03
+
+
+def test_mcp_control_records_parent_lineage_as_the_cli(control_study, tmp_path):
+    protocol, _, root, _, repository = control_study
+    parents = ["r-screen-a", "r-screen-b"]
+
+    async def exercise():
+        cli = json.loads(
+            await cli_result(
+                repository, "control", str(protocol), "--runs-root", str(root),
+                "--parent-run", parents[0], "--parent-run", parents[1],
+            )
+        )  # fmt: skip
+        async with client(repository, root, tmp_path / "state") as session:
+            launch = await call(
+                session, "control", {"protocol": str(protocol), "parent_run_ids": parents}
+            )
+            record = await call(
+                session, "read_run", {"run": launch["path"], "wait_seconds": 30, "detail": True}
+            )
+            assert record["status"] == "completed", record["log_tail"]
+            return cli, record
+
+    cli, record = asyncio.run(exercise())
+    assert (
+        record["manifest"]["parent_run_ids"]
+        == read_run(Path(cli["path"]))["manifest"]["parent_run_ids"]
+        == parents
+    )

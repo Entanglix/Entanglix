@@ -450,6 +450,7 @@ def build_server(config: Configuration):
         investigation_id: str | None = None,
         base: str | None = None,
         values: dict[str, float] | None = None,
+        parent_run_ids: list[str] | None = None,
     ) -> dict[str, object]:
         """Admit a simulation and return its ID while its supervisor executes it."""
         return await job(
@@ -458,14 +459,24 @@ def build_server(config: Configuration):
             investigation_id=investigation_id,
             base=base,
             values=values,
+            parent_run_ids=tuple(parent_run_ids or ()),
         )
 
     @tool
     async def sweep(
-        protocol: str, investigation_id: str | None = None, base: str | None = None
+        protocol: str,
+        investigation_id: str | None = None,
+        base: str | None = None,
+        parent_run_ids: list[str] | None = None,
     ) -> dict[str, object]:
         """Admit a sweep and return its ID while its supervisor executes it."""
-        return await job("sweep", protocol=protocol, investigation_id=investigation_id, base=base)
+        return await job(
+            "sweep",
+            protocol=protocol,
+            investigation_id=investigation_id,
+            base=base,
+            parent_run_ids=tuple(parent_run_ids or ()),
+        )
 
     @tool
     async def control(
@@ -473,6 +484,7 @@ def build_server(config: Configuration):
         investigation_id: str | None = None,
         base: str | None = None,
         values: dict[str, int | float] | None = None,
+        parent_run_ids: list[str] | None = None,
     ) -> dict[str, object]:
         """Admit a CPU control solve against an approved base when investigating."""
         return await job(
@@ -481,6 +493,7 @@ def build_server(config: Configuration):
             investigation_id=investigation_id,
             base=base,
             values=values,
+            parent_run_ids=tuple(parent_run_ids or ()),
         )
 
     @tool
@@ -496,6 +509,7 @@ def build_server(config: Configuration):
         timeout_seconds: float | None = None,
         investigation_id: str | None = None,
         base: str | None = None,
+        parent_run_ids: list[str] | None = None,
     ) -> dict[str, object]:
         """Admit an authored CPU script through the runner's validation and import scan."""
         return await job(
@@ -506,6 +520,7 @@ def build_server(config: Configuration):
             timeout_seconds=timeout_seconds,
             investigation_id=investigation_id,
             base=base,
+            parent_run_ids=tuple(parent_run_ids or ()),
         )
 
     @tool
