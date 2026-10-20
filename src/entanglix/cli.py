@@ -138,11 +138,9 @@ def _main(argv: list[str] | None = None) -> int:
     reading.add_argument("--wait", type=float, default=0, help="wait seconds; no command-line cap")
     checking = subcommands.add_parser("check", help="list relevant checks, or run named checks")
     checking.add_argument("run", type=Path, help="source attempt directory")
-    checking.add_argument(
-        "names",
-        nargs="*",
-        help="integrity, segments, diagnostics, spectral_refinement, declared_expectation",
-    )
+    from entanglix.corrector import CHECK_DEFINITIONS
+
+    checking.add_argument("names", nargs="*", help=", ".join(CHECK_DEFINITIONS))
     checking.add_argument("--timeout", type=float, help="check time limit in seconds")
     checking.add_argument("--refinement", type=Path, help="replacement [refinement.*] declarations")
     simulation = subcommands.add_parser("simulate", help="run one simulation protocol")
