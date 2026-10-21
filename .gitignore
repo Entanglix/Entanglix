@@ -39,6 +39,8 @@ runs/
 !examples/two-level/operators.npz
 !examples/lossy-oscillator/operators.npz
 !examples/readout/readout-state.npz
+!examples/transmon-calibration/training.npz
+!examples/transmon-calibration/holdout.npz
 !tests/fixtures/**/*.npy
 !tests/fixtures/**/*.npz
 !tests/fixtures/**/*.h5

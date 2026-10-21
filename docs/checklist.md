@@ -26,7 +26,7 @@ Supporting milestones, scheduled by dependency and research need:
 | Milestone | Blocks | Status |
 |---|---|---|
 | S1 — Cluster execution | Block 9 | open |
-| S2 — Calibration | Block 10 | open |
+| S2 — Calibration | Block 10 | **complete** |
 | S3 — Results catalog | Block 11 | open |
 | S4 — Interoperability | Block 12 | open |
 
@@ -303,7 +303,7 @@ The [M4 guide](m4-guide.md) records the implementation approach; [ADR-0005](adr/
 
 ## S2 — Calibration (Block 10)
 
-### [ ] Block 10 — Protocol `calibrate`
+### [x] Block 10 — Protocol `calibrate`
 
 **Depends on:** Blocks 1–4; Block 6b for agent access. Control and co-design are optional.
 
@@ -312,10 +312,10 @@ The [M4 guide](m4-guide.md) records the implementation approach; [ADR-0005](adr/
 - [x] Spectroscopy fitting: declared extraction; supplied labels, or automatic assignment from a declared candidate family with an optional anchor and one-to-one matching; bounded weighted least squares with a declared search; outcomes and uncertainty report ([peak extraction](operations/calibration.md#peak-extraction), [calibrate protocol](operations/calibration.md#the-calibrate-protocol), [extraction tests](../tests/test_extraction.py), [calibrate tests](../tests/test_calibrate.py))
 - [x] Holdout, identifiability and refinement checks; fitting receives training data only, and the corrector evaluates holdout data supplied with the check request ([checks](operations/calibration.md#checks), [check tests](../tests/test_calibration_checks.py))
 - [x] `propose_device_update` proposal file; separate human apply command ([proposals](operations/calibration.md#device-update-proposals), [proposal tests](../tests/test_proposals.py))
-- [ ] Documented standalone calibration and inspectable report, independent of control
+- [x] Documented standalone calibration and inspectable report, independent of control ([example](../examples/transmon-calibration/README.md), [report](operations/calibration.md#report), [CLI run](../tests/probes/s2_example_cli.json), [MCP run](../tests/probes/s2_example_mcp.json))
 - [x] When Block 6b is available: MCP capabilities and `calibrate` skill; training/holdout data separation and staged device-model updates verified through research tools ([MCP tools](operations/mcp.md#tool-surface), [calibrate skill](../skills/calibrate/SKILL.md), [investigations and reruns](operations/calibration.md#investigations-and-reruns), [MCP calibration tests](../tests/test_mcp_calibration.py), [investigation tests](../tests/test_calibration_investigations.py))
-- [ ] Applicable quality evidence recorded
-- [ ] **Done:** synthetic-data round trip recovers known parameters within reported uncertainty; holdout is excluded from fitting inputs; a user can inspect the report and update proposal
+- [x] Applicable quality evidence recorded ([calibration example](environment.md#calibration-example), [example tests](../tests/test_calibration_example.py))
+- [x] **Done:** synthetic-data round trip recovers known parameters within reported uncertainty; holdout is excluded from fitting inputs; a user can inspect the report and update proposal ([example results](../examples/transmon-calibration/README.md#results), [coverage over realisations](../tests/probes/s2_calibration_results.json))
 
 ---
 

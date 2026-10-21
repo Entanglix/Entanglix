@@ -65,13 +65,13 @@ The example is recorded in its own directory. Its values follow the [calibration
 
 | Item | Choice |
 |---|---|
-| System | A two-junction transmon circuit with a shunt capacitor and a flux parameter on one junction's loop. `EJ1`, `EJ2` and `Csh` are fitted with uniform priors. The junction charging energy is fixed |
-| Data | A generator script writes synthetic two-tone maps from known parameters: f01, f12 and the two-photon f02/2, with declared amplitudes, linewidth, background and noise. It converts them into the uniform format with recorded provenance. A separate holdout measurement covers a different bias range |
+| System | A two-junction transmon circuit with a shunt capacitor and a flux parameter on one junction's loop. `EJ1`, `EJ2` and `Csh` are fitted with uniform priors, and the system file holds design values a few percent from the generating ones. The junction charging energy is fixed |
+| Data | A generator script writes synthetic two-tone maps from known parameters: f01, f12 and the two-photon f02/2, with declared amplitudes, linewidth, background and noise. It converts them into the uniform format with recorded provenance. A training map of 21 biases, and a separate holdout measurement of 8 biases nearer half flux |
 | Axis map | Coil bias to flux, with offset and period fitted as nuisance parameters, a positive period, and an offset window |
 | Family and anchor | Transitions from the ground and first excited states up to the third, at photon orders 1 and 2. The anchor is f01 |
-| Search | Declared starts a few percent from the generating values, as a fabricated device would be. The matching range, cutoff and resolution are those of the probe |
-| Requested checks | `holdout` on the separate holdout measurement, `identifiability`, and `refinement` with a declared refinement |
-| Ending | A device-update proposal applied to the example's own copy of the system file. The report states the anchor assumption, the prior-width ratios and any limitation |
+| Search | Two declared starts a few percent either side of the generating values, as a fabricated device would be: the design values with a nominal axis map, and one the other way. The matching range, cutoff and resolution are those of the probe |
+| Requested checks | `holdout` on the separate holdout measurement, `identifiability`, and `refinement` with a declared refinement of two more levels and ten more charge units |
+| Ending | A device-update proposal, applied by the operator to a copy of the system file outside the runs root; the tracked file keeps its design values. The report states the anchor assumption, the prior-width ratios and any limitation |
 
 ## 4. Conventions to settle with the implementation
 

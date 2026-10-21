@@ -1,0 +1,352 @@
+{
+  "via": "mcp",
+  "holdout_sha256": "b3ac60f34ae02dd0322911c55a69ea1e6c1d5778cacf7b2641b5434596ee8dcf",
+  "source_run_id": "r20261021T194955459298Z-f6ee3e4e",
+  "fit": {
+    "outcome": "solution",
+    "datasets": {
+      "training.toml": "45636ea2c82bcea8780f886f495c47350f3d58dad7c10740c8d60229469bd9e0"
+    },
+    "frozen_inputs": [
+      "calibrate.toml",
+      "system.toml",
+      "training.npz",
+      "training.toml"
+    ],
+    "starts": [
+      {
+        "status": "solution",
+        "cycles": {
+          "anchor cutoff": 1,
+          "anchor range": 1,
+          "cutoff": 1,
+          "range": 1
+        },
+        "anchor": {
+          "assigned": 21,
+          "columns": 21,
+          "unexplained": 0,
+          "unresolved": 0
+        },
+        "solution": 0
+      },
+      {
+        "status": "solution",
+        "cycles": {
+          "anchor cutoff": 1,
+          "anchor range": 2,
+          "cutoff": 1,
+          "range": 1
+        },
+        "anchor": {
+          "assigned": 21,
+          "columns": 21,
+          "unexplained": 0,
+          "unresolved": 0
+        },
+        "solution": 0
+      }
+    ],
+    "job_seconds": 692.0233205619734,
+    "parameters": {
+      "EJ1": {
+        "known": 12.0,
+        "fitted": 11.998029038476588,
+        "uncertainty": 0.0013863160433154323,
+        "standardised_error": -1.421725971444717,
+        "uncertainty_over_prior_width": 6.0274610578931835e-05
+      },
+      "EJ2": {
+        "known": 8.0,
+        "fitted": 7.999738703686154,
+        "uncertainty": 0.0012059706818353605,
+        "standardised_error": -0.21666887742971477,
+        "uncertainty_over_prior_width": 5.243350790588524e-05
+      },
+      "Csh": {
+        "known": 70.0,
+        "fitted": 69.99043855086845,
+        "uncertainty": 0.006067091986490949,
+        "standardised_error": -1.5759525573112478,
+        "uncertainty_over_prior_width": 6.741213318323276e-05
+      },
+      "offset": {
+        "known": 0.1,
+        "fitted": 0.09999726708257357,
+        "uncertainty": 1.309000041415748e-06,
+        "standardised_error": -2.087790175679441,
+        "uncertainty_over_prior_width": 1.309000041415748e-06
+      },
+      "period": {
+        "known": 1.0,
+        "fitted": 1.000022215587992,
+        "uncertainty": 3.557764642071382e-05,
+        "standardised_error": 0.6244254532575635,
+        "uncertainty_over_prior_width": 2.3718430947142547e-05
+      }
+    },
+    "solution_statistics": {
+      "assigned": 63,
+      "chi2": 75.25780510770603,
+      "fitted": 5,
+      "reduced_chi2": 1.2975483639259662
+    },
+    "solution_counts": {
+      "assigned": 63,
+      "missing": 23,
+      "unexplained": 0,
+      "unresolved": 0
+    },
+    "solution_rank": 5,
+    "solution_bounds_hit": [],
+    "solution_starts": [
+      0,
+      1
+    ],
+    "equivalents_removed": [],
+    "conventions_not_applied": [],
+    "correlation": {
+      "matrix": [
+        [
+          1.0,
+          -0.43971282977104764,
+          0.5988030748894917,
+          0.26511422080257135,
+          -0.8259128323924024
+        ],
+        [
+          -0.4397128297710476,
+          1.0,
+          0.45484107373245797,
+          -0.3070526922209764,
+          0.8464067687640028
+        ],
+        [
+          0.5988030748894917,
+          0.45484107373245797,
+          0.9999999999999998,
+          -0.0031213350933927382,
+          -0.059305375938876644
+        ],
+        [
+          0.26511422080257135,
+          -0.3070526922209764,
+          -0.0031213350933927413,
+          0.9999999999999999,
+          -0.2691989380165602
+        ],
+        [
+          -0.8259128323924024,
+          0.8464067687640028,
+          -0.059305375938876644,
+          -0.2691989380165602,
+          1.0
+        ]
+      ],
+      "parameters": [
+        "EJ1",
+        "EJ2",
+        "Csh",
+        "offset",
+        "period"
+      ]
+    }
+  },
+  "checks": {
+    "run_id": "r20261021T200128570642Z-6d255c63",
+    "job_seconds": 9.949311836040579,
+    "holdout": {
+      "outcome": "descriptive",
+      "dataset": {
+        "file": "holdout/holdout.toml",
+        "id": "transmon-calibration-holdout",
+        "sha256": "b3ac60f34ae02dd0322911c55a69ea1e6c1d5778cacf7b2641b5434596ee8dcf"
+      },
+      "frozen": [
+        "holdout/holdout.npz",
+        "holdout/holdout.toml"
+      ],
+      "form": "map",
+      "counts": {
+        "assigned": 24,
+        "extraction_failures": 0,
+        "not_determined": 0,
+        "peaks": 24,
+        "scored": 24,
+        "unexplained": 0,
+        "unresolved": 0
+      },
+      "coverage_over_peaks": {
+        "within_1": 0.7083333333333334,
+        "within_2": 1.0
+      },
+      "coverage_over_scored": {
+        "within_1": 0.7083333333333334,
+        "within_2": 1.0
+      },
+      "mean_squared_standardised_residual": 0.9005906825435872
+    },
+    "identifiability": {
+      "outcome": "descriptive",
+      "tolerances": {
+        "check": {
+          "agreement_rtol": 1e-06,
+          "jacobian_step": 1e-05,
+          "rank_rtol": 1e-06,
+          "undetermined_tolerance": 0.001
+        },
+        "fit": {
+          "equivalence_rtol": 1e-08,
+          "jacobian_step": 1e-05,
+          "merge_tolerance": 0.001,
+          "rank_rtol": 1e-06,
+          "undetermined_tolerance": 0.001
+        }
+      },
+      "agreement": {
+        "agrees": true,
+        "chi2_difference": 0.0,
+        "determined_matches": true,
+        "largest_correlation_difference": 0.0,
+        "largest_uncertainty_difference": 0.0,
+        "outcome_matches": true,
+        "rank_matches": true
+      }
+    },
+    "refinement": {
+      "outcome": "descriptive",
+      "declaration": {
+        "squid_transmon": {
+          "cutoff_steps": {
+            "theta1": 10
+          },
+          "retained_levels_step": 2
+        }
+      },
+      "assigned": 63,
+      "chi2": 75.25780510770603,
+      "dimensions": [
+        6
+      ],
+      "largest_shift_ghz": 2.1227464230832993e-13,
+      "largest_standardised_shift": 6.233505897033857e-09,
+      "lines": {
+        "0-1": 6.233505897033857e-09,
+        "0-2/2": 7.018485773408345e-10,
+        "1-2": 1.9091990893843794e-09
+      },
+      "refined_chi2": 75.2578051684479,
+      "refined_dimensions": [
+        8
+      ]
+    }
+  },
+  "proposal": {
+    "path": "research_runs/s2-calibration-mcp/squid_transmon/r20261021T194955459298Z-f6ee3e4e/proposals/1.toml",
+    "solution": 0,
+    "solution_outcome": "solution",
+    "bounds_hit": [],
+    "model_inputs": {
+      "system.toml": "0d8ba453ec6060e1a946a0aab0d78c3984c32ef00b77061b2ab2fedf76dcdb03"
+    },
+    "parameters": {
+      "Csh": {
+        "new": 69.99043855086845,
+        "old": 72.0,
+        "uncertainty": 0.006067091986490949,
+        "uncertainty_over_prior_width": 6.741213318323276e-05,
+        "unit": "fF"
+      },
+      "EJ1": {
+        "new": 11.998029038476588,
+        "old": 12.4,
+        "uncertainty": 0.0013863160433154323,
+        "uncertainty_over_prior_width": 6.0274610578931835e-05,
+        "unit": "GHz"
+      },
+      "EJ2": {
+        "new": 7.999738703686154,
+        "old": 7.7,
+        "uncertainty": 0.0012059706818353605,
+        "uncertainty_over_prior_width": 5.243350790588524e-05,
+        "unit": "GHz"
+      }
+    },
+    "not_proposed": {},
+    "verification": [
+      [
+        {
+          "name": "holdout",
+          "outcome": "descriptive",
+          "solution": 0
+        },
+        {
+          "name": "identifiability",
+          "outcome": "descriptive",
+          "solution": 0
+        },
+        {
+          "name": "refinement",
+          "outcome": "descriptive",
+          "solution": 0
+        }
+      ]
+    ]
+  },
+  "holdout_in_fitting_inputs": false,
+  "application": {
+    "record_version": 1,
+    "kind": "device_update_application",
+    "applied_at": "2026-10-21 20:14:22.410889+00:00",
+    "proposal_sha256": "8064c2a88d826321014c7dad61f22e23a7bc617615435da4a3a7ba79a2263ebd",
+    "system_sha256_before": "0d8ba453ec6060e1a946a0aab0d78c3984c32ef00b77061b2ab2fedf76dcdb03",
+    "system_sha256_after": "eeb60d644ad82e9d9a6a11079f7fab8c808be06f4df27a2bad86539245229da5",
+    "parameters": [
+      "EJ1",
+      "EJ2",
+      "Csh"
+    ],
+    "source": {
+      "kind": "operator-cli"
+    },
+    "system_before_is_the_example": true,
+    "updated": {
+      "EJ1": {
+        "value": 11.998029038476588,
+        "unit": "GHz",
+        "source": "calibration proposal squid_transmon/r20261021T194955459298Z-f6ee3e4e/proposals/1.toml, solution 0, sha256 8064c2a88d826321014c7dad61f22e23a7bc617615435da4a3a7ba79a2263ebd",
+        "prior": {
+          "kind": "uniform",
+          "lower": 2.0,
+          "upper": 25.0
+        }
+      },
+      "EJ2": {
+        "value": 7.999738703686154,
+        "unit": "GHz",
+        "source": "calibration proposal squid_transmon/r20261021T194955459298Z-f6ee3e4e/proposals/1.toml, solution 0, sha256 8064c2a88d826321014c7dad61f22e23a7bc617615435da4a3a7ba79a2263ebd",
+        "prior": {
+          "kind": "uniform",
+          "lower": 2.0,
+          "upper": 25.0
+        }
+      },
+      "Csh": {
+        "value": 69.99043855086845,
+        "unit": "fF",
+        "source": "calibration proposal squid_transmon/r20261021T194955459298Z-f6ee3e4e/proposals/1.toml, solution 0, sha256 8064c2a88d826321014c7dad61f22e23a7bc617615435da4a3a7ba79a2263ebd",
+        "prior": {
+          "kind": "uniform",
+          "lower": 30.0,
+          "upper": 120.0
+        }
+      }
+    },
+    "validated": {
+      "id": "squid_transmon",
+      "dimensions": [
+        6
+      ]
+    }
+  }
+}

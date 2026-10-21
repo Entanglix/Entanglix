@@ -545,3 +545,15 @@ The example ran once through the CLI and once through a scripted MCP client, eac
 - the stop reason, the retained candidates, the usage and the run IDs.
 
 Full attempts remain under `research_runs/`. The [example tests](../tests/test_codesign_example.py) check that the drafted terms admit the screen and the candidates inside the range, refuse a value outside it, and follow the declared next-candidate rule.
+
+## Calibration example
+
+The [calibration example](../examples/transmon-calibration/README.md) ran once through the CLI and once through a scripted MCP client, side by side on the workstation's CPU, with the runner profile `cuquantum,differentiable-cuda12` and `OPENBLAS_NUM_THREADS=1`. Each fit took about 694 s for two starts on 21 bias columns, and each check run about 10 s; the two paths together took 11.9 minutes. Every evaluation constructs the full system at each column, about 0.3 s for the 21 columns, and the anchor phase's fit to the single 0-1 line takes most of each start. A first CLI attempt, stopped by a 570 s command timeout before its fit finished, is retained as aborted under `research_runs/s2-calibration-cli/`.
+
+The [CLI summary](../tests/probes/s2_example_cli.json) and [MCP summary](../tests/probes/s2_example_mcp.json) are equal apart from run IDs, paths and timings. They retain:
+- the outcome, each start's status, and the fitted values against the known ones, with uncertainties, standardised errors and prior-width ratios;
+- the fit statistics, counts, correlations, and the frozen fitting inputs;
+- the holdout, identifiability and refinement results;
+- the proposal, and the operator's application to a copy of the system file.
+
+Full attempts remain under `research_runs/`. The [example tests](../tests/test_calibration_example.py) check that the generator reproduces the tracked datasets, that the spec lists the training map only, and that the holdout measurement lies outside the training bias range and is readable by the holdout check.
