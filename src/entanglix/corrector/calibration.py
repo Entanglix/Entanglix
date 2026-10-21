@@ -28,7 +28,13 @@ from entanglix.corrector.reference import write_refined_system
 from entanglix.extraction import frequency_step
 from entanglix.measurements import load_dataset
 from entanglix.models import load_system
-from entanglix.protocols.calibrate import dataset_peaks, merge_peaks, prepare, spectrum_for
+from entanglix.protocols.calibrate import (
+    chosen_solution,
+    dataset_peaks,
+    merge_peaks,
+    prepare,
+    spectrum_for,
+)
 
 SCOPES = {
     "holdout": (
@@ -128,12 +134,8 @@ def calibration_request(
     loaded, result, checks, *, holdout=None, solution=None, expect_coverage=None
 ) -> tuple[dict, dict[str, bytes]]:
     """Validate a calibration check request; returns its request fields and files to freeze."""
-    count = len(result["solutions"])
-    if solution is None and count > 1:
-        raise ValueError(f"the source run has {count} distinct solutions; name the one to check")
-    if solution is not None and (type(solution) is not int or not 0 <= solution < count):
-        raise ValueError(f"the source run has no solution {solution!r}")
-    fields = {"solution": solution or 0} if count else {}
+    number = chosen_solution(result, solution, "check")
+    fields = {} if number is None else {"solution": number}
     if holdout is None:
         if expect_coverage is not None:
             raise ValueError("a coverage expectation needs a holdout dataset")

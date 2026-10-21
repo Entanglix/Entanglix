@@ -194,6 +194,19 @@ def _main(argv: list[str] | None = None) -> int:
         "--dry-run", action="store_true", help="validate the inputs and preview without a run"
     )
     calibrating.add_argument("--parent-run", action="append", default=[])
+    proposing = subcommands.add_parser(
+        "propose-device-update", help="write a device-update proposal from a calibrate run"
+    )
+    proposing.add_argument("run", type=Path, help="completed calibrate attempt directory")
+    proposing.add_argument(
+        "--solution", type=int, help="calibration solution index, required among several"
+    )
+    applying = subcommands.add_parser(
+        "apply-device-update",
+        help="operator action: write a proposal into its unchanged system file",
+    )
+    applying.add_argument("proposal", type=Path, help="proposal file in the run's proposals/")
+    applying.add_argument("system", type=Path, help="authored system.toml to update")
     replay = subcommands.add_parser(
         "rerun-simulation",
         help="replay a frozen simulation with linked lineage",
@@ -373,6 +386,20 @@ def _main(argv: list[str] | None = None) -> int:
         except (OSError, DatasetError, MemoryError) as exc:
             prefix = "invalid dataset: " if args.command == "validate-dataset" else ""
             print(f"entanglix: {prefix}{failure_message(exc)}", file=sys.stderr)
+            return 64
+        print(json.dumps(result, default=str, indent=2))
+        return 0
+    if args.command in {"propose-device-update", "apply-device-update"}:
+        from entanglix.proposals import apply_device_update, propose_device_update
+        from entanglix.runner import failure_message
+
+        try:
+            if args.command == "propose-device-update":
+                result = propose_device_update(args.run, solution=args.solution)
+            else:
+                result = apply_device_update(args.proposal, args.system)
+        except (OSError, ValueError, KeyError, MemoryError) as exc:
+            print(f"entanglix: {failure_message(exc)}", file=sys.stderr)
             return 64
         print(json.dumps(result, default=str, indent=2))
         return 0

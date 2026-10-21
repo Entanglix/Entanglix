@@ -1,6 +1,6 @@
 # Calibration
 
-Calibration fits device parameters to measured spectroscopy. This reference describes measurement datasets, with the format every measurement is converted to, validation, digests, raw-file checks, and holdout splits; peak extraction from maps; the `calibrate` protocol: its spec, assignment, fit, outcomes and report; and the checks a calibration run takes on request.
+Calibration fits device parameters to measured spectroscopy. This reference describes measurement datasets, with the format every measurement is converted to, validation, digests, raw-file checks, and holdout splits; peak extraction from maps; the `calibrate` protocol: its spec, assignment, fit, outcomes and report; the checks a calibration run takes on request; and device-update proposals and their application.
 
 ## Measurement datasets
 
@@ -254,3 +254,38 @@ The report gives the dimensions before and after, the number of assigned peaks, 
 ### Corrector tolerances
 
 The corrector policy's `[calibration]` table holds `rank_rtol = 1e-6`, `undetermined_tolerance = 1e-3` and `jacobian_step = 1e-5`, used by the identifiability recomputation and by the holdout prediction uncertainty, and `agreement_rtol = 1e-6`. The fit records its own tolerances, so a policy change explains a difference between the two reports.
+
+## Device-update proposals
+
+`propose-device-update RUN` writes a proposal from one solution of a completed calibrate run. When the run returned several solutions, `--solution N` names one, as for checks. A run with no solution, and a solution that determines no fitted parameter, have nothing to propose and are refused. The proposal is published read-only as `proposals/<n>.toml` in the run's directory, numbered from 1; a later proposal from the same run, for example after further checks, takes the next number.
+
+```sh
+entanglix propose-device-update RUN --solution 0
+entanglix apply-device-update RUN/proposals/1.toml system.toml
+```
+
+The proposal holds:
+- `source_run_id`, `system_id`, `solution`, its `solution_outcome` and `bounds_hit`, and `source_result_sha256`;
+- `model_inputs`: the digest of every model input the run froze, namely the system file, each subsystem source and each array file;
+- `[parameters.<name>]` for each fitted parameter the solution determines: `unit`, `old` (the value in the run's frozen system file), `new`, `uncertainty` and `uncertainty_over_prior_width`, as the fit reported them;
+- `[not_proposed.<name>]` for each fitted parameter the solution does not determine, with its `reason`;
+- `[[verification]]`: each check attempt on the run when the proposal was written, with its `run_id`, `status`, `policy_version`, `source_matches`, and each check's `name`, `solution` and `outcome`. The outcome is `pass`, `fail` or `inapplicable`, or `descriptive` for a check that reports values without a verdict.
+
+Only fitted device parameters from the system file's parameter table are proposed. The axis map's offset, period and flux parameter are not. Nuisance parameters, the covariance and the correlations stay in the run's result.
+
+### Applying a proposal
+
+`apply-device-update PROPOSAL SYSTEM` is an operator action. It writes each proposed parameter's `new` number into its `value`, and the provenance into its `source`, in the authored system file. Units, priors and every other field are unchanged. It refuses:
+- a system file, or a subsystem source or array file beside it, that is missing or whose digest differs from `model_inputs`, so an edit these checks find is never overwritten;
+- a proposed parameter whose value or unit in the run's frozen system file differs from the proposal's `old` and `unit`;
+- a system file inside the runs root, such as the run's frozen copy;
+- a proposal outside its run's `proposals/` directory, or one already applied;
+- an apply while another apply holds the system file's folder or the proposal's folder.
+
+Every model input is checked again after the update is validated and immediately before the file is replaced, so an edit made during validation is refused rather than overwritten. Apply's lock does not stop other programs: an edit made between this last check and the replacement is not detected.
+
+The file is rewritten as canonical TOML: comments and the original layout are not kept, and the parsed content changes only in the applied values and sources. The source reads `calibration proposal <system_id>/<run_id>/proposals/<n>.toml, solution <N>, sha256 <proposal digest>`. Apply then publishes `proposals/<n>.applied.toml` with the time, `source = { kind = "operator-cli", os_user = ... }`, the proposal's digest, the system file's path and its digests before and after, and the names of the parameters applied.
+
+The new content is built from the run's frozen system file, so it is the same on every attempt. If the file was replaced but the application record could not be published, apply reports it. Applying the same proposal to the same file again then publishes the record with `recovered = true`, provided the file still holds exactly the applied content.
+
+Research tools can stage proposals but never apply them; the research tool surface has no apply operation.

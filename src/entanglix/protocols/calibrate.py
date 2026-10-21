@@ -412,6 +412,16 @@ def tolerances(spec: CalibrationSpec) -> dict:
     }
 
 
+def chosen_solution(result: dict, solution: int | None, action: str) -> int | None:
+    """The named solution's index, or the only one's; None when the run returned none."""
+    count = len(result["solutions"])
+    if solution is None and count > 1:
+        raise ValueError(f"the source run has {count} distinct solutions; name the one to {action}")
+    if solution is not None and (type(solution) is not int or not 0 <= solution < count):
+        raise ValueError(f"the source run has no solution {solution!r}")
+    return (solution or 0) if count else None
+
+
 def dataset_peaks(name, dataset, extraction, labels, projection=None):
     """One dataset's bias columns, frequency windows, peaks, extraction failures and record.
 

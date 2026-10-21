@@ -156,6 +156,7 @@ The default runs root is `research_runs/` relative to the caller's working direc
   run.log
   result.toml
   FINISHED
+  proposals/
 ```
 
 Run IDs have the form `r20260930T153012123456Z-<8 hexadecimal digits>`: a UTC timestamp with microseconds and a random suffix. Creation is exclusive; an existing directory is never reused. System IDs must start with an ASCII letter or digit and contain only letters, digits, `.`, `_`, and `-`. Parent run IDs preserve lineage; a rerun gets a new ID.
@@ -164,7 +165,7 @@ Every research run, including an authored script, requires a validated system sp
 
 ## Record fields and ownership
 
-Runner records are published once and made read-only. Jobs own `result.toml` and `artifacts/`; runner paths are reserved. This is a cooperative interface, not containment of arbitrary code running as the same OS user.
+Runner records are published once and made read-only. Jobs own `result.toml` and `artifacts/`; runner paths are reserved. `proposals/` holds a completed calibrate run's [device-update proposals](calibration.md#device-update-proposals). This is a cooperative interface, not containment of arbitrary code running as the same OS user.
 
 | Record | Fields and meaning |
 |---|---|
