@@ -39,6 +39,7 @@ This index supports project planning and implementation. Operational entry point
 - [operations/control.md](operations/control.md) — CPU control jobs, closed rotating-frame models, shared ProblemSpec export, solver selection, the pinned Piccolo/Julia adapter, neutral pulses, requested checks, investigation admission, linked reruns and MCP usage.
 - [operations/investigations.md](operations/investigations.md) — Investigation declarations, immutable revisions and findings, human starts and approvals, scoped admission, optional limits, checkpoints, named reviews, stop/resume, usage, and record inspection.
 - [operations/mcp.md](operations/mcp.md) — Optional stdio research tools, workspace setup and runtime settings, explicit server configuration, bounded waiting, launch recovery, and connection/call audit records.
+- [operations/calibration.md](operations/calibration.md) — Measurement datasets for calibration: the uniform format, validation, digests, raw-file checks, and holdout splits.
 - [environment.md](environment.md) — Observed GPU compatibility, tested package versions, limitations, and reproduction commands.
 
 ## Decision records

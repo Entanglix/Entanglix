@@ -80,6 +80,17 @@ def _main(argv: list[str] | None = None) -> int:
     subcommands = parser.add_subparsers(dest="command")
     validate = subcommands.add_parser("validate", help="validate a system TOML")
     validate.add_argument("system", help="path to system.toml")
+    dataset = subcommands.add_parser("validate-dataset", help="validate a measurement dataset")
+    dataset.add_argument("dataset", help="path to the dataset TOML")
+    dataset.add_argument("--raw-file", help="raw laboratory file whose declared digest is checked")
+    splitting = subcommands.add_parser(
+        "split-dataset", help="split a dataset by a closed bias range into two new datasets"
+    )
+    splitting.add_argument("dataset", help="path to the dataset TOML")
+    splitting.add_argument("--lower", type=float, required=True, help="range start, in bias units")
+    splitting.add_argument("--upper", type=float, required=True, help="range end, in bias units")
+    splitting.add_argument("--holdout", required=True, help="new TOML path for the part inside")
+    splitting.add_argument("--remainder", required=True, help="new TOML path for the rest")
     script = subcommands.add_parser(
         "run-script", help="run an authored CPU script with retained records"
     )
@@ -321,6 +332,27 @@ def _main(argv: list[str] | None = None) -> int:
         for name in sorted(system.operators):
             print(f"  {name}: {_operator_meaning(name, system.provenance)}")
         _print_circuit_diagnostics(system.provenance, "circuit")
+        return 0
+    if args.command in {"validate-dataset", "split-dataset"}:
+        from entanglix.measurements import DatasetError, dataset_report, load_dataset, split_dataset
+        from entanglix.runner import failure_message
+
+        try:
+            if args.command == "validate-dataset":
+                result = dataset_report(load_dataset(args.dataset, raw_file=args.raw_file))
+            else:
+                result = split_dataset(
+                    args.dataset,
+                    args.lower,
+                    args.upper,
+                    holdout=args.holdout,
+                    remainder=args.remainder,
+                )
+        except (OSError, DatasetError, MemoryError) as exc:
+            prefix = "invalid dataset: " if args.command == "validate-dataset" else ""
+            print(f"entanglix: {prefix}{failure_message(exc)}", file=sys.stderr)
+            return 64
+        print(json.dumps(result, default=str, indent=2))
         return 0
     if args.command in {
         "run-script",
