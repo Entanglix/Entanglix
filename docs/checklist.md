@@ -307,9 +307,10 @@ The [M4 guide](m4-guide.md) records the implementation approach; [ADR-0005](adr/
 
 **Depends on:** Blocks 1–4; Block 6b for agent access. Control and co-design are optional.
 
-- [ ] Calibration input contract with point-in-time provenance
-- [ ] Gradient lane (dynamiqs) and gradient-free / Bayesian lane
-- [ ] Holdout evaluation and identifiability report; fitting receives training data only and the corrector evaluates holdout data
+- [ ] Uniform measurement format with point-in-time provenance; mechanical conversion outside the harness; holdout split before fitting
+- [ ] Flux parameter references and a fitted bias-to-flux axis map
+- [ ] Spectroscopy fitting: declared extraction; supplied labels, or automatic assignment from a declared candidate family with an optional anchor and one-to-one matching; bounded weighted least squares with a declared search; outcomes and uncertainty report
+- [ ] Holdout, identifiability and refinement checks; fitting receives training data only, and the corrector evaluates holdout data supplied with the check request
 - [ ] `propose_device_update` proposal file; separate human apply command
 - [ ] Documented standalone calibration and inspectable report, independent of control
 - [ ] When Block 6b is available: MCP capabilities and `calibrate` skill; training/holdout data separation and staged device-model updates verified through research tools
