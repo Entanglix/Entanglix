@@ -314,7 +314,7 @@ def _launch_protocol(
         document = _load_record(source)
         device = (
             "cpu"
-            if operation == "control"
+            if operation in {"control", "calibrate"}
             else Needs.model_validate(document.get("needs", {})).device
         )
     except (OSError, ValueError) as exc:
@@ -368,13 +368,14 @@ def _launch_protocol(
             if dry_run:
                 return {"exit_code": 0, "preview": gate["preview"]}
             print(json.dumps({"preview": gate["preview"]}, indent=2), file=sys.stderr, flush=True)
+            digest = {"control": "problem_sha256", "calibrate": "calibration_sha256"}
             launch = {
                 key: gate[key]
                 for key in (
                     "kind",
                     "selection",
                     "protocol_sha256",
-                    "problem_sha256" if operation == "control" else "plan_sha256",
+                    digest.get(operation, "plan_sha256"),
                 )
             }
             if operation == "control":
@@ -431,6 +432,7 @@ def _launch_protocol(
                             "sweep": "sweep-manifest.toml",
                             "simulate": "plan.toml",
                             "control": "problem.toml",
+                            "calibrate": "calibrate.toml",
                         }[operation],
                     )
                 except (Exception, KeyboardInterrupt) as exc:

@@ -174,6 +174,15 @@ def _main(argv: list[str] | None = None) -> int:
     )
     control_replay.add_argument("run", type=Path)
     control_replay.add_argument("--runs-root", type=Path)
+    calibrating = subcommands.add_parser(
+        "calibrate", help="fit device parameters to training spectroscopy on CPU"
+    )
+    calibrating.add_argument("protocol", type=Path, help="path to calibrate.toml")
+    calibrating.add_argument("--runs-root", type=Path, default=Path("research_runs"))
+    calibrating.add_argument(
+        "--dry-run", action="store_true", help="validate the inputs and preview without a run"
+    )
+    calibrating.add_argument("--parent-run", action="append", default=[])
     replay = subcommands.add_parser(
         "rerun-simulation",
         help="replay a frozen simulation with linked lineage",
@@ -200,6 +209,7 @@ def _main(argv: list[str] | None = None) -> int:
         grid_replay,
         controlling,
         control_replay,
+        calibrating,
     ):
         job_parser.add_argument(
             "--detach",
@@ -364,6 +374,7 @@ def _main(argv: list[str] | None = None) -> int:
         "reconcile-run",
         "rerun-script",
         "check",
+        "calibrate",
         "control",
         "rerun-control",
         "simulate",
@@ -386,6 +397,7 @@ def _main(argv: list[str] | None = None) -> int:
             "run-script",
             "rerun-script",
             "check",
+            "calibrate",
             "control",
             "rerun-control",
             "simulate",
@@ -452,6 +464,16 @@ def _main(argv: list[str] | None = None) -> int:
                     timeout_seconds=args.timeout,
                     refinement=args.refinement,
                 )
+            elif args.command == "calibrate":
+                from entanglix.protocols.calibrate import calibrate
+
+                result = execute(
+                    calibrate,
+                    args.protocol,
+                    runs_root=args.runs_root,
+                    parent_run_ids=tuple(args.parent_run),
+                    dry_run=args.dry_run,
+                )
             elif args.command in {"control", "rerun-control"}:
                 from entanglix.protocols.control import control, rerun_control
 
@@ -517,6 +539,7 @@ def _main(argv: list[str] | None = None) -> int:
                 "run-script",
                 "rerun-script",
                 "check",
+                "calibrate",
                 "control",
                 "rerun-control",
                 "simulate",

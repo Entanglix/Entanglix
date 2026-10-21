@@ -11,6 +11,8 @@ def main(operation="simulate"):
         if sys.argv[1] == "check":
             if operation == "control":
                 from entanglix.protocols.control import compile_control as compile_protocol
+            elif operation == "calibrate":
+                from entanglix.protocols.calibrate import compile_calibration as compile_protocol
             elif operation == "sweep":
                 from entanglix.protocols.sweep import compile_sweep as compile_protocol
             else:
@@ -23,6 +25,8 @@ def main(operation="simulate"):
         else:
             if operation == "control":
                 from entanglix.protocols._control_job import execute
+            elif operation == "calibrate":
+                from entanglix.protocols._calibrate_job import execute
             elif operation == "sweep":
                 from entanglix.protocols._sweep_job import execute
             else:

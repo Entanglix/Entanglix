@@ -66,8 +66,8 @@ def _shape(kind: str, detuning: np.ndarray, width: float) -> np.ndarray:
     return np.exp(-math.log(2) * detuning**2 / width**2)
 
 
-def _residual(dataset: Dataset, settings: ExtractionSettings):
-    """Remove each column's running-median background along frequency."""
+def frequency_step(dataset: Dataset) -> float:
+    """The map's frequency spacing; extraction needs a uniform grid of at least 3 points."""
     if dataset.spec.map is None:
         raise ExtractionError(f"dataset {dataset.spec.id!r} has no map to extract")
     frequency = dataset.arrays["map.frequency"]
@@ -75,6 +75,13 @@ def _residual(dataset: Dataset, settings: ExtractionSettings):
     step = float(spacing.mean()) if spacing.size else math.nan
     if frequency.size < 3 or np.max(np.abs(spacing - step)) > UNIFORM_RTOL * step:
         raise ExtractionError("extraction needs a uniform frequency grid of at least 3 points")
+    return step
+
+
+def _residual(dataset: Dataset, settings: ExtractionSettings):
+    """Remove each column's running-median background along frequency."""
+    step = frequency_step(dataset)
+    frequency = dataset.arrays["map.frequency"]
     signal = np.atleast_2d(dataset.arrays["map.signal"]).astype(np.complex128)
     size = (1, max(3, 2 * round(settings.background_window_ghz / (2 * step)) + 1))
     background = median_filter(signal.real, size=size, mode="nearest")
