@@ -19,7 +19,7 @@ def metrics_view(metrics):
 
 
 def check_view(check):
-    keys = {"name", "outcome", "scope", "coverage", "reason"}
+    keys = {"name", "outcome", "solution", "scope", "coverage", "reason"}
     return {
         **{key: value for key, value in check.items() if key in keys},
         **({"detail_omitted": sorted(set(check) - keys)} if set(check) - keys else {}),
@@ -148,6 +148,15 @@ def control_fields(run, result):
     }
 
 
+def _pair(check):
+    """A check's name and outcome, and the calibration solution it checked, if any."""
+    return [
+        check["name"],
+        check.get("outcome"),
+        *([check["solution"]] if "solution" in check else []),
+    ]
+
+
 def attempt_data(record):
     from entanglix.corrector.verification import verification_history
 
@@ -162,22 +171,21 @@ def attempt_data(record):
             protocol = manifest["protocol"]
             item.update(protocol=protocol, parents=manifest["parent_run_ids"], checks=[])
             if protocol == "verification":
-                item["checks"] = [
-                    [c["name"], c.get("outcome")]
-                    for c in result.get("report", {}).get("checks", [])
-                ]
-            elif protocol in {"simulate", "sweep", "plan", "control"}:
+                item["checks"] = [_pair(c) for c in result.get("report", {}).get("checks", [])]
+            elif protocol in {"simulate", "sweep", "plan", "control", "calibrate"}:
                 item["checks"] = [
                     [
                         h.get("run_id", h.get("path")),
                         h.get("source_matches"),
-                        [[c["name"], c.get("outcome")] for c in h.get("checks", [])],
+                        [_pair(c) for c in h.get("checks", [])],
                         h.get("diagnostic"),
                     ]
                     for h in verification_history(Path(a["path"]))
                 ]
                 if protocol == "control":
                     item.update(control_fields(Path(a["path"]), result))
+                if protocol == "calibrate" and "outcome" in result:
+                    item["outcome"] = result["outcome"]
             if protocol == "sweep":
                 from entanglix.protocols.sweep import partial_results
 

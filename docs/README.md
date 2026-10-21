@@ -31,7 +31,7 @@ This index supports project planning and implementation. Operational entry point
 
 - [../README.md](../README.md) — User entry point, available commands, and compatibility.
 - [research-agent.md](research-agent.md) — Versioned conduct for research sessions: formulation, recovery, human decisions, checks on request, assessments, and stopping. Supplied in initial context and by the MCP server; it is separate from repository development guidance.
-- [../skills/](../skills/) — Versioned `system-modeler`, `simulate`, `design-sweep`, and `gpu-budget` procedures, usable through runtime skill discovery or as plain text.
+- [../skills/](../skills/) — Versioned `system-modeler`, `simulate`, `design-sweep`, `control`, `calibrate`, and `gpu-budget` procedures, usable through runtime skill discovery or as plain text.
 - [../HARNESS_CONTRACT.md](../HARNESS_CONTRACT.md) — Shared interfaces, permissions, checks, and execution guarantees.
 - [operations/system-spec.md](operations/system-spec.md) — Implemented system syntax, units, operators, evolution, drive gradients, numerical checks, and engine selection. Other usage guides may be added under `operations/` as capabilities arrive.
 - [operations/runs.md](operations/runs.md) — Authored CPU jobs, listing and inspection, frozen inputs, environment and code provenance, record ownership, and execution outcomes.
@@ -39,7 +39,7 @@ This index supports project planning and implementation. Operational entry point
 - [operations/control.md](operations/control.md) — CPU control jobs, closed rotating-frame models, shared ProblemSpec export, solver selection, the pinned Piccolo/Julia adapter, neutral pulses, requested checks, investigation admission, linked reruns and MCP usage.
 - [operations/investigations.md](operations/investigations.md) — Investigation declarations, immutable revisions and findings, human starts and approvals, scoped admission, optional limits, checkpoints, named reviews, stop/resume, usage, and record inspection.
 - [operations/mcp.md](operations/mcp.md) — Optional stdio research tools, workspace setup and runtime settings, explicit server configuration, bounded waiting, launch recovery, and connection/call audit records.
-- [operations/calibration.md](operations/calibration.md) — Calibration from spectroscopy: the uniform measurement format, validation, digests, raw-file checks, holdout splits, peak extraction, the calibrate protocol, the holdout, identifiability and refinement checks, and device-update proposals and their application.
+- [operations/calibration.md](operations/calibration.md) — Calibration from spectroscopy: the uniform measurement format, validation, digests, raw-file checks, holdout splits, peak extraction, the calibrate protocol, the holdout, identifiability and refinement checks, device-update proposals and their application, and calibration in investigations and research tools.
 - [environment.md](environment.md) — Observed GPU compatibility, tested package versions, limitations, and reproduction commands.
 
 ## Decision records

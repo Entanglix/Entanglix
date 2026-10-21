@@ -555,7 +555,13 @@ def compile_control(
         # Admission and reruns use the authored bytes, before canonicalization.
         base_files = {f"base/{name}": content for name, content in frozen.items()}
         if loaded.definition.system != "system.toml":
-            base_files[f"base/{loaded.definition.system}"] = frozen["system.toml"]
+            alias = f"base/{loaded.definition.system}"
+            if alias in base_files:
+                raise ValueError(
+                    f"the system file {loaded.definition.system!r} would replace the control "
+                    "input of that name in the investigation base; rename the system file"
+                )
+            base_files[alias] = frozen["system.toml"]
     # Use the runner's canonical system filename in the frozen control input.
     definition = loaded.definition.model_dump(exclude_none=True)
     definition["system"] = "system.toml"

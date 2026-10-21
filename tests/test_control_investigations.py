@@ -449,3 +449,21 @@ def test_standalone_control_rerun_and_frozen_input_tampering(control_study):
     frozen.write_text(frozen.read_text() + "\n# tampered\n")
     with pytest.raises(ValueError, match="digest"):
         rerun_control(run, repository=repository)
+
+
+def test_a_system_named_like_the_control_input_is_refused_for_an_investigation(control_study):
+    protocol, terms, root, path, _ = control_study
+    # The system takes the name the runner gives the control input in a base.
+    protocol.with_name("device.toml").rename(protocol.with_name("control.toml"))
+    text = protocol.read_text()
+    assert text.count('system = "device.toml"') == 1
+    protocol.write_text(text.replace('system = "device.toml"', 'system = "control.toml"'))
+    # The approved base matches these inputs exactly, so only the collision refuses them.
+    scope = copy.deepcopy(terms["scope"])
+    scope["bases"][0]["inputs"] = load_control(protocol).input_digests
+    approve(control_study, scope=scope)
+    for dry_run in (True, False):
+        with pytest.raises(ValueError, match="the system file 'control.toml' would replace"):
+            launch(control_study, dry_run=dry_run)
+    assert list(root.glob("*/*/run.toml")) == []
+    assert read_investigation(path)["usage"]["jobs"] == 0

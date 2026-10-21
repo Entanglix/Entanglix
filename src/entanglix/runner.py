@@ -338,7 +338,7 @@ def create_run(
     from entanglix.investigations import admit, investigation_path
 
     path = investigation_path(runs_root, investigation_id)
-    if protocol not in {"simulate", "sweep", "script", "verification", "control"}:
+    if protocol not in {"simulate", "sweep", "script", "verification", "control", "calibrate"}:
         raise ValueError("unsupported investigation operation")
     hashes = (
         base_inputs
@@ -1149,6 +1149,9 @@ def list_capabilities(repository: Path | None = None) -> dict:
             "rerun_sweep",
             "control",
             "rerun_control",
+            "calibrate",
+            "rerun_calibration",
+            "propose_device_update",
             "create_investigation",
             "revise_investigation",
             "list_investigations",
@@ -1156,7 +1159,7 @@ def list_capabilities(repository: Path | None = None) -> dict:
             "record_finding",
             "stop_investigation",
         ],
-        "protocols": ["simulate", "sweep", "control"],
+        "protocols": ["simulate", "sweep", "control", "calibrate"],
         "runner_devices": ["cpu", "cuda"],
         "engines": {
             engine: {"version": found[package], "devices": devices}

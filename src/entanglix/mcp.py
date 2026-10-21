@@ -28,6 +28,8 @@ from entanglix.launches import (
 from entanglix.mcp_views import finding_ack, investigation_view, relative_path, run_view, runs_view
 
 JOBS = {
+    "calibrate",
+    "rerun_calibration",
     "control",
     "rerun_control",
     "simulate",
@@ -46,7 +48,13 @@ READS = {
     "list_investigations",
     "read_investigation",
 }
-WRITES = {"create_investigation", "revise_investigation", "record_finding", "reconcile_run"}
+WRITES = {
+    "create_investigation",
+    "revise_investigation",
+    "record_finding",
+    "reconcile_run",
+    "propose_device_update",
+}
 WAIT_CAP = 30.0
 
 
@@ -502,6 +510,34 @@ def build_server(config: Configuration):
         return await job("rerun_control", run=run)
 
     @tool
+    async def calibrate(
+        protocol: str,
+        investigation_id: str | None = None,
+        base: str | None = None,
+        parent_run_ids: list[str] | None = None,
+    ) -> dict[str, object]:
+        """Admit a CPU calibration fit to training spectroscopy; holdout data is not an input."""
+        return await job(
+            "calibrate",
+            protocol=protocol,
+            investigation_id=investigation_id,
+            base=base,
+            parent_run_ids=tuple(parent_run_ids or ()),
+        )
+
+    @tool
+    async def rerun_calibration(run: str) -> dict[str, object]:
+        """Re-fit frozen calibration inputs as a new linked attempt under current terms."""
+        return await job("rerun_calibration", run=run)
+
+    @tool
+    async def propose_device_update(run: str, solution: int | None = None) -> dict[str, object]:
+        """Stage a device-update proposal beside a calibrate run; only the operator applies it."""
+        from entanglix.proposals import propose_device_update as propose
+
+        return await backing(propose, research_path(run), solution=solution)
+
+    @tool
     async def run_script(
         system: str,
         script: str,
@@ -544,6 +580,9 @@ def build_server(config: Configuration):
         checks: list[str],
         timeout_seconds: float | None = None,
         refinement: str | None = None,
+        holdout: str | None = None,
+        solution: int | None = None,
+        expect_coverage: list[float] | None = None,
     ) -> dict[str, object]:
         """Admit explicitly named checks as a linked verification job."""
         return await job(
@@ -552,6 +591,9 @@ def build_server(config: Configuration):
             checks=checks,
             timeout_seconds=timeout_seconds,
             refinement=refinement,
+            holdout=holdout,
+            solution=solution,
+            expect_coverage=expect_coverage,
         )
 
     @tool

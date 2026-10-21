@@ -313,7 +313,7 @@ The [M4 guide](m4-guide.md) records the implementation approach; [ADR-0005](adr/
 - [x] Holdout, identifiability and refinement checks; fitting receives training data only, and the corrector evaluates holdout data supplied with the check request ([checks](operations/calibration.md#checks), [check tests](../tests/test_calibration_checks.py))
 - [x] `propose_device_update` proposal file; separate human apply command ([proposals](operations/calibration.md#device-update-proposals), [proposal tests](../tests/test_proposals.py))
 - [ ] Documented standalone calibration and inspectable report, independent of control
-- [ ] When Block 6b is available: MCP capabilities and `calibrate` skill; training/holdout data separation and staged device-model updates verified through research tools
+- [x] When Block 6b is available: MCP capabilities and `calibrate` skill; training/holdout data separation and staged device-model updates verified through research tools ([MCP tools](operations/mcp.md#tool-surface), [calibrate skill](../skills/calibrate/SKILL.md), [investigations and reruns](operations/calibration.md#investigations-and-reruns), [MCP calibration tests](../tests/test_mcp_calibration.py), [investigation tests](../tests/test_calibration_investigations.py))
 - [ ] Applicable quality evidence recorded
 - [ ] **Done:** synthetic-data round trip recovers known parameters within reported uncertainty; holdout is excluded from fitting inputs; a user can inspect the report and update proposal
 

@@ -549,8 +549,6 @@ def compile_calibration(
     from entanglix.corrector.calibration import calibration_listing
     from entanglix.runner import capture_environment
 
-    if retain_base:
-        raise ValueError("calibrate is not an investigation operation")
     loaded = load_calibration(protocol)
     frozen = {}
     for name, source in loaded.inputs.items():
@@ -558,10 +556,24 @@ def compile_calibration(
         if hashlib.sha256(data).hexdigest() != loaded.input_digests[name]:
             raise ValueError(f"calibration input changed during compilation: {name}")
         frozen[name] = data
+    base_files = {}
+    if retain_base:
+        # Admission and reruns use the authored bytes, before canonicalization.
+        base_files = {f"base/{name}": data for name, data in frozen.items()}
+        if loaded.spec.system != "system.toml":
+            alias = f"base/{loaded.spec.system}"
+            if alias in base_files:
+                raise ValueError(
+                    f"the system file {loaded.spec.system!r} would replace the calibration input "
+                    "of that name in the investigation base; rename the system file"
+                )
+            base_files[alias] = frozen["system.toml"]
     canonical = loaded.spec.model_dump(exclude_none=True)
     canonical["system"] = "system.toml"
     frozen["calibrate.toml"] = tomli_w.dumps(canonical).encode("utf-8")
+    frozen.update(base_files)
     for name, data in frozen.items():
+        (directory / name).parent.mkdir(parents=True, exist_ok=True)
         with (directory / name).open("xb") as target:
             target.write(data)
         (directory / name).chmod(0o444)
@@ -575,7 +587,7 @@ def compile_calibration(
         "calibration_sha256": digests["calibrate.toml"],
         # A launch and its preview list the checks the run can take, as reads of it do.
         "preview": {**loaded.listing, **calibration_listing(loaded)},
-        "base_inputs": {},
+        "base_inputs": loaded.input_digests if retain_base else {},
         "scope_values": [{}],
         "engine": ENGINE,
         "device": "cpu",
@@ -595,6 +607,8 @@ def calibrate(
     repository: Path | None = None,
     parent_run_ids=(),
     dry_run=False,
+    investigation_id: str | None = None,
+    base: str | None = None,
 ):
     """Fit device parameters to training spectroscopy as one owned CPU job."""
     from entanglix.protocols.simulate import _launch_protocol
@@ -606,4 +620,13 @@ def calibrate(
         repository=repository,
         parent_run_ids=parent_run_ids,
         dry_run=dry_run,
+        investigation_id=investigation_id,
+        base=base,
     )
+
+
+def rerun_calibration(run: Path, *, repository: Path | None = None, runs_root: Path | None = None):
+    """Re-fit retained calibration inputs as a new linked attempt under current terms."""
+    from entanglix.protocols.simulate import _rerun_protocol
+
+    return _rerun_protocol(run, operation="calibrate", repository=repository, runs_root=runs_root)

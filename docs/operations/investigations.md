@@ -6,8 +6,8 @@ root passed to `--runs-root`. Reads and listings reconstruct state from these fi
 
 The available commands manage drafts, starts, revision approvals, findings,
 checkpoint/review gates, stops, resumes, and job admission. `simulate`, `sweep`,
-`control`, and authored scripts can link jobs to an investigation; checks and
-reruns inherit that membership. Scope and optional limits are enforced.
+`control`, `calibrate`, and authored scripts can link jobs to an investigation;
+checks and reruns inherit that membership. Scope and optional limits are enforced.
 
 ## Declare the terms
 
@@ -56,8 +56,9 @@ finished_attempts = 10
 Each base has a unique name and relative input filenames with lowercase SHA-256
 digests. Every base includes `system.toml`. Use the runner's fixed names for the
 system (`system.toml`), simulation protocol (`simulate.toml`, even when authored as
-`readout.toml`), control input (`control.toml`), and script (`script.py`); subsystem
-and data filenames are retained.
+`readout.toml`), control input (`control.toml`), calibration spec (`calibrate.toml`),
+and script (`script.py`); subsystem and data filenames, including datasets and their
+array files, are retained.
 A variation declares either a closed
 `range = [lower, upper]` or unique `values = [...]`. The supported targets are
 `parameters.<name>`, `evolution.drive_amplitudes_ghz.<drive>`,
@@ -147,6 +148,11 @@ The authored control input, system and data stay exact, and changing the solver 
 its options requires another approved base. `rerun-control` inherits membership,
 reuses the original values, and uses current approved terms.
 
+A [calibration](calibration.md#investigations-and-reruns) takes no varied values:
+`calibrate fit.toml --investigation <investigation_id> --base <base_name>` must match
+an exact bundle of the spec, the system and its inputs, and the training datasets.
+`rerun-calibration` inherits membership and uses current approved terms.
+
 A named check on a linked source automatically belongs to its investigation:
 
 ```sh
@@ -215,7 +221,8 @@ run IDs whose manifests link them to this investigation; standalone runs cannot 
 claimed as members. The runner checks membership from the manifests and binds the
 finding to the effective revision. It fills total usage and the usage since the
 previous assessment from run records. For each referenced run it lists execution
-status, checks run with their policy version and any outcome, and requested check
+status, checks run with their policy version, any outcome and, for a calibration
+check, the solution index, and requested check
 names not yet run. Requests for a computation come from its base in the effective
 revision, so newly requested checks can appear as missing on older runs. A
 verification run retains its own frozen check request. Earlier findings remain

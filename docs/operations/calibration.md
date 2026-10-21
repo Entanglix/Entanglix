@@ -1,6 +1,6 @@
 # Calibration
 
-Calibration fits device parameters to measured spectroscopy. This reference describes measurement datasets, with the format every measurement is converted to, validation, digests, raw-file checks, and holdout splits; peak extraction from maps; the `calibrate` protocol: its spec, assignment, fit, outcomes and report; the checks a calibration run takes on request; and device-update proposals and their application.
+Calibration fits device parameters to measured spectroscopy. This reference describes measurement datasets, with the format every measurement is converted to, validation, digests, raw-file checks, and holdout splits; peak extraction from maps; the `calibrate` protocol: its spec, assignment, fit, outcomes and report; the checks a calibration run takes on request; device-update proposals and their application; and calibration in investigations, reruns and research tools.
 
 ## Measurement datasets
 
@@ -289,3 +289,16 @@ The file is rewritten as canonical TOML: comments and the original layout are no
 The new content is built from the run's frozen system file, so it is the same on every attempt. If the file was replaced but the application record could not be published, apply reports it. Applying the same proposal to the same file again then publishes the record with `recovered = true`, provided the file still holds exactly the applied content.
 
 Research tools can stage proposals but never apply them; the research tool surface has no apply operation.
+
+## Investigations and reruns
+
+`calibrate` is an investigation operation. Launched with `--investigation ID --base NAME`, a calibration is admitted only when its inputs match the base exactly: the spec under the fixed name `calibrate.toml`, the system file as `system.toml` with its subsystem sources and array files, and each training dataset and its array file under its own name. Calibration takes no varied values, and a changed input is refused with the base's digest differences. The run also freezes the authored files under `spec/base/`. Checks on the run belong to the investigation; a holdout dataset supplied with a check is not a base input.
+
+`rerun-calibration RUN` re-fits the frozen inputs as a new attempt linked to `RUN`. An investigation rerun uses the authored base files, keeps membership, and passes admission under the current approved revision.
+
+```sh
+entanglix calibrate fit.toml --runs-root research_runs --investigation <investigation_id> --base fit
+entanglix rerun-calibration research_runs/<system_id>/<run_id>
+```
+
+Research tools reach calibration through the MCP `calibrate`, `rerun_calibration`, `check` and `propose_device_update` tools; see the [MCP reference](mcp.md#tool-surface). `apply-device-update` is a human action: it is absent from those tools, and agent runtimes are configured to deny it like the other operator commands.

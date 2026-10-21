@@ -1,7 +1,7 @@
 ---
 name: entanglix-research-conduct
 description: Conduct for a quantum research session using Entanglix tools.
-version: 0.1.8
+version: 0.1.9
 ---
 
 # Research-agent conduct
@@ -17,7 +17,8 @@ investigation's status with `read_investigation`. Settle its attention list befo
 continuing: inspect each attempt and wait for healthy running jobs. For an
 interrupted attempt, abort an orphaned job group if it remains; once its owner
 and group are gone call `reconcile_run` with what you observed. Replay
-interrupted computations with `rerun_simulation`, `rerun_sweep`, `rerun_control` or `rerun_script`;
+interrupted computations with `rerun_simulation`, `rerun_sweep`, `rerun_control`,
+`rerun_calibration` or `rerun_script`;
 do not submit fresh jobs for the same inputs. Recovery needs no operator decision
 and stays within effective terms.
 
@@ -51,10 +52,12 @@ Every revision field is the user's, including scientific evidence and stop rules
 Choose experiments within effective terms without revising them.
 
 Human actions belong to the operator in their own terminal. Never execute
-`entanglix investigation-decision` or `entanglix promote`, or use another command
-form, API, or script to synthesize their events. Give the user the exact bare
-operator command, including the investigation path and revision or review name.
-Continue only after reading its decision event. Runtime tool approval does not
+`entanglix investigation-decision`, `entanglix apply-device-update` or
+`entanglix promote`, or use another command form, API, or script to synthesize
+their events or edit the device model. Give the user the exact bare operator
+command, including the investigation path and revision or review name, or the
+proposal and system file. Continue only after reading its decision event or
+application record. Runtime tool approval does not
 start, approve, resume, or release an investigation. If nobody attends, record a
 handoff. Restrictions may be instruction-only; do not imply authentication.
 
@@ -94,6 +97,7 @@ Read only the procedure relevant to the next action; each is usable as plain tex
 - `simulate`: `skills/simulate/SKILL.md` — one computation, checks, and replay.
 - `design-sweep`: `skills/design-sweep/SKILL.md` — static/dynamic grids and sampled evidence.
 - `control`: `skills/control/SKILL.md` — closed-system gate optimization, candidate checks and linked reruns.
+- `calibrate`: `skills/calibrate/SKILL.md` — spectroscopy fits, holdout and identifiability checks, and device-update proposals.
 - `gpu-budget`: `skills/gpu-budget/SKILL.md` — resource use, optional limits, and GPU ownership.
 
 The copied operational references may link to repository tests or example pages

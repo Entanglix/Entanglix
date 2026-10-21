@@ -37,13 +37,15 @@ Tools use the same backing operations as the CLI, with MCP response summaries de
 | Tools | Effect |
 |---|---|
 | `validate_system`, `list_capabilities`, `list_runs`, `read_run`, `list_investigations`, `read_investigation` | Read-only; validation includes operator meanings and model provenance |
-| `simulate`, `sweep`, `control`, `run_script`, `rerun_simulation`, `rerun_sweep`, `rerun_control`, `rerun_script`, `check` | Admit jobs through the runner, returning the launch and run IDs once admission is established |
+| `simulate`, `sweep`, `control`, `calibrate`, `run_script`, `rerun_simulation`, `rerun_sweep`, `rerun_control`, `rerun_calibration`, `rerun_script`, `check` | Admit jobs through the runner, returning the launch and run IDs once admission is established |
 | `abort_run`, `stop_investigation` | Cancel work using the existing process-group and investigation rules |
-| `create_investigation`, `revise_investigation`, `record_finding`, `reconcile_run` | Draft terms, propose revisions, append findings, or reconcile uncertain attempts |
+| `create_investigation`, `revise_investigation`, `record_finding`, `reconcile_run`, `propose_device_update` | Draft terms, propose revisions, append findings, reconcile uncertain attempts, or stage a device-update proposal |
 
-Only the first row carries the MCP read-only annotation. Jobs and writes may require runtime approval. Unavailable catalog and calibration operations, promotion, and investigation start/approval/resume/review release are absent. A proposed revision never changes the effective terms. See [investigations](investigations.md) for the operator decision path.
+Only the first row carries the MCP read-only annotation. Jobs and writes may require runtime approval. Catalog operations, promotion, applying a device-update proposal, and investigation start/approval/resume/review release are absent. A proposed revision never changes the effective terms. See [investigations](investigations.md) for the operator decision path.
 
 Control tools take an authored protocol path, or a source run path for `rerun_control`. An investigation control request names an approved base and passes varied values in `values`, as `simulate` does. Control solves and their requested checks run on CPU; see the [control reference](control.md).
+
+`calibrate` takes an authored calibration spec, which lists training datasets only, and `rerun_calibration` a source run path; an investigation calibration names an approved base and takes no varied values. For a calibration source, `check` also takes `holdout`, the authored path of the withheld dataset, `solution`, a solution index, and `expect_coverage` as `[within, minimum]`, as the CLI's `--holdout`, `--solution` and `--expect-coverage` do. `propose_device_update` takes a completed calibrate run path and an optional `solution`, and returns the proposal it published in the run's `proposals/`. Applying it is the operator's `apply-device-update`; see the [calibration reference](calibration.md#device-update-proposals).
 
 `simulate`, `sweep`, `control` and `run_script` accept an optional `parent_run_ids` list, recorded in the new run's `parent_run_ids` in the given order, as the CLI's repeated `--parent-run ID` is. IDs are recorded as given; pass the `run_id` values returned by earlier job tools. Reruns and checks set their own parent. For example, a candidate solve linked to the screening sweep that chose it:
 
@@ -77,11 +79,13 @@ metrics, parents, checks and completed sweep-point count. A sweep is one row.
 Control rows add `seed`, the seed the solver reported using or, for an attempt
 without a result, the declared seed; `transition`, each named frame transition's
 levels and resolved frequency; and `termination`, the solver's termination record.
+Calibrate rows add `outcome`, the fit's outcome.
 Target and metric names appear once in `values.<target>` and `metrics.<name>`
 column headers. Sweep rows omit per-point varied values; use `read_run` or the
 retained point files for those values.
 Source checks carry check run ID, source identity match, name/outcome pairs and
-any diagnostic; check rows carry name/outcome pairs. A null outcome denotes
+any diagnostic; check rows carry name/outcome pairs. A calibration check adds the
+index of the solution it checked as a third element. A null outcome denotes
 information without a pass/fail judgment. Metric values exceeding 512 JSON bytes
 are explicitly omitted; full values remain in the run's `result.toml`. An attempt
 whose records cannot be read keeps its row, with the reason in a `result_error` column.
@@ -93,7 +97,7 @@ investigation reads remain complete.
 usage, checkpoint and reviews.
 
 `read_run` retains summary reads and `detail=True`. Summaries keep execution
-state, complete log tails, metrics and check outcomes, scope and coverage.
+state, complete log tails, metrics and check outcomes, scope and coverage, with a calibration check's solution index.
 Manifest `spec_sha256`, `code` and `environment` are named under `detail_omitted`.
 Read detail or the retained files for full provenance and reports. Paging limits
 row count, not arbitrary text size.
@@ -144,12 +148,13 @@ cp "$ENTANGLIX_CHECKOUT/docs/operations/system-spec.md" \
   "$ENTANGLIX_CHECKOUT/docs/operations/investigations.md" \
   "$ENTANGLIX_CHECKOUT/docs/operations/runs.md" \
   "$ENTANGLIX_CHECKOUT/docs/operations/control.md" \
+  "$ENTANGLIX_CHECKOUT/docs/operations/calibration.md" \
   "$ENTANGLIX_WORKSPACE/reference/operations/"
 ```
 
 Use a new directory for these initial copies. Refresh them deliberately when upgrading; retain their versions with the session. `skills/` is the plain-text location named by the conduct; `.agents/skills` makes the same files discoverable in Codex. In a runtime that reads another workspace instruction filename, copy the same conduct there instead. If it reads no such file, supply the entire conduct through its initial-context mechanism. Keep the procedures readable at the named paths. Do not copy root development `AGENTS.md` or `CLAUDE.md`, the roadmap, baseline answers, or contributor instructions into the research workspace.
 
-The five files under `reference/operations/` provide authoring syntax and lifecycle rules. Skills direct the agent to the relevant reference when needed. Links between these references remain usable; links to checkout examples, tests, and the harness contract are unavailable in this copy. For an evaluation, supply any additional inputs separately without exposing baseline answers.
+The six files under `reference/operations/` provide authoring syntax and lifecycle rules. Skills direct the agent to the relevant reference when needed. Links between these references remain usable; links to checkout examples, tests, and the harness contract are unavailable in this copy. For an evaluation, supply any additional inputs separately without exposing baseline answers.
 
 Add a task brief containing the intended question and agreed terms, and copy the model, protocol, subsystem, and numeric input files beside one another. Within an investigation preserve the approved base bytes. For the [readout investigation](../../examples/readout/README.md#scripted-investigation-baseline), the operator can prepare its base bundle with the documented draft command; the agent receives the declarations and inputs, not the baseline summaries.
 
@@ -172,7 +177,7 @@ Create `.codex/rules/operator.rules`:
 
 ```python
 prefix_rule(
-    pattern=["entanglix", ["investigation-decision", "promote"]],
+    pattern=["entanglix", ["investigation-decision", "apply-device-update", "promote"]],
     decision="forbidden",
     justification="Human action: the operator runs this in their own terminal.",
 )
@@ -189,7 +194,7 @@ CUDA_VISIBLE_DEVICES="" codex exec --json --skip-git-repo-check \
   -o "$ENTANGLIX_WORKSPACE/last-message.txt" '<task brief>'
 ```
 
-The documented operator invocation form is the bare `entanglix investigation-decision ...` or `entanglix promote ...`, with `entanglix` on `PATH`. Do not suggest `uv run ... entanglix ...`, an absolute executable path, a Python API, or a shell wrapper as a substitute: the supplied rule is not claimed to cover those forms. The [retained conformance run](../../tests/probes/m3_guidance_results.json) supports the restriction claim for those bare commands in the tested non-interactive configuration only. An interactive session must start as `instruction-only` and retain live refusals for both documented human-action commands before declaring `runtime-configured`. Offline rule matching or an agent's verbal refusal is not a passed blocked-command test.
+The documented operator invocation form is the bare `entanglix investigation-decision ...`, `entanglix apply-device-update ...` or `entanglix promote ...`, with `entanglix` on `PATH`. Do not suggest `uv run ... entanglix ...`, an absolute executable path, a Python API, or a shell wrapper as a substitute: the supplied rule is not claimed to cover those forms. The [retained conformance run](../../tests/probes/m3_guidance_results.json) supports the restriction claim for the bare `investigation-decision` and `promote` commands in the tested non-interactive configuration only. It predates `apply-device-update`: the rule names that command, but no retained run has shown its refusal, so the claim does not cover it yet. An interactive session must start as `instruction-only` and retain live refusals for every documented human-action command before declaring `runtime-configured`. Offline rule matching or an agent's verbal refusal is not a passed blocked-command test.
 
 ### Claude Code example
 
@@ -222,7 +227,7 @@ CUDA_VISIBLE_DEVICES="" claude -p '<task brief>' \
     mcp__entanglix__record_finding mcp__entanglix__stop_investigation
 ```
 
-For a control task, also allow `mcp__entanglix__control` and `mcp__entanglix__rerun_control`; the [live control sessions](../environment.md#live-control-sessions) used this form.
+For a control task, also allow `mcp__entanglix__control` and `mcp__entanglix__rerun_control`; the [live control sessions](../environment.md#live-control-sessions) used this form. For a calibration task, also allow `mcp__entanglix__calibrate`, `mcp__entanglix__rerun_calibration` and `mcp__entanglix__propose_device_update`.
 
 In four [retained sessions](../../tests/probes/m3_pickup_cutoff_results.json) the conduct was present before the first reply and no repository development instructions appeared. No command restriction has been validated for Claude Code: a session without a shell tool cannot run an operator command, but no retained test covers a session that has one, so declare `instruction-only`. Claude Code rejected a 54,724-character investigation reply and accepted one of 32,757 characters in the two sessions that predate the status and paged table views; the third and fourth used those views and no reply was rejected. Use them for research reads, and the report command or retained files for full history.
 
