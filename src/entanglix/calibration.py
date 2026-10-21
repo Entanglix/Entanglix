@@ -132,13 +132,14 @@ class Problem:
     windows: tuple = field(default=())
 
 
-def assign(peaks: Peaks, predicted, candidates, unmatched, resolution):
+def assign(peaks: Peaks, predicted, candidates, unmatched, resolution, variance=None):
     """Match each column's peaks one to one with candidate lines.
 
     Matching a peak costs its squared standardised distance; an unmatched peak, or one within
-    ``resolution`` linewidths of two candidates, costs ``unmatched``. Returns each peak's member
-    index, UNEXPLAINED or UNRESOLVED, and the total cost, which ranks assignments and solutions
-    without any monotonicity guarantee.
+    ``resolution`` linewidths of two candidates, costs ``unmatched``. ``variance``, by column and
+    member, adds each line's prediction variance to the peak's squared uncertainty. Returns each
+    peak's member index, UNEXPLAINED or UNRESOLVED, and the total cost, which ranks assignments
+    and solutions without any monotonicity guarantee.
     """
     lines = np.full(peaks.centre.size, UNEXPLAINED)
     score = 0.0
@@ -153,7 +154,10 @@ def assign(peaks: Peaks, predicted, candidates, unmatched, resolution):
         offsets, rows = offsets[~unresolved], rows[~unresolved]
         if not rows.size:
             continue
-        distance = (offsets / peaks.uncertainty[rows, None]) ** 2
+        spread = peaks.uncertainty[rows, None]
+        if variance is not None:
+            spread = np.sqrt(spread**2 + variance[column, candidates][None, :])
+        distance = (offsets / spread) ** 2
         dummy = np.full((rows.size, rows.size), np.inf)
         np.fill_diagonal(dummy, unmatched[rows])
         for r, c in zip(*linear_sum_assignment(np.hstack([distance, dummy])), strict=True):
@@ -380,6 +384,29 @@ def _scaled_derivative(residual, theta, values, k, scale, d, lower, upper):
     return scale * total / d
 
 
+def scaled_jacobian(residual, theta, scales, lower, upper, step=JACOBIAN_STEP):
+    """The residuals at ``theta`` and their Jacobian per unit scale, sampled inside the bounds."""
+    theta, scales, lower, upper = (
+        np.asarray(value, dtype=float) for value in (theta, scales, lower, upper)
+    )
+    values = residual(theta)
+    steps = diagnostic_steps(scales, lower, upper, step)
+    columns = [
+        _scaled_derivative(residual, theta, values, k, scales[k], steps[k], lower[k], upper[k])
+        for k in range(theta.size)
+    ]
+    return values, np.stack(columns, axis=-1)
+
+
+def decompose(jacobian, rank_rtol=RANK_RTOL):
+    """Singular values, numerical rank, the scaled covariance along the determined directions,
+    and the undetermined combinations, from a Jacobian in scaled coordinates."""
+    singular, right = np.linalg.svd(jacobian, full_matrices=True)[1:]
+    rank = int(np.sum(singular > rank_rtol * singular[0])) if singular.size else 0
+    covariance = right[:rank].T @ np.diag(singular[:rank] ** -2.0) @ right[:rank]
+    return singular, rank, covariance, right[rank:]
+
+
 def diagnose(
     residual,
     theta,
@@ -403,17 +430,9 @@ def diagnose(
         np.asarray(value, dtype=float) for value in (theta, scales, lower, upper)
     )
     width = upper - lower
-    values = residual(theta)
+    values, jacobian = scaled_jacobian(residual, theta, scales, lower, upper, step)
     chi2, count, p = float(values @ values), values.size, theta.size
-    steps = diagnostic_steps(scales, lower, upper, step)
-    columns = [
-        _scaled_derivative(residual, theta, values, k, scales[k], steps[k], lower[k], upper[k])
-        for k in range(p)
-    ]
-    singular, right = np.linalg.svd(np.stack(columns, axis=-1), full_matrices=True)[1:]
-    rank = int(np.sum(singular > rank_rtol * singular[0])) if singular.size else 0
-    undetermined = right[rank:]
-    scaled = right[:rank].T @ np.diag(singular[:rank] ** -2.0) @ right[:rank]
+    singular, rank, scaled, undetermined = decompose(jacobian, rank_rtol)
     known = [k for k in range(p) if np.linalg.norm(undetermined[:, k]) <= undetermined_tolerance]
     covariance = scaled[np.ix_(known, known)] * np.outer(scales[known], scales[known])
     sigma = np.sqrt(np.diag(covariance))

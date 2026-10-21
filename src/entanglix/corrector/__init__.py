@@ -82,7 +82,12 @@ CHECK_DEFINITIONS = {
     "constraints": "The returned control pulse violates a declared constraint",
     "uncertainty": "Fidelity and leakage of the returned pulse over the declared evaluation samples; descriptive only, with no pass/fail outcome",
     "uncertainty_refinement": "Truncation sensitivity of the sampled fidelities and their minimum; descriptive only, with no pass/fail outcome",
+    "holdout": "Fitted parameters that do not predict withheld data within its prediction uncertainty; descriptive unless a coverage expectation is declared",
+    "identifiability": "Rank, undetermined combinations and uncertainties recomputed at the fitted parameters, against the fit's report; descriptive only, with no pass/fail outcome",
+    "refinement": "Truncation sensitivity of the fitted predictions against each peak's uncertainty; descriptive only, with no pass/fail outcome",
 }
+# The binding names the digest that identifies each protocol's frozen definition.
+IDENTITY = {"control": "problem_sha256", "calibrate": "calibration_sha256"}
 
 
 def relevant_checks(kind: str) -> tuple[str, ...]:
@@ -92,6 +97,8 @@ def relevant_checks(kind: str) -> tuple[str, ...]:
         return ("spectral_refinement",)
     if kind == "control":
         return ("replay", "target", "constraints", "uncertainty", "uncertainty_refinement")
+    if kind == "calibrate":
+        return ("holdout", "identifiability", "refinement")
     raise ValueError(f"unknown computation definition: {kind!r}")
 
 
@@ -163,13 +170,22 @@ def _load_check_source(root, protocol):
         from entanglix.corrector.control import load_candidate
 
         return load_candidate(root)
+    if protocol == "calibrate":
+        from entanglix.protocols.calibrate import load_calibration
+
+        return load_calibration(root / "calibrate.toml")
     from entanglix.protocols.plans import load_computation
 
     return load_computation(root)
 
 
 def _source_artifact(result):
-    return result["artifacts"]["pulse" if result.get("kind") == "control" else "output"]
+    name = {"control": "pulse", "calibrate": "assignment"}.get(result.get("kind"), "output")
+    return result["artifacts"][name]
+
+
+def _source_digest(loaded, protocol):
+    return loaded.input_digests["calibrate.toml"] if protocol == "calibrate" else loaded.digest
 
 
 def create_verification_run(
@@ -181,6 +197,9 @@ def create_verification_run(
     runs_root: Path,
     timeout_seconds: float | None = None,
     refinement: Path | None = None,
+    holdout: Path | None = None,
+    solution: int | None = None,
+    expect_coverage: list[float] | None = None,
 ):
     """Freeze a named request and bind its linked attempt to the unchanged source."""
     import tempfile
@@ -202,23 +221,38 @@ def create_verification_run(
         "simulate",
         "sweep",
         "control",
+        "calibrate",
     }:
         raise ValueError("checks require a completed built-in computation run")
     manifest = record["manifest"]
+    protocol = manifest["protocol"]
+    if protocol != "calibrate" and (
+        holdout is not None or solution is not None or expect_coverage is not None
+    ):
+        raise ValueError(
+            "a holdout dataset, a solution and a coverage expectation apply to calibration runs"
+        )
     for name, digest in manifest["spec_sha256"].items():
         if _digest((source / "spec" / _relative_file(name)).read_bytes()) != digest:
             raise ValueError(f"source input digest mismatch: {name}")
     result = _script_result(source)
-    is_control = manifest["protocol"] == "control"
-    loaded = _load_check_source(source / "spec", manifest["protocol"])
+    is_control = protocol == "control"
+    loaded = _load_check_source(source / "spec", protocol)
     point = loaded.points[0] if hasattr(loaded, "points") else loaded
-    identity = "problem_sha256" if is_control else "plan_sha256"
+    identity = IDENTITY.get(protocol, "plan_sha256")
+    digest = _source_digest(loaded, protocol)
     if is_control:
         consistent = (
             loaded.digest == manifest["launch"][identity] == result.get(identity)
             and result.get("kind") == manifest["launch"]["kind"] == "control"
             and result.get("engine") == manifest["engine"]
             and result.get("solver") == manifest["launch"]["selection"]
+        )
+    elif protocol == "calibrate":
+        consistent = (
+            digest == manifest["launch"][identity] == result.get(identity)
+            and result.get("kind") == manifest["launch"]["kind"] == "calibrate"
+            and result.get("engine") == manifest["engine"]
         )
     else:
         consistent = not (
@@ -235,6 +269,8 @@ def create_verification_run(
     if is_control:
         evaluation = loaded.definition.evaluation
         declaration = evaluation.refinement if evaluation is not None else {}
+    elif protocol == "calibrate":
+        declaration = loaded.spec.refinement
     else:
         declaration = point.definition.refinement
     if refinement is not None:
@@ -247,13 +283,26 @@ def create_verification_run(
         "refinement": {name: value.model_dump() for name, value in declaration.items()},
         "refinement_origin": "request" if refinement is not None else "source spec",
     }
+    files = {}
+    if protocol == "calibrate":
+        from entanglix.corrector.calibration import calibration_request
+
+        fields, files = calibration_request(
+            loaded,
+            result,
+            request["checks"],
+            holdout=holdout,
+            solution=solution,
+            expect_coverage=expect_coverage,
+        )
+        request.update(fields)
     policy = load_policy()
     binding = {
         "source_run_id": manifest["run_id"],
         "source_path": os.path.relpath(source, runs_root.resolve() / loaded.system.id),
         "source_result_sha256": _digest((source / "result.toml").read_bytes()),
         "source_artifact_sha256": _source_artifact(result)["sha256"],
-        identity: loaded.digest,
+        identity: digest,
         "policy_version": policy.version,
         **({"timeout_seconds": timeout_seconds} if timeout_seconds is not None else {}),
     }
@@ -264,10 +313,16 @@ def create_verification_run(
     with tempfile.TemporaryDirectory(prefix="entanglix-check-request-") as directory:
         path = Path(directory) / name
         path.write_text(tomli_w.dumps(request))
+        # Supplied data is frozen from the bytes that were validated.
+        supplied = {}
+        for file_name, data in files.items():
+            supplied[file_name] = Path(directory) / file_name
+            supplied[file_name].parent.mkdir(exist_ok=True)
+            supplied[file_name].write_bytes(data)
         owner = create_run(
             system_id=loaded.system.id,
             protocol="verification",
-            inputs={**loaded.inputs, name: path},
+            inputs={**loaded.inputs, name: path, **supplied},
             environment=environment,
             code=code,
             engine="corrector",
@@ -307,10 +362,10 @@ def load_verification(run: Path):
     for name, digest in manifest["spec_sha256"].items():
         if _digest((run / "spec" / _relative_file(name)).read_bytes()) != digest:
             raise ValueError(f"verification input digest mismatch: {name}")
-    is_control = "problem_sha256" in binding
-    loaded = _load_check_source(run / "spec", "control" if is_control else "plan")
-    identity = "problem_sha256" if is_control else "plan_sha256"
-    if loaded.digest != binding[identity] or manifest["parent_run_ids"] != [
+    protocol = next((name for name, key in IDENTITY.items() if key in binding), "plan")
+    loaded = _load_check_source(run / "spec", protocol)
+    identity = IDENTITY.get(protocol, "plan_sha256")
+    if _source_digest(loaded, protocol) != binding[identity] or manifest["parent_run_ids"] != [
         binding["source_run_id"]
     ]:
         raise ValueError("verification source binding is inconsistent")

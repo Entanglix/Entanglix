@@ -80,9 +80,9 @@ def embedding_matrix(system, refined):
     )
 
 
-def prepare_refinement(loaded, directory: Path, policy):
-    """Write a combined refinement; returned plan is validated before any solve."""
-    for name, path in loaded.inputs.items():
+def write_refined_system(inputs, refinement, directory: Path) -> Path:
+    """Copy the frozen inputs into ``directory`` and refine its system.toml and sources."""
+    for name, path in inputs.items():
         shutil.copyfile(path, directory / name)
     document = tomllib.loads((directory / "system.toml").read_text())
     model = document["model"]
@@ -98,7 +98,7 @@ def prepare_refinement(loaded, directory: Path, policy):
 
     if model["kind"] == "composite":
         for index, item in enumerate(model["subsystems"]):
-            step = loaded.definition.refinement.get(item["id"])
+            step = refinement.get(item["id"])
             if step is None:
                 continue
             if "source" in item:
@@ -112,10 +112,17 @@ def prepare_refinement(loaded, directory: Path, policy):
                 item["source"] = name
             else:
                 refine({"model": item}, step)
-    elif loaded.definition.refinement:
-        refine(document, loaded.definition.refinement[document["id"]])
+    elif refinement:
+        refine(document, refinement[document["id"]])
     (directory / "system.toml").write_text(tomli_w.dumps(document))
-    refined = load_system(directory / "system.toml")
+    return directory / "system.toml"
+
+
+def prepare_refinement(loaded, directory: Path, policy):
+    """Write a combined refinement; returned plan is validated before any solve."""
+    refined = load_system(
+        write_refined_system(loaded.inputs, loaded.definition.refinement, directory)
+    )
     plan = loaded.definition.model_dump(exclude_none=True)
     if loaded.request is not None:
         plan["engine"] = plan["engine"] if plan["device"] == "cpu" else "qutip-cpu"

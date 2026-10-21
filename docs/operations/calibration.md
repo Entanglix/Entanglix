@@ -1,6 +1,6 @@
 # Calibration
 
-Calibration fits device parameters to measured spectroscopy. This reference describes measurement datasets, with the format every measurement is converted to, validation, digests, raw-file checks, and holdout splits; peak extraction from maps; and the `calibrate` protocol: its spec, assignment, fit, outcomes and report.
+Calibration fits device parameters to measured spectroscopy. This reference describes measurement datasets, with the format every measurement is converted to, validation, digests, raw-file checks, and holdout splits; peak extraction from maps; the `calibrate` protocol: its spec, assignment, fit, outcomes and report; and the checks a calibration run takes on request.
 
 ## Measurement datasets
 
@@ -199,4 +199,58 @@ The covariance is unscaled, a local linear approximation conditional on the assi
 
 ### Refused at launch
 
-A fitted name that is not in the system's parameter table, has no prior, or enters no construction; an axis-map flux that is fitted, not in `Phi0`, or unused; a dataset whose level the procedure needs is absent; a map without a uniform frequency grid of at least three points, when it is to be extracted; a bias axis without an axis map, or the reverse; bias units that differ; a label outside the family; a partly labelled input; `[matching]` with supplied labels, or none without them; an anchor outside the family; a point missing a field its procedure uses; a level beyond the system's dimension; a start without exactly the fitted and nuisance names or outside the bounds; and inconsistent conventions.
+A fitted name that is not in the system's parameter table, has no prior, or enters no construction; an axis-map flux that is fitted, not in `Phi0`, or unused; a dataset whose level the procedure needs is absent; a map without a uniform frequency grid of at least three points, when it is to be extracted; a bias axis without an axis map, or the reverse; bias units that differ; a label outside the family; a partly labelled input; `[matching]` with supplied labels, or none without them; an anchor outside the family; a point missing a field its procedure uses; a named line called `unexplained` or `unresolved`; a level beyond the system's dimension; a start without exactly the fitted and nuisance names or outside the bounds; and inconsistent conventions.
+
+## Checks
+
+A `calibrate` launch, its `--dry-run` preview, and `check RUN` or `read-run` on the run list `holdout`, `identifiability` and `refinement` with their availability and the holdout forms the run's procedure can read; a completed run's listing adds the number of solutions. Availability annotates the listing and never refuses the calibration: refinement is listed as unavailable without a declaration, or with one that does not meet the rules below. Named checks run as one verification attempt linked to the run, as for any run; see [run records](runs.md#corrector-policy-and-verification-records). Each check reports on one solution. When the run returned several, `--solution N` names one by its index in the result's `solutions` list, counting from 0, and a request without it is refused. Every check is inapplicable when the run returned no solution. None has a pass or fail outcome unless the user declares one, as below.
+
+```sh
+entanglix check RUN holdout identifiability --holdout holdout.toml --expect-coverage 2 0.9
+entanglix check RUN refinement --solution 1 --refinement refinement.toml
+```
+
+### Holdout
+
+The holdout check evaluates withheld data at the fitted parameters. `--holdout` supplies the dataset: a holdout part from `split-dataset`, or a separate measurement. The verification attempt freezes it under `holdout/` with its digest; the fitting run never holds it. Without `--holdout` the check is inapplicable.
+
+The check refuses a dataset that is one of the run's training datasets, the parent of one, a split part of one, or a part of the same parent whose kept indices overlap one. It also refuses a partly labelled dataset, a label outside the family, a bias axis without the run's axis map or in another unit, a map to be extracted without a uniform frequency grid, and unlabelled points without linewidths.
+
+The check uses only the procedure the run recorded:
+- **A map,** when the run declared `[extraction]`, is extracted under the run's settings, with the projection the run learned from its training map; points stored beside it are not used. When several training maps learned different projections, the check is inapplicable.
+- **Labelled points** keep their labels.
+- **Unlabelled points,** when the run used automatic assignment, are matched one to one with the family's lines in each column. The run's `cutoff` is the unmatched penalty and its `resolution` decides unresolved peaks, with distances in units of each line's prediction uncertainty. The anchor is not used.
+
+A map after a run without extraction settings, and unlabelled points after a fit to supplied labels, are inapplicable.
+
+Nothing is refitted, and nothing is learned from the holdout data. A line's prediction uncertainty combines the peak's centre uncertainty with the parameter covariance propagated linearly through the prediction, axis-map parameters included. The covariance is recomputed from the training residuals at the fitted values, along the determined directions, with the corrector's tolerances. A prediction that moves along an undetermined combination is not determined: its peak counts as assigned but is not scored.
+
+The report gives:
+- the dataset's file, ID and digest, and the form read;
+- `counts`: peaks, assigned, `not_determined`, unresolved, unexplained and scored, with `extraction_failures` for a map;
+- `coverage_over_peaks` and `coverage_over_scored`: the fractions of all peaks and of scored peaks within one and two prediction uncertainties (`within_1`, `within_2`). Unexplained, unresolved and undetermined peaks count against coverage over peaks;
+- `mean_squared_standardised_residual` of the scored peaks;
+- the bias columns, and each peak with its line, prediction, prediction uncertainty and standardised residual.
+
+`--expect-coverage WITHIN MINIMUM` declares an expectation: coverage over all peaks within `WITHIN` prediction uncertainties, 1 or 2, is at least `MINIMUM`, a fraction in (0, 1]. The check then passes or fails, with the coverage as `residual` and the minimum as `tolerance`.
+
+### Identifiability
+
+The identifiability check recomputes, at the solution's values, the fit statistics, rank, singular values, undetermined combinations, uncertainties, prior-width ratios, covariance and correlations. It uses the frozen training data, the run's final assignment and the corrector's tolerances. The training peaks are rebuilt from the frozen datasets and must equal the run's recorded peaks; otherwise the check attempt fails.
+
+The report gives both sets of tolerances and the agreement with the fit's own report:
+- whether the outcome, the rank and the determined parameters match;
+- the largest relative difference of an uncertainty, the largest difference of a correlation, and the difference in χ²;
+- for a rank-deficient fit, `undetermined_difference`: the sine of the largest angle between the two sets of undetermined combinations.
+
+`agrees` is true when all three match and every difference is within `agreement_rtol`; the χ² difference is taken relative to the fit's χ², or absolutely when that is below 1. The check is descriptive.
+
+### Refinement
+
+The refinement check predicts the assigned training peaks at a refined truncation, at the solution's values. The declaration is the run's `[refinement.<subsystem>]` tables, or a replacement given with `--refinement FILE`. It must cover exactly the truncated subsystems and meet the policy's minimum steps, as for simulations; without a declaration, or with one that does not meet these rules, the check is inapplicable.
+
+The report gives the dimensions before and after, the number of assigned peaks, the largest change of a prediction in GHz and in units of its peak's centre uncertainty, the largest standardised change for each line, and χ² at both truncations. It is descriptive: truncation error that the fit absorbed into its parameters shows as a change against the data's own uncertainty.
+
+### Corrector tolerances
+
+The corrector policy's `[calibration]` table holds `rank_rtol = 1e-6`, `undetermined_tolerance = 1e-3` and `jacobian_step = 1e-5`, used by the identifiability recomputation and by the holdout prediction uncertainty, and `agreement_rtol = 1e-6`. The fit records its own tolerances, so a policy change explains a difference between the two reports.

@@ -89,6 +89,8 @@ in the source attempt; missing or changed evidence fails the check execution. A
 replacement supplied with `--refinement FILE` leaves the source and its plan digest
 unchanged. Reports record its origin; a check attempt whose frozen inputs were
 altered fails without outcomes.
+Calibration checks also take a holdout dataset, a solution and a coverage expectation;
+see the [calibration reference](calibration.md#checks).
 
 Reports identify scopes, tolerances, residuals, sampled windows and coverage, refined
 engine/dimensions/settings, and inapplicable reasons. `--timeout SECONDS` and

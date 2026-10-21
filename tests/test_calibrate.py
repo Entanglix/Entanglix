@@ -615,6 +615,10 @@ def test_bare_labels_follow_overlap_through_a_crossing(tmp_path):
             {"family": {**FAMILY, "lines": {"0-9": {"initial": 0, "final": 1}}}},
             "generated label form",
         ),
+        (
+            {"family": {**FAMILY, "lines": {"unresolved": {"initial": 0, "final": 1}}}},
+            "called unexplained or unresolved",
+        ),
         ({"conventions": {"exchange": [["EJ", "phi"]]}}, "exchange pairs name fitted parameters"),
     ],
 )
@@ -671,11 +675,19 @@ def test_calibrate_cli_freezes_inputs_and_records_the_result(tmp_path, runner_re
 
     preview = launch("--dry-run")
     assert preview.returncode == 0, preview.stderr
-    assert json.loads(preview.stdout)["preview"]["procedure"] == {
+    previewed = json.loads(preview.stdout)["preview"]
+    assert previewed["procedure"] == {
         "points": "supplied",
         "assignment": "automatic",
         "anchor": "0-1",
     }
+    # The preview lists the checks the run can take; refinement needs a declaration.
+    assert [(item["name"], item["available"]) for item in previewed["checks"]] == [
+        ("holdout", True),
+        ("identifiability", True),
+        ("refinement", False),
+    ]
+    assert previewed["holdout_forms"] == ["labelled points", "unlabelled points"]
     assert not root.exists()
     launched = launch()
     assert launched.returncode == 0, launched.stderr

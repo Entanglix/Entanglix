@@ -185,6 +185,11 @@ def execute_verification(run: Path):
         outcomes = control_checks(
             loaded, pulse, result, request["checks"], policy, declaration=declaration
         )
+    elif "calibration_sha256" in binding:
+        from entanglix.corrector.calibration import calibration_checks
+
+        kind, has_dynamics = "calibrate", False
+        outcomes = calibration_checks(loaded, run, source, request, declaration, policy)
     elif hasattr(loaded, "points"):
         from entanglix.corrector.sweeps import sweep_checks
 
@@ -253,19 +258,29 @@ def check_run(
     repository: Path | None = None,
     timeout_seconds: float | None = None,
     refinement: Path | None = None,
+    holdout: Path | None = None,
+    solution: int | None = None,
+    expect_coverage: list[float] | None = None,
 ):
     source = source.resolve()
     if not checks:
         if refinement is not None:
             raise ValueError("a replacement refinement requires named checks")
+        if holdout is not None or solution is not None or expect_coverage is not None:
+            raise ValueError("a holdout dataset, solution or expectation requires named checks")
         record = _read_attempt(source)
-        if record["manifest"]["protocol"] not in {"plan", "simulate", "sweep", "control"}:
+        protocol = record["manifest"]["protocol"]
+        if protocol not in {"plan", "simulate", "sweep", "control", "calibrate"}:
             return {"checks": [], "reason": "run has no trusted built-in computation definition"}
-        loaded = _load_check_source(source / "spec", record["manifest"]["protocol"])
-        if record["manifest"]["protocol"] == "control":
+        loaded = _load_check_source(source / "spec", protocol)
+        if protocol == "control":
             from entanglix.corrector.control import control_listing
 
             return control_listing(loaded)
+        if protocol == "calibrate":
+            from entanglix.corrector.calibration import calibration_listing
+
+            return calibration_listing(loaded, _script_result(source))
         if hasattr(loaded, "points"):
             from entanglix.corrector.sweeps import sweep_listing
 
@@ -290,8 +305,12 @@ def check_run(
         runs_root=source.parent.parent,
         timeout_seconds=timeout_seconds,
         refinement=refinement,
+        holdout=holdout,
+        solution=solution,
+        expect_coverage=expect_coverage,
     ) as owner:
         environment.update(ENTANGLIX_RUN_DIR=str(owner.path))
+        launch = _load_record(owner.path / "run.toml")["launch"]
         return _execute_job(
             owner,
             command,
@@ -299,7 +318,9 @@ def check_run(
             timeout_seconds=timeout_seconds,
             job_input=(
                 "control.toml"
-                if "problem_sha256" in _load_record(owner.path / "run.toml")["launch"]
+                if "problem_sha256" in launch
+                else "calibrate.toml"
+                if "calibration_sha256" in launch
                 else "plan.toml"
             ),
             validate_result=verification_result,

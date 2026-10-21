@@ -35,3 +35,13 @@ max_steps = 100000
 [uncertainty]
 # A sampled logical state whose overlap with its nominal state is below this is reported as ambiguous.
 min_state_overlap = 0.7
+
+[calibration]
+# The identifiability recomputation's tolerances, reported beside the fit's own. Holdout
+# prediction uncertainties use the same recomputed covariance.
+rank_rtol = 1e-6
+undetermined_tolerance = 1e-3
+jacobian_step = 1e-5
+# Recomputed uncertainties, correlations, undetermined combinations and chi-squared agree
+# with the fit's report within this relative tolerance.
+agreement_rtol = 1e-6

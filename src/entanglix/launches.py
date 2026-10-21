@@ -54,6 +54,7 @@ def _arguments(arguments):
         "repository",
         "runs_root",
         "refinement",
+        "holdout",
     ):
         if result.get(name) is not None:
             result[name] = Path(result[name]).resolve()

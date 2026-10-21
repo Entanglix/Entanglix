@@ -155,6 +155,17 @@ def _main(argv: list[str] | None = None) -> int:
     checking.add_argument("names", nargs="*", help=", ".join(CHECK_DEFINITIONS))
     checking.add_argument("--timeout", type=float, help="check time limit in seconds")
     checking.add_argument("--refinement", type=Path, help="replacement [refinement.*] declarations")
+    checking.add_argument("--holdout", type=Path, help="holdout dataset for a calibration run")
+    checking.add_argument(
+        "--solution", type=int, help="calibration solution index, required among several"
+    )
+    checking.add_argument(
+        "--expect-coverage",
+        nargs=2,
+        type=float,
+        metavar=("WITHIN", "MINIMUM"),
+        help="expected holdout coverage within 1 or 2 prediction uncertainties",
+    )
     simulation = subcommands.add_parser("simulate", help="run one simulation protocol")
     simulation.add_argument("protocol", type=Path, help="path to simulate.toml")
     simulation.add_argument("--runs-root", type=Path, default=Path("research_runs"))
@@ -463,6 +474,9 @@ def _main(argv: list[str] | None = None) -> int:
                     tuple(args.names),
                     timeout_seconds=args.timeout,
                     refinement=args.refinement,
+                    holdout=args.holdout,
+                    solution=args.solution,
+                    expect_coverage=args.expect_coverage,
                 )
             elif args.command == "calibrate":
                 from entanglix.protocols.calibrate import calibrate

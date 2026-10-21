@@ -100,6 +100,8 @@ class Family(StrictModel):
             raise ValueError("family.initial requires final or max_level, and they require it")
         if any(GENERATED.match(name) for name in self.lines):
             raise ValueError("named lines must not use the generated label form i-f or i-f/k")
+        if {"unexplained", "unresolved"} & set(self.lines):
+            raise ValueError("named lines must not be called unexplained or unresolved")
         return self
 
     def members(self) -> tuple[Member, ...]:
@@ -410,81 +412,103 @@ def tolerances(spec: CalibrationSpec) -> dict:
     }
 
 
+def dataset_peaks(name, dataset, extraction, labels, projection=None):
+    """One dataset's bias columns, frequency windows, peaks, extraction failures and record.
+
+    With extraction settings the map is extracted, under ``projection`` when one is given;
+    otherwise the points are read, with supplied labels as member indices from ``labels``.
+    Peak columns count from 0 within the dataset.
+    """
+    columns, windows = [], []
+    if extraction is not None:
+        found = extract(dataset, extraction, projection)
+        frequency, bias = dataset.arrays["map.frequency"], dataset.arrays.get("map.bias")
+        for c in range(1 if bias is None else bias.size):
+            columns.append(
+                {"dataset": name, "map_column": c}
+                | ({} if bias is None else {"bias": float(bias[c])})
+            )
+            windows.append((float(frequency[0]), float(frequency[-1])))
+        points = found.points
+        peaks = {
+            "column": points["column"],
+            "centre": points["centre"],
+            "uncertainty": points["centre_uncertainty"],
+            "linewidth": points["linewidth"],
+            "amplitude": points["amplitude"],
+            "line": np.full(points["centre"].size, -1),
+        }
+        failures = [{"dataset": name, **failure} for failure in found.failures]
+        record = {
+            "sha256": dataset.sha256,
+            "projection": list(found.projection),
+            "peaks": int(points["centre"].size),
+            "extraction_failures": len(found.failures),
+        }
+        return columns, windows, peaks, failures, record
+    arrays = dataset.arrays
+    size = arrays["points.centre"].size
+    bias = arrays.get("points.bias")
+    if bias is None:
+        columns.append({"dataset": name})
+        index = np.zeros(size, dtype=int)
+    else:
+        values, index = np.unique(bias, return_inverse=True)
+        columns += [{"dataset": name, "bias": float(value)} for value in values]
+    windows += [None] * len(columns)
+    missing = np.full(size, np.nan)
+    peaks = {
+        "column": index,
+        "centre": arrays["points.centre"],
+        "uncertainty": arrays["points.centre_uncertainty"],
+        "linewidth": arrays.get("points.linewidth", missing),
+        "amplitude": arrays.get("points.amplitude", missing),
+        "line": np.array(
+            [labels.get(label, -1) for label in arrays.get("points.assignment", [""] * size)],
+            dtype=int,
+        ),
+    }
+    return columns, windows, peaks, [], {"sha256": dataset.sha256, "peaks": int(size)}
+
+
+def merge_peaks(rows) -> Peaks:
+    return Peaks(
+        *(
+            np.concatenate([peaks[field] for peaks in rows])
+            for field in ("column", "centre", "uncertainty", "linewidth", "amplitude", "line")
+        )
+    )
+
+
+def spectrum_for(loaded: LoadedCalibration, columns, document=None, path=None) -> Spectrum:
+    """The forward model at the given bias columns, on the frozen system or a refined copy."""
+    axis = loaded.spec.axis_map
+    return Spectrum(
+        path or loaded.system_path,
+        copy.deepcopy(document or loaded.document),
+        loaded.members,
+        loaded.spec.parameters,
+        [column.get("bias", np.nan) for column in columns],
+        axis.flux if axis else None,
+    )
+
+
 def prepare(loaded: LoadedCalibration) -> tuple[Problem, dict]:
     """Extract or read the peaks and build the search problem; returns it and the peak record."""
     spec, members = loaded.spec, loaded.members
     labels = {member.label: index for index, member in enumerate(members)}
     columns, windows, rows, failures, datasets = [], [], [], [], {}
     for name, dataset in loaded.datasets.items():
-        base = len(columns)
-        if spec.extraction is not None:
-            found = extract(dataset, spec.extraction)
-            frequency, bias = dataset.arrays["map.frequency"], dataset.arrays.get("map.bias")
-            for c in range(1 if bias is None else bias.size):
-                columns.append(
-                    {"dataset": name, "map_column": c}
-                    | ({} if bias is None else {"bias": float(bias[c])})
-                )
-                windows.append((float(frequency[0]), float(frequency[-1])))
-            points = found.points
-            peaks = {
-                "column": base + points["column"],
-                "centre": points["centre"],
-                "uncertainty": points["centre_uncertainty"],
-                "linewidth": points["linewidth"],
-                "amplitude": points["amplitude"],
-                "line": np.full(points["centre"].size, -1),
-            }
-            failures += [{"dataset": name, **failure} for failure in found.failures]
-            datasets[name] = {
-                "sha256": dataset.sha256,
-                "projection": list(found.projection),
-                "peaks": int(points["centre"].size),
-                "extraction_failures": len(found.failures),
-            }
-        else:
-            arrays = dataset.arrays
-            size = arrays["points.centre"].size
-            bias = arrays.get("points.bias")
-            if bias is None:
-                columns.append({"dataset": name})
-                index = np.zeros(size, dtype=int)
-            else:
-                values, index = np.unique(bias, return_inverse=True)
-                columns += [{"dataset": name, "bias": float(value)} for value in values]
-            windows += [None] * (len(columns) - base)
-            missing = np.full(size, np.nan)
-            peaks = {
-                "column": base + index,
-                "centre": arrays["points.centre"],
-                "uncertainty": arrays["points.centre_uncertainty"],
-                "linewidth": arrays.get("points.linewidth", missing),
-                "amplitude": arrays.get("points.amplitude", missing),
-                "line": np.array(
-                    [
-                        labels.get(label, -1)
-                        for label in arrays.get("points.assignment", [""] * size)
-                    ],
-                    dtype=int,
-                ),
-            }
-            datasets[name] = {"sha256": dataset.sha256, "peaks": int(size)}
-        rows.append(peaks)
-    merged = Peaks(
-        *(
-            np.concatenate([peaks[field] for peaks in rows])
-            for field in ("column", "centre", "uncertainty", "linewidth", "amplitude", "line")
+        added, ranges, peaks, failed, datasets[name] = dataset_peaks(
+            name, dataset, spec.extraction, labels
         )
-    )
-    axis = spec.axis_map
-    spectrum = Spectrum(
-        loaded.system_path,
-        copy.deepcopy(loaded.document),
-        members,
-        spec.parameters,
-        [column.get("bias", np.nan) for column in columns],
-        axis.flux if axis else None,
-    )
+        peaks["column"] = len(columns) + peaks["column"]
+        columns += added
+        windows += ranges
+        rows.append(peaks)
+        failures += failed
+    merged = merge_peaks(rows)
+    spectrum = spectrum_for(loaded, columns)
     matching = None
     if not loaded.labelled:
         settings = spec.matching.model_dump()
@@ -512,6 +536,7 @@ def compile_calibration(
     protocol: Path, directory: Path, extras, repository: Path, *, retain_base=False
 ):
     """Freeze the spec, system inputs and datasets for the runner; this creates no attempt."""
+    from entanglix.corrector.calibration import calibration_listing
     from entanglix.runner import capture_environment
 
     if retain_base:
@@ -538,7 +563,8 @@ def compile_calibration(
         "inputs": {name: str(directory / name) for name in frozen},
         "spec_sha256": digests,
         "calibration_sha256": digests["calibrate.toml"],
-        "preview": loaded.listing,
+        # A launch and its preview list the checks the run can take, as reads of it do.
+        "preview": {**loaded.listing, **calibration_listing(loaded)},
         "base_inputs": {},
         "scope_values": [{}],
         "engine": ENGINE,

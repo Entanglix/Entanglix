@@ -1250,7 +1250,14 @@ def read_run(run: Path, *, wait_seconds: float = 0) -> dict:
             break
         time.sleep(min(0.25, max(0, expires - time.monotonic())))
     record = _read_attempt(run)
-    if record["manifest"]["protocol"] in {"plan", "reference", "simulate", "sweep", "control"}:
+    if record["manifest"]["protocol"] in {
+        "plan",
+        "reference",
+        "simulate",
+        "sweep",
+        "control",
+        "calibrate",
+    }:
         from entanglix.corrector.verification import check_run, verification_history
 
         record["verification"] = verification_history(run)
