@@ -1,6 +1,6 @@
 # Calibration
 
-Calibration fits device parameters to measured spectroscopy. This reference describes measurement datasets: the format every measurement is converted to, validation, digests, raw-file checks, and holdout splits.
+Calibration fits device parameters to measured spectroscopy. This reference describes measurement datasets, with the format every measurement is converted to, validation, digests, raw-file checks, and holdout splits, and peak extraction from maps.
 
 ## Measurement datasets
 
@@ -68,3 +68,21 @@ entanglix split-dataset two-tone.toml --lower 0.2 --upper 0.5 --holdout holdout.
 The range is closed and in the bias unit. Map columns and points whose bias lies inside it form the holdout part; the rest form the remainder. Each part is a new dataset, written with an NPZ archive of the same name stem, an ID of `<id>-holdout` or `<id>-remainder`, and the parent's conditions and provenance. Its `[split]` table records the parent's digest, the part, the range, and the kept map columns and points as `[start, stop)` index ranges in the parent. An interior range leaves a remainder of two intervals, recorded exactly.
 
 A level with no entries inside a part, such as sparse points outside the range, is left out of that part. A split is refused for a dataset without a bias axis, for a part that would be empty, when an output file exists or its directory is missing, and for a dataset that is itself a split part. Both parts are written or neither: files written before a failure are removed. Loading a part checks that its recorded index counts match its arrays; it does not compare the values with the parent's.
+
+## Peak extraction
+
+Extraction turns a map into peaks under declared settings. Every setting is required:
+- `background_window_ghz`: the width of the running median along frequency that is subtracted from each column's I and Q.
+- `threshold`: the height and prominence a maximum needs, in units of its column's noise.
+- `min_separation_ghz`: detected maxima closer than this are an unresolved overlap.
+- `fit_half_window_ghz`: the half width of each line-fit window.
+- `linewidth_bounds_ghz = [lower, upper]`: bounds on the fitted half width at half maximum.
+- `line_shape`: `"lorentzian"` or `"gaussian"`.
+
+The map needs a uniform frequency grid of at least three points. The projection is the principal axis of the background-removed I/Q signal, signed so that the largest excursion is positive. It is learned from the map being extracted unless one is given, so a projection learned from training data can be applied to other data. Each column's noise is 1.4826 times the median absolute deviation of its projected signal. A maximum is detected when its height and prominence both reach the threshold.
+
+Each detected maximum that is separated from its neighbours is fitted with every detected line in its window and a constant offset, with residuals in units of the column's noise, the centre bounded to the window, and a non-negative amplitude. The centre's uncertainty comes from the fit's Jacobian, so it is conditional on the noise estimate and the declared line shape; a fit whose Jacobian does not determine every parameter in its window reports no uncertainty. Each peak reports its centre, the centre's uncertainty, its linewidth, and its amplitude.
+
+Failures are reported per column: `no noise estimate` for a constant column, `no peak`, `unresolved overlap` with the frequencies of the maxima involved, and `line fit failed` with the maximum's frequency and a detail: a rank-deficient fit, an optimizer that did not converge, or a non-finite uncertainty.
+
+The Python operation `entanglix.extraction.extract(dataset, settings, projection=None)` returns an `Extraction` with the projection used, the peaks as arrays (`column`, `bias` when the map has a bias axis, `centre`, `centre_uncertainty`, `linewidth`, `amplitude`), the failures, and each column's noise. `learn_projection(dataset, settings)` returns the projection alone.
