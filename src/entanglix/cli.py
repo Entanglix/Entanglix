@@ -44,9 +44,10 @@ def _print_circuit_diagnostics(provenance: dict[str, object], label: str) -> Non
             print(f"{label} dropped extended-coordinate offsets: {provenance['dropped_offsets']}")
         for loop in provenance["oriented_loops"]:
             first, second = loop["nodes"]
+            bound = f" from parameter {loop['parameter']}" if "parameter" in loop else ""
             print(
                 f"{label} closure branch {loop['branch']} ({first}→{second}): "
-                f"{loop['value']} {loop['unit']}"
+                f"{loop['value']} {loop['unit']}{bound}"
             )
     for name, child in provenance.get("subsystems", {}).items():
         _print_circuit_diagnostics(child, name)

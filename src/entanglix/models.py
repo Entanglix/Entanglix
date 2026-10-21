@@ -112,12 +112,17 @@ class Branch(StrictModel):
 
 class FluxBias(StrictModel):
     branch: str
-    value: float
-    unit: Literal["Phi0"]
+    value: float | ParameterRef
+    unit: Literal["Phi0"] | None = None
 
     @model_validator(mode="after")
     def check_value(self) -> FluxBias:
-        if not math.isfinite(self.value):
+        if isinstance(self.value, ParameterRef):
+            if self.unit is not None:
+                raise ValueError("a flux parameter reference takes the parameter's unit; omit unit")
+        elif self.unit is None:
+            raise ValueError('a literal external flux requires unit = "Phi0"')
+        elif not math.isfinite(self.value):
             raise ValueError("external flux must be finite")
         return self
 
@@ -459,8 +464,14 @@ def _construct_circuit(spec: SystemSpec):
             raise SpecError(
                 "external_fluxes: give one closure branch and value per independent loop"
             )
-        for index, bias in enumerate(model.external_fluxes, start=1):
-            setattr(circuit, f"Φ{index}", bias.value)
+        fluxes = [
+            _resolved(bias.value, spec.parameters, "Phi0", f"external_fluxes.{bias.branch}")
+            if isinstance(bias.value, ParameterRef)
+            else bias.value
+            for bias in model.external_fluxes
+        ]
+        for index, flux in enumerate(fluxes, start=1):
+            setattr(circuit, f"Φ{index}", flux)
         categories = circuit.var_categories
         if set(categories["periodic"] + categories["extended"]) != active:
             raise SpecError("transformation changes the quantized coordinate categories")
@@ -583,10 +594,15 @@ def _construct_circuit(spec: SystemSpec):
             {
                 "branch": bias.branch,
                 "nodes": list(model.branches[branch_ids[bias.branch]].nodes),
-                "value": bias.value,
-                "unit": bias.unit,
+                "value": flux,
+                "unit": "Phi0",
+                **(
+                    {"parameter": bias.value.parameter}
+                    if isinstance(bias.value, ParameterRef)
+                    else {}
+                ),
             }
-            for bias in model.external_fluxes
+            for bias, flux in zip(model.external_fluxes, fluxes, strict=True)
         ],
     }
     return (

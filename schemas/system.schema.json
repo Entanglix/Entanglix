@@ -276,19 +276,33 @@
           "type": "string"
         },
         "value": {
-          "title": "Value",
-          "type": "number"
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "$ref": "#/$defs/ParameterRef"
+            }
+          ],
+          "title": "Value"
         },
         "unit": {
-          "const": "Phi0",
-          "title": "Unit",
-          "type": "string"
+          "anyOf": [
+            {
+              "const": "Phi0",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
         }
       },
       "required": [
         "branch",
-        "value",
-        "unit"
+        "value"
       ],
       "title": "FluxBias",
       "type": "object"

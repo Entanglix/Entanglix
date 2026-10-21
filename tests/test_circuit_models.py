@@ -274,3 +274,87 @@ def test_missing_multinode_transformation_shows_default_to_author(tmp_path, caps
     captured = capsys.readouterr()
     assert "scqubits default to adopt: [[" in captured.err
     assert captured.out == ""
+
+
+FLUX_LITERAL = 'value = 0.25\nunit = "Phi0"'
+
+
+def _flux_parameter(tmp_path, value=0.25, unit="Phi0", reference='value = { parameter = "phi" }'):
+    source = _variant(tmp_path, "fluxonium", FLUX_LITERAL, reference)
+    source.write_text(
+        source.read_text() + f'\n[parameters]\nphi = {{ value = {value!r}, unit = "{unit}" }}\n'
+    )
+    return source
+
+
+def test_flux_parameter_constructs_the_literal_model(tmp_path, capsys):
+    bound = load_system(_flux_parameter(tmp_path))
+    literal = load_system(ROOT / "fluxonium/system.toml")
+    np.testing.assert_array_equal(bound.hamiltonian_ghz, literal.hamiltonian_ghz)
+    for name, operator in literal.operators.items():
+        np.testing.assert_array_equal(bound.operators[name], operator)
+    loop = bound.provenance["oriented_loops"][0]
+    assert loop == {
+        "branch": "inductor",
+        "nodes": [0, 1],
+        "value": 0.25,
+        "unit": "Phi0",
+        "parameter": "phi",
+    }
+    assert "parameter" not in literal.provenance["oriented_loops"][0]
+    assert main(["validate", str(tmp_path / "system.toml")]) == 0
+    assert "closure branch inductor (0→1): 0.25 Phi0 from parameter phi" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    ("unit", "reference", "message"),
+    [
+        ("GHz", 'value = { parameter = "phi" }', "external_fluxes.inductor: expected Phi0"),
+        ("Phi0", 'value = { parameter = "missing" }', "unknown parameter 'missing'"),
+        ("Phi0", 'value = { parameter = "phi" }\nunit = "Phi0"', "omit unit"),
+        ("Phi0", "value = 0.25", 'requires unit = "Phi0"'),
+    ],
+)
+def test_flux_parameter_refusals(tmp_path, unit, reference, message):
+    with pytest.raises(SpecError, match=message):
+        load_system(_flux_parameter(tmp_path, unit=unit, reference=reference))
+
+
+def test_sweep_over_a_flux_parameter_matches_separately_built_models(tmp_path):
+    import tomli_w
+
+    from entanglix.protocols.sweep import compile_sweep, load_sweep
+
+    _flux_parameter(tmp_path)
+    spec = {
+        "format_version": 1,
+        "system": "system.toml",
+        "kind": "spectrum",
+        "levels": 3,
+        "needs": {"device": "cpu"},
+        "parameters": {"phi": 0.25},
+        "refinement": {
+            "fluxonium_circuit": {"retained_levels_step": 1, "cutoff_steps": {"theta1": 2}}
+        },
+    }
+    (tmp_path / "simulate.toml").write_text(tomli_w.dumps(spec))
+    values = [0.0, 0.25, 0.4]
+    grid = {
+        "format_version": 1,
+        "base": "simulate.toml",
+        "axes": [{"id": "phi", "target": "parameters.phi", "values": values}],
+    }
+    (tmp_path / "sweep.toml").write_text(tomli_w.dumps(grid))
+    compiled = tmp_path / "compiled"
+    compiled.mkdir()
+    compile_sweep(tmp_path / "sweep.toml", compiled, [], ROOT.parent)
+    points = load_sweep(compiled).points
+    assert len(points) == len(values)
+    for value, point in zip(values, points, strict=True):
+        separate = tmp_path / f"literal-{value}"
+        separate.mkdir()
+        literal = _variant(separate, "fluxonium", "value = 0.25", f"value = {value!r}")
+        np.testing.assert_array_equal(
+            point.system.hamiltonian_ghz, load_system(literal).hamiltonian_ghz
+        )
+        assert point.system.provenance["oriented_loops"][0]["value"] == value
