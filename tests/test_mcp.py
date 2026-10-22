@@ -9,6 +9,7 @@ import sys
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 import tomli_w
@@ -173,6 +174,7 @@ def test_tool_parity_annotations_and_immutable_audit(study, runner_repository, t
         == "unknown"
     )
     assert connection["configuration"]["runs_root"] == str(runs.resolve())
+    assert connection["configuration"]["max_wait_seconds"] == 30
     assert connection["guidance_status"] == "none supplied"
     requests = [_load_record(p) for p in (runs / "_audit/calls").glob("*/request.toml")]
     assert len(requests) == 10
@@ -596,8 +598,7 @@ def test_supervisor_lost_near_manifest_preserves_audit_link(
 
 
 def test_wait_cap_and_guidance(tmp_path):
-    # Shorten the cap in the test server; exercise expiry on an owned pending launch.
-    import entanglix.mcp as transport
+    # Configure a short cap; exercise expiry on an owned pending launch.
     from entanglix.launches import reserve_launch
 
     (tmp_path / "docs").mkdir()
@@ -611,27 +612,44 @@ def test_wait_cap_and_guidance(tmp_path):
     instructions, metadata = supplied_guidance(tmp_path)
     assert instructions == "Follow the user terms."
     assert [item["version"] for item in metadata] == ["1", "2"]
-    original = transport.WAIT_CAP
-    transport.WAIT_CAP = 0.05
-    try:
-        with reserve_launch(tmp_path / "runs", "simulate") as owner:
-            server = build_server(
-                Configuration(tmp_path / "runs", "", (), tmp_path / "state", tmp_path)
+    with reserve_launch(tmp_path / "runs", "simulate") as owner:
+        server = build_server(
+            Configuration(tmp_path / "runs", "", (), tmp_path / "state", tmp_path, max_wait=0.05)
+        )
+
+        async def exercise():
+            tools = {tool.name: tool for tool in await server.list_tools()}
+            assert tools["read_run"].description.endswith("Wait up to 0.05 seconds.")
+            start = time.monotonic()
+            result = await server.call_tool(
+                "read_run", {"run": str(owner.path), "wait_seconds": 1000}
             )
+            assert time.monotonic() - start < 1
+            return result
 
-            async def exercise():
-                start = time.monotonic()
-                result = await server.call_tool(
-                    "read_run", {"run": str(owner.path), "wait_seconds": 1000}
-                )
-                assert time.monotonic() - start < 1
-                return result
+        # Tool manager output includes both content and structured result.
+        result = asyncio.run(exercise())
+        assert "pending" in str(result)
 
-            # Tool manager output includes both content and structured result.
-            result = asyncio.run(exercise())
-            assert "pending" in str(result)
-    finally:
-        transport.WAIT_CAP = original
+
+@pytest.mark.parametrize("value", ["3600", "0", "-1", "inf", "nan"])
+def test_max_wait_flag_accepts_finite_positive_seconds(tmp_path, monkeypatch, value):
+    import entanglix.mcp as transport
+
+    built = []
+    monkeypatch.setattr(
+        transport,
+        "build_server",
+        lambda config: built.append(config) or SimpleNamespace(run=lambda **_: None),
+    )
+    argv = ["--runs-root", str(tmp_path), "--device", "", "--runner-extras", "--max-wait", value]
+    if value == "3600":
+        transport.main(argv)
+        assert built[0].max_wait == 3600
+    else:
+        with pytest.raises(SystemExit):
+            transport.main(argv)
+        assert not built
 
 
 def test_transport_checks_replay_and_admission_refusals(study, runner_repository, tmp_path):

@@ -1,6 +1,6 @@
 # ADR-0004: Investigations, User Decisions, and Agent Sessions
 
-**Date:** 2026-10-06, revised 2026-10-10
+**Date:** 2026-10-06, revised 2026-10-21
 **Status:** Accepted
 **Purpose:** fix how an investigation is recorded, who may change its terms, how its jobs are admitted and stopped, how progress is assessed and work resumed, how the first agent-assisted investigation is evaluated, whose runtime drives the harness, and how an agent session is instructed, restricted, and audited. Field lists, formats, and command names are documented with the implementation.
 
@@ -133,7 +133,7 @@ Measurements: [readout threshold probe](../../tests/probes/m3_readout_results.js
 
 **Job tools**
 - A job tool returns the run ID once the manifest exists and a supervisor that outlives the call owns the attempt.
-- `read_run` takes an optional wait in seconds; without it the call returns at once. A wait returns at completion, at interruption, or when it expires. The MCP server caps one wait at 30 seconds; the command line applies no cap. Abandoning a wait never cancels the job, and the server answers other calls, including `abort_run`, while a wait is pending.
+- `read_run` takes an optional wait in seconds; without it the call returns at once. A wait returns at completion, at interruption, or when it expires. The MCP server caps one wait at a maximum the operator sets, 30 seconds by default; the command line applies no cap. Abandoning a wait never cancels the job, and the server answers other calls, including `abort_run`, while a wait is pending.
 - A launch is recorded in the tool-call audit before its supervisor is started, and the supervisor links the admitted run to that call, so the link does not depend on the server surviving. Recovery distinguishes a pending launch from an admitted or definitively refused one: an absent run is not evidence of refusal while admission is unresolved. This holds for a launch outside an investigation too.
 - The read operations report attempts and unresolved launches. The conduct tells an agent to read them at the start of a session and after a launch call that returned no response, and not to launch again while that launch is pending. There is no retry service.
 
@@ -152,7 +152,7 @@ Measurements: [readout threshold probe](../../tests/probes/m3_readout_results.js
 **Rationale:**
 - Runtimes differ in whether they read a workspace file, when they show server instructions, which environment they pass to a server, whether they cancel a call they abandon, whether they ask for approval of a tool, and whether they can restrict commands. Each decision states what the harness does and what holds in a runtime without the feature.
 - An instruction is not enforcement (contract §8), so an instruction-only session is recorded as one and is not counted as a blocked command.
-- A wait inside `read_run` avoids both a new tool and repeated empty calls. The MCP server caps it because a runtime can abandon a call at its own timeout without telling the server; a terminal has no such timeout. The cap bounds one call, not a job or an investigation.
+- A wait inside `read_run` avoids both a new tool and repeated empty calls. The MCP server caps it because a runtime can abandon a call at its own timeout without telling the server; a terminal has no such timeout. The server cannot see that timeout, so the operator sets the cap below it. An agent that waits one call at a time spends a model request each time a wait returns, so a cap that covers the job lets one wait suffice. The cap bounds one call, not a job or an investigation.
 - A launch can be admitted after its connection is lost, so the absence of a run cannot be read as refusal until the launch is resolved.
 - A server sees a connection and its requests, not an agent session or a model. Recording what the client reports, labelled as such, is the most the server can state.
 
@@ -192,6 +192,8 @@ Measurements: [agent-session probe](../../tests/probes/m3_agent_session_results.
 | Polling `read_run` without a wait, or a separate wait tool | Polling spends calls on nothing, and a second tool duplicates `read_run` |
 | An uncapped wait through MCP | A runtime abandons a long call at its own timeout and may not cancel it |
 | A capped wait on the command line | The cap answers a runtime's tool timeout, which a terminal does not have |
+| A fixed MCP cap | The runtime's timeout is the operator's setting, and a short cap spends a model request each time it expires |
+| A server notice that wakes the agent when a job ends | MCP gives a server no standard way to start a model turn; a user who ends the session can resume it |
 | A harness guard in the terminal for human-action commands | Another cooperative mechanism that leaves the limitation in place |
 | An instruction-only rule counted as a blocked command | An instruction is not enforcement (contract §8) |
 | An agent self-report tool for model and transcript | Unverifiable; the client's metadata or the evaluation's configuration records them |

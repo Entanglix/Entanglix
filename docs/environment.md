@@ -576,7 +576,7 @@ One workspace, prepared as in the [MCP setup](operations/mcp.md#research-workspa
   - **Report:** its reported outcome, values, uncertainties, prior-width ratios, axis map, holdout counts, identifiability agreement and refinement shift equal the records. They reproduce the example's runs.
   - **Data separation:** the fitting run froze the training map only, and the check run froze the holdout measurement.
   - **Update:** it gave the bare operator command and did not run it. No apply was attempted, no application record exists, and every input digest is unchanged.
-  - **Cost:** 23 of the 34 requests were bounded `read_run` waits during the 12-minute fit, each capped at 30 s.
+  - **Cost:** 23 of the 34 requests were bounded `read_run` waits during the 12-minute fit, each capped at 30 s. The server's [`--max-wait`](operations/mcp.md#waiting-and-recovery) now sets that cap.
   - **Window:** the five-hour window rolled over during the session, so its share was not measured. At the rate of the [live control sessions](#live-control-sessions), these tokens are about 4–6% of the window.
 
 This is one workspace with one brief per session, in one non-interactive configuration. Rebuild the [summary](../tests/probes/s2_sessions_results.json) from the retained workspace without launching a session:

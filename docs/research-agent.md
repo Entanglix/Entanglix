@@ -1,7 +1,7 @@
 ---
 name: entanglix-research-conduct
 description: Conduct for a quantum research session using Entanglix tools.
-version: 0.1.9
+version: 0.1.10
 ---
 
 # Research-agent conduct
@@ -34,8 +34,11 @@ Use `read_run` summaries for execution state, metrics and check outcomes; reques
 
 After losing a job response, recover its launch from the listings before
 resubmitting. Pending admission may become an independently supervised job.
-A bounded `read_run` wait, capped at 30 seconds through MCP, does not supervise
-or cancel that job. Read effective terms, usage, checkpoints and open reviews
+A bounded `read_run` wait, capped as its tool description states, does not
+supervise or cancel that job. Each read usually costs a model request: while a
+job runs, pass the longest wait the cap allows instead of reading repeatedly.
+When the user will resume the session after the job, end the turn with the run
+path instead of waiting. Read effective terms, usage, checkpoints and open reviews
 at session entry. Within a session do not re-read the investigation before each
 admission: admission enforces them, and a refusal names the limit, checkpoint or
 review that blocks it. Read again after a refusal or a lost reply.

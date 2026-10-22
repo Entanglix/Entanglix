@@ -5,6 +5,7 @@ import asyncio
 import hashlib
 import inspect
 import json
+import math
 import os
 import secrets
 from contextvars import ContextVar
@@ -55,7 +56,7 @@ WRITES = {
     "reconcile_run",
     "propose_device_update",
 }
-WAIT_CAP = 30.0
+MAX_WAIT = 30.0
 
 
 def _json(value):
@@ -107,6 +108,11 @@ class Configuration:
     state_directory: Path = field(default_factory=runner._state_directory)
     repository: Path = Path(__file__).resolve().parents[2]
     command_restriction: str = "instruction-only"
+    max_wait: float = MAX_WAIT
+
+    def __post_init__(self):
+        if not math.isfinite(self.max_wait) or self.max_wait <= 0:
+            raise ValueError("max_wait must be finite and positive")
 
     def environment(self):
         return os.environ | {
@@ -181,6 +187,7 @@ def build_server(config: Configuration):
                         "gpu_lock_directory": str(
                             config.state_directory.resolve() / "entanglix/gpu"
                         ),
+                        "max_wait_seconds": config.max_wait,
                     },
                     "supplied_guidance": supplied,
                     "guidance_status": "supplied" if supplied else "none supplied",
@@ -411,16 +418,14 @@ def build_server(config: Configuration):
         records = await backing(runner.list_runs, root)
         return await backing(runs_view, records, root, after)
 
-    @tool
     async def read_run(
         run: str, wait_seconds: float = 0, detail: bool = False
     ) -> dict[str, object]:
-        """Read a compact attempt or launch; detail=True returns the full record. Wait up to 30 seconds."""
         try:
             validate_wait(wait_seconds)
         except ValueError as exc:
             raise ToolError(str(exc)) from exc
-        expires = asyncio.get_running_loop().time() + min(wait_seconds, WAIT_CAP)
+        expires = asyncio.get_running_loop().time() + min(wait_seconds, config.max_wait)
         path = research_path(run)
         while True:
             record = await backing(
@@ -434,6 +439,13 @@ def build_server(config: Configuration):
             await asyncio.sleep(min(remaining, 0.25))
         record = await backing(runner.read_run, path)
         return record if detail else run_view(record)
+
+    # The description states the configured cap, so the model can choose its wait.
+    read_run.__doc__ = (
+        "Read a compact attempt or launch; detail=True returns the full record. "
+        f"Wait up to {config.max_wait:g} seconds."
+    )
+    tool(read_run)
 
     @tool
     async def list_investigations() -> list[dict[str, object]]:
@@ -661,14 +673,24 @@ def main(argv=None):
         default="instruction-only",
         help="operator-declared shell restriction; not an observed enforcement guarantee",
     )
-    args = parser.parse_args(argv)
-    config = Configuration(
-        args.runs_root,
-        args.device,
-        tuple(args.runner_extras),
-        args.state_directory or runner._state_directory(),
-        command_restriction=args.command_restriction,
+    parser.add_argument(
+        "--max-wait",
+        type=float,
+        default=MAX_WAIT,
+        help="longest read_run wait in seconds; keep it below the runtime's tool-call timeout",
     )
+    args = parser.parse_args(argv)
+    try:
+        config = Configuration(
+            args.runs_root,
+            args.device,
+            tuple(args.runner_extras),
+            args.state_directory or runner._state_directory(),
+            command_restriction=args.command_restriction,
+            max_wait=args.max_wait,
+        )
+    except ValueError as exc:
+        parser.error(str(exc))
     build_server(config).run(transport="stdio")
 
 

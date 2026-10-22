@@ -16,7 +16,7 @@ UV_PROJECT_ENVIRONMENT="$PWD/.venv-mcp" uv sync --locked --exact --extra mcp
 
 Use the environment's absolute Python path when configuring a client started elsewhere. The command communicates on stdin/stdout; diagnostics go to stderr. Only stdio is provided.
 
-The runs root, device and runner extras are explicit. The state-directory override is optional:
+The runs root, device and runner extras are explicit. The other settings are optional:
 
 | Setting | Meaning |
 |---|---|
@@ -25,6 +25,7 @@ The runs root, device and runner extras are explicit. The state-directory overri
 | `--runner-extras` | Space-separated extras for the separate `.venv-runner` job environment; the bare flag selects none |
 | `--state-directory` | Optional shared state directory; defaults to the runner's `XDG_STATE_HOME`, or `~/.local/state` when unset. GPU locks live under its `entanglix/gpu/` directory |
 | `--command-restriction` | Operator-declared `instruction-only` (the default) or `runtime-configured`; recorded in the connection audit, not an observed enforcement guarantee |
+| `--max-wait` | Longest `read_run` wait in seconds, finite and positive, 30 by default; recorded in the connection audit. Keep the runtime's per-call tool timeout above it |
 
 For CUDA jobs, name the device and pass `--runner-extras cuquantum differentiable-cuda12`. The server explicitly sets the supervisor's device, extras and state directory, even when the client process inherits `CUDA_VISIBLE_DEVICES=""`. Operator commands must use the same runner extras and state directory. When the operator shell uses a custom `XDG_STATE_HOME` that the runtime does not pass to the server, set `--state-directory` to that directory in the server entry. The existing runner environment refuses a different extras set, rather than removing packages underneath jobs. See [protocol dispatch](protocols.md) and [GPU ownership](runs.md#local-gpu-ownership).
 
@@ -107,7 +108,20 @@ Use `entanglix report-investigation PATH --output FILE` for an
 
 ## Waiting and recovery
 
-`read_run(run, wait_seconds=...)` accepts an attempt or launch directory. It returns on a terminal or interrupted state, or when the requested wait expires. Each MCP wait is capped at 30 seconds; the CLI's `read-run --wait` has no cap. Other calls, including `abort_run`, can proceed during a wait. Cancelling or abandoning the wait does not abort the job.
+`read_run(run, wait_seconds=...)` accepts an attempt or launch directory. It returns on a terminal or interrupted state, or when the requested wait expires. The server's `--max-wait` caps one wait, and the tool description states the cap; the CLI's `read-run --wait` has no cap. Other calls, including `abort_run`, can proceed during a wait. Cancelling or abandoning the wait does not abort the job.
+
+The retained sessions waited one call at a time, so each wait cost one model request when it returned, whatever its length; a runtime that keeps working during a call can differ. Under the 30-second default, the [live calibration session](../environment.md#live-calibration-session) spent 23 of its 34 requests waiting on a 12-minute fit. Set `--max-wait` to cover the jobs you run, and the runtime's per-call tool timeout above it. The server sends nothing while it waits, so any idle timeout of the runtime must exceed the cap too. A runtime that abandons a call first returns an error to the agent, and the job continues.
+
+A session need not stay open through a job of hours. The agent can end its turn with the run path, and the operator resumes the session after the job, from the workspace and with the first launch's configuration overrides:
+
+```sh
+entanglix read-run runs/<run> --wait <seconds>
+codex exec resume <session-id> 'The run has finished; continue.'
+```
+
+Check the printed status before resuming: a wait that expires returns while the job is still active.
+
+`codex exec --json` reports the session ID in its `thread.started` event. Claude Code resumes with `claude -p --resume <session-id>`, taking the ID from the `stream-json` init event. The command-line wait costs no model request; the resumed request carries the whole conversation, probably uncached after a long gap. No retained session covers this resume.
 
 A job's supervisor owns its attempt and any GPU lease independently of the connection, enforces its recorded timeout/deadline, and publishes its terminal record. Closing a connection does not cancel the job.
 
@@ -165,13 +179,13 @@ Create `.codex/config.toml` in that workspace. Replace the placeholders with abs
 ```toml
 [mcp_servers.entanglix]
 command = "<absolute-checkout-path>/.venv-mcp/bin/python"
-args = ["-m", "entanglix.mcp", "--runs-root", "<absolute-workspace-path>/runs", "--device", "<GPU-UUID>", "--runner-extras", "cuquantum", "differentiable-cuda12", "--command-restriction", "runtime-configured"]
+args = ["-m", "entanglix.mcp", "--runs-root", "<absolute-workspace-path>/runs", "--device", "<GPU-UUID>", "--runner-extras", "cuquantum", "differentiable-cuda12", "--command-restriction", "runtime-configured", "--max-wait", "3600"]
 startup_timeout_sec = 60
-tool_timeout_sec = 60
+tool_timeout_sec = 3660
 default_tools_approval_mode = "approve"
 ```
 
-The tool-approval setting allows job and write calls in an unattended session. Choose it according to the intended session; it is not a human investigation decision. If your operator shell sets a custom `XDG_STATE_HOME`, add `--state-directory` and the same absolute directory to `args`. Otherwise the server uses the runner default. No CUDA environment variable is needed on the entry: `--device` explicitly supplies the server's job visibility.
+`--max-wait 3600` lets one wait cover a job of up to an hour, and `tool_timeout_sec` stays above it so Codex does not abandon the wait first. The retained sessions used `tool_timeout_sec = 60` and the 30-second default. The tool-approval setting allows job and write calls in an unattended session. Choose it according to the intended session; it is not a human investigation decision. If your operator shell sets a custom `XDG_STATE_HOME`, add `--state-directory` and the same absolute directory to `args`. Otherwise the server uses the runner default. No CUDA environment variable is needed on the entry: `--device` explicitly supplies the server's job visibility.
 
 Create `.codex/rules/operator.rules`:
 
@@ -205,7 +219,8 @@ Supply the conduct as workspace `CLAUDE.md` in place of `AGENTS.md`, and retain 
   "mcpServers": {
     "entanglix": {
       "command": "<absolute-checkout-path>/.venv-mcp/bin/python",
-      "args": ["-m", "entanglix.mcp", "--runs-root", "<absolute-workspace-path>/runs", "--device", "", "--runner-extras", "cuquantum", "differentiable-cuda12", "--command-restriction", "instruction-only"]
+      "args": ["-m", "entanglix.mcp", "--runs-root", "<absolute-workspace-path>/runs", "--device", "", "--runner-extras", "cuquantum", "differentiable-cuda12", "--command-restriction", "instruction-only", "--max-wait", "3600"],
+      "timeout": 3660000
     }
   }
 }
@@ -227,13 +242,13 @@ CUDA_VISIBLE_DEVICES="" claude -p '<task brief>' \
     mcp__entanglix__record_finding mcp__entanglix__stop_investigation
 ```
 
-For a control task, also allow `mcp__entanglix__control` and `mcp__entanglix__rerun_control`; the [live control sessions](../environment.md#live-control-sessions) used this form. For a calibration task, also allow `mcp__entanglix__calibrate`, `mcp__entanglix__rerun_calibration` and `mcp__entanglix__propose_device_update`.
+The entry's `timeout` is Claude Code's per-call limit for this server, in milliseconds; keep it above `--max-wait`. It also sets the floor of Claude Code's idle check, which otherwise aborts a stdio call after 30 silent minutes. In an interactive session, Claude Code moves a call still running after two minutes to a background task; the non-interactive form does not. The retained sessions predate `--max-wait` and `timeout`, and ran with the 30-second default. For a control task, also allow `mcp__entanglix__control` and `mcp__entanglix__rerun_control`; the [live control sessions](../environment.md#live-control-sessions) used this form. For a calibration task, also allow `mcp__entanglix__calibrate`, `mcp__entanglix__rerun_calibration` and `mcp__entanglix__propose_device_update`.
 
 In four [retained sessions](../../tests/probes/m3_pickup_cutoff_results.json) the conduct was present before the first reply and no repository development instructions appeared. No command restriction has been validated for Claude Code: a session without a shell tool cannot run an operator command, but no retained test covers a session that has one, so declare `instruction-only`. Claude Code rejected a 54,724-character investigation reply and accepted one of 32,757 characters in the two sessions that predate the status and paged table views; the third and fourth used those views and no reply was rejected. Use them for research reads, and the report command or retained files for full history.
 
 ### Other stdio runtimes
 
-Use the same absolute Python command and arguments in your runtime's MCP entry, and supply the conduct under the instruction filename your runtime reads. Start the session with `CUDA_VISIBLE_DEVICES=""` and configure job/write tool approval as needed. Use `--command-restriction instruction-only` until a retained live test establishes the configured restriction for the forms you document. There is no list of supported model backends.
+Use the same absolute Python command and arguments in your runtime's MCP entry, and supply the conduct under the instruction filename your runtime reads. Start the session with `CUDA_VISIBLE_DEVICES=""` and configure job/write tool approval as needed. Keep the runtime's per-call tool timeout, and any idle timeout, above `--max-wait`. Use `--command-restriction instruction-only` until a retained live test establishes the configured restriction for the forms you document. There is no list of supported model backends.
 
 ## Human decisions and continuation
 
