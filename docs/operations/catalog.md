@@ -43,7 +43,7 @@ entanglix register-result RUN --design device_and_pulse --claim "X gate at 60 fF
 entanglix register-result RUN --design device --solution 0 --claim "Fit to cooldown 3"
 ```
 
-`--design` is `device`, `pulse` or `device_and_pulse`. `--claim` states what the candidate is offered as, and is required. The output is the published record as JSON, with the folder's path.
+`--design` is `device`, `pulse` or `device_and_pulse`. `--claim` states what the candidate is offered as, and is required. The output is the published record as JSON, with the folder's path relative to the runs root.
 
 Staging refuses:
 - a run that is not completed;
@@ -168,4 +168,4 @@ The [stdio MCP server](mcp.md#tool-surface) exposes the same backing operations:
 - `list_catalog()` lists staged candidates and promoted entries, wrapped under `result`.
 - `read_entry(identifier)` reads either a staged candidate ID or a promoted entry ID, including its check scope and lineage.
 
-The server supplies the runs root; it is not a tool argument. Paths in replies are relative to that root, including the staging path, which the CLI returns as an absolute path. A refused request publishes no candidate. There is no promotion tool; promotion remains the operator command above. The existing job tools need no new arguments: their specs name a device through `system_entry` or a starting pulse through `starting_pulse`.
+The server supplies the runs root; it is not a tool argument. Paths in replies are relative to that root, as in the CLI output. A refused request publishes no candidate. There is no promotion tool; promotion remains the operator command above. The existing job tools need no new arguments: their specs name a device through `system_entry` or a starting pulse through `starting_pulse`.

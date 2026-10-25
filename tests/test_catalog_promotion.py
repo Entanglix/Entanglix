@@ -97,8 +97,8 @@ def outcome(name, value="pass", **fields):
 def test_unchecked_promotion_copies_design_and_retains_immutable_staging(tmp_path):
     run = simulation(tmp_path / "source")
     staged = register_result(run, "device", claim="a reusable oscillator")
-    before = tree(Path(staged["path"]))
     roots = tmp_path / "runs"
+    before = tree(roots / staged["path"])
     entry = promote(staged["staged_id"], roots)
     assert entry["staged_id"] == staged["staged_id"]
     assert entry["entry_id"] == "e" + staged["staged_id"][1:]
@@ -108,16 +108,16 @@ def test_unchecked_promotion_copies_design_and_retains_immutable_staging(tmp_pat
         "kind": "operator-cli",
         "os_user": pwd.getpwuid(os.getuid()).pw_name,
     }
-    assert tree(Path(staged["path"])) == before
+    assert tree(roots / staged["path"]) == before
     device = roots / entry["device"]["path"] / "system.toml"
-    assert device.read_bytes() == (Path(staged["path"]) / "device/system.toml").read_bytes()
+    assert device.read_bytes() == (roots / staged["path"] / "device/system.toml").read_bytes()
     read = read_entry(entry["entry_id"], roots)
     assert read["status"] == "promoted" and read["promoter"] == entry["promoter"]
     assert read["lineage"]["source_run"]["run_id"] == run.name
     assert {item["status"] for item in list_catalog(roots)} == {"staged", "promoted"}
     assert all(
         path.stat().st_mode & 0o777 == 0o444
-        for path in Path(entry["path"]).rglob("*")
+        for path in (roots / entry["path"]).rglob("*")
         if path.is_file()
     )
     with pytest.raises(ValueError, match="already promoted"):
@@ -241,8 +241,9 @@ def test_missed_target_and_descriptive_checks_are_recorded(control_files, tmp_pa
     assert all(
         set(item) == {"name", "outcome", "run", "policy_version"} for item in entry["checks"]
     )
-    assert (Path(entry["path"]) / "pulse.npz").read_bytes() == (
-        Path(staged["path"]) / "pulse.npz"
+    root = tmp_path / "runs"
+    assert (root / entry["path"] / "pulse.npz").read_bytes() == (
+        root / staged["path"] / "pulse.npz"
     ).read_bytes()
 
 

@@ -329,7 +329,7 @@ def register_result(
         **({"context": context} if context else {}),
     }
     path = _publish(run.parent.parent, identifier, files, staged)
-    return {"path": str(path), **staged}
+    return {"path": str(path.relative_to(run.parent.parent)), **staged}
 
 
 def _covering_check(item: dict, source: dict) -> dict | None:
@@ -461,7 +461,7 @@ def promote(identifier: str, runs_root: Path = Path("research_runs")) -> dict:
         if exc.errno in {errno.EEXIST, errno.ENOTEMPTY}:
             raise ValueError(f"candidate {identifier} is already promoted as {entry_id}") from exc
         raise
-    return {"path": str(path), **entry}
+    return {"path": str(path.relative_to(root)), **entry}
 
 
 def list_catalog(runs_root: Path = Path("research_runs")) -> list[dict]:

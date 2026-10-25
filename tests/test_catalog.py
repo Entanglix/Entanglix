@@ -158,9 +158,9 @@ def test_simulation_device_holds_its_override_and_the_run_is_unchanged(tmp_path)
     run = simulation(tmp_path / "simulation")
     before = tree(run)
     staged = register_result(run, "device", claim="f0 raised to 0.25")
-    folder = Path(staged.pop("path"))
     identifier = staged["staged_id"]
-    assert folder == tmp_path / "runs/_catalog/staging" / identifier
+    assert staged.pop("path") == f"_catalog/staging/{identifier}"
+    folder = tmp_path / "runs/_catalog/staging" / identifier
     assert tomllib.loads((folder / "record.toml").read_text()) == staged
     assert all(path.stat().st_mode & 0o777 == 0o444 for path in folder.rglob("*") if path.is_file())
     frozen = run / "spec/system.toml"
@@ -191,7 +191,7 @@ def test_simulation_device_holds_its_override_and_the_run_is_unchanged(tmp_path)
 def test_sweep_point_device_and_evolution_values_as_context(tmp_path):
     run = sweep_run(tmp_path / "sweep")
     staged = register_result(run, "device", claim="the f0 = 0.3 point", point=1)
-    system = Path(staged["path"]) / "device/system.toml"
+    system = run.parent.parent / staged["path"] / "device/system.toml"
     frozen = run / "spec/points/000001/system.toml"
     assert system.read_bytes() == frozen.read_bytes()
     assert tomllib.loads(system.read_text())["parameters"]["f0"]["value"] == 0.3
@@ -219,7 +219,7 @@ def test_control_run_stages_its_device_and_its_pulse_with_channel_ids(control_fi
     run = control_run(control_files, tmp_path)
     prefix = f"{read_run(run)['manifest']['system_id']}/{run.name}"
     staged = register_result(run, "device_and_pulse", claim="X gate in 2 ns")
-    folder = Path(staged["path"])
+    folder = run.parent.parent / staged["path"]
     # The operator array the system references travels with it.
     assert sorted(path.name for path in (folder / "device").iterdir()) == [
         "operators.npz",
@@ -260,7 +260,7 @@ def test_calibration_device_carries_every_fitted_value_and_lists_the_undetermine
     run = oscillator_run(tmp_path, ["qa"], [5.0005], system=BOUND)
     fit = read_run(run)["result"]["solutions"][0]
     staged = register_result(run, "device", claim="a from one line")
-    folder = Path(staged["path"])
+    folder = run.parent.parent / staged["path"]
     values = {name: fit["values"][name] for name in ("a", "b")}
     assert staged["device"]["written"] == values
     assert staged["device"]["undetermined"] == ["b"]
@@ -328,7 +328,9 @@ def test_calibration_solution_selector_and_axis_map_context(tmp_path):
         "offset": fit["values"]["offset"],
         "period": fit["values"]["period"],
     }
-    parameters = tomllib.loads((Path(staged["path"]) / "device/system.toml").read_text())
+    parameters = tomllib.loads(
+        (run.parent.parent / staged["path"] / "device/system.toml").read_text()
+    )
     assert parameters["parameters"]["phi"] == {"value": 0.25, "unit": "Phi0"}
 
 
@@ -368,7 +370,7 @@ def test_files_a_script_published_stage_with_the_files_they_reference(tmp_path, 
     run = completed(tmp_path / "runs", gate, "script", artifacts, kind="script")
     prefix = f"two_level_reference/{run.name}"
     device = register_result(run, "device", claim="published chip", artifact="chip")
-    folder = Path(device["path"]) / "device"
+    folder = run.parent.parent / device["path"] / "device"
     assert (folder / "system.toml").read_bytes() == (run / "artifacts/chip.toml").read_bytes()
     assert (folder / "operators.npz").read_bytes() == (run / "artifacts/operators.npz").read_bytes()
     assert sorted(device["evidence"]["source_files"]) == [
@@ -451,7 +453,7 @@ def test_concurrent_staging_publishes_distinct_records(tmp_path):
     # Folders are renamed into place, so no temporary folder remains.
     assert os.listdir(tmp_path / "runs/_catalog") == ["staging"]
     for item in results:
-        record = Path(item["path"]) / "record.toml"
+        record = tmp_path / "runs" / item["path"] / "record.toml"
         assert tomllib.loads(record.read_text()) == {k: v for k, v in item.items() if k != "path"}
 
 

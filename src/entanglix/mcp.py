@@ -445,7 +445,7 @@ def build_server(config: Configuration):
         path = research_path(run)
         if path.parent.parent != root:
             raise ToolError("catalog source must be at <runs_root>/<system_id>/<run_id>")
-        record = await backing(
+        return await backing(
             register,
             path,
             design,
@@ -454,7 +454,6 @@ def build_server(config: Configuration):
             solution=solution,
             artifact=artifact,
         )
-        return record | {"path": relative_path(record["path"], root)}
 
     @tool
     async def list_runs(after: int = 0) -> dict[str, object]:

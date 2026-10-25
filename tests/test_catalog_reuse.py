@@ -41,12 +41,12 @@ def device(tmp_path):
     return source, root, entry
 
 
-def spectrum(directory, entry):
+def spectrum(directory, root, entry):
     directory.mkdir()
     path = directory / "simulate.toml"
-    nominal = tomllib.loads((Path(entry["path"]) / "device/system.toml").read_text())["parameters"][
-        "a"
-    ]["value"]
+    nominal = tomllib.loads((root / entry["path"] / "device/system.toml").read_text())[
+        "parameters"
+    ]["a"]["value"]
     path.write_text(
         tomli_w.dumps(
             {
@@ -65,7 +65,7 @@ def test_entry_sweep_freezes_all_device_files_and_replays_without_catalog(
     device, tmp_path, runner_repository
 ):
     source, root, entry = device
-    protocol = spectrum(tmp_path / "work", entry)
+    protocol = spectrum(tmp_path / "work", root, entry)
     grid = protocol.with_name("sweep.toml")
     grid.write_text(
         tomli_w.dumps(
@@ -122,7 +122,7 @@ def test_source_choice_is_exclusive(schema, control_files, device):
 @pytest.mark.parametrize("choice", ["unknown", "staged", "both"])
 def test_invalid_entry_requests_create_no_attempt(device, tmp_path, runner_repository, choice):
     source, root, entry = device
-    protocol = spectrum(tmp_path / "work", entry)
+    protocol = spectrum(tmp_path / "work", root, entry)
     document = tomllib.loads(protocol.read_text())
     message = {
         "unknown": "unknown catalog entry",
@@ -211,7 +211,7 @@ def test_investigation_entry_binds_every_device_file_before_drafting(
     device, tmp_path, terms, changed
 ):
     _, root, entry = device
-    protocol = spectrum(tmp_path / "work", entry)
+    protocol = spectrum(tmp_path / "work", root, entry)
     spec = entry_terms(terms, protocol, entry)
     spec["scope"]["bases"][0]["inputs"][changed] = "0" * 64
     with pytest.raises(ValueError, match=changed):
@@ -223,7 +223,7 @@ def test_investigation_run_and_replay_keep_entry_and_current_revision(
     device, tmp_path, terms, runner_repository
 ):
     source, root, entry = device
-    protocol = spectrum(tmp_path / "work", entry)
+    protocol = spectrum(tmp_path / "work", root, entry)
     spec = entry_terms(terms, protocol, entry)
     draft = create_investigation(spec, runs_root=root)
     investigation = Path(draft["path"])
@@ -264,7 +264,7 @@ def test_base_entry_provenance_is_recorded_when_protocol_uses_a_local_copy(
     device, tmp_path, terms, runner_repository
 ):
     _, root, entry = device
-    protocol = spectrum(tmp_path / "work", entry)
+    protocol = spectrum(tmp_path / "work", root, entry)
     document = tomllib.loads(protocol.read_text())
     document.pop("system_entry")
     document["system"] = "system.toml"
