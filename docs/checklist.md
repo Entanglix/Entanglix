@@ -326,11 +326,11 @@ The [M4 guide](m4-guide.md) records the implementation approach; [ADR-0005](adr/
 **Depends on:** Blocks 3–5; Block 7 for pulse warm-starts.
 
 - [ ] Catalog builds on the existing run ledger; all failed and unpromoted history remains independently queryable
-- [ ] `catalog/staging/`, `register_result`, `list_catalog`, and `read_entry`
-- [ ] Human `promote` command records the checks run and their outcomes, refuses a result with a failed check other than a violated declared expectation, and records source lineage and promoter; agents cannot promote
-- [ ] Lineage queries and trial counts retain unsuccessful attempts within the declared investigation or hypothesis family
-- [ ] Subsequent sweep reuses a catalogued candidate with both entry and run provenance
-- [ ] When Block 7 is available: control warm-start from a catalogued pulse with recorded lineage
+- [ ] `_catalog/staging/`, `register_result`, `list_catalog`, and `read_entry`; a candidate is a device with its referenced files, a pulse, or both, its design copied and its evidence referenced
+- [ ] Human `promote` command records the checks that covered the candidate and their outcomes and the relevant checks not run, refuses a result with a covering failed check reporting numerical disagreement or a violated pulse constraint, records a violated declared expectation or an unmet target, and records source lineage and promoter; agents cannot promote
+- [ ] Lineage queries retain unsuccessful attempts and show where an entry was reused
+- [ ] Subsequent sweep reuses a catalogued candidate with both entry and run provenance; an investigation base may name an entry
+- [ ] When Block 7 is available: control warm-start from a catalogued pulse with recorded lineage; a solver without starting-pulse support refuses it
 - [ ] Applicable quality evidence recorded
 - [ ] **Done:** a catalogued candidate is reused in a sweep and promotion is auditable; pulse warm-start is demonstrated when control is available
 

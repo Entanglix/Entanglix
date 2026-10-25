@@ -68,7 +68,7 @@ Workflow plane   problem formulation │ bounded sweep/search │ device–contr
 Solver plane     open GRAPE baseline │ Piccolo (Julia) │ private plugins (entry points)
 Run plane        research_runs/<system_id>/<run_id>/ … FINISHED   (amicode run-dir shape)
 Verify plane     corrector, on request: integrity, convergence, pulse replay, holdout    (versioned, outside candidate workspace)
-Evidence plane   run ledger (all attempts, lineage, trial counts) + human-promoted results catalog
+Evidence plane   run ledger (all attempts, lineage, attempt counts) + human-promoted results catalog
 Harness plane    entanglix CLI  ⇄  MCP server  ⇄  skills + research instructions  ⇄  Codex (or any runtime)
 Executors        local GPU │ Slurm │ Kubernetes   (artifacts mirrored back; large arrays stay on the cluster)
 ```
@@ -220,7 +220,7 @@ The evaluation protocol names a scripted experiment-selection policy, comparable
 ### Block 11 — Results Catalog
 
 - **Depends on:** Blocks 3–5; Block 7 for pulse warm-starts.
-- Build on the run ledger: catalog of human-promoted results, provenance and lineage queries, trial counts per hypothesis family, and reusable candidates for subsequent investigations.
+- Build on the run ledger: catalog of human-promoted designs (devices, pulses, or both), provenance and lineage queries, and reusable candidates for subsequent jobs and investigations.
 - Promotion is a human command. Failed and unpromoted run history remains queryable independently of the catalog.
 - **Done when:** a subsequent sweep reuses a catalogued candidate with recorded lineage; promotion is auditable; once control is available, a control run warm-starts from a catalogued pulse.
 
@@ -306,6 +306,7 @@ The Harmoniqs conversation is gated by concrete artifacts: the shared ProblemSpe
 - A Julia substrate.
 - Co-design extensions, until a concrete workflow needs them: uncertainty evaluation beyond a single periodic circuit coordinate, flux correspondence, dressed-transition calibration, device-dependent relaxation, and lab-frame validation of the control model.
 - Calibration extensions, until a concrete workflow needs them: dynamics-based calibration (time-domain traces, gate-error tables), gate-charge axes, several loops driven from one coil, profile likelihood and posterior sampling, and laboratory-format converters.
+- Catalog extensions, until a concrete workflow needs them: starting pulses for Piccolo, resampling a pulse onto another grid, and withdrawing an entry.
 
 ---
 
@@ -319,6 +320,7 @@ Settled: project name Entanglix; command `entanglix`; runner in Python (`uv`), s
 - **Settled in [ADR-0004 §2.8](adr/0004-investigations-and-agent-sessions.md#28-agent-sessions):** instruction delivery, the operator CLI as the decision path, job tools with a wait and recoverable launches, the permission settings and what holds in a runtime without them, session audit per connection, and busy-device admission ([probe results](../tests/probes/m3_agent_session_results.json)).
 - **Settled in [ADR-0005](adr/0005-control-problems-and-solvers.md):** the control spec and the generated ProblemSpec, where the solver is named, the shared problem subset, solver options and termination reports, the direct Piccolo adapter, and the control checks ([probe results](../tests/probes/m4_control_results.json)).
 - **Settled in [ADR-0007](adr/0007-calibration-from-spectroscopy.md):** spectroscopy first, the uniform measurement format, extraction, assignment, the fit and its uncertainty report, holdout and the calibration checks, flux binding, device-update proposals, and calibration in investigations and tools ([probe results](../tests/probes/s2_calibration_results.json)).
+- **Settled in [ADR-0008](adr/0008-results-catalog.md):** candidates as design objects, catalog records, staging and promotion with the scope of the checks that covered a candidate, lineage reads without a trial count, device reuse in jobs and investigation bases, starting pulses for control, and the catalog tools.
 - **Before Block 9:** scheduler target (Slurm or Kubernetes), remote environment, and site execution requirements when needed.
 - **When stronger deployment guarantees are needed:** threat model, authorization/identity mechanism, process/filesystem/network/device controls, and evidence of bypass resistance. This is not a Decision-0 or M3 prerequisite.
 

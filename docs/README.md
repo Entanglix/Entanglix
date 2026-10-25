@@ -24,6 +24,7 @@ This index supports project planning and implementation. Operational entry point
 - [m4-guide.md](m4-guide.md) — Completed implementation guide for M4 (Block 7): the control spec and generated ProblemSpec, the open baseline, the Piccolo adapter, control checks, and the first gate.
 - [m5-guide.md](m5-guide.md) — Implementation guide for M5 (Block 8): control parameters and seed variation, named transitions and Rabi-rate bounds, lineage through MCP, the uncertainty diagnostic, comparison guidance, and the co-design example.
 - [s2-guide.md](s2-guide.md) — Implementation guide for S2 (Block 10): the measurement format, flux parameters and axis binding, extraction, the calibrate protocol, the calibration checks, device-update proposals, investigations and tools, and the calibration example.
+- [s3-guide.md](s3-guide.md) — Implementation guide for S3 (Block 11): catalog records and staging, promotion with its check scope, device reuse in jobs and investigation bases, control starting pulses, tools, and the catalog example.
 - [development.md](development.md) — Maintainer and coding-agent instructions. Root [AGENTS.md](../AGENTS.md) and [CLAUDE.md](../CLAUDE.md) are one-line pointers here; they are excluded from research-runtime guidance.
 - Phase guides may be added as needed, including before code exists.
 
@@ -52,6 +53,7 @@ This index supports project planning and implementation. Operational entry point
 - [adr/0005-control-problems-and-solvers.md](adr/0005-control-problems-and-solvers.md) — Accepted control spec and generated ProblemSpec, shared problem subset, solver interface, direct Piccolo adapter, and control checks on request.
 - [adr/0006-device-control-co-design.md](adr/0006-device-control-co-design.md) — Accepted device–control co-design: composition of existing operations, device and seed variation within one base, the named transition and Rabi-rate bounds, the uncertainty diagnostic, lineage, comparison guidance, budget policy, and first-version scope.
 - [adr/0007-calibration-from-spectroscopy.md](adr/0007-calibration-from-spectroscopy.md) — Accepted calibration from spectroscopy: the uniform measurement format, extraction, assignment, the fit and its uncertainty report, holdout and the calibration checks, flux binding, device-update proposals, and first-version scope.
+- [adr/0008-results-catalog.md](adr/0008-results-catalog.md) — Accepted results catalog: candidates as design objects, catalog records, staging and promotion with check scope, lineage, device reuse, control starting pulses, and first-version scope.
 
 ## Sharing rule
 

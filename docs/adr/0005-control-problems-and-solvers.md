@@ -1,8 +1,8 @@
 # ADR-0005: Control Problems, Solvers, and Control Checks
 
-**Date:** 2026-10-11, revised 2026-10-19
+**Date:** 2026-10-11, revised 2026-10-24
 **Status:** Accepted
-**Purpose:** fix how a control problem is stated and shared between solvers, where the solver is named, how solvers attach and what they report, how Piccolo is run, and which checks a control result offers. Field lists, formats, and command names are documented with the implementation.
+**Purpose:** fix how a control problem is stated and shared between solvers, where the solver is named, how solvers attach, what they report and how they receive a supplied starting pulse, how Piccolo is run, and which checks a control result offers. Field lists, formats, and command names are documented with the implementation.
 
 ---
 
@@ -59,7 +59,7 @@ The harness does only what the user requests.
 - A derivative bound limits the discrete derivative: the change in amplitude between neighbouring steps divided by the step length. The second derivative is the change in that quantity divided by the step length. The end points, including a final knot that is not a propagation interval, follow one convention for every solver and for the check, stated with the implementation.
 - A solver enforces every declared bound or refuses the problem, naming the field. The open baseline enforces amplitude and derivative bounds.
 - A solver may restrict its pulses further than the problem requires. Such a candidate remains valid.
-- Regularisation weights, the initial guess, and the seed guide a solver. A solver may ignore them, and its result lists the fields it ignored.
+- Regularisation weights, the `init` choice, and the seed guide a solver. A solver may ignore them, and its result lists the fields it ignored. A starting pulse the user supplies is not guidance (§2.4).
 - A solver refuses a problem that uses a field it does not support, naming the field. No field is dropped silently.
 - A problem outside the subset may still be solved by a solver that supports it. The checks of §2.7 are defined for the subset and are reported as inapplicable elsewhere.
 
@@ -74,8 +74,9 @@ The harness does only what the user requests.
 - Each solver reads its options in its own meaning. An option name that two solvers share does not make their settings equal.
 - The termination report is the solver's own: the status it gives, its iteration count, and whether a cap was reached. It and the solver's reported objective are labelled as solver-reported and certify nothing.
 - Every solver writes the pulse in one neutral form, readable without the solver: knot times in ns, amplitudes per channel in GHz, and the interpolation kind. A solver's native file is kept beside it.
+- A starting pulse is supplied outside the ProblemSpec, which stays unchanged. A solver that declares the capability receives it as an optional argument to its `validate` preflight and to `solve`, and starts from exactly the supplied amplitudes, or refuses the pulse in its preflight before a run exists. When a starting pulse is declared, any other solver is refused at launch, including as a fallback. Matching and recording are fixed in [ADR-0008 §2.7](0008-results-catalog.md#27-starting-pulse).
 
-**Rationale:** the problem file carries the system, so a solver needs no second system argument. A solver's convergence settings are not a resource limit, and absence of a limit stays valid. Solvers stop by different rules on different objectives, so equal option values do not mean equal work. Piccolo's convergence flag shows that a solver's report can be a heuristic.
+**Rationale:** the problem file carries the system, so a solver needs no second system argument. A solver's convergence settings are not a resource limit, and absence of a limit stays valid. Solvers stop by different rules on different objectives, so equal option values do not mean equal work. Piccolo's convergence flag shows that a solver's report can be a heuristic. A starting pulse is where the user chose to begin the search, so a solver that ignored it would report a result from a start the user did not choose; kept out of the problem file, it leaves that file identical between solvers.
 
 ### 2.5 The open baseline
 
@@ -83,6 +84,7 @@ The harness does only what the user requests.
 - The baseline has its own propagator. Each interval's propagator is the matrix exponential of that interval's constant Hamiltonian, built from the exported matrices; one compiled loop runs over the intervals, and JAX differentiates it. The shared simulation engine is not used.
 - Amplitude bounds and derivative bounds are explicit constraints of that optimiser, subject to its numerical feasibility tolerances. They are not penalty terms. Whether a returned pulse holds its bounds is established by the requested check.
 - The baseline adds no optimiser of its own.
+- It accepts a starting pulse, and refuses one outside its own bounds, including its zero end knots, instead of letting the optimiser clip it.
 
 **Rationale:** the control model is closed and constant within each interval (§2.2, §2.3). The matrix exponential gives the exact-arithmetic propagator for each constant interval, without adaptive time stepping; its numerical evaluation and derivatives remain subject to floating-point error. The engine-based loss unrolled one adaptive solve per interval at compilation, so compile time dominated each job and grew faster than the interval count, and its gradient deviated from finite differences at a zero-amplitude first interval. On a piecewise-constant pulse, amplitude and derivative bounds are bounds and linear constraints on the amplitudes, which an existing optimiser takes as explicit constraints. Evolution that needs an integrator, such as lab-frame or open-system simulation, stays with the shared engine.
 
@@ -93,6 +95,7 @@ The harness does only what the user requests.
 - It writes the neutral pulse inside Julia.
 - The repository holds a pinned Julia project for it. A Piccolo run records the Julia version and the digest of that project's manifest.
 - Julia is optional. The core and the default tests do not need it, and a Piccolo request without it is a configuration error that names what is missing.
+- It declares no starting-pulse capability: Piccolo's ProblemSpec runner takes no initial pulse.
 
 **Rationale:** the runner already writes every record `amico-run` adds, and already stops a job's process group. A wrapper that moves Julia into another group, and needs longer than the runner's grace to stop it, would leave a solve running without a record. Acceptance of the generated file by `amico-run` remains interoperability evidence, not a dependency of the adapter.
 
@@ -132,6 +135,7 @@ Measurements: [control probe results](../../tests/probes/m4_control_results.json
 | A `solver` table in the shared file to carry Piccolo's iteration cap | The file would differ between solvers; the direct call takes the cap as an argument |
 | A run-level verified verdict, or an automatic second solve | Checks run on request and report their own scope |
 | Derivative bounds as guidance a solver may ignore, or refused by the baseline in its first version | They change which pulses are admissible, and they are part of regular use |
+| A starting pulse in the shared ProblemSpec, or as guidance a solver may ignore | The file's pulse table is shared and Piccolo's schema has no such field; ignored, the user's start would silently not be used |
 | An unconstrained optimiser with penalty terms for the bounds | The bounds would hold only approximately |
 | Reads that find other runs with the same problem digest | Needs a search over runs; the digest is enough for a comparison the user requests |
 | A Julia project path configured by the user | The Piccolo environment would not be reproducible from the repository |
@@ -144,7 +148,7 @@ Measurements: [control probe results](../../tests/probes/m4_control_results.json
 ## 4. Consequences
 
 - The contract changes accordingly:
-  - §1 describes the control spec and the generated ProblemSpec, names the solver in the control spec and the result, and gives `solve` the problem file and solver options, returning a termination report in place of a certificate.
+  - §1 describes the control spec and the generated ProblemSpec, names the solver in the control spec and the result, and gives `solve` the problem file, solver options and, for a solver that declares support, an optional starting pulse, returning a termination report in place of a certificate.
   - §2 records the Julia version and project digest of a Piccolo run.
   - §3 states the control checks as a replay with independently calculated quantities, and a second solve as a separate requested run.
   - §5 adds `rerun_control`.

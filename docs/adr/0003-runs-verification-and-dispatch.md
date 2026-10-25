@@ -1,6 +1,6 @@
 # ADR-0003: Run Records, Verification, and Engine Dispatch
 
-**Date:** 2026-09-30, revised 2026-10-04
+**Date:** 2026-09-30, revised 2026-10-24
 **Status:** Accepted
 **Purpose:** fix how runs are recorded, how a user checks completed runs, how a run reaches the GPU without a performance claim, and how driven evolution is represented in the lab and rotating frames. Field lists, formats, and threshold values are documented with the implementation.
 
@@ -152,7 +152,7 @@ Measurements: [verification feasibility probe](../../tests/probes/m2_verificatio
   - §2 no longer refuses a request for its size, and states how an out-of-memory failure and an unexplained signal death are reported.
   - §3 replaces three-engine agreement and verdicts with built-in checks that run on request and report their own outcomes.
   - §5 lists `check` in place of `compare_reference`.
-  - §6 identifies the runner records as the run ledger. Promotion shows the checks run on a result and their outcomes, and refuses a result with a failed check other than a violated declared expectation, which it records.
+  - §6 identifies the runner records as the run ledger. Promotion shows the checks run on a result and their outcomes, and refuses a result with a failed check reporting numerical disagreement or a violated pulse constraint; a violated declared expectation or an unmet target is recorded ([ADR-0008 §2.4](0008-results-catalog.md#24-promotion)).
   - §7's launch checks include no scientific check.
 - The roadmap and checklist move `index` and `latest` to Block 12 and the cuDensityMat usage items out of Block 5, and add the verification step before the first sweep.
 - Tests cover runner loss while the job survives, lock inheritance, reconciliation, the evidence-point bound, and refinement-step minimums. They also cover a run above dimension 30 launching and completing, an allocation failure reported as out of memory, a signal death reported as its signal, engine agreement at dimension 64, a run completing with no verification run and with no refinement declared, a malformed refinement rejected, a replacement refinement on a check request and a tampered one rejected, per-check outcomes and inapplicable requests, a terminated verification run reporting no outcome, a wrong initial state failing integrity, segment failures on the run's own engine and selection at drive changes, and the top-Fock diagnostic case.
