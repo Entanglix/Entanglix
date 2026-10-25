@@ -41,6 +41,7 @@ This index supports project planning and implementation. Operational entry point
 - [operations/investigations.md](operations/investigations.md) — Investigation declarations, immutable revisions and findings, human starts and approvals, scoped admission, optional limits, checkpoints, named reviews, stop/resume, usage, and record inspection.
 - [operations/mcp.md](operations/mcp.md) — Optional stdio research tools, workspace setup and runtime settings, explicit server configuration, bounded waiting, launch recovery, and connection/call audit records.
 - [operations/calibration.md](operations/calibration.md) — Calibration from spectroscopy: the uniform measurement format, validation, digests, raw-file checks, holdout splits, peak extraction, the calibrate protocol, the holdout, identifiability and refinement checks, device-update proposals and their application, and calibration in investigations and research tools.
+- [operations/catalog.md](operations/catalog.md) — Results catalog: the designs a completed run can supply, staging with `register-result`, the staged record and its evidence digests, and reads with source lineage.
 - [environment.md](environment.md) — Observed GPU compatibility, tested package versions, limitations, and reproduction commands.
 
 ## Decision records

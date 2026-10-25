@@ -1,6 +1,6 @@
 # ADR-0008: Results Catalog
 
-**Date:** 2026-10-24
+**Date:** 2026-10-24, revised 2026-10-25
 **Status:** Accepted
 **Purpose:** fix what a catalogued candidate is, where catalog records live, how a candidate is staged and promoted, which recorded checks block promotion, how lineage is read, how a later job reuses a catalogued device, how a control solve starts from a supplied pulse, and what the first version leaves out. Field lists, formats, and command names are documented with the implementation.
 
@@ -17,7 +17,7 @@ The [harness contract](../../HARNESS_CONTRACT.md) fixes these points for the cat
 
 Before this record:
 - **History:** each run directory's runner records form the run ledger. Every attempt state is readable, check attempts are linked as child runs, and manifests carry `parent_run_ids`. No record names a catalog entry.
-- **Designs in runs:** every computation run freezes its system and the files it references. A sweep point, a calibration solution, and a control spec's parameter values are named values applied to that system. A control run publishes its pulse in the neutral form.
+- **Designs in runs:** every computation run freezes its system and the files it references. A simulation, each sweep point, and a control run freeze their system with the spec's parameter values already written. A calibration solution's fitted values exist only in the run's result. A control run publishes its pulse in the neutral form.
 - **Check outcomes:** each check reports `pass`, `fail`, `inapplicable`, or a descriptive result. A violated declared expectation and an unmet target carry their own failure meanings.
 - **Control starts:** the baseline starts from a default, random, or zero pulse with a seed. The generated ProblemSpec has no field for a starting pulse, and Piccolo's ProblemSpec runner reads none.
 - **Human actions:** the documented runtime restriction already denies `entanglix promote`.
@@ -33,7 +33,7 @@ Promotion is the user's decision, and the harness does only what the user reques
   - **a pulse:** in the neutral form, with the IDs of its channels in order;
   - **a device and a pulse together:** from a control run, whose pulse was solved for its device.
 - **Sources.** One completed run supplies the design:
-  - **Device:** the run's frozen system. For a sweep point, a calibration solution, or a control spec's parameter values, the values are written into the system file's parameter table by the rewrite that applies device-update proposals ([ADR-0007 §2.9](0007-calibration-from-spectroscopy.md#29-device-update-proposals)), with its refusals.
+  - **Device:** the run's frozen system, or for a sweep the point's, which already holds the parameter values the spec applied. A calibration solution's values are written into the system file's parameter table by the rewrite that applies device-update proposals ([ADR-0007 §2.9](0007-calibration-from-spectroscopy.md#29-device-update-proposals)).
   - **Calibration solution:** every fitted device value of the solution is written, determined or not, so the device is the one its checks evaluated. The candidate lists the undetermined parameters and references the solution's identifiability report. The axis map's offset and period describe the measurement setup and are recorded as context only. Device-update proposals keep their own rule.
   - **Pulse:** a control run's neutral pulse.
   - **Files a script published:** a system file that validates with the files it references, or a pulse in the neutral form that names its channels.
@@ -54,13 +54,13 @@ Promotion is the user's decision, and the harness does only what the user reques
 ### 2.3 Staging
 
 - **`register_result`** stages a candidate from a named source run, its kind, and a selector when the run holds several designs: a sweep point or a calibration solution.
-- **The design is copied:** the staging folder receives the device's files, with the system file written out where values were applied, and the pulse. A pulse from a control run takes its channel IDs from the run's frozen control spec.
+- **The design is copied:** the staging folder receives the device's files, with the system file written out for a calibration solution, and the pulse. A pulse from a control run takes its channel IDs from the run's frozen control spec.
 - **The evidence is referenced:** the record names the source run, its investigation when it has one, and the digests of its result, its artifact, and the source files. Check outcomes are not copied; promotion reads them.
 - **Also recorded:** the caller's claim note, and the parent entries named in the source run's manifest.
 - **Refusals:** a run that is not completed, holds no design of the requested kind, or lacks a needed selector.
 - Staging changes no run.
 
-**Rationale:** a sweep-point device exists as no file until it is written, and the files are small. A copied design stays readable if its source run later moves or disappears; the evidence stays where the runner wrote it, bound by digest.
+**Rationale:** a calibration-solution device exists as no file until it is written, and the files are small. A copied design stays readable if its source run later moves or disappears; the evidence stays where the runner wrote it, bound by digest.
 
 ### 2.4 Promotion
 
@@ -144,7 +144,7 @@ Promotion is the user's decision, and the harness does only what the user reques
 | Parameter values alone, substituted by name into a later system | Loses subsystem files and operator arrays, and needs name and unit matching |
 | Candidates limited to certain job kinds | A later job uses a design, not the job that found it |
 | Records inside the source run's directory | A candidate is a later decision; listing the catalog would scan every run |
-| Referencing design files in the source run without a copy | A sweep-point device is no file, and an entry would lose its design when a run moves |
+| Referencing design files in the source run without a copy | A calibration-solution device is no file, and an entry would lose its design when a run moves |
 | Checks required before promotion | Checks run on request; the entry states its scope instead |
 | Every failed check blocking, a missed target included | A target is the user's goal; a candidate below it can still be a useful start or comparison |
 | No failed check blocking | The catalog would hold designs whose own checks found their numbers or pulse not as stated |
@@ -174,7 +174,7 @@ Promotion is the user's decision, and the harness does only what the user reques
 - **Operational references:** a new catalog reference documents candidates, staging, promotion, the check scope, and reads. The protocol, control, investigation, and MCP references document an entry in a spec, the starting pulse, a base naming an entry, and the new tools.
 - **Example:** a catalog example registers, promotes, and reuses a co-design candidate.
 - **Tests cover:**
-  - **Staging:** candidates from a sweep point, a calibration solution, a control run (device, pulse, and both), a simulation's system, and files a script published; a device with a subsystem source and an operator array keeping both; a calibration-solution device carrying every fitted device value, with the undetermined ones listed; a written system constructing the same model as its source point; evolution axes recorded but not written; a parameter outside the system file's table, an incomplete run, and a missing selector refused; the source run unchanged; concurrent staging giving distinct immutable records.
+  - **Staging:** candidates from a sweep point, a calibration solution, a control run (device, pulse, and both), a simulation's system, and files a script published; a device with a subsystem source and an operator array keeping both; a calibration-solution device carrying every fitted device value, with the undetermined ones listed; a staged device constructing the same model as its source, for a simulation with a parameter override, a sweep point, and a calibration solution; evolution axes recorded but not written; an incomplete run, a run without a design of the requested kind, and a missing selector refused; the source run unchanged; concurrent staging giving distinct immutable records.
   - **Promotion:** an entry with no checks listing the relevant checks not run; each blocking check refusing by name; a failure at another sweep point not counted; a violated declared expectation, a missed holdout coverage expectation, and an unmet target recorded and allowed; a failure followed by a pass still refusing; a check bound to an earlier result listed as unusable; an artifact changed after staging and a missing source refused; a refused promotion writing nothing; a second promotion of one candidate refused; the promoter's source and OS user recorded.
   - **Reuse:** a sweep on an entry's device recording the entry and its source run; an entry and a system path together refused; a rerun needing no catalog; an investigation base whose referenced file differs from the entry's refused; launches under a base naming an entry recording it; `read_entry` listing reuses and reporting a missing source as unavailable.
   - **Starting pulse:** the baseline's first evaluation at the supplied amplitudes, including a pulse on a slightly shifted permitted grid, with the solver's own times returned; a supporting test solver refusing a particular pulse in its preflight before any attempt exists; channels reordered by ID; a missing or extra channel, a different knot count, times outside the bracket, and amplitudes or derivatives beyond the bounds refused without clipping; retained Piccolo knot times accepted; Piccolo refused, also as a fallback; a solver without the capability never receiving the pulse; `init` or `seed` beside a starting pulse refused; the source recorded for an entry, a run, and a file.

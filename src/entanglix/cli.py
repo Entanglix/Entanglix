@@ -212,6 +212,26 @@ def _main(argv: list[str] | None = None) -> int:
     )
     applying.add_argument("proposal", type=Path, help="proposal file in the run's proposals/")
     applying.add_argument("system", type=Path, help="authored system.toml to update")
+    registering = subcommands.add_parser(
+        "register-result", help="stage a device, a pulse, or both from a completed run"
+    )
+    registering.add_argument("run", type=Path, help="completed attempt directory")
+    registering.add_argument(
+        "--design", required=True, choices=["device", "pulse", "device_and_pulse"]
+    )
+    registering.add_argument("--claim", required=True, help="what the candidate is offered as")
+    registering.add_argument("--point", type=int, help="sweep point index")
+    registering.add_argument(
+        "--solution", type=int, help="calibration solution index, required among several"
+    )
+    registering.add_argument("--artifact", help="a system or pulse file the script published")
+    catalog_listing = subcommands.add_parser("list-catalog", help="list staged candidates")
+    catalog_listing.add_argument("--runs-root", type=Path, default=Path("research_runs"))
+    entry = subcommands.add_parser(
+        "read-entry", help="read a staged candidate with its source lineage"
+    )
+    entry.add_argument("id", help="staged candidate ID")
+    entry.add_argument("--runs-root", type=Path, default=Path("research_runs"))
     replay = subcommands.add_parser(
         "rerun-simulation",
         help="replay a frozen simulation with linked lineage",
@@ -404,6 +424,29 @@ def _main(argv: list[str] | None = None) -> int:
                 result = propose_device_update(args.run, solution=args.solution)
             else:
                 result = apply_device_update(args.proposal, args.system)
+        except (OSError, ValueError, KeyError, MemoryError) as exc:
+            print(f"entanglix: {failure_message(exc)}", file=sys.stderr)
+            return 64
+        print(json.dumps(result, default=str, indent=2))
+        return 0
+    if args.command in {"register-result", "list-catalog", "read-entry"}:
+        from entanglix.catalog import list_catalog, read_entry, register_result
+        from entanglix.runner import failure_message
+
+        try:
+            if args.command == "register-result":
+                result = register_result(
+                    args.run,
+                    args.design,
+                    claim=args.claim,
+                    point=args.point,
+                    solution=args.solution,
+                    artifact=args.artifact,
+                )
+            elif args.command == "list-catalog":
+                result = list_catalog(args.runs_root)
+            else:
+                result = read_entry(args.id, args.runs_root)
         except (OSError, ValueError, KeyError, MemoryError) as exc:
             print(f"entanglix: {failure_message(exc)}", file=sys.stderr)
             return 64

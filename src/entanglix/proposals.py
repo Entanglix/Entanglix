@@ -15,6 +15,19 @@ import tomli_w
 NOT_DETERMINED = "not numerically determined at the fit's tolerances"
 
 
+def write_parameters(document: dict, values: dict[str, float], source: str) -> bytes:
+    """Set values and their source in a parsed system file's parameter table.
+
+    Units, priors and every other field are kept; the file is canonical TOML.
+    """
+    for name, value in values.items():
+        if name not in document.get("parameters", {}):
+            raise ValueError(f"{name!r} is not in the system file's parameter table")
+        document["parameters"][name]["value"] = value
+        document["parameters"][name]["source"] = source
+    return tomli_w.dumps(document).encode("utf-8")
+
+
 def _source(run: Path) -> tuple[dict, dict, dict]:
     """A completed calibrate run's manifest, result and model-input digests, checked."""
     from entanglix.models import load_system
@@ -187,9 +200,9 @@ def apply_device_update(proposal: Path, system: Path) -> dict:
         parameter = document["parameters"][name]
         if parameter["value"] != item["old"] or parameter["unit"] != item["unit"]:
             raise ValueError(f"the proposal does not match the system file's parameter {name!r}")
-        parameter["value"] = item["new"]
-        parameter["source"] = source
-    updated = tomli_w.dumps(document).encode("utf-8")
+    updated = write_parameters(
+        document, {name: item["new"] for name, item in record["parameters"].items()}, source
+    )
     after = _digest(updated)
     applied = proposal.with_name(f"{proposal.stem}.applied.toml")
     with contextlib.ExitStack() as locks:
