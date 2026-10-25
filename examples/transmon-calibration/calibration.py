@@ -29,7 +29,7 @@ def runner_extras():
     if "ENTANGLIX_RUNNER_EXTRAS" in os.environ:
         return [v.strip() for v in os.environ["ENTANGLIX_RUNNER_EXTRAS"].split(",") if v.strip()]
     config = tomllib.loads((EXAMPLE.parents[1] / "pyproject.toml").read_text())
-    return config["tool"]["entanglix"].get("runner", {}).get("extras", [])
+    return config.get("tool", {}).get("entanglix", {}).get("runner", {}).get("extras", [])
 
 
 def digest(path):

@@ -18,7 +18,7 @@ def _runner_repository(tmp_path, extras):
     for name in ("uv.lock", ".gitignore"):
         shutil.copyfile(root / name, repository / name)
     config = tomllib.loads((root / "pyproject.toml").read_text())
-    config["tool"]["entanglix"]["runner"] = {"extras": extras}
+    config["tool"].setdefault("entanglix", {})["runner"] = {"extras": extras}
     (repository / "pyproject.toml").write_text(tomli_w.dumps(config))
     for arguments in (
         ["init", "-q"],

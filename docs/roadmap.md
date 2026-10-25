@@ -43,7 +43,7 @@ Every milestone must demonstrate these qualities for the capabilities it introdu
 - **Python-first, single substrate.** Modeling with `scqubits`; dynamics on cuQuantum's cuDensityMat through `qutip-cuquantum`; differentiable dynamics with `dynamiqs` (JAX); QuTiP CPU as the exact small-size reference.
 - **Two engines that do not compose through autodiff.** cuDensityMat is large-scale, batched, non-differentiable. JAX (dynamiqs) is differentiable and moderate-size. When a workflow needs direct cross-engine array exchange, use DLPack / CuPy with measured copy/zero-copy behavior; gradients do not cross. Build that boundary with its first consumer, potentially control or co-design. Engine selection is a declared property of a protocol run ("needs gradients?" × declared device × Hilbert-space size), never an agent's judgment call.
 - **Solver-agnostic control spec.** A control problem is one generated file in amicode's ProblemSpec OSS schema (`system`, `goal`, `pulse`, `problem`), shared unchanged by every solver. The solver is named in Entanglix's `control` spec; which solver ran is recorded, never assumed.
-- **Private solver plugins.** High-performance solvers may be proprietary. They attach through a `SolverBackend` / `Integrator` protocol via Python entry points and are never imported by this repo. The repo's tests run with open solvers only; an import-boundary test enforces it. Verification never depends on a private solver (contract §1, §3).
+- **Private solver plugins.** High-performance solvers may be proprietary. They attach through a `SolverBackend` / `Integrator` protocol via Python entry points and are never imported by this repo. The repo's tests run with open solvers only. Verification never depends on a private solver (contract §1, §3).
 - **amicode's role is contracts and a corrector, not substrate.** Run-dir shape and schemas are adopted for interoperability; Piccolo, run through its ProblemSpec runner, is an open second-opinion control solver. Dynamics never route through Julia.
 
 ### Key principles
@@ -97,7 +97,7 @@ The core capability progression is **foundation → local sweep with checks → 
 
 - **Depends on:** Decision 0.
 - Layout: one installable project with `src/entanglix/` (library and the `entanglix` command), `docs/`, and `tests/`; root `pyproject.toml`, `uv.lock`, `.python-version`, and `.gitignore`. CLI help/version, CPU importability, and development checks establish the foundation. Schemas arrive in Block 1, GPU environment validation in Block 2, run environment identity in Block 3, and MCP/skills in Block 6b.
-- CI: unit tests on CPU (no GPU required), a `gpu` marker for GPU tests, an **import-boundary test** asserting no module outside `tests/` imports a private plugin or a scheduler client.
+- CI: unit tests on CPU (no GPU required) and a `gpu` marker for GPU tests.
 - Foundation documentation: operational `README.md` and `HARNESS_CONTRACT.md`; repository `AGENTS.md` and `CLAUDE.md` are one-line pointers to internal `docs/development.md`; research conduct is a draft in `docs/research-agent.md` until Block 6b; planning index `docs/README.md`; decision records in `docs/adr/`. Operational docs state capability availability and work without the plans ([documentation boundary](README.md#documentation-boundary)).
 - The root README covers setup, available commands, and an initial versioning and compatibility policy; CI defines the development checks.
 - **Done when:** clone → `uv sync` → `pytest` green on a machine without a GPU.
@@ -127,7 +127,7 @@ The [M1 guide](m1-guide.md) covers the joint implementation of Blocks 1–2. Its
 The [M2 guide](m2-guide.md) covers the joint implementation of Blocks 3–5. [ADR-0003](adr/0003-runs-verification-and-dispatch.md) records the run-record, verification, dispatch, and frame decisions.
 
 - **Depends on:** Blocks 0–2.
-- `entanglix` gate + launch: spec validation, static import scan of any authored script, environment check (driver, cuQuantum), run-dir creation (`run.toml` first), job spawn in its own process group, `FINISHED` last, exit-code contract.
+- `entanglix` gate + launch: spec validation, environment check (driver, cuQuantum), run-dir creation (`run.toml` first), job spawn in its own process group, `FINISHED` last, exit-code contract.
 - Capture and retain a minimal run environment record and `env_hash` from the lockfile digest, Python/platform, and observed GPU driver/CUDA/cuQuantum versions. Execute jobs in an exactly synced environment through `uv run --locked --exact`, with the same declared extras for all jobs sharing it. Record code provenance separately, including the Git revision and dirty state plus frozen authored inputs and a patch of uncommitted code; a dirty flag or digest alone cannot reproduce changes.
 - Local executor only in this block; distinct run directories and frozen inputs, a GPU lock with one active job by default, held by the job so runner loss cannot release it, runner-owned history writes, per-run timeouts, and cancellation of the intended process group. Reconcile unknown process state before reusing the GPU; no custom scheduler is required.
 - `read_run` shows the live trace of running jobs so a stalled run can be aborted mid-way.

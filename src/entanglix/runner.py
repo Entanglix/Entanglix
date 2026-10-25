@@ -627,7 +627,6 @@ def _script_gate(
     system: str, script: str, inputs: dict[str, str], repository: str, extras: list[str]
 ) -> dict:
     """Called inside uv's exact environment before an attempt is admitted."""
-    from entanglix.imports import forbidden_imports
     from entanglix.models import load_system
 
     source = Path(system).resolve()
@@ -639,22 +638,13 @@ def _script_gate(
         if name in paths or Path(name).parts[0] == "code":
             raise ValueError(f"additional input conflicts with a reserved or system input: {name}")
         paths[name] = Path(path).resolve()
-    allowed = set(
-        tomllib.loads((Path(repository) / "pyproject.toml").read_text())["tool"]["entanglix"][
-            "import-boundary"
-        ]["allowed-third-party"]
-    )
     for name, path in paths.items():
         if name in hashes:
             continue
         content = path.read_bytes()
         hashes[name] = _digest(content)
         if name == "script.py" or path.suffix == ".py":
-            source_text = content.decode("utf-8")
-            compile(source_text, str(path), "exec")
-            forbidden = forbidden_imports(source_text, allowed, standalone=True)
-            if forbidden:
-                raise ValueError(f"{name}: imports outside the allowlist: {forbidden}")
+            compile(content.decode("utf-8"), str(path), "exec")
     return {
         "system_id": constructed.id,
         "inputs": {name: str(path) for name, path in paths.items()},
@@ -982,7 +972,7 @@ def _claim_runner_extras(repository: Path, extras: list[str]) -> None:
 def _cpu_job_context(repository: Path, module: str) -> tuple[list[str], dict, list[str]]:
     """Use one configured extras set in the shared exact runner environment."""
     config = _load_record(repository / "pyproject.toml")
-    extras = config["tool"]["entanglix"].get("runner", {}).get("extras", [])
+    extras = config.get("tool", {}).get("entanglix", {}).get("runner", {}).get("extras", [])
     if "ENTANGLIX_RUNNER_EXTRAS" in os.environ:
         extras = [
             value.strip()

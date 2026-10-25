@@ -26,7 +26,7 @@ GPU work here is developer testing on the owner's workstation: a compatibility p
 ## 2. Build as one milestone
 
 ```text
-Block 0: package, CLI, CPU CI, import boundary, GPU test selection
+Block 0: package, CLI, CPU CI, GPU test selection
     |
     v
 Disposable GPU compatibility probe: Python + both engine stacks

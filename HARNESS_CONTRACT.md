@@ -187,13 +187,13 @@ Executors provide the same guarantees from facilities that already exist:
 
 | Boundary | Requirement |
 |---|---|
-| Launch checks | Runner validates specs, scans authored imports, and checks the environment before launch; no scientific check precedes a launch |
+| Launch checks | Runner validates specs, checks authored Python syntax, and checks the environment before launch; no scientific check precedes a launch |
 | Run ownership | Unique directories, frozen inputs, and assigned outputs; supported job paths cannot overwrite another run |
 | Scientific records | Runner owns ledger/audit publication; research tools cannot modify the corrector policy or write check reports |
 | Human actions | Research APIs stage proposals; human actions follow §5 |
 | Agent GPU access | The agent session is started with no CUDA device visible (`CUDA_VISIBLE_DEVICES=""`), and the MCP server's configuration names the device for runner-launched jobs, so ordinary ad hoc analysis does not take memory from a running job. This is CUDA visibility, not an operating-system boundary. An agent requests GPU work only through a supported job operation; within an investigation, the device is declared by its approved base. On a cluster, the agent does not run on GPU nodes |
 
-Configured limits and cancellation apply to runner-launched scripts as well as built-in protocols. Static scanning is preflight, not a security sandbox. Restart files are used only where a protocol supports them. Entanglix builds no job queue, reservation service, grant issuer, or container layer; it reuses the process, scheduler, and agent-runtime facilities above.
+Configured limits and cancellation apply to runner-launched scripts as well as built-in protocols. Restart files are used only where a protocol supports them. Entanglix builds no job queue, reservation service, grant issuer, or container layer; it reuses the process, scheduler, and agent-runtime facilities above.
 
 A deployment requiring resistance to bypass or execution of untrusted code must first define and test stronger identity, process, filesystem, credential, network, and device boundaries. Those guarantees require a separate deployment decision and conformance evidence; cooperative tests cannot establish them.
 

@@ -69,10 +69,9 @@ M3 demonstrates quality for a complete sweep/search workflow. The preferred sequ
 - [x] Root [project configuration](../pyproject.toml), [`uv.lock`](../uv.lock), and [Python pin](../.python-version)
 - [x] [`.gitignore`](../.gitignore) covers runs, caches, `.env`, and generated numerical arrays, with exceptions for small reference fixtures
 - [x] [CPU CI workflow](../.github/workflows/ci.yml): locked installation, lint/format checks, and pytest; [GPU selection policy](../tests/conftest.py) skips unavailable devices and rejects empty/unavailable required-GPU runs
-- [x] [Import-boundary test](../tests/test_import_boundary.py): reviewed public imports only outside `tests/`, including literal/aliased dynamic imports; private-implementation and scheduler-client cases rejected
 - [x] Root [AGENTS.md](../AGENTS.md) and [CLAUDE.md](../CLAUDE.md) are one-line development pointers to [development.md](development.md); [research-agent.md](research-agent.md) preserves draft research conduct separately until Block 6b
 - [x] Operational [setup/CLI usage](../README.md#setup-and-cli) and [release notes](../README.md#changes-and-compatibility), independent of planning docs
-- [x] [Installed entry-point and CPU import checks](../tests/test_cli.py), import-boundary checks, lint/format, and documentation checks pass
+- [x] [Installed entry-point and CPU import checks](../tests/test_cli.py), lint/format, and documentation checks pass
 - [x] **Done:** a fresh source copy syncs from the lockfile and runs `pytest` successfully without GPU dependencies or device access
 
 ---
@@ -131,7 +130,7 @@ The [M2 guide](m2-guide.md) records the implementation approach; [ADR-0003](adr/
 
 **Depends on:** Blocks 0–2. Acceptance covers the runner facilities and authored CPU jobs. Computation-plan integration belongs to 4A, linked verification to 4A–4B, and built-in protocol/GPU dispatch integration to 5C–5D; their acceptance checks remain below.
 
-- [x] Gate facilities: system validation, static import scan, and selected-device environment check (driver access and loaded CUDA/cuDensityMat) ([launch tests](../tests/test_runner.py), [import policy](../src/entanglix/imports.py), [GPU gate tests](../tests/test_gpu_environment.py), [workstation evidence](environment.md#runner-gpu-environment-check))
+- [x] Gate facilities: system validation and selected-device environment check (driver access and loaded CUDA/cuDensityMat) ([launch tests](../tests/test_runner.py), [GPU gate tests](../tests/test_gpu_environment.py), [workstation evidence](environment.md#runner-gpu-environment-check))
 - [x] Run dir per contract §2: `run.toml` first, `runner/started.toml` before computation, frozen `spec/`, `FINISHED` last, atomic `result.toml`, and assigned job outputs ([record API](../src/entanglix/runner.py), [record tests](../tests/test_run_records.py), [launch tests](../tests/test_runner.py), [run reference](operations/runs.md))
 - [x] Minimal retained environment record and `env_hash`: lockfile digest, Python/platform, observed GPU driver/CUDA/cuDensityMat versions, and declared extras; exactly synced execution with the same extras for jobs sharing an environment ([environment identity](operations/runs.md#environment-and-code-provenance), [GPU gate tests](../tests/test_gpu_environment.py), [workstation evidence](environment.md#runner-gpu-environment-check))
 - [x] Frozen authored code/data with digests; Git revision and dirty state, patch of uncommitted code and retained untracked sources; reconstruction and replay ([frozen provenance](operations/runs.md#environment-and-code-provenance), [reconstruction tests](../tests/test_run_records.py), [replay tests](../tests/test_runner.py), [lifecycle tests](../tests/test_lifecycle.py))

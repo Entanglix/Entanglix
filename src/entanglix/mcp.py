@@ -559,7 +559,7 @@ def build_server(config: Configuration):
         base: str | None = None,
         parent_run_ids: list[str] | None = None,
     ) -> dict[str, object]:
-        """Admit an authored CPU script through the runner's validation and import scan."""
+        """Admit an authored CPU script through the runner's validation."""
         return await job(
             "run_script",
             system=system,

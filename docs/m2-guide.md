@@ -36,7 +36,7 @@ Each step belongs to one block, and blocks complete in order. Block 3 accepts ru
 | Step | Work | Evidence before advancing |
 |---|---|---|
 | 3A — Run records | Fields of `run.toml`, the runner's start and reconciliation records, `result.toml`, and `FINISHED`; run IDs; `env_hash` inputs; code provenance including uncommitted changes; exit codes | Records and their meanings written in an operational run reference; contract wording agrees |
-| 3B — CPU runner | Gate (spec validation, import scan, environment check); launch of an authored script in its own process group; frozen `spec/`; `FINISHED` last; `list_capabilities`, `list_runs`, `read_run` | Completed and failed runs leave valid records; launches rejected before `run.toml` exists exit `64` with a diagnostic; a completed run reproduces |
+| 3B — CPU runner | Gate (spec validation, environment check); launch of an authored script in its own process group; frozen `spec/`; `FINISHED` last; `list_capabilities`, `list_runs`, `read_run` | Completed and failed runs leave valid records; launches rejected before `run.toml` exists exit `64` with a diagnostic; a completed run reproduces |
 | 3C — Lifecycle and GPU | Timeouts, `abort_run`, termination of the job or runner, an attempt lock, a GPU lock across runner instances, reconciliation of unknown process state, live trace, rerun lineage, documented recovery | Abrupt termination never yields a completed `FINISHED`; an attempt whose runner or job is alive is never reconciled; a runner killed while its job survives leaves the GPU blocked until reconciliation; interrupted attempts, including those that never started, remain queryable with their records and uncertain usage |
 | 4A — Corrector and plans | Versioned thresholds, policy digest, deterministic bounded evidence selection, trusted computation definitions, internal execution plans, linked check records | Plans preserve runner records and provenance through simulations; source bindings and policy digests are checked; dimension-48 exact regression qualifies the CPU engines without imposing a cap |
 | 4B — Shared checks | Integrity and spectral-refinement functions, declared sweep-expectation checks, coverage and linked inspection | Deliberate faults are detected; labels cannot change check applicability; reports identify scope, tolerances, residuals, coverage and inapplicable reasons |
@@ -77,7 +77,7 @@ Code provenance records the Git revision and dirty state. For uncommitted change
 
 ### Launch and lifecycle
 
-The gate validates specs through `load_system` and the protocol loader, scans authored-script imports against the import-boundary allowlist, and, when the selected engine uses CUDA, checks the driver and cuQuantum. There is no daemon or queue: the runner process supervises its job in a new process group, and separate CLI invocations read and abort through the run records. The job begins computing only after the runner has written `runner/started.toml`.
+The gate validates specs through `load_system` and the protocol loader and, when the selected engine uses CUDA, checks the driver and cuQuantum. There is no daemon or queue: the runner process supervises its job in a new process group, and separate CLI invocations read and abort through the run records. The job begins computing only after the runner has written `runner/started.toml`.
 
 The runner is outside its job's process group, so an empty group does not show that the runner is gone. Each attempt therefore has an attempt lock, a `flock` on its directory, taken before `run.toml` is published. The job inherits it, and the runner releases it and any GPU lock only after writing `FINISHED`.
 
@@ -146,7 +146,7 @@ The pinned adaptive solvers stay; there are no stiff or specialized integrators.
 
 A `simulate.toml` protocol spec names the system, frame, initial state, output grid, drives, observables, solver tolerances, optional refinement steps, declared needs, and an optional timeout, and compiles to one plan. Declared needs are `gradients` and `device`. A new selection-table version maps a declared `device = "cuda"` without gradients to cuDensityMat; without a declared device, non-gradient requests stay on QuTiP CPU. The table records needs, not performance. The harness imposes no dimension cap, and a run that exhausts memory fails as the [run reference](operations/runs.md#execution-outcomes) describes.
 
-GPU launches follow the contract's cheap-to-expensive funnel. No scientific check precedes or follows a launch unless the user requests one. Results include observable and metric summaries in `result.toml`, stored states and observables in `artifacts/`, and plots. Plots use matplotlib, today a transitive scqubits dependency; declare it directly and add it to the import-boundary allowlist.
+GPU launches follow the contract's cheap-to-expensive funnel. No scientific check precedes or follows a launch unless the user requests one. Results include observable and metric summaries in `result.toml`, stored states and observables in `artifacts/`, and plots. Plots use matplotlib, today a transitive scqubits dependency; declare it directly.
 
 ### Checks on request (5V)
 

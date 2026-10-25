@@ -119,18 +119,10 @@ source = "qubit.toml"
     ).read_bytes()
 
 
-@pytest.mark.parametrize(
-    "source",
-    [
-        "import unapproved_example_package",
-        "import importlib; importlib.import_module(name)",
-        "this is not valid Python !!!",
-    ],
-)
-def test_gate_rejection_creates_no_attempt(launch, source):
+def test_gate_rejection_creates_no_attempt(launch):
     execute, _, _, runs = launch
     with pytest.raises(ValueError, match="launch rejected"):
-        execute(source)
+        execute("this is not valid Python !!!")
     assert not runs.exists()
 
 
@@ -398,7 +390,7 @@ def test_capabilities_and_usage_error_cli(launch, tmp_path, runner_repository):
     capabilities = list_capabilities(repository=runner_repository)
     assert "run_script" in capabilities["operations"]
     source = tmp_path / "script.txt"
-    source.write_text("import unapproved_example_package")
+    source.write_text("this is not valid Python !!!")
     job = subprocess.run(
         ["entanglix", "run-script", str(source), "--system", str(system), "--runs-root", str(runs)],
         capture_output=True,
@@ -406,7 +398,7 @@ def test_capabilities_and_usage_error_cli(launch, tmp_path, runner_repository):
         env=os.environ | {"PYTHONPATH": str(runner_repository / "src")},
     )
     assert job.returncode == 64
-    assert "allowlist" in job.stderr
+    assert "invalid syntax" in job.stderr
     assert not runs.exists()
     listed = subprocess.run(
         ["entanglix", "list-runs", "--runs-root", str(runs)], capture_output=True, text=True
@@ -481,3 +473,9 @@ def test_unmarked_existing_environment_is_not_resynced(runner_repository):
         _cpu_job_context(runner_repository, "entanglix._script_job")
     assert not (runner_repository / ".venv-runner-extras.toml").exists()
     assert (environment / "pyvenv.cfg").read_text() == "existing environment"
+
+
+def test_runner_configuration_is_optional(runner_repository):
+    (runner_repository / "pyproject.toml").write_text('[project]\nname = "entanglix"\n')
+    command, _, extras = _cpu_job_context(runner_repository, "entanglix._script_job")
+    assert extras == [] and "--extra" not in command
