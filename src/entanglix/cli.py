@@ -225,12 +225,19 @@ def _main(argv: list[str] | None = None) -> int:
         "--solution", type=int, help="calibration solution index, required among several"
     )
     registering.add_argument("--artifact", help="a system or pulse file the script published")
-    catalog_listing = subcommands.add_parser("list-catalog", help="list staged candidates")
+    promoting = subcommands.add_parser(
+        "promote", help="operator action: promote a staged design with its recorded check scope"
+    )
+    promoting.add_argument("id", help="staged candidate ID")
+    promoting.add_argument("--runs-root", type=Path, default=Path("research_runs"))
+    catalog_listing = subcommands.add_parser(
+        "list-catalog", help="list staged and promoted designs"
+    )
     catalog_listing.add_argument("--runs-root", type=Path, default=Path("research_runs"))
     entry = subcommands.add_parser(
-        "read-entry", help="read a staged candidate with its source lineage"
+        "read-entry", help="read a staged candidate or promoted entry with its source lineage"
     )
-    entry.add_argument("id", help="staged candidate ID")
+    entry.add_argument("id", help="staged candidate or promoted entry ID")
     entry.add_argument("--runs-root", type=Path, default=Path("research_runs"))
     replay = subcommands.add_parser(
         "rerun-simulation",
@@ -429,8 +436,8 @@ def _main(argv: list[str] | None = None) -> int:
             return 64
         print(json.dumps(result, default=str, indent=2))
         return 0
-    if args.command in {"register-result", "list-catalog", "read-entry"}:
-        from entanglix.catalog import list_catalog, read_entry, register_result
+    if args.command in {"register-result", "promote", "list-catalog", "read-entry"}:
+        from entanglix.catalog import list_catalog, promote, read_entry, register_result
         from entanglix.runner import failure_message
 
         try:
@@ -443,6 +450,8 @@ def _main(argv: list[str] | None = None) -> int:
                     solution=args.solution,
                     artifact=args.artifact,
                 )
+            elif args.command == "promote":
+                result = promote(args.id, args.runs_root)
             elif args.command == "list-catalog":
                 result = list_catalog(args.runs_root)
             else:

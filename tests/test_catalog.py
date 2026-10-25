@@ -104,7 +104,7 @@ def simulation(root, *, f0=0.25, status="completed", parents=()):
     )
 
 
-def sweep_run(root):
+def sweep_run(root, *, expectation=False):
     """Two points over f0, each with a linked drive amplitude, an evolution setting."""
     root.mkdir()
     path, grid = sweep_files(root, axes=1)
@@ -118,6 +118,12 @@ def sweep_run(root):
     )
     (root / "simulate.toml").write_text(tomli_w.dumps(base))
     grid["axes"][0]["linked_values"] = {"evolution.drive_amplitudes_ghz.drive": [0.0, 0.001]}
+    if expectation:
+        grid["expectation"] = {
+            "metric": "excited_population",
+            "axis": "f0",
+            "direction": "decreasing",
+        }
     path.write_text(tomli_w.dumps(grid))
     frozen = root / "frozen"
     frozen.mkdir()

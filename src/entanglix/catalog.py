@@ -1,7 +1,9 @@
-"""Staged design candidates in the runs root's catalog, and reads of their lineage."""
+"""Design staging, operator promotion, and catalog reads with source lineage."""
 
+import errno
 import io
 import os
+import pwd
 import re
 import secrets
 import shutil
@@ -15,12 +17,14 @@ import numpy as np
 CATALOG = "_catalog"
 DESIGNS = ("device", "pulse", "device_and_pulse")
 STAGED_ID = re.compile(r"s\d{8}T\d{12}Z-[0-9a-f]{8}")
+ENTRY_ID = re.compile(r"e\d{8}T\d{12}Z-[0-9a-f]{8}")
 RUN_ID = re.compile(r"r\d{8}T\d{12}Z-[0-9a-f]{8}")
 # Each selector picks one design among several held by a run of this protocol.
 SELECTORS = {"point": "sweep", "solution": "calibrate", "artifact": "script"}
 # Checks on these computations bind the run's result and its primary artifact.
 CHECKED = {"plan", "simulate", "sweep", "control", "calibrate"}
 PULSE_ARRAYS = ("kind", "times_ns", "amplitudes_ghz", "channels")
+BLOCKING_CHECKS = {"integrity", "segments", "spectral_refinement", "replay", "constraints"}
 
 
 def _neutral_pulse(path: Path, channels: list[str] | None = None) -> dict:
@@ -114,14 +118,16 @@ def _artifact(run: Path, result: dict, name: str | None) -> Path:
     return (run / result["artifacts"][name]["path"]).resolve()
 
 
-def _publish(root: Path, identifier: str, files: dict[str, bytes], record: dict) -> Path:
-    """Write one immutable folder under a temporary name and rename it into staging."""
+def _publish(
+    root: Path, identifier: str, files: dict[str, bytes], record: dict, *, collection="staging"
+) -> Path:
+    """Write one immutable folder under a temporary name and rename it into place."""
     from entanglix.runner import publish_toml
 
     catalog = root / CATALOG
-    (catalog / "staging").mkdir(parents=True, exist_ok=True)
+    (catalog / collection).mkdir(parents=True, exist_ok=True)
     temporary = Path(tempfile.mkdtemp(prefix=".publish-", dir=catalog))
-    target = catalog / "staging" / identifier
+    target = catalog / collection / identifier
     try:
         for name, data in files.items():
             path = temporary / name
@@ -291,19 +297,155 @@ def register_result(
     return {"path": str(path), **staged}
 
 
+def _covering_check(item: dict, source: dict) -> dict | None:
+    """Select a point's own outcome, rather than a sweep's aggregate outcome."""
+    if "point" in source:
+        point = source["point"]
+        if "points" in item:
+            return next((row for row in item["points"] if row["index"] == point), None)
+        if item.get("outcome") != "inapplicable" and point not in item.get("coverage", {}).get(
+            "checked_points", []
+        ):
+            return None
+    return item
+
+
+def _promotion_checks(run: Path, source: dict) -> dict:
+    """Record covering outcomes and unusable attempts, without executing a check."""
+    from entanglix.corrector.verification import check_run, verification_history
+    from entanglix.runner import _load_record, _relative_file
+
+    names = [item["name"] for item in check_run(run)["checks"]]
+    if not names:
+        return {"checks": [], "checks_not_run": [], "unusable_evidence": []}
+    checks, unusable, attempted = [], [], set()
+    for attempt in verification_history(run):
+        reference = str(Path(attempt["path"]).relative_to(run.parent.parent))
+        request = None
+        try:
+            manifest = _load_record(Path(attempt["path"]) / "run.toml")
+            request = _load_record(
+                Path(attempt["path"]) / "spec" / _relative_file(manifest["launch"]["request_file"])
+            )
+        except (OSError, ValueError, KeyError):
+            pass  # An unreadable request remains an unusable attempt below.
+        if (
+            request is not None
+            and "solution" in source
+            and request.get("solution") != source["solution"]
+        ):
+            continue
+        if attempt["status"] != "completed" or not attempt.get("source_matches"):
+            item = {"run": reference, **{k: v for k, v in attempt.items() if k != "path"}}
+            # An unusable attempt is history, not evidence that a check was never requested.
+            if request is not None and "checks" in request:
+                item["requested_checks"] = request["checks"]
+                attempted.update(request["checks"])
+            unusable.append(item)
+            continue
+        for original in attempt["checks"]:
+            item = _covering_check(original, source)
+            if item is None:
+                continue
+            name = original["name"]
+            attempted.add(name)
+            outcome = item.get("outcome", "descriptive")
+            if name in BLOCKING_CHECKS and outcome == "fail":
+                raise ValueError(f"promotion refused: {name} failed in {reference}")
+            checks.append(
+                {
+                    "name": name,
+                    "outcome": outcome,
+                    "run": reference,
+                    "policy_version": attempt["policy_version"],
+                }
+            )
+    return {
+        "checks": checks,
+        "checks_not_run": [name for name in names if name not in attempted],
+        "unusable_evidence": unusable,
+    }
+
+
+def promote(identifier: str, runs_root: Path = Path("research_runs")) -> dict:
+    """Operator-only action: publish one promoted entry from an unchanged staged design."""
+    from entanglix.corrector import _source_artifact
+    from entanglix.runner import (
+        _digest,
+        _load_record,
+        _read_attempt,
+        _relative_file,
+        _script_result,
+    )
+
+    if not isinstance(identifier, str) or not STAGED_ID.fullmatch(identifier):
+        raise ValueError(f"not a staged candidate ID: {identifier!r}")
+    root = runs_root.resolve()
+    staged_path = root / CATALOG / "staging" / identifier
+    staged = _load_record(staged_path / "record.toml")
+    entry_id = "e" + identifier[1:]
+    if (root / CATALOG / "entries" / entry_id).exists():
+        raise ValueError(f"candidate {identifier} is already promoted as {entry_id}")
+    run = root / _relative_file(staged["source"]["run"])
+    if not (run / "run.toml").is_file():
+        raise ValueError(f"promotion source is unavailable: {staged['source']['run']}")
+    source = _read_attempt(run)
+    if source["status"] != "completed":
+        raise ValueError("promotion needs a completed source run")
+    result = _script_result(run)
+    evidence = staged["evidence"]
+    if _digest((run / "result.toml").read_bytes()) != evidence["result_sha256"]:
+        raise ValueError("source result changed since staging")
+    if (
+        "artifact_sha256" in evidence
+        and _source_artifact(result)["sha256"] != evidence["artifact_sha256"]
+    ):
+        raise ValueError("source artifact changed since staging")
+    for name, digest in evidence["source_files"].items():
+        if _digest((root / _relative_file(name)).read_bytes()) != digest:
+            raise ValueError(f"source file changed since staging: {name}")
+    files = {}
+    folder = f"{CATALOG}/entries/{entry_id}"
+    entry = {**staged, "kind": "catalog_entry", "entry_id": entry_id}
+    if "device" in staged:
+        for name in staged["device"]["files"]:
+            files[f"device/{name}"] = (staged_path / "device" / _relative_file(name)).read_bytes()
+        entry["device"] = {**staged["device"], "path": f"{folder}/device"}
+    if "pulse" in staged:
+        files["pulse.npz"] = (staged_path / "pulse.npz").read_bytes()
+        entry["pulse"] = {**staged["pulse"], "path": f"{folder}/pulse.npz"}
+    entry.update(_promotion_checks(run, staged["source"]))
+    try:
+        user = pwd.getpwuid(os.getuid()).pw_name
+    except KeyError:
+        user = str(os.getuid())
+    entry.update(promoted_at=datetime.now(UTC), promoter={"kind": "operator-cli", "os_user": user})
+    try:
+        path = _publish(root, entry_id, files, entry, collection="entries")
+    except OSError as exc:
+        if exc.errno in {errno.EEXIST, errno.ENOTEMPTY}:
+            raise ValueError(f"candidate {identifier} is already promoted as {entry_id}") from exc
+        raise
+    return {"path": str(path), **entry}
+
+
 def list_catalog(runs_root: Path = Path("research_runs")) -> list[dict]:
-    """Staged candidates in creation order, with their designs, sources and claims."""
+    """Staged candidates and promoted entries, in creation order."""
     from entanglix.runner import _load_record
 
     items = []
-    for path in sorted((runs_root / CATALOG / "staging").glob("*/record.toml")):
+    for path in sorted((runs_root / CATALOG).glob("*/*/record.toml")):
+        collection = path.parents[1].name
+        if collection not in {"staging", "entries"}:
+            continue
         try:
             record = _load_record(path)
+            identifier = record["entry_id"] if collection == "entries" else record["staged_id"]
             items.append(
                 {
-                    "id": record["staged_id"],
-                    "status": "staged",
-                    "path": f"{CATALOG}/staging/{path.parent.name}",
+                    "id": identifier,
+                    "status": "promoted" if collection == "entries" else "staged",
+                    "path": f"{CATALOG}/{collection}/{path.parent.name}",
                     "design": record["design"],
                     "source_run": record["source"]["run"],
                     "claim": record["claim"],
@@ -312,7 +454,7 @@ def list_catalog(runs_root: Path = Path("research_runs")) -> list[dict]:
             )
         except (OSError, ValueError, KeyError) as exc:
             items.append({"id": path.parent.name, "status": "invalid", "diagnostic": str(exc)})
-    return items
+    return sorted(items, key=lambda item: item["id"][1:])
 
 
 def _lineage(root: Path, source: str) -> dict:
@@ -351,18 +493,23 @@ def _lineage(root: Path, source: str) -> dict:
 
 
 def read_entry(identifier: str, runs_root: Path = Path("research_runs")) -> dict:
-    """A staged candidate's record, with its source run and that run's ancestors."""
+    """A staged candidate or promoted entry, with its source run and ancestors."""
     from entanglix.runner import _load_record
 
-    if not isinstance(identifier, str) or not STAGED_ID.fullmatch(identifier):
-        raise ValueError(f"not a staged candidate ID: {identifier!r}")
-    path = runs_root / CATALOG / "staging" / identifier / "record.toml"
+    if not isinstance(identifier, str) or not (
+        STAGED_ID.fullmatch(identifier) or ENTRY_ID.fullmatch(identifier)
+    ):
+        raise ValueError(f"not a staged candidate ID or entry ID: {identifier!r}")
+    collection = "staging" if identifier.startswith("s") else "entries"
+    path = runs_root / CATALOG / collection / identifier / "record.toml"
     if not path.is_file():
-        raise ValueError(f"no staged candidate {identifier} under {runs_root}")
+        raise ValueError(
+            f"no {'staged candidate' if collection == 'staging' else 'entry'} {identifier} under {runs_root}"
+        )
     record = _load_record(path)
     return {
-        "path": f"{CATALOG}/staging/{identifier}",
-        "status": "staged",
+        "path": f"{CATALOG}/{collection}/{identifier}",
+        "status": "staged" if collection == "staging" else "promoted",
         **record,
         "lineage": _lineage(runs_root, record["source"]["run"]),
     }

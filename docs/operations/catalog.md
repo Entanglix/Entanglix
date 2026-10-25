@@ -1,6 +1,6 @@
 # Results catalog
 
-The catalog keeps designs taken from completed runs: a device, a pulse, or both. This reference describes the candidates a run can supply, staging one with `register-result`, the staged record and the evidence digests it holds, and reading candidates with their lineage.
+The catalog keeps designs taken from completed runs: a device, a pulse, or both. Stage a design with `register-result`, inspect its source evidence, and promote it through the operator command `promote`. Staged candidates and promoted entries retain their lineage and evidence digests.
 
 ## Candidates
 
@@ -82,14 +82,45 @@ Every path in `record.toml` is relative to the runs root.
 
 Check outcomes are not copied. They stay in the source run's verification history, which `read-run` lists.
 
+## Promotion
+
+The user promotes a staged candidate in their own terminal:
+
+```sh
+entanglix promote s20261025T153012123456Z-1a2b3c4d --runs-root research_runs
+```
+
+There is no research-tool operation for promotion. The command creates one immutable entry under `_catalog/entries/` with its own copies of the design files. It keeps the staged record unchanged. The entry ID replaces the staged ID's `s` prefix with `e`, so concurrent promotions of the same candidate address one destination; exactly one succeeds. Its timestamp identifies the original candidate, and `promoted_at` records the promotion time. A second promotion is refused. Rejected promotions publish no entry.
+
+Promotion checks that the source still exists and is completed, and that its result, artifacts and the source files named in the staging record match their digests. Missing or changed evidence is refused. It reads existing verification attempts and runs no check itself. No check is required for promotion.
+
+A check counts only when it completed, still matches the source result and artifact, and covers the selected candidate. For a sweep point, the point's own outcome is used, even when the aggregate outcome differs because another point failed. A grid-wide declared expectation covers the whole grid. For calibration, only checks on the selected solution count. Checks at other points or on other solutions confer no evidence on the candidate.
+
+- A counted failure of `integrity`, `segments`, `spectral_refinement`, `replay` or `constraints` refuses promotion and names the check and attempt. A later pass does not remove an earlier counted failure.
+- A failed `declared_expectation`, a missed holdout coverage expectation, or a failed `target` is recorded and permits promotion. Descriptive checks never block.
+- Invalid, unfinished and mismatched verification attempts are listed under `unusable_evidence`, with their status, policy version and requested names when readable. They supply no usable outcome, and are distinguished from checks never run.
+
+The entry contains the staging record, with its design paths pointing to its own folder, and adds:
+
+| Field | Meaning |
+|---|---|
+| `kind`, `entry_id` | `catalog_entry` and the promoted entry ID; `staged_id` retains the source candidate |
+| `promoted_at`, `[promoter]` | Promotion time and `kind = "operator-cli"` with the OS user name, or the numeric UID when no name is available |
+| `checks` | Each counted check's name, outcome, runs-root-relative verification run and policy version. Descriptive outcomes are labelled `descriptive`; the report and its scope stay in the verification run |
+| `checks_not_run` | Relevant checks with no covering outcome or identified unusable attempt; an unusable attempt is shown separately rather than described as a check never requested |
+| `unusable_evidence` | Verification attempts that cannot supply evidence for this promotion |
+
+The check references record the evidence available at promotion. Later checks remain in the run history and do not change the entry.
+
 ## Reading the catalog
 
 ```sh
 entanglix list-catalog --runs-root research_runs
 entanglix read-entry s20261025T153012123456Z-1a2b3c4d --runs-root research_runs
+entanglix read-entry e20261025T153012123456Z-1a2b3c4d --runs-root research_runs
 ```
 
-`list-catalog` lists staged candidates in creation order, with ID, status, path, design, source run, claim and creation time. A record that cannot be read is listed as `invalid` with a diagnostic.
+`list-catalog` lists staged records and promoted entries in candidate creation order, with ID, status (`staged` or `promoted`), path, design, source run, claim and creation time. Both records remain listed after promotion; the entry's `staged_id` links them. A record that cannot be read is listed as `invalid` with a diagnostic.
 
 `read-entry` returns the record with a `lineage` table:
 - `source_run`: the run's path, ID, protocol, status and `parent_run_ids`;
