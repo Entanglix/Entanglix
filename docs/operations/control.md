@@ -6,7 +6,7 @@ The [transmon example](../../examples/transmon-control/control.toml) declares a 
 
 ## Input
 
-A `control.toml` requires `format_version = 1`, `system`, `[frame]`, ordered `[[channels]]`, `[goal]`, `[pulse]`, `[problem]`, and `[solver]`. The system and its referenced files stay beside the control input. The frame has the same syntax as an evolution frame: `frequencies_ghz`, or `transitions` as below, explicit `rwa = true`, and `excitation_numbers` when the system's basis requires them.
+A `control.toml` requires `format_version = 1`, exactly one of `system` or `system_entry`, `[frame]`, ordered `[[channels]]`, `[goal]`, `[pulse]`, `[problem]`, and `[solver]`. A `system` file and its referenced files stay beside the control input; `system_entry` names a promoted catalog device in the configured runs root, whose files and lineage the run freezes as described in [device reuse](catalog.md#reusing-a-device). The frame has the same syntax as an evolution frame: `frequencies_ghz`, or `transitions` as below, explicit `rwa = true`, and `excitation_numbers` when the system's basis requires them.
 
 An optional `[parameters]` table overrides declared system parameters by name, as in a simulation, for example `Csh = 30.0`. The run's frozen `system.toml` holds the values used; the authored files are unchanged.
 

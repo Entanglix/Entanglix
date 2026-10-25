@@ -19,11 +19,15 @@ uv run --locked --exact entanglix rerun-simulation research_runs/<system_id>/<ru
 
 ## Specification
 
-Version 1 uses `format_version = 1`, an adjacent `system` filename, and `kind =
+Version 1 uses `format_version = 1`, an adjacent `system` filename or a promoted
+device's `system_entry` ID (exactly one), and `kind =
 "lindblad"` or `"spectrum"`. Files must stay beside the protocol; referenced subsystem
 files follow the system specification's rules. Optional `[parameters]` overrides
 named system parameters in their declared units. Frozen `system.toml` contains the
 values actually used.
+
+Catalog entries resolve in the configured runs root; see [device reuse](catalog.md#reusing-a-device).
+The run freezes their system and referenced files and records the entry and source-run lineage.
 
 `[needs]` declares `gradients` (default false) and `device` (`"cpu"`, the default, or
 `"cuda"`). Non-gradient CPU requests use QuTiP; CUDA requests use cuDensityMat;

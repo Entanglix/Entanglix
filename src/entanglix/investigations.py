@@ -88,6 +88,7 @@ class BaseSpec(Fields):
     name: Name
     inputs: dict[Text, Digest] = Field(min_length=1)
     variations: list[Variation] = Field(default_factory=list)
+    system_entry: Text | None = None
 
     @model_validator(mode="after")
     def valid_inputs(self):
@@ -204,9 +205,25 @@ class Finding(Fields):
         return self
 
 
-def _terms(spec: Path | dict) -> dict:
+def _terms(spec: Path | dict, runs_root: Path = Path("research_runs")) -> dict:
     data = _load_record(spec) if isinstance(spec, Path) else spec
-    return InvestigationSpec.model_validate(data).model_dump(exclude_none=True)
+    terms = InvestigationSpec.model_validate(data).model_dump(exclude_none=True)
+    for base in terms["scope"]["bases"]:
+        if "system_entry" in base:
+            from entanglix.catalog import device_source
+
+            system, _ = device_source(base["system_entry"], runs_root)
+            entry = _load_record(system.parent.parent / "record.toml")
+            different = [
+                name
+                for name, digest in entry["device"]["files"].items()
+                if base["inputs"].get(name) != digest
+            ]
+            if different:
+                raise ValueError(
+                    f"base {base['name']!r} differs from its catalog device: {different}"
+                )
+    return terms
 
 
 @contextmanager
@@ -264,7 +281,7 @@ def _event(path: Path, kind: str, **fields) -> dict:
 
 def create_investigation(spec: Path | dict, *, runs_root: Path = Path("research_runs")) -> dict:
     """Write a draft, without creating a user decision or an active revision."""
-    terms = _terms(spec)
+    terms = _terms(spec, runs_root)
     created = datetime.now(UTC)
     name = f"i{created.strftime('%Y%m%dT%H%M%S%fZ')}-{secrets.token_hex(4)}"
     path = (runs_root / "_investigations" / name).resolve()
@@ -283,7 +300,7 @@ def create_investigation(spec: Path | dict, *, runs_root: Path = Path("research_
 def revise_investigation(path: Path, spec: Path | dict) -> dict:
     """Append proposed terms; the current effective revision is unchanged."""
     path = path.resolve()
-    terms = _terms(spec)
+    terms = _terms(spec, path.parent.parent)
     with investigation_lock(path):
         record = _read_locked(path)
         revision = max(item["revision"] for item in record["revisions"]) + 1
@@ -634,6 +651,11 @@ def admit(path, *, operation, base_name, hashes, points, timeout_seconds, defaul
             if remaining <= 0 or commitment > remaining:
                 raise ValueError("investigation job_seconds limit exhausted")
         yield {
+            **(
+                {"source_entry_ids": [base["system_entry"]]}
+                if operation != "check" and base and "system_entry" in base
+                else {}
+            ),
             "investigation_id": path.name,
             "investigation_revision": revision,
             "investigation_base": base_name,

@@ -135,11 +135,28 @@ def load_sweep(root):
     )
 
 
-def compile_sweep(protocol, directory, extras, repository, *, retain_base=False):
+def compile_sweep(
+    protocol,
+    directory,
+    extras,
+    repository,
+    *,
+    retain_base=False,
+    runs_root=Path("research_runs"),
+    replay_source=None,
+):
     content = protocol.read_bytes()
     spec = SweepSpec.model_validate(tomllib.loads(content.decode()))
     base_path = _adjacent(protocol.parent, spec.base)
-    gate = compile_simulation(base_path, directory, extras, repository, retain_base=retain_base)
+    gate = compile_simulation(
+        base_path,
+        directory,
+        extras,
+        repository,
+        retain_base=retain_base,
+        runs_root=runs_root,
+        replay_source=replay_source,
+    )
     base = tomllib.loads((directory / "simulate.toml").read_text())
     if (spec.evidence_metric is not None and spec.evidence_metric not in base["metrics"]) or (
         spec.expectation and spec.expectation.metric not in base["metrics"]

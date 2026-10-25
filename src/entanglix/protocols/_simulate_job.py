@@ -19,8 +19,9 @@ def main(operation="simulate"):
                 from entanglix.protocols.simulate import compile_simulation as compile_protocol
 
             request = json.load(sys.stdin)
-            for name in ("protocol", "directory", "repository"):
-                request[name] = Path(request[name])
+            for name in ("protocol", "directory", "repository", "runs_root", "replay_source"):
+                if request.get(name) is not None:
+                    request[name] = Path(request[name])
             print(json.dumps(compile_protocol(**request)))
         else:
             if operation == "control":

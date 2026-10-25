@@ -27,6 +27,25 @@ PULSE_ARRAYS = ("kind", "times_ns", "amplitudes_ghz", "channels")
 BLOCKING_CHECKS = {"integrity", "segments", "spectral_refinement", "replay", "constraints"}
 
 
+def device_source(identifier: str, runs_root: Path):
+    """Resolve a promoted device and its catalog lineage."""
+    from entanglix.runner import _load_record, _relative_file
+
+    if not ENTRY_ID.fullmatch(identifier):
+        raise ValueError("system_entry must name a promoted catalog entry")
+    path = runs_root.resolve() / CATALOG / "entries" / identifier / "record.toml"
+    if not path.is_file():
+        raise ValueError(f"unknown catalog entry: {identifier}")
+    entry = _load_record(path)
+    if "device" not in entry:
+        raise ValueError(f"catalog entry {identifier} holds no device")
+    source = runs_root.resolve() / _relative_file(entry["device"]["path"]) / "system.toml"
+    return source, {
+        "source_entry_ids": [identifier],
+        "parent_run_ids": [Path(entry["source"]["run"]).name],
+    }
+
+
 def _neutral_pulse(path: Path, channels: list[str] | None = None) -> dict:
     """A pulse's arrays in the neutral form, unchanged; ``channels`` names a control run's."""
     loaded = np.load(path, allow_pickle=False)
@@ -512,4 +531,44 @@ def read_entry(identifier: str, runs_root: Path = Path("research_runs")) -> dict
         "status": "staged" if collection == "staging" else "promoted",
         **record,
         "lineage": _lineage(runs_root, record["source"]["run"]),
+        **({"reuses": _reuses(identifier, runs_root)} if collection == "entries" else {}),
     }
+
+
+def _reuses(identifier: str, root: Path) -> dict:
+    """Find recorded reuse and base references without loading scientific outputs."""
+    from entanglix.runner import _load_record
+
+    runs, bases = [], []
+    for path in sorted(root.glob("*/*/run.toml")):
+        try:
+            manifest = _load_record(path)
+            if identifier in manifest.get("source_entry_ids", []):
+                runs.append(
+                    {
+                        "run": str(path.parent.relative_to(root)),
+                        "protocol": manifest["protocol"],
+                        **(
+                            {"investigation_id": manifest["investigation_id"]}
+                            if "investigation_id" in manifest
+                            else {}
+                        ),
+                    }
+                )
+        except (OSError, ValueError, KeyError):
+            continue
+    for path in sorted((root / "_investigations").glob("*/revisions/*.toml")):
+        try:
+            revision = _load_record(path)
+            for base in revision["terms"]["scope"]["bases"]:
+                if base.get("system_entry") == identifier:
+                    bases.append(
+                        {
+                            "investigation_id": path.parents[1].name,
+                            "revision": revision["revision"],
+                            "base": base["name"],
+                        }
+                    )
+        except (OSError, ValueError, KeyError):
+            continue
+    return {"runs": runs, "investigation_bases": bases}

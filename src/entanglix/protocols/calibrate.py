@@ -27,6 +27,7 @@ from entanglix.calibration import (
 from entanglix.extraction import ExtractionSettings, extract, frequency_step
 from entanglix.measurements import Dataset, load_dataset
 from entanglix.models import ConstructedSystem, StrictModel, load_system
+from entanglix.protocols import SystemSource
 from entanglix.protocols.plans import Refinement
 
 ENGINE = "scipy-least-squares"
@@ -140,9 +141,8 @@ class Conventions(StrictModel):
     )
 
 
-class CalibrationSpec(StrictModel):
+class CalibrationSpec(SystemSource):
     format_version: Literal[1]
-    system: str = Field(min_length=1)
     datasets: list[str] = Field(min_length=1)
     parameters: dict[str, Fitted] = Field(min_length=1)
     axis_map: AxisMap | None = None
@@ -172,6 +172,7 @@ class LoadedCalibration:
     inputs: dict[str, Path]
     input_digests: dict[str, str]
     listing: dict
+    catalog: dict
 
 
 def _references(value) -> set[str]:
@@ -192,14 +193,19 @@ def _beside(root: Path, name: str) -> Path:
     return path
 
 
-def load_calibration(protocol: Path) -> LoadedCalibration:
+def load_calibration(
+    protocol: Path,
+    *,
+    runs_root=Path("research_runs"),
+    replay_source=None,
+) -> LoadedCalibration:
     """Validate a calibration spec, its system and datasets; nothing is extracted or fitted."""
     from entanglix.runner import _system_inputs
 
     protocol = protocol.resolve()
     content = protocol.read_bytes()
     spec = CalibrationSpec.model_validate(tomllib.loads(content.decode("utf-8")))
-    source = _beside(protocol.parent, spec.system)
+    source, catalog = spec.resolve_system(protocol, runs_root, replay_source)
     authored = source.read_bytes()
     system = load_system(source, content=authored)
     document = tomllib.loads(authored.decode("utf-8"))
@@ -399,6 +405,7 @@ def load_calibration(protocol: Path) -> LoadedCalibration:
         paths,
         hashes,
         listing,
+        catalog,
     )
 
 
@@ -543,13 +550,20 @@ def prepare(loaded: LoadedCalibration) -> tuple[Problem, dict]:
 
 
 def compile_calibration(
-    protocol: Path, directory: Path, extras, repository: Path, *, retain_base=False
+    protocol: Path,
+    directory: Path,
+    extras,
+    repository: Path,
+    *,
+    retain_base=False,
+    runs_root=Path("research_runs"),
+    replay_source=None,
 ):
     """Freeze the spec, system inputs and datasets for the runner; this creates no attempt."""
     from entanglix.corrector.calibration import calibration_listing
     from entanglix.runner import capture_environment
 
-    loaded = load_calibration(protocol)
+    loaded = load_calibration(protocol, runs_root=runs_root, replay_source=replay_source)
     frozen = {}
     for name, source in loaded.inputs.items():
         data = source.read_bytes()
@@ -560,7 +574,7 @@ def compile_calibration(
     if retain_base:
         # Admission and reruns use the authored bytes, before canonicalization.
         base_files = {f"base/{name}": data for name, data in frozen.items()}
-        if loaded.spec.system != "system.toml":
+        if loaded.spec.system is not None and loaded.spec.system != "system.toml":
             alias = f"base/{loaded.spec.system}"
             if alias in base_files:
                 raise ValueError(
@@ -569,6 +583,7 @@ def compile_calibration(
                 )
             base_files[alias] = frozen["system.toml"]
     canonical = loaded.spec.model_dump(exclude_none=True)
+    canonical.pop("system_entry", None)
     canonical["system"] = "system.toml"
     frozen["calibrate.toml"] = tomli_w.dumps(canonical).encode("utf-8")
     frozen.update(base_files)
@@ -581,6 +596,7 @@ def compile_calibration(
     load_calibration(directory / "calibrate.toml")
     digests = {name: hashlib.sha256(data).hexdigest() for name, data in frozen.items()}
     return {
+        **loaded.catalog,
         "system_id": loaded.system.id,
         "inputs": {name: str(directory / name) for name in frozen},
         "spec_sha256": digests,

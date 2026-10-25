@@ -300,6 +300,7 @@ def create_run(
     needs: dict,
     runs_root: Path = Path("research_runs"),
     parent_run_ids: tuple[str, ...] = (),
+    source_entry_ids: tuple[str, ...] = (),
     launch: dict | None = None,
     investigation_id: str | None = None,
     base: str | None = None,
@@ -319,6 +320,7 @@ def create_run(
         needs=needs,
         runs_root=runs_root,
         parent_run_ids=parent_run_ids,
+        source_entry_ids=source_entry_ids,
         launch=launch,
         gpu=gpu,
     )
@@ -354,6 +356,7 @@ def create_run(
         defaults=_scope_defaults(inputs, protocol),
         timeout_seconds=(launch or {}).get("timeout_seconds"),
     ) as binding:
+        arguments["source_entry_ids"] = (*source_entry_ids, *binding.pop("source_entry_ids", []))
         return _create_run(
             **arguments, investigation={**binding, "investigation_values": values or [{}]}
         )
@@ -371,6 +374,7 @@ def _create_run(
     needs: dict,
     runs_root: Path = Path("research_runs"),
     parent_run_ids: tuple[str, ...] = (),
+    source_entry_ids: tuple[str, ...] = (),
     launch: dict | None = None,
     investigation: dict | None = None,
     gpu: "GpuLease | None" = None,
@@ -420,6 +424,8 @@ def _create_run(
     }
     if investigation is not None:
         record.update(investigation)
+    if source_entry_ids:
+        record["source_entry_ids"] = list(dict.fromkeys(source_entry_ids))
     if launch is not None:
         record["launch"] = launch
     from entanglix.launches import current_launch
@@ -1015,6 +1021,7 @@ def run_script(
     timeout_seconds: float | None = None,
     investigation_id: str | None = None,
     base: str | None = None,
+    _source_entry_ids: tuple[str, ...] = (),
 ) -> dict:
     """Validate and synchronously execute one CPU script."""
     repository = (repository or Path(__file__).resolve().parents[2]).resolve()
@@ -1051,6 +1058,7 @@ def run_script(
         needs={"gradients": False, "device": "cpu"},
         runs_root=runs_root.resolve(),
         parent_run_ids=parent_run_ids,
+        source_entry_ids=_source_entry_ids,
         launch={
             "input_names": sorted(inputs or {}),
             **({"timeout_seconds": timeout_seconds} if timeout_seconds is not None else {}),
@@ -1104,6 +1112,7 @@ def rerun_script(
         runs_root=runs_root if runs_root is not None else run.parent.parent,
         repository=repository,
         parent_run_ids=(manifest["run_id"],),
+        _source_entry_ids=tuple(manifest.get("source_entry_ids", [])),
         investigation_id=manifest.get("investigation_id"),
         base=manifest.get("investigation_base"),
         timeout_seconds=timeout_seconds

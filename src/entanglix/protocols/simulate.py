@@ -22,6 +22,7 @@ from entanglix.corrector.dynamics import check_listing
 from entanglix.corrector.metrics import Metric
 from entanglix.engines.selection import select_engine
 from entanglix.models import StrictModel, load_system
+from entanglix.protocols import SystemSource
 from entanglix.protocols.plans import EvolutionSpec, Refinement, load_plan
 from entanglix.runner import (
     _cpu_job_context,
@@ -58,9 +59,8 @@ class SimulationEvolution(EvolutionSpec):
     times_ns: list[float] | OutputGrid
 
 
-class SimulationSpec(StrictModel):
+class SimulationSpec(SystemSource):
     format_version: Literal[1]
-    system: str
     parameters: dict[str, float] = Field(default_factory=dict)
     kind: Literal["lindblad", "spectrum"] = "lindblad"
     needs: Needs = Field(default_factory=Needs)
@@ -88,6 +88,8 @@ def compile_simulation(
     probe_device=True,
     values=None,
     retain_base=False,
+    runs_root=Path("research_runs"),
+    replay_source=None,
 ):
     """Compile and check in the exactly synced job environment, before admission."""
     content = protocol.read_bytes()
@@ -109,7 +111,7 @@ def compile_simulation(
         not math.isfinite(spec.timeout_seconds) or spec.timeout_seconds <= 0
     ):
         raise ValueError("timeout_seconds must be finite and positive")
-    source = _adjacent(protocol.parent, spec.system)
+    source, catalog = spec.resolve_system(protocol.resolve(), runs_root, replay_source)
     system = load_system(source)
     inputs, hashes = _system_inputs(source, system, reserved={"plan.toml", "simulate.toml"})
     base_inputs = {}
@@ -129,7 +131,7 @@ def compile_simulation(
             frozen.write_bytes(data)
             base_inputs[name] = _digest(data)
             base_paths[f"base/{name}"] = frozen
-        if spec.system != "system.toml":
+        if spec.system is not None and spec.system != "system.toml":
             alias = base_directory / spec.system
             shutil.copyfile(base_directory / "system.toml", alias)
             base_paths[f"base/{spec.system}"] = alias
@@ -216,6 +218,7 @@ def compile_simulation(
         plan.write_text(tomli_w.dumps(definition))
         loaded = load_plan(directory / "system.toml", plan)
     canonical = spec.model_dump(exclude_none=True)
+    canonical.pop("system_entry", None)
     canonical["system"] = "system.toml"
     (directory / "simulate.toml").write_text(tomli_w.dumps(canonical))
     gpu_check = None
@@ -232,6 +235,7 @@ def compile_simulation(
         else {}
     )
     return {
+        **catalog,
         "base_inputs": base_inputs,
         "scope_values": [values or {}],
         "preview": check_listing(
@@ -295,6 +299,7 @@ def _launch_protocol(
     investigation_id=None,
     base=None,
     values=None,
+    replay_source=None,
 ):
     if investigation_id is None and (base is not None or values is not None):
         raise ValueError("base and varied values require an investigation")
@@ -334,6 +339,8 @@ def _launch_protocol(
                         "directory": scratch,
                         "repository": str(repository),
                         "extras": extras,
+                        "runs_root": str(runs_root.resolve()),
+                        "replay_source": str(replay_source) if replay_source else None,
                         "retain_base": investigation_id is not None,
                         **({"values": values} if operation in {"simulate", "control"} else {}),
                     }
@@ -406,7 +413,10 @@ def _launch_protocol(
                 device=gate["device"],
                 needs=gate["needs"],
                 runs_root=runs_root.resolve(),
-                parent_run_ids=parent_run_ids,
+                parent_run_ids=tuple(
+                    dict.fromkeys((*parent_run_ids, *gate.get("parent_run_ids", [])))
+                ),
+                source_entry_ids=tuple(gate.get("source_entry_ids", [])),
                 launch=launch,
                 gpu=gpu,
             ) as owner:
@@ -484,6 +494,7 @@ def _rerun_protocol(run, *, operation, repository=None, runs_root=None):
         values=manifest.get("launch", {}).get("varied_values")
         if operation in {"simulate", "control"} and investigation_id
         else None,
+        replay_source=run,
     )
     replay = _read_attempt(Path(result["path"]))["manifest"]
     result["replay"] = {

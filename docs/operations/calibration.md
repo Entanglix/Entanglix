@@ -141,7 +141,7 @@ offset = 0.13
 period = 1.03
 ```
 
-The system and the datasets are files beside the spec. An optional `[refinement.<subsystem>]` table, in the simulation refinement form (`retained_levels_step`, `cutoff_steps`), is frozen with the run; the fit does not use it. The harness sets no defaults for the matching settings, scales, starts or merge tolerance; the values above are examples from the synthetic two-junction transmon of the [calibration example](../../examples/transmon-calibration/README.md).
+The system and the datasets are files beside the spec. Alternatively, replace `system` with `system_entry` to use a promoted [catalog device](catalog.md#reusing-a-device) from the configured runs root; declare exactly one. Its model files are frozen with the run, while the datasets remain beside the spec. An optional `[refinement.<subsystem>]` table, in the simulation refinement form (`retained_levels_step`, `cutoff_steps`), is frozen with the run; the fit does not use it. The harness sets no defaults for the matching settings, scales, starts or merge tolerance; the values above are examples from the synthetic two-junction transmon of the [calibration example](../../examples/transmon-calibration/README.md).
 
 ### Parameters and the axis map
 

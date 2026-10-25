@@ -15,6 +15,7 @@ from pydantic import Field, model_validator
 from entanglix.engines.frames import matrix, prepare_dynamics
 from entanglix.evolution import Carrier, EvolutionInput, RotatingFrame, normalize_input
 from entanglix.models import ConstructedSystem, StrictModel, load_system
+from entanglix.protocols import SystemSource
 from entanglix.protocols.plans import FrameSpec, Refinement
 
 AMICODE_REVISION = "cb717f57cb63fa292917188c8ca32f50ddcca539"
@@ -167,9 +168,8 @@ class Evaluation(StrictModel):
         return self
 
 
-class ControlSpec(StrictModel):
+class ControlSpec(SystemSource):
     format_version: Literal[1]
-    system: str
     parameters: dict[str, Finite] = Field(default_factory=dict)
     frame: ControlFrame
     channels: list[Channel] = Field(min_length=1)
@@ -203,6 +203,7 @@ class LoadedControl:
     inputs: dict[str, Path]
     input_digests: dict[str, str]
     listing: dict
+    catalog: dict
 
 
 def _vary(document: dict, values: dict) -> None:
@@ -373,7 +374,13 @@ def _resolve(spec: ControlSpec, system: ConstructedSystem) -> tuple[ControlSpec,
     return ControlSpec.model_validate(data), resolved
 
 
-def load_control(protocol: Path, *, values: dict[str, float] | None = None) -> LoadedControl:
+def load_control(
+    protocol: Path,
+    *,
+    values: dict[str, float] | None = None,
+    runs_root=Path("research_runs"),
+    replay_source=None,
+) -> LoadedControl:
     """Validate a control input and build the matrices, without selecting a solver."""
     from entanglix.runner import _system_inputs
 
@@ -382,9 +389,7 @@ def load_control(protocol: Path, *, values: dict[str, float] | None = None) -> L
     document = tomllib.loads(content.decode("utf-8"))
     _vary(document, values or {})
     spec = ControlSpec.model_validate(document)
-    source = protocol.parent / spec.system
-    if Path(spec.system).name != spec.system or source.resolve().parent != protocol.parent:
-        raise ValueError("control.system must name a file beside the control spec")
+    source, catalog = spec.resolve_system(protocol, runs_root, replay_source)
     authored = source.read_bytes()
     original = load_system(source, content=_with_parameters(authored, spec.parameters))
     if spec.evaluation is not None:
@@ -506,7 +511,9 @@ def load_control(protocol: Path, *, values: dict[str, float] | None = None) -> L
         "amicode_revision": AMICODE_REVISION,
         **({"resolved": resolved} if resolved else {}),
     }
-    return LoadedControl(spec, control_model, generated, data, digest, paths, hashes, listing)
+    return LoadedControl(
+        spec, control_model, generated, data, digest, paths, hashes, listing, catalog
+    )
 
 
 def compile_control(
@@ -517,9 +524,11 @@ def compile_control(
     extras=(),
     retain_base=False,
     values=None,
+    runs_root=Path("research_runs"),
+    replay_source=None,
 ) -> dict:
     """Prepare immutable input bytes for the runner; this creates no attempt."""
-    loaded = load_control(protocol, values=values)
+    loaded = load_control(protocol, values=values, runs_root=runs_root, replay_source=replay_source)
     selection = None
     runtime = None
     if repository is not None:
@@ -554,7 +563,7 @@ def compile_control(
     if retain_base:
         # Admission and reruns use the authored bytes, before canonicalization.
         base_files = {f"base/{name}": content for name, content in frozen.items()}
-        if loaded.definition.system != "system.toml":
+        if loaded.definition.system is not None and loaded.definition.system != "system.toml":
             alias = f"base/{loaded.definition.system}"
             if alias in base_files:
                 raise ValueError(
@@ -564,6 +573,7 @@ def compile_control(
             base_files[alias] = frozen["system.toml"]
     # Use the runner's canonical system filename in the frozen control input.
     definition = loaded.definition.model_dump(exclude_none=True)
+    definition.pop("system_entry", None)
     definition["system"] = "system.toml"
     frozen["control.toml"] = tomli_w.dumps(definition).encode("utf-8")
     frozen["system.toml"] = _with_parameters(frozen["system.toml"], loaded.definition.parameters)
@@ -575,6 +585,7 @@ def compile_control(
             target.write(content)
         (directory / name).chmod(0o444)
     result = {
+        **loaded.catalog,
         "system_id": loaded.system.id,
         "inputs": {name: str(directory / name) for name in frozen},
         "spec_sha256": {name: hashlib.sha256(data).hexdigest() for name, data in frozen.items()},

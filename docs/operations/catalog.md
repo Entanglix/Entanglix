@@ -112,6 +112,25 @@ The entry contains the staging record, with its design paths pointing to its own
 
 The check references record the evidence available at promotion. Later checks remain in the run history and do not change the entry.
 
+## Reusing a device
+
+A simulation, control or calibration spec may name a promoted device through `system_entry` instead of `system`. Declare exactly one. A sweep uses the entry named in its base simulation spec. A staged candidate or a pulse-only entry is refused as a system source.
+
+```toml
+format_version = 1
+system_entry = "e20261025T153012123456Z-1a2b3c4d"
+kind = "spectrum"
+levels = 3
+```
+
+The entry is resolved in the command's `--runs-root`, or the MCP server's configured root. The Python protocol compilers accept `runs_root` for the same purpose. Other protocol inputs, such as initial-state arrays and calibration measurements, remain beside the protocol file. Optional parameter overrides and declared sweep axes apply to the copied device as usual.
+
+The run freezes the complete device under `spec/`, with `system = "system.toml"` in its compiled protocol. Its manifest records `source_entry_ids`, and the entry's source run joins `parent_run_ids`. Registering a candidate from this run records those entries as its `parent_entry_ids`. Reusing a device does not run checks or apply the source entry's outcomes to the new computation.
+
+An investigation base may also declare `system_entry`. At drafting or revision, its `inputs` must contain matching digests for the entry's `system.toml` and every referenced file; protocol and data digests are additional inputs. Every launch under that base records the entry, including a protocol that names an exact local copy of the device. Admission still checks the complete approved bundle and permitted varied values.
+
+Linked reruns use the device files frozen in the prior attempt and preserve its entry IDs. They need no catalog, and investigation reruns still use the current approved terms.
+
 ## Reading the catalog
 
 ```sh
@@ -125,5 +144,7 @@ entanglix read-entry e20261025T153012123456Z-1a2b3c4d --runs-root research_runs
 `read-entry` returns the record with a `lineage` table:
 - `source_run`: the run's path, ID, protocol, status and `parent_run_ids`;
 - `ancestors`: each run reached through `parent_run_ids`, in the same form.
+
+A promoted entry also has `reuses`: `runs` lists each manifest that records its ID, with the relative run path, protocol and investigation ID when present; `investigation_bases` lists the investigation ID, revision and base name of every base naming it, including proposed revisions. These are references from retained records, without loading the scientific outputs.
 
 A run whose directory no longer exists is reported as `unavailable`; the staged design stays readable. Failed and unstaged runs remain readable through `list-runs` and `read-run` without the catalog.
