@@ -56,9 +56,10 @@ finished_attempts = 10
 Each base has a unique name and relative input filenames with lowercase SHA-256
 digests. Every base includes `system.toml`. Use the runner's fixed names for the
 system (`system.toml`), simulation protocol (`simulate.toml`, even when authored as
-`readout.toml`), control input (`control.toml`), calibration spec (`calibrate.toml`),
-and script (`script.py`); subsystem and data filenames, including datasets and their
-array files, are retained.
+`readout.toml`), control input (`control.toml`), a control input's starting-pulse
+file (`starting-pulse.npz`), calibration spec (`calibrate.toml`), and script
+(`script.py`); subsystem and data filenames, including datasets and their array files,
+are retained.
 An optional `system_entry` names a promoted catalog device. Drafting and revisions
 require matching digests for its system and every referenced file, and launches
 under that base record the entry; see [device reuse](catalog.md#reusing-a-device).

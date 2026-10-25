@@ -395,6 +395,8 @@ def _launch_protocol(
                         "energy_origin_ghz",
                     )
                 }
+                if "starting_pulse" in gate:
+                    launch["starting_pulse"] = gate["starting_pulse"]
             if investigation_id is not None:
                 launch["varied_values"] = values or {}
             if gate["timeout_seconds"] is not None:

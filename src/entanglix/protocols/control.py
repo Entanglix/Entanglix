@@ -1,6 +1,7 @@
 """Validated closed-system control models and shared ProblemSpec export."""
 
 import hashlib
+import io
 import math
 import re
 import tomllib
@@ -17,8 +18,10 @@ from entanglix.evolution import Carrier, EvolutionInput, RotatingFrame, normaliz
 from entanglix.models import ConstructedSystem, StrictModel, load_system
 from entanglix.protocols import SystemSource
 from entanglix.protocols.plans import FrameSpec, Refinement
+from entanglix.solvers import Pulse as NeutralPulse
 
 AMICODE_REVISION = "cb717f57cb63fa292917188c8ca32f50ddcca539"
+STARTING_PULSE = "starting-pulse.npz"
 STEP_RELATIVE_HALF_WIDTH = 1e-7
 # Derived values agree with declared ones, and across channels, within this tolerance.
 RESOLVED_RELATIVE_TOLERANCE = 1e-9
@@ -124,6 +127,20 @@ class Pulse(StrictModel):
     seed: int | None = Field(default=None, strict=True, ge=0, lt=2**63)
 
 
+class StartingPulse(StrictModel):
+    """A neutral pulse naming its channels: a promoted entry's, a control run's, or a file."""
+
+    entry: str | None = Field(default=None, min_length=1)
+    run: str | None = Field(default=None, min_length=1)
+    file: str | None = Field(default=None, min_length=1)
+
+    @model_validator(mode="after")
+    def one_source(self):
+        if sum(value is not None for value in (self.entry, self.run, self.file)) != 1:
+            raise ValueError("starting_pulse names exactly one of entry, run or file")
+        return self
+
+
 class Problem(StrictModel):
     template: Literal["SmoothPulseProblem"]
     N: int = Field(strict=True, ge=2)
@@ -177,6 +194,7 @@ class ControlSpec(SystemSource):
     evaluation: Evaluation | None = None
     goal: Goal
     pulse: Pulse
+    starting_pulse: StartingPulse | None = None
     problem: Problem
     solver: Solver
     timeout_seconds: float | None = Field(default=None, gt=0, allow_inf_nan=False)
@@ -186,6 +204,10 @@ class ControlSpec(SystemSource):
         names = [channel.id for channel in self.channels]
         if len(set(names)) != len(names):
             raise ValueError("channel IDs must be unique")
+        if self.starting_pulse is not None and (
+            self.pulse.init is not None or self.pulse.seed is not None
+        ):
+            raise ValueError("a starting pulse replaces pulse.init and pulse.seed")
         return self
 
 
@@ -204,6 +226,109 @@ class LoadedControl:
     input_digests: dict[str, str]
     listing: dict
     catalog: dict
+
+
+def _run_pulse(name: str, runs_root: Path) -> tuple[Path, list[str]]:
+    """A completed control run's neutral pulse, with the channel IDs its frozen spec declares."""
+    from entanglix.catalog import RUN_ID
+    from entanglix.runner import _digest, _load_record, _read_attempt, _script_result
+
+    path = Path(name)
+    root = runs_root.resolve()
+    run = root / path
+    if (
+        path.is_absolute()
+        or len(path.parts) != 2
+        or ".." in path.parts
+        or not RUN_ID.fullmatch(path.name)
+        or not run.resolve().is_relative_to(root)
+        or not (run / "run.toml").is_file()
+    ):
+        raise ValueError(
+            f"starting_pulse.run must name <system_id>/<run_id> in the runs root: {name}"
+        )
+    record = _read_attempt(run)
+    if record["manifest"]["protocol"] != "control" or record["status"] != "completed":
+        raise ValueError(f"starting_pulse.run must name a completed control run: {name}")
+    spec = run / "spec/control.toml"
+    if _digest(spec.read_bytes()) != record["manifest"]["spec_sha256"]["control.toml"]:
+        raise ValueError(f"source input digest mismatch: {name}/spec/control.toml")
+    result = _script_result(run)
+    channels = [channel["id"] for channel in _load_record(spec)["channels"]]
+    return (run / result["artifacts"]["pulse"]["path"]).resolve(), channels
+
+
+def _starting_source(start: StartingPulse, protocol: Path, runs_root: Path, replay_source):
+    """Locate a supplied start; a replay uses its frozen copy and keeps the recorded source."""
+    from entanglix.catalog import pulse_source
+    from entanglix.runner import _load_record
+
+    lineage = {"source_entry_ids": [], "parent_run_ids": []}
+    channels = None
+    if replay_source is not None:
+        path = replay_source / "spec" / STARTING_PULSE
+        source = _load_record(replay_source / "run.toml")["launch"]["starting_pulse"]["source"]
+    elif start.entry is not None:
+        path = pulse_source(start.entry, runs_root)
+        source = {"entry": start.entry}
+        lineage["source_entry_ids"].append(start.entry)
+    elif start.run is not None:
+        path, channels = _run_pulse(start.run, runs_root)
+        source = {"run": start.run}
+        lineage["parent_run_ids"].append(Path(start.run).name)
+    else:
+        path = protocol.parent / start.file
+        if Path(start.file).name != start.file or path.resolve().parent != protocol.parent:
+            raise ValueError("starting_pulse.file must name a file beside the control spec")
+        source = {"file": start.file}
+    return {"path": path, "channels": channels, "source": source}, lineage
+
+
+def channel_pulse(arrays: dict, channels: list[str]) -> NeutralPulse:
+    """A neutral pulse's rows in the problem's channel order, matched by ID."""
+    names = arrays["channels"].tolist()
+    missing = [name for name in channels if name not in names]
+    extra = [name for name in names if name not in channels]
+    if missing or extra:
+        raise ValueError(
+            f"starting pulse channels differ from the problem's: missing {missing}, extra {extra}"
+        )
+    rows = [names.index(name) for name in channels]
+    return NeutralPulse(
+        np.asarray(arrays["times_ns"], dtype=float),
+        np.asarray(arrays["amplitudes_ghz"], dtype=float)[rows],
+    )
+
+
+def _match_start(
+    loaded: LoadedControl, start: dict, content: bytes
+) -> tuple[NeutralPulse, bytes, dict]:
+    """Refuse a start the constraints check would fail; it is never clipped or resampled."""
+    from entanglix.catalog import _neutral_pulse
+    from entanglix.corrector import load_policy
+    from entanglix.corrector.control import constraints
+
+    arrays = _neutral_pulse(io.BytesIO(content), start["channels"])
+    pulse = channel_pulse(arrays, [channel.id for channel in loaded.definition.channels])
+    failed = [
+        item.get("diagnostic")
+        or f"{item['name']} exceeds its limit by {item['residual']:.3g} "
+        f"(tolerance {item['tolerance']:.3g})"
+        for item in constraints(loaded, pulse, load_policy())["checks"]
+        if item["outcome"] == "fail"
+    ]
+    if failed:
+        raise ValueError(f"starting pulse does not fit the problem: {'; '.join(failed)}")
+    if start["channels"] is not None:
+        # A control run's pulse gains the channel IDs of its frozen spec.
+        buffer = io.BytesIO()
+        np.savez(buffer, **arrays)
+        content = buffer.getvalue()
+    digest = hashlib.sha256(content).hexdigest()
+    source = start["source"]
+    if "file" in source:
+        source = {"file": source["file"], "sha256": digest}
+    return pulse, content, {"sha256": digest, "source": source}
 
 
 def _vary(document: dict, values: dict) -> None:
@@ -395,7 +520,9 @@ def load_control(
     if spec.evaluation is not None:
         # Only the names are checked here; the corrector builds each sampled model.
         override_system(authored, dict.fromkeys(spec.evaluation.quantities, 0.0))
-    paths, hashes = _system_inputs(source, original, reserved={"control.toml", "problem.toml"})
+    paths, hashes = _system_inputs(
+        source, original, reserved={"control.toml", "problem.toml", STARTING_PULSE}
+    )
     # Base digests and freezing checks use the authored bytes, before any override.
     hashes["system.toml"] = hashlib.sha256(authored).hexdigest()
     if protocol in {path.resolve() for path in paths.values()}:
@@ -529,6 +656,18 @@ def compile_control(
 ) -> dict:
     """Prepare immutable input bytes for the runner; this creates no attempt."""
     loaded = load_control(protocol, values=values, runs_root=runs_root, replay_source=replay_source)
+    catalog = loaded.catalog
+    start = {}
+    if loaded.definition.starting_pulse is not None:
+        # Only a launch reads the start; checks and their sampled models never do.
+        located, lineage = _starting_source(
+            loaded.definition.starting_pulse, protocol.resolve(), runs_root, replay_source
+        )
+        initial, start_bytes, start_record = _match_start(
+            loaded, located, located["path"].read_bytes()
+        )
+        catalog = {name: [*ids, *lineage[name]] for name, ids in catalog.items()}
+        start = {"initial_pulse": initial}
     selection = None
     runtime = None
     if repository is not None:
@@ -537,15 +676,22 @@ def compile_control(
         backend, selection = select_solver(
             loaded.definition.solver.backend, loaded.definition.solver.fallback
         )
+        capabilities = backend.capabilities()
+        if start:
+            # Support is read from the solver that will run, after any fallback.
+            if capabilities.get("initial_pulse") is not True:
+                raise ValueError(
+                    f"solver {selection['actual']!r} does not support a starting pulse"
+                )
+            selection["initial_pulse"] = True
         if preflight := getattr(backend, "validate", None):
-            runtime = preflight(loaded.problem_spec, loaded.definition.solver.options)
+            runtime = preflight(loaded.problem_spec, loaded.definition.solver.options, **start)
         required = {"amplitude"}
         required.update(
             name
             for name, field in (("du", "du_bound"), ("ddu", "ddu_bound"))
             if field in loaded.problem_spec["problem"]
         )
-        capabilities = backend.capabilities()
         if "unitary" not in capabilities["problem_kinds"] or not required <= set(
             capabilities["constraints"]
         ):
@@ -559,6 +705,11 @@ def compile_control(
             raise ValueError(f"control input changed during compilation: {name}")
         frozen[name] = content
     base_inputs = loaded.input_digests if retain_base else {}
+    if start and loaded.definition.starting_pulse.file is not None:
+        # An authored file is a base input under its fixed name; entries and runs are not.
+        frozen[STARTING_PULSE] = start_bytes
+        if retain_base:
+            base_inputs = {**base_inputs, STARTING_PULSE: start_record["sha256"]}
     base_files = {}
     if retain_base:
         # Admission and reruns use the authored bytes, before canonicalization.
@@ -575,6 +726,10 @@ def compile_control(
     definition = loaded.definition.model_dump(exclude_none=True)
     definition.pop("system_entry", None)
     definition["system"] = "system.toml"
+    if start:
+        # The start is frozen beside the unchanged ProblemSpec, so reruns need no catalog.
+        definition["starting_pulse"] = {"file": STARTING_PULSE}
+        frozen[STARTING_PULSE] = start_bytes
     frozen["control.toml"] = tomli_w.dumps(definition).encode("utf-8")
     frozen["system.toml"] = _with_parameters(frozen["system.toml"], loaded.definition.parameters)
     frozen["problem.toml"] = loaded.problem_bytes
@@ -585,7 +740,7 @@ def compile_control(
             target.write(content)
         (directory / name).chmod(0o444)
     result = {
-        **loaded.catalog,
+        **catalog,
         "system_id": loaded.system.id,
         "inputs": {name: str(directory / name) for name in frozen},
         "spec_sha256": {name: hashlib.sha256(data).hexdigest() for name, data in frozen.items()},
@@ -593,6 +748,7 @@ def compile_control(
         "preview": loaded.listing,
         "base_inputs": base_inputs,
         "scope_values": [values or {}],
+        **({"starting_pulse": start_record} if start else {}),
     }
     if repository is not None:
         from entanglix.corrector.control import control_listing

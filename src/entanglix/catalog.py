@@ -27,23 +27,39 @@ PULSE_ARRAYS = ("kind", "times_ns", "amplitudes_ghz", "channels")
 BLOCKING_CHECKS = {"integrity", "segments", "spectral_refinement", "replay", "constraints"}
 
 
-def device_source(identifier: str, runs_root: Path):
-    """Resolve a promoted device and its catalog lineage."""
-    from entanglix.runner import _load_record, _relative_file
+def _promoted(identifier: str, runs_root: Path, design: str, field: str) -> dict:
+    """A promoted entry's record, which must hold the requested design."""
+    from entanglix.runner import _load_record
 
     if not ENTRY_ID.fullmatch(identifier):
-        raise ValueError("system_entry must name a promoted catalog entry")
+        raise ValueError(f"{field} must name a promoted catalog entry")
     path = runs_root.resolve() / CATALOG / "entries" / identifier / "record.toml"
     if not path.is_file():
         raise ValueError(f"unknown catalog entry: {identifier}")
     entry = _load_record(path)
-    if "device" not in entry:
-        raise ValueError(f"catalog entry {identifier} holds no device")
+    if design not in entry:
+        raise ValueError(f"catalog entry {identifier} holds no {design}")
+    return entry
+
+
+def device_source(identifier: str, runs_root: Path):
+    """Resolve a promoted device and its catalog lineage."""
+    from entanglix.runner import _relative_file
+
+    entry = _promoted(identifier, runs_root, "device", "system_entry")
     source = runs_root.resolve() / _relative_file(entry["device"]["path"]) / "system.toml"
     return source, {
         "source_entry_ids": [identifier],
         "parent_run_ids": [Path(entry["source"]["run"]).name],
     }
+
+
+def pulse_source(identifier: str, runs_root: Path) -> Path:
+    """Resolve a promoted pulse, held in the neutral form with its channel IDs."""
+    from entanglix.runner import _relative_file
+
+    entry = _promoted(identifier, runs_root, "pulse", "starting_pulse.entry")
+    return runs_root.resolve() / _relative_file(entry["pulse"]["path"])
 
 
 def _neutral_pulse(path: Path, channels: list[str] | None = None) -> dict:

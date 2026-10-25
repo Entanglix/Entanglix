@@ -31,7 +31,10 @@ class Solution:
 class SolverBackend(Protocol):
     def capabilities(self) -> dict: ...
 
-    def solve(self, problem_spec: Path, options: dict) -> Solution: ...
+    # A starting pulse is passed only to a backend whose capabilities report `initial_pulse`.
+    def solve(
+        self, problem_spec: Path, options: dict, initial_pulse: Pulse | None = None
+    ) -> Solution: ...
 
 
 def select_solver(name: str, fallback: str | None = None):

@@ -18,8 +18,16 @@ def decode(value):
     return array[..., 0] + 1j * array[..., 1]
 
 
-def validate(problem_spec, options):
-    """Refuse unsupported semantics before an attempt is admitted."""
+def bounds(problem_spec):
+    """Each knot's amplitude bound; the first and last knots are fixed to zero."""
+    drive_bounds = np.asarray(problem_spec["system"]["params"]["drive_bounds"], dtype=float)
+    upper = np.repeat(drive_bounds[:, None], problem_spec["problem"]["N"], axis=1)
+    upper[:, [0, -1]] = 0
+    return upper
+
+
+def validate(problem_spec, options, initial_pulse=None):
+    """Refuse unsupported semantics, and a start SLSQP would clip, before admission."""
     try:
         version("jax")
     except PackageNotFoundError as exc:
@@ -27,6 +35,17 @@ def validate(problem_spec, options):
             "grape requires the differentiable extra in the runner environment"
         ) from exc
     validate_problem(problem_spec, options, "grape")
+    if initial_pulse is not None:
+        upper = bounds(problem_spec)
+        amplitudes = np.asarray(initial_pulse.amplitudes_ghz, dtype=float)
+        if amplitudes.shape != upper.shape:
+            raise ValueError("grape needs one starting amplitude per channel and knot")
+        excess = float(np.max(np.abs(amplitudes) - upper))
+        if excess > 0:
+            raise ValueError(
+                f"grape refuses a starting pulse outside its bounds, which include zero first "
+                f"and last knots, rather than clip it: exceeded by {excess:.3g} GHz"
+            )
 
 
 def objective(problem_spec):
@@ -69,8 +88,8 @@ def objective(problem_spec):
 
 
 class GrapeBackend:
-    def validate(self, problem_spec, options):
-        validate(problem_spec, options)
+    def validate(self, problem_spec, options, initial_pulse=None):
+        validate(problem_spec, options, initial_pulse)
 
     def capabilities(self):
         return {
@@ -78,18 +97,17 @@ class GrapeBackend:
             "constraints": ["amplitude", "du", "ddu"],
             "gpu": False,
             "problem_kinds": ["unitary"],
+            "initial_pulse": True,
         }
 
-    def solve(self, problem_spec: Path, options: dict):
+    def solve(self, problem_spec: Path, options: dict, initial_pulse=None):
         problem_spec = tomllib.loads(problem_spec.read_text())
-        validate(problem_spec, options)
+        validate(problem_spec, options, initial_pulse)
         value_and_grad, times = objective(problem_spec)
         problem, pulse = problem_spec["problem"], problem_spec["pulse"]
         n = problem["N"]
-        bounds = np.asarray(problem_spec["system"]["params"]["drive_bounds"], dtype=float)
-        shape = (len(bounds), n)
-        upper = np.repeat(bounds[:, None], n, axis=1)
-        upper[:, [0, -1]] = 0
+        upper = bounds(problem_spec)
+        shape = upper.shape
         dt = times[1] - times[0]
         constraints = []
         for order, field in ((1, "du_bound"), (2, "ddu_bound")):
@@ -97,12 +115,15 @@ class GrapeBackend:
                 derivative = np.diff(np.eye(n), n=order, axis=0) / dt**order
                 constraints.append(
                     LinearConstraint(
-                        np.kron(np.eye(len(bounds)), derivative), -problem[field], problem[field]
+                        np.kron(np.eye(shape[0]), derivative), -problem[field], problem[field]
                     )
                 )
         initial = np.zeros(shape)
         effective_seed = None
-        if pulse.get("init", "default") in {"default", "random"}:
+        if initial_pulse is not None:
+            # The supplied amplitudes, knot for knot, on this solver's own grid.
+            initial = np.array(initial_pulse.amplitudes_ghz, dtype=float)
+        elif pulse.get("init", "default") in {"default", "random"}:
             effective_seed = pulse.get("seed")
             if effective_seed is None:
                 effective_seed = secrets.randbits(63)

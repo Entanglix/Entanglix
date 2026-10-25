@@ -1,5 +1,6 @@
 """A solver candidate, using the common launch gate and inherited start barrier."""
 
+import io
 import os
 from pathlib import Path
 
@@ -14,16 +15,29 @@ def execute(problem: Path):
     launch = _load_record(run / "run.toml")["launch"]
     if _digest(problem.read_bytes()) != launch["problem_sha256"]:
         raise ValueError("frozen ProblemSpec digest changed")
-    solver = _load_record(run / "spec/control.toml")["solver"]
+    control = _load_record(run / "spec/control.toml")
+    solver = control["solver"]
     backend, selection = select_solver(solver["backend"], solver.get("fallback"))
+    start = {}
+    if "starting_pulse" in launch:
+        # Imported only for a start: the control protocol module loads QuTiP.
+        from entanglix.catalog import _neutral_pulse
+        from entanglix.protocols.control import STARTING_PULSE, channel_pulse
+
+        content = (run / "spec" / STARTING_PULSE).read_bytes()
+        if _digest(content) != launch["starting_pulse"]["sha256"]:
+            raise ValueError("frozen starting pulse digest changed")
+        channels = [channel["id"] for channel in control["channels"]]
+        start = {"initial_pulse": channel_pulse(_neutral_pulse(io.BytesIO(content)), channels)}
+        selection["initial_pulse"] = backend.capabilities().get("initial_pulse") is True
     if selection != launch["selection"]:
         raise ValueError("solver installation changed after launch validation")
     if preflight := getattr(backend, "validate", None):
-        runtime = preflight(_load_record(problem), solver.get("options", {}))
+        runtime = preflight(_load_record(problem), solver.get("options", {}), **start)
         expected = _load_record(run / "run.toml")["environment"].get("solver_runtime")
         if runtime != expected:
             raise ValueError("solver runtime changed after launch validation")
-    solution = backend.solve(problem, solver.get("options", {}))
+    solution = backend.solve(problem, solver.get("options", {}), **start)
     output = run / "artifacts/pulse.npz"
     np.savez(
         output,
@@ -32,7 +46,10 @@ def execute(problem: Path):
         amplitudes_ghz=solution.pulse.amplitudes_ghz,
     )
     trace = run / "artifacts/solver-trace.toml"
-    publish_toml(trace, solution.trace)
+    publish_toml(
+        trace,
+        {**solution.trace, "starting_pulse": launch["starting_pulse"]} if start else solution.trace,
+    )
     publish_toml(
         run / "result.toml",
         {

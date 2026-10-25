@@ -131,6 +131,17 @@ An investigation base may also declare `system_entry`. At drafting or revision, 
 
 Linked reruns use the device files frozen in the prior attempt and preserve its entry IDs. They need no catalog, and investigation reruns still use the current approved terms.
 
+## Starting from a pulse
+
+A control spec may start its solve from a promoted entry's pulse:
+
+```toml
+[starting_pulse]
+entry = "e20261025T153012123456Z-1a2b3c4d"
+```
+
+The pulse is matched to the problem's channels, knot count, time-step bracket and bounds, and refused rather than changed when it does not fit. Only a solver that declares starting-pulse support accepts it. The run freezes the pulse beside its ProblemSpec, and its manifest records the entry in `source_entry_ids`. The [control reference](control.md#starting-pulse) describes matching, solver support, the other sources and the records.
+
 ## Reading the catalog
 
 ```sh
