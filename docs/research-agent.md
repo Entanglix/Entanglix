@@ -1,7 +1,7 @@
 ---
 name: entanglix-research-conduct
 description: Conduct for a quantum research session using Entanglix tools.
-version: 0.1.10
+version: 0.1.11
 ---
 
 # Research-agent conduct
@@ -59,8 +59,8 @@ Human actions belong to the operator in their own terminal. Never execute
 `entanglix promote`, or use another command form, API, or script to synthesize
 their events or edit the device model. Give the user the exact bare operator
 command, including the investigation path and revision or review name, or the
-proposal and system file. Continue only after reading its decision event or
-application record. Runtime tool approval does not
+proposal and system file, or staged candidate ID. Continue only after reading its
+decision event, application record or promoted entry. Runtime tool approval does not
 start, approve, resume, or release an investigation. If nobody attends, record a
 handoff. Restrictions may be instruction-only; do not imply authentication.
 
@@ -79,6 +79,12 @@ not run. Request named checks when asked; an agreed standing request authorizes
 you to issue those checks after each relevant run without asking again. The
 runner never issues them automatically. Local segments do not establish
 whole-window accuracy, and diagnostics are not pass/fail evidence.
+
+Stage a design with `register_result` only when the user asks. Staging is not
+promotion. Read an entry before citing it, and state which checks covered the
+candidate, their outcomes and the relevant checks that did not run. Promotion
+adds no checks; an entry's checks cover its source candidate, not runs that reuse
+it. Read `reference/operations/catalog.md` for staging, check scope and reuse.
 
 Record findings with source run IDs, interpretation, uncertainty, checks run and
 not run, and the next experiment. Measurements remain in the attempt and run

@@ -13,6 +13,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from functools import wraps
 from pathlib import Path
+from typing import Literal
 
 from mcp.server.mcpserver import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
@@ -48,6 +49,8 @@ READS = {
     "read_run",
     "list_investigations",
     "read_investigation",
+    "list_catalog",
+    "read_entry",
 }
 WRITES = {
     "create_investigation",
@@ -55,6 +58,7 @@ WRITES = {
     "record_finding",
     "reconcile_run",
     "propose_device_update",
+    "register_result",
 }
 MAX_WAIT = 30.0
 
@@ -411,6 +415,46 @@ def build_server(config: Configuration):
     async def list_capabilities() -> dict[str, object]:
         """Report the backing operations and packages installed in the runner environment."""
         return await backing(runner.list_capabilities, repository)
+
+    @tool
+    async def list_catalog() -> list[dict[str, object]]:
+        """List staged candidates and promoted designs in the configured runs root."""
+        from entanglix.catalog import list_catalog as listing
+
+        return await backing(listing, root)
+
+    @tool
+    async def read_entry(identifier: str) -> dict[str, object]:
+        """Read a staged candidate or promoted entry, with its check scope and lineage."""
+        from entanglix.catalog import read_entry as read
+
+        return await backing(read, identifier, root)
+
+    @tool
+    async def register_result(
+        run: str,
+        design: Literal["device", "pulse", "device_and_pulse"],
+        claim: str,
+        point: int | None = None,
+        solution: int | None = None,
+        artifact: str | None = None,
+    ) -> dict[str, object]:
+        """Stage a design from a completed run when requested; this never promotes it."""
+        from entanglix.catalog import register_result as register
+
+        path = research_path(run)
+        if path.parent.parent != root:
+            raise ToolError("catalog source must be at <runs_root>/<system_id>/<run_id>")
+        record = await backing(
+            register,
+            path,
+            design,
+            claim=claim,
+            point=point,
+            solution=solution,
+            artifact=artifact,
+        )
+        return record | {"path": relative_path(record["path"], root)}
 
     @tool
     async def list_runs(after: int = 0) -> dict[str, object]:

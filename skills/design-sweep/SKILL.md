@@ -1,13 +1,14 @@
 ---
 name: design-sweep
 description: Plan and execute Entanglix static or dynamic parameter sweeps, interpret sampled trends, and choose bounded follow-up experiments.
-version: 0.1.0
+version: 0.1.1
 ---
 
 # Sweep and search
 
 Read workspace `reference/operations/protocols.md` for sweep fields and metrics;
 use `reference/operations/investigations.md` for terms and finding fields.
+Read `reference/operations/catalog.md` when reusing a catalogued device.
 
 Start from a validated simulation base. A spectrum gives static quantities;
 Lindblad evolution gives dynamic endpoints. Either supports a partial research
@@ -15,6 +16,13 @@ workflow without control optimization. Declare unique values on each axis using
 supported parameter, drive-amplitude, carrier-frequency, or frame-frequency
 targets. Preserve linked carrier/frame pairings where agreed terms require
 them; do not alter a base file to evade admission.
+
+To reuse a promoted device, inspect it with `read_entry` and set `system_entry`
+instead of `system` in the simulation base. Undeclared parameters keep the
+entry's values; declared overrides and sweep axes still apply. An investigation
+base may name the entry and must bind its complete device digest map.
+The new run records the entry and freezes the device. Checks on the new run are
+its own; the entry's check scope covers only the source candidate.
 
 Choose a grid that resolves the reported effect, accounting for known numerical
 and frame limitations. `evidence_metric` is optional and guides point selection,

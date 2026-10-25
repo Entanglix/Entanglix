@@ -159,3 +159,13 @@ entanglix read-entry e20261025T153012123456Z-1a2b3c4d --runs-root research_runs
 A promoted entry also has `reuses`: `runs` lists each manifest that records its ID, with the relative run path, protocol and investigation ID when present; `investigation_bases` lists the investigation ID, revision and base name of every base naming it, including proposed revisions. These are references from retained records, without loading the scientific outputs.
 
 A run whose directory no longer exists is reported as `unavailable`; the staged design stays readable. Failed and unstaged runs remain readable through `list-runs` and `read-run` without the catalog.
+
+## Research tools
+
+The [stdio MCP server](mcp.md#tool-surface) exposes the same backing operations:
+
+- `register_result(run, design, claim, point=None, solution=None, artifact=None)` stages a candidate; `run` must resolve directly to `<runs_root>/<system_id>/<run_id>` using the server's configured runs root. Runs under nested roots are refused.
+- `list_catalog()` lists staged candidates and promoted entries, wrapped under `result`.
+- `read_entry(identifier)` reads either a staged candidate ID or a promoted entry ID, including its check scope and lineage.
+
+The server supplies the runs root; it is not a tool argument. Paths in replies are relative to that root, including the staging path, which the CLI returns as an absolute path. A refused request publishes no candidate. There is no promotion tool; promotion remains the operator command above. The existing job tools need no new arguments: their specs name a device through `system_entry` or a starting pulse through `starting_pulse`.

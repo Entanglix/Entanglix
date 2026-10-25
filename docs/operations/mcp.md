@@ -20,7 +20,7 @@ The runs root, device and runner extras are explicit. The other settings are opt
 
 | Setting | Meaning |
 |---|---|
-| `--runs-root` | Persistent directory for attempts, investigations, launch records and audit records; use the same directory in operator commands |
+| `--runs-root` | Persistent directory for attempts, investigations, catalog, launch records and audit records; use the same directory in operator commands |
 | `--device` | Physical GPU UUID or `nvidia-smi` index for runner-launched CUDA jobs; an empty string supplies no GPU |
 | `--runner-extras` | Space-separated extras for the separate `.venv-runner` job environment; the bare flag selects none |
 | `--state-directory` | Optional shared state directory; defaults to the runner's `XDG_STATE_HOME`, or `~/.local/state` when unset. GPU locks live under its `entanglix/gpu/` directory |
@@ -37,12 +37,14 @@ Tools use the same backing operations as the CLI, with MCP response summaries de
 
 | Tools | Effect |
 |---|---|
-| `validate_system`, `list_capabilities`, `list_runs`, `read_run`, `list_investigations`, `read_investigation` | Read-only; validation includes operator meanings and model provenance |
+| `validate_system`, `list_capabilities`, `list_runs`, `read_run`, `list_investigations`, `read_investigation`, `list_catalog`, `read_entry` | Read-only; validation includes operator meanings and model provenance; catalog reads include staged candidates, promoted designs and lineage |
 | `simulate`, `sweep`, `control`, `calibrate`, `run_script`, `rerun_simulation`, `rerun_sweep`, `rerun_control`, `rerun_calibration`, `rerun_script`, `check` | Admit jobs through the runner, returning the launch and run IDs once admission is established |
 | `abort_run`, `stop_investigation` | Cancel work using the existing process-group and investigation rules |
-| `create_investigation`, `revise_investigation`, `record_finding`, `reconcile_run`, `propose_device_update` | Draft terms, propose revisions, append findings, reconcile uncertain attempts, or stage a device-update proposal |
+| `create_investigation`, `revise_investigation`, `record_finding`, `reconcile_run`, `propose_device_update`, `register_result` | Draft terms, propose revisions, append findings, reconcile uncertain attempts, or stage a device-update proposal or catalog candidate |
 
-Only the first row carries the MCP read-only annotation. Jobs and writes may require runtime approval. Catalog operations, promotion, applying a device-update proposal, and investigation start/approval/resume/review release are absent. A proposed revision never changes the effective terms. See [investigations](investigations.md) for the operator decision path.
+Only the first row carries the MCP read-only annotation. Jobs and writes may require runtime approval. Promotion, applying a device-update proposal, and investigation start/approval/resume/review release are absent. A proposed revision never changes the effective terms. See [investigations](investigations.md) for the operator decision path.
+
+`register_result`, `list_catalog` and `read_entry` stage and read catalog designs; see the [catalog reference](catalog.md#research-tools) for arguments, source-run location and reply fields.
 
 Control tools take an authored protocol path, or a source run path for `rerun_control`. An investigation control request names an approved base and passes varied values in `values`, as `simulate` does. Control solves and their requested checks run on CPU; see the [control reference](control.md).
 
@@ -163,12 +165,13 @@ cp "$ENTANGLIX_CHECKOUT/docs/operations/system-spec.md" \
   "$ENTANGLIX_CHECKOUT/docs/operations/runs.md" \
   "$ENTANGLIX_CHECKOUT/docs/operations/control.md" \
   "$ENTANGLIX_CHECKOUT/docs/operations/calibration.md" \
+  "$ENTANGLIX_CHECKOUT/docs/operations/catalog.md" \
   "$ENTANGLIX_WORKSPACE/reference/operations/"
 ```
 
 Use a new directory for these initial copies. Refresh them deliberately when upgrading; retain their versions with the session. `skills/` is the plain-text location named by the conduct; `.agents/skills` makes the same files discoverable in Codex. In a runtime that reads another workspace instruction filename, copy the same conduct there instead. If it reads no such file, supply the entire conduct through its initial-context mechanism. Keep the procedures readable at the named paths. Do not copy root development `AGENTS.md` or `CLAUDE.md`, the roadmap, baseline answers, or contributor instructions into the research workspace.
 
-The six files under `reference/operations/` provide authoring syntax and lifecycle rules. Skills direct the agent to the relevant reference when needed. Links between these references remain usable; links to checkout examples, tests, and the harness contract are unavailable in this copy. For an evaluation, supply any additional inputs separately without exposing baseline answers.
+The seven files under `reference/operations/` provide authoring syntax and lifecycle rules. Skills direct the agent to the relevant reference when needed. Links between these references remain usable; links to checkout examples, tests, and the harness contract are unavailable in this copy. For an evaluation, supply any additional inputs separately without exposing baseline answers.
 
 Add a task brief containing the intended question and agreed terms, and copy the model, protocol, subsystem, and numeric input files beside one another. Within an investigation preserve the approved base bytes. For the [readout investigation](../../examples/readout/README.md#scripted-investigation-baseline), the operator can prepare its base bundle with the documented draft command; the agent receives the declarations and inputs, not the baseline summaries.
 

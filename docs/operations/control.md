@@ -90,7 +90,7 @@ Compilation takes an empty existing directory. It verifies the loaded input dige
 
 The stdio server offers `control(protocol, investigation_id=None, base=None, values=None, parent_run_ids=None)` and `rerun_control(run)`. Its configuration supplies the runs root and runner environment; neither is a tool argument. A successful call returns admission while a separate supervisor executes the CPU job. Pass its returned path to `read_run`, optionally with a bounded wait. Source run paths must resolve inside the configured runs root. The same admission, check, cancellation and rerun rules apply as through the CLI.
 
-The versioned `skills/control/SKILL.md` procedure directs a research agent to this reference, distinguishes solver completion from candidate checks, and explains approved bases, recovery and the co-design procedure. Copy it and this reference into the research workspace following the [MCP setup](mcp.md#research-workspace). Runtime approval may be needed for these job tools; a tool approval does not approve investigation terms.
+The versioned `skills/control/SKILL.md` procedure directs a research agent to this reference, distinguishes solver completion from candidate checks, and explains approved bases, recovery, co-design comparison, catalog reuse and starting pulses. Copy it and this reference into the research workspace following the [MCP setup](mcp.md#research-workspace). Runtime approval may be needed for these job tools; a tool approval does not approve investigation terms.
 
 ## Numerical evidence and limits
 

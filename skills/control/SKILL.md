@@ -1,7 +1,7 @@
 ---
 name: control
-description: Solve an Entanglix closed-system gate problem, inspect a returned pulse, request control checks, or re-solve frozen inputs.
-version: 0.1.3
+description: Solve an Entanglix closed-system gate problem, reuse a device or starting pulse, inspect candidates, request checks, or re-solve frozen inputs.
+version: 0.1.4
 ---
 
 # Closed-system control
@@ -10,11 +10,20 @@ Read workspace `reference/operations/control.md` for the input, units, subspace,
 solver support and neutral pulse. Use `reference/operations/investigations.md`
 for approved terms. Read `reference/operations/runs.md` only when an attempt is
 interrupted or its state is unknown.
+Read `reference/operations/catalog.md` when reusing an entry or citing its checks.
 
 Declare the gate, duration, amplitude and derivative bounds, reported target and
 control frame. The supported control model is closed and uses an explicit RWA;
 omitted dissipators appear in the launch listing. These choices do not establish
 lab-frame or device-model accuracy. Control solves and their checks run on CPU.
+
+Use `system_entry` instead of `system` for a promoted device. A `starting_pulse`
+may name an entry, a control run or a neutral pulse file, and replaces `pulse.init`
+and `pulse.seed`. Only a supporting solver accepts it, including after fallback;
+`grape` supports starts and `piccolo` does not. The runner matches channel IDs,
+knots, times and bounds, and refuses a start that does not fit. Reruns use the
+frozen start and retain its source lineage. The entry's check scope applies to
+the source candidate.
 
 Call `control` with the authored protocol. In an investigation read effective
 terms first and name an approved base; pass the device parameters and seeds it
