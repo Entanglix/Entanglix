@@ -584,3 +584,21 @@ This is one workspace with one brief per session, in one non-interactive configu
 ```sh
 uv run --locked --exact python tests/probes/s2_sessions.py --workspace <root> --output tests/probes/s2_sessions_results.json
 ```
+
+## Catalog reuse example
+
+The [catalog example](../examples/catalog/README.md#recorded-results) ran through the CLI and a scripted MCP client on the workstation's CPU on 2026-10-25, after the operator promoted a copy of the 60 fF co-design candidate in each runs root. Each path ran three standalone jobs: an `EJ` spectrum sweep on the entry's device, a baseline solve starting from its pulse, and the four requested control checks. The runner profile was `cuquantum,differentiable-cuda12`, with `OPENBLAS_NUM_THREADS=1`, `OMP_NUM_THREADS=1` and `JAX_PLATFORMS=cpu`. No agent runtime session ran.
+
+The [CLI summary](../tests/probes/s3_catalog_cli.json) and [MCP summary](../tests/probes/s3_catalog_mcp.json) retain promotion scope and lineage, both reuses, spectra, solver termination, checks and usage. Recorded job time totalled 3.23 s for the CLI path and 3.27 s for MCP, excluding launch checks and admission.
+
+The [example tests](../tests/test_catalog_example.py) passed both paths on 2026-10-25 in 26.5 seconds with the test-only starting-pulse backend. They verified the claim's unresolved comparison, the pause before promotion, the preserved device and gate, the nominal transition, the supplied-pulse digest, and entry/run lineage. These tests exercise the workflow; the test solver does not establish gate performance:
+
+```sh
+TMPDIR=/var/tmp uv run --locked --exact --extra mcp pytest -q tests/test_catalog_example.py
+```
+
+The wider CPU regression on 2026-10-25, including the optional JAX adapter and scripted MCP surface, passed 863 tests in 15 minutes 15 seconds. Four opt-in Julia tests and a CuPy-specific allocation test were skipped; 56 GPU cases were excluded.
+
+The retained source checks are reused with their original policy version; the [example's source-evidence record](../examples/catalog/README.md#source-check-reuse) explains why later calibration and starting-pulse changes do not affect them.
+
+Full attempts and catalog records remain in `research_runs/m5-codesign-cli/` and `research_runs/m5-codesign-mcp/`. The example documents the commands that generated the summaries; repeating reuse creates new attempts.

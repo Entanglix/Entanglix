@@ -27,7 +27,7 @@ Supporting milestones, scheduled by dependency and research need:
 |---|---|---|
 | S1 — Cluster execution | Block 9 | open |
 | S2 — Calibration | Block 10 | **complete** |
-| S3 — Results catalog | Block 11 | open |
+| S3 — Results catalog | Block 11 | **complete** |
 | S4 — Interoperability | Block 12 | open |
 
 The Harmoniqs conversation requires the shared ProblemSpec and the checked open-solver artifacts specified in roadmap §5, normally delivered at M4. Agent integration is not a prerequisite. The audience/license decision applies, and `roadmap.md` Appendix A must be removed before sharing.
@@ -320,18 +320,18 @@ The [M4 guide](m4-guide.md) records the implementation approach; [ADR-0005](adr/
 
 ## S3 — Results Catalog (Block 11)
 
-### [ ] Block 11 — Results Catalog
+### [x] Block 11 — Results Catalog
 
 **Depends on:** Blocks 3–5; Block 7 for pulse warm-starts.
 
-- [ ] Catalog builds on the existing run ledger; all failed and unpromoted history remains independently queryable
-- [ ] `_catalog/staging/`, `register_result`, `list_catalog`, and `read_entry`; a candidate is a device with its referenced files, a pulse, or both, its design copied and its evidence referenced
-- [ ] Human `promote` command records the checks that covered the candidate and their outcomes and the relevant checks not run, refuses a result with a covering failed check reporting numerical disagreement or a violated pulse constraint, records a violated declared expectation or an unmet target, and records source lineage and promoter; agents cannot promote
-- [ ] Lineage queries retain unsuccessful attempts and show where an entry was reused
-- [ ] Subsequent sweep reuses a catalogued candidate with both entry and run provenance; an investigation base may name an entry
-- [ ] When Block 7 is available: control warm-start from a catalogued pulse with recorded lineage; a solver without starting-pulse support refuses it
-- [ ] Applicable quality evidence recorded
-- [ ] **Done:** a catalogued candidate is reused in a sweep and promotion is auditable; pulse warm-start is demonstrated when control is available
+- [x] Catalog builds on the existing run ledger; all failed and unpromoted history remains independently queryable ([catalog reference](operations/catalog.md), [staging and history tests](../tests/test_catalog.py))
+- [x] `_catalog/staging/`, `register_result`, `list_catalog`, and `read_entry`; a candidate is a device with its referenced files, a pulse, or both, its design copied and its evidence referenced ([staging tests](../tests/test_catalog.py), [research-tool parity](../tests/test_mcp_catalog.py))
+- [x] Human `promote` command records the checks that covered the candidate and their outcomes and the relevant checks not run, refuses a result with a covering failed check reporting numerical disagreement or a violated pulse constraint, records a violated declared expectation or an unmet target, and records source lineage and promoter; agents cannot promote ([promotion tests](../tests/test_catalog_promotion.py), [research-tool restrictions](../tests/test_mcp_catalog.py))
+- [x] Lineage queries retain unsuccessful attempts and show where an entry was reused ([lineage tests](../tests/test_catalog.py), [reuse tests](../tests/test_catalog_reuse.py))
+- [x] Subsequent sweep reuses a catalogued candidate with both entry and run provenance; an investigation base may name an entry ([device reuse tests](../tests/test_catalog_reuse.py), [example tests](../tests/test_catalog_example.py), [recorded reuse](../examples/catalog/README.md#recorded-results))
+- [x] When Block 7 is available: control warm-start from a catalogued pulse with recorded lineage; a solver without starting-pulse support refuses it ([starting-pulse tests](../tests/test_control_starting_pulse.py), [example tests](../tests/test_catalog_example.py), [recorded warm starts](../examples/catalog/README.md#recorded-results))
+- [x] Applicable quality evidence recorded ([catalog reference](operations/catalog.md), [example validation](environment.md#catalog-reuse-example), [example tests](../tests/test_catalog_example.py), [CLI summary](../tests/probes/s3_catalog_cli.json), [MCP summary](../tests/probes/s3_catalog_mcp.json))
+- [x] **Done:** a catalogued candidate is reused in a sweep and promotion is auditable; pulse warm-start is demonstrated when control is available ([recorded results](../examples/catalog/README.md#recorded-results), [CLI summary](../tests/probes/s3_catalog_cli.json), [MCP summary](../tests/probes/s3_catalog_mcp.json))
 
 ---
 

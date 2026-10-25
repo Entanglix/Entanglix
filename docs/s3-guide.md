@@ -53,11 +53,11 @@ Each step reruns the existing acceptance studies whose plans reach the code it c
 
 ## 3. The example
 
-The example is recorded in its own directory and starts from the [co-design example](../examples/transmon-codesign/README.md)'s chosen candidate.
+The example is recorded in its own directory and starts from a retained candidate from the [co-design example](../examples/transmon-codesign/README.md).
 
 | Item | Choice |
 |---|---|
-| Source | A retained, completed control run of the co-design example's chosen candidate, with its recorded checks (`replay`, `constraints`, `uncertainty`, `uncertainty_refinement`). A check is rerun only when a code change since that run reaches it. When no such run is retained, one standalone control run re-solves the chosen capacitance with its best seed, with the same checks |
+| Source | A retained, completed control run at 60 fF with seed 19, chosen to demonstrate reuse; the ranking between 60 and 90 fF stays unresolved. Its recorded checks are `replay`, `constraints`, `uncertainty` and `uncertainty_refinement`. A check is rerun only when a code change since that run reaches it. When no such run is retained, one standalone control run re-solves the same capacitance and seed, with the same checks |
 | Candidate | The device and the pulse together, with a claim note naming the co-design comparison |
 | Promotion | The driver stages the candidate and prints the bare `entanglix promote` command. The owner runs it |
 | Device reuse | A spectrum sweep over `EJ` around its design value on the entry's device, through a base spectrum spec that names the entry and declares only `EJ`, at the entry's value, since a sweep axis must be declared in its base. `Csh` is left undeclared, so the entry's value holds |
