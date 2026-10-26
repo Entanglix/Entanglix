@@ -83,7 +83,7 @@ The workflow plane composes available protocols around a research question. Swee
 
 No calendar. A block is done when its functional criteria and the applicable quality criteria in §4 hold. Dependencies below govern what must be available; numbering does not impose additional dependencies.
 
-The core capability progression is **foundation → local sweep with checks → bounded agent-assisted exploration → control → device–control co-design**. Cluster execution, calibration, catalog, and interoperability are supporting capabilities with their own dependencies. This is the preferred sequence; technical prerequisites are listed separately. Sweep/search must meet its own quality gates independently of control.
+The core capability progression is **foundation → local sweep with checks → bounded agent-assisted exploration → control → device–control co-design**. Cluster execution, calibration, and catalog are supporting capabilities with their own dependencies. This is the preferred sequence; technical prerequisites are listed separately. Sweep/search must meet its own quality gates independently of control.
 
 ### Decision 0 — Mandate ADR
 
@@ -224,15 +224,6 @@ The evaluation protocol names a scripted experiment-selection policy, comparable
 - Promotion is a human command. Failed and unpromoted run history remains queryable independently of the catalog.
 - **Done when:** a subsequent sweep reuses a catalogued candidate with recorded lineage; promotion is auditable; once control is available, a control run warm-starts from a catalogued pulse.
 
-### Block 12 — Interoperability
-
-- **Depends on:** the blocks whose formats it publishes: Blocks 3–5, 7, 10 and 11. Block 9 adds its records when built.
-- Publish the formats that programs outside Entanglix write or read: authored inputs (system, simulation, sweep, control, calibration and investigation specs, and measurement datasets), the records the harness writes (run, runner and terminal records, each protocol's results, check results, investigation, catalog and proposal records, and neutral pulses), and the JSON replies of the CLI and MCP tools. Files that are not published are named as internal. Authored and solver-native artifacts, and authored result fields beyond the common structure, are opaque extensions: a reference publishes their path, digest and any declared format, not their contents.
-- Each published format has a machine-readable schema shipped with the package. The schema carries the format's `format_version` or `record_version`, and is generated from the code that reads or writes the format where possible. Conformance tests check writers' outputs, accepted inputs and committed fixtures of each supported version against the schemas.
-- A compatibility rule names the supported versions and their direction: new readers accept every supported version, and an incompatible change requires a version change. Historical files are never rewritten. Inspecting a record of a supported version does not promise replay or checks of a historical run.
-- The generated ProblemSpec remains ProblemSpec OSS at its recorded amicode revision (Block 7). No amicode runtime or viewer is involved.
-- **Done when:** a program that does not import Entanglix, using only the shipped schemas and documented semantic conventions, validates the published structures of a run of each protocol and constructs inputs for each protocol that Entanglix accepts through its normal validation; the committed fixtures of every supported version validate, and a change that breaks them without a version change fails the tests.
-
 ### Upgrade path (not blocks)
 
 Multi-GPU cuDensityMat; cuTensorNet engine for lattice-scale systems; multistart and continuation for control; longer scheduled unattended campaigns after bounded workflows demonstrate reliability; hardware-in-the-loop via an external device bridge behind the same run contract.
@@ -292,7 +283,6 @@ Supporting milestones are scheduled by their dependencies and research need:
 | S1 — Cluster execution | Block 9 | same sweep on the scheduler; executor tests pass locally against a stubbed scheduler; scheduler accounting and failure handling demonstrated |
 | S2 — Calibration | Block 10 | standalone synthetic round trip with uncertainty and holdout evaluation; inspectable model-update proposal |
 | S3 — Results catalog | Block 11 | promoted candidate reused with lineage; pulse warm-start demonstrated when control is available |
-| S4 — Interoperability | Block 12 | published schemas for public inputs, records and replies; an external program validates runs and constructs accepted inputs without Entanglix; supported versions keep their fixtures |
 
 The Harmoniqs conversation is gated by concrete artifacts: the shared ProblemSpec solved by the open baseline and Piccolo, each candidate with its requested check reports, in inspectable run directories. These are normally delivered at M4, but standalone control may supply them before M3. Agent integration is not a sharing prerequisite; the audience/license decision and removal of Appendix A still apply.
 
@@ -309,7 +299,7 @@ The Harmoniqs conversation is gated by concrete artifacts: the shared ProblemSpe
 - Co-design extensions, until a concrete workflow needs them: uncertainty evaluation beyond a single periodic circuit coordinate, flux correspondence, dressed-transition calibration, device-dependent relaxation, and lab-frame validation of the control model.
 - Calibration extensions, until a concrete workflow needs them: dynamics-based calibration (time-domain traces, gate-error tables), gate-charge axes, several loops driven from one coil, profile likelihood and posterior sampling, and laboratory-format converters.
 - Catalog extensions, until a concrete workflow needs them: starting pulses for Piccolo, resampling a pulse onto another grid, and withdrawing an entry.
-- Interoperability extensions, until a concrete consumer needs them: amicode's Run Inspector and `amico-run` records, an amicode Domain Pack, and converters to other tools' formats.
+- Interoperability, until a consumer needs it: published schemas for Entanglix's inputs, records, arrays and replies; amicode's Run Inspector and `amico-run` records; an amicode Domain Pack; and converters to other tools' formats ([ADR-0009](adr/0009-published-formats.md)).
 
 ---
 
@@ -324,7 +314,7 @@ Settled: project name Entanglix; command `entanglix`; runner in Python (`uv`), s
 - **Settled in [ADR-0005](adr/0005-control-problems-and-solvers.md):** the control spec and the generated ProblemSpec, where the solver is named, the shared problem subset, solver options and termination reports, the direct Piccolo adapter, and the control checks ([probe results](../tests/probes/m4_control_results.json)).
 - **Settled in [ADR-0007](adr/0007-calibration-from-spectroscopy.md):** spectroscopy first, the uniform measurement format, extraction, assignment, the fit and its uncertainty report, holdout and the calibration checks, flux binding, device-update proposals, and calibration in investigations and tools ([probe results](../tests/probes/s2_calibration_results.json)).
 - **Settled in [ADR-0008](adr/0008-results-catalog.md):** candidates as design objects, catalog records, staging and promotion with the scope of the checks that covered a candidate, lineage reads without a trial count, device reuse in jobs and investigation bases, starting pulses for control, and the catalog tools.
-- **Settled in [ADR-0009](adr/0009-published-formats.md):** the published, opaque and internal files, package-shipped schemas generated from models, version identity, the compatibility rule, semantic conventions, reply datetimes, array descriptors with the legacy pulse reading, and conformance through fixtures, readers and an outside program ([probe results](../tests/probes/s4_formats_results.json)).
+- **Settled in [ADR-0009](adr/0009-published-formats.md):** reading supported earlier record versions, implicit version 1 for formats that historically omitted `record_version`, the legacy pulse reading, and deferred publication of standalone formats ([probe results](../tests/probes/s4_formats_results.json)).
 - **Before Block 9:** scheduler target (Slurm or Kubernetes), remote environment, and site execution requirements when needed.
 - **When stronger deployment guarantees are needed:** threat model, authorization/identity mechanism, process/filesystem/network/device controls, and evidence of bypass resistance. This is not a Decision-0 or M3 prerequisite.
 

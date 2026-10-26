@@ -28,7 +28,6 @@ Supporting milestones, scheduled by dependency and research need:
 | S1 — Cluster execution | Block 9 | open |
 | S2 — Calibration | Block 10 | **complete** |
 | S3 — Results catalog | Block 11 | **complete** |
-| S4 — Interoperability | Block 12 | open |
 
 The Harmoniqs conversation requires the shared ProblemSpec and the checked open-solver artifacts specified in roadmap §5, normally delivered at M4. Agent integration is not a prerequisite. The audience/license decision applies, and `roadmap.md` Appendix A must be removed before sharing.
 
@@ -332,21 +331,6 @@ The [M4 guide](m4-guide.md) records the implementation approach; [ADR-0005](adr/
 - [x] When Block 7 is available: control warm-start from a catalogued pulse with recorded lineage; a solver without starting-pulse support refuses it ([starting-pulse tests](../tests/test_control_starting_pulse.py), [example tests](../tests/test_catalog_example.py), [recorded warm starts](../examples/catalog/README.md#recorded-results))
 - [x] Applicable quality evidence recorded ([catalog reference](operations/catalog.md), [example validation](environment.md#catalog-reuse-example), [example tests](../tests/test_catalog_example.py), [CLI summary](../tests/probes/s3_catalog_cli.json), [MCP summary](../tests/probes/s3_catalog_mcp.json))
 - [x] **Done:** a catalogued candidate is reused in a sweep and promotion is auditable; pulse warm-start is demonstrated when control is available ([recorded results](../examples/catalog/README.md#recorded-results), [CLI summary](../tests/probes/s3_catalog_cli.json), [MCP summary](../tests/probes/s3_catalog_mcp.json))
-
----
-
-## S4 — Interoperability (Block 12)
-
-### [ ] Block 12 — Interoperability
-
-**Depends on:** Blocks 3–5, 7, 10 and 11; Block 9's records join when it is built.
-
-- [ ] Published and internal files named; each published input, record and CLI/MCP reply listed with its version; opaque extensions named
-- [ ] A machine-readable schema shipped for each published format, generated from the reading or writing code where possible; the committed schemas match the code
-- [ ] Writers' outputs, accepted inputs and committed fixtures of each supported version conform to their schemas; the fixtures are read by Entanglix's readers
-- [ ] Compatibility rule: supported versions named, with their direction; what changes a version; unversioned results; historical files never rewritten; inspection kept separate from replay; the release-note entry
-- [ ] Applicable quality evidence recorded
-- [ ] **Done:** a program that does not import Entanglix, using only the shipped schemas and documented semantic conventions, validates the published structures of a run of each protocol and constructs inputs for each protocol that Entanglix accepts through its normal validation; the committed fixtures of every supported version validate, and a change that breaks them without a version change fails the tests
 
 ---
 

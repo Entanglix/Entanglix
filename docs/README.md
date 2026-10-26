@@ -25,7 +25,6 @@ This index supports project planning and implementation. Operational entry point
 - [m5-guide.md](m5-guide.md) — Implementation guide for M5 (Block 8): control parameters and seed variation, named transitions and Rabi-rate bounds, lineage through MCP, the uncertainty diagnostic, comparison guidance, and the co-design example.
 - [s2-guide.md](s2-guide.md) — Implementation guide for S2 (Block 10): the measurement format, flux parameters and axis binding, extraction, the calibrate protocol, the calibration checks, device-update proposals, investigations and tools, and the calibration example.
 - [s3-guide.md](s3-guide.md) — Implementation guide for S3 (Block 11): catalog records and staging, promotion with its check scope, device reuse in jobs and investigation bases, control starting pulses, tools, and the catalog example.
-- [s4-guide.md](s4-guide.md) — Implementation guide for S4 (Block 12): the formats package and input schemas, run records and results, ledger records, array descriptors, CLI and MCP replies, and the outside-program evidence.
 - [development.md](development.md) — Maintainer and coding-agent instructions. Root [AGENTS.md](../AGENTS.md) and [CLAUDE.md](../CLAUDE.md) are one-line pointers here; they are excluded from research-runtime guidance.
 - Phase guides may be added as needed, including before code exists.
 
@@ -56,7 +55,7 @@ This index supports project planning and implementation. Operational entry point
 - [adr/0006-device-control-co-design.md](adr/0006-device-control-co-design.md) — Accepted device–control co-design: composition of existing operations, device and seed variation within one base, the named transition and Rabi-rate bounds, the uncertainty diagnostic, lineage, comparison guidance, budget policy, and first-version scope.
 - [adr/0007-calibration-from-spectroscopy.md](adr/0007-calibration-from-spectroscopy.md) — Accepted calibration from spectroscopy: the uniform measurement format, extraction, assignment, the fit and its uncertainty report, holdout and the calibration checks, flux binding, device-update proposals, and first-version scope.
 - [adr/0008-results-catalog.md](adr/0008-results-catalog.md) — Accepted results catalog: candidates as design objects, catalog records, staging and promotion with check scope, lineage, device reuse, control starting pulses, and first-version scope.
-- [adr/0009-published-formats.md](adr/0009-published-formats.md) — Accepted published formats: the published, opaque and internal files, package-shipped schemas and array descriptors, version identity, the compatibility rule, semantic conventions, replies, and conformance.
+- [adr/0009-published-formats.md](adr/0009-published-formats.md) — Accepted record compatibility and deferred format publication: supported earlier record versions stay readable, implicit version 1 for historically unversioned records, the legacy pulse reading, and standalone schemas deferred until a consumer needs them.
 
 ## Sharing rule
 
