@@ -33,7 +33,7 @@ Any other completed run supplies its frozen system as a device. A verification r
 - `amplitudes_ghz`: finite, one row of N values per channel;
 - `channels`: one distinct, nonempty name per row.
 
-These are the arrays of the [control pulse](control.md#neutral-pulse-and-candidate-record), with the channel names added. A pulse that does not meet them is refused.
+These are the arrays of the [control pulse](control.md#neutral-pulse-and-candidate-record), with the channel names added. A pulse that does not meet them is refused. A pulse without `kind`, as the earliest control runs wrote it, is read as `zero_order`, and the staged copy holds `kind`; any other `kind` is refused. The same reading applies when such a run's pulse is a starting pulse.
 
 ## Staging
 

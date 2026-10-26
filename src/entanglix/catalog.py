@@ -69,6 +69,8 @@ def _neutral_pulse(path: Path, channels: list[str] | None = None) -> dict:
         raise ValueError("a neutral pulse is an NPZ archive of named arrays")
     with loaded as archive:
         arrays = {name: np.array(archive[name]) for name in archive.files}
+    # The earliest control pulses predate `kind`; zero order is the only interpolation.
+    arrays.setdefault("kind", np.array("zero_order"))
     expected = set(PULSE_ARRAYS) - ({"channels"} if channels is not None else set())
     if set(arrays) != expected:
         raise ValueError(f"a neutral pulse holds exactly {sorted(expected)}")

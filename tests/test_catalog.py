@@ -132,14 +132,19 @@ def sweep_run(root, *, expectation=False):
     return completed(root.parent / "runs", gate, "sweep", output, kind="lindblad")
 
 
-def control_run(control_files, root, amplitudes=((0, 0.05, 0.05, 0, 0), (0, 0, 0.02, 0, 0))):
+def control_run(
+    control_files,
+    root,
+    amplitudes=((0, 0.05, 0.05, 0, 0), (0, 0, 0.02, 0, 0)),
+    kind="zero_order",
+):
+    """A completed control run; ``kind=None`` writes the earliest pulse form, without it."""
     path, _ = control_files
     frozen = root / "frozen-control"
     frozen.mkdir(parents=True)
     compiled = compile_control(path, frozen)
-    pulse = npz(
-        kind="zero_order", times_ns=np.linspace(0, 2, 5), amplitudes_ghz=np.array(amplitudes)
-    )
+    arrays = {"times_ns": np.linspace(0, 2, 5), "amplitudes_ghz": np.array(amplitudes)}
+    pulse = npz(**arrays) if kind is None else npz(kind=kind, **arrays)
     gate = {"system_id": compiled["system_id"], "inputs": compiled["inputs"]}
     return completed(
         root / "runs", gate, "control", {"pulse": ("pulse.npz", pulse)}, kind="control"
@@ -253,6 +258,19 @@ def test_control_run_stages_its_device_and_its_pulse_with_channel_ids(control_fi
     assert "pulse" not in device and device["device"] == staged["device"] | {
         "path": f"_catalog/staging/{device['staged_id']}/device"
     }
+
+
+def test_an_early_control_pulse_without_kind_is_staged_as_zero_order(control_files, tmp_path):
+    run = control_run(control_files, tmp_path, kind=None)
+    staged = register_result(run, "pulse", claim="an early X gate")
+    with np.load(run.parent.parent / staged["pulse"]["path"]) as copy:
+        assert sorted(copy.files) == ["amplitudes_ghz", "channels", "kind", "times_ns"]
+        assert copy["kind"].item() == "zero_order"
+        assert copy["channels"].tolist() == ["x", "y"]
+    # Only a missing kind is read as zero order; another interpolation is still refused.
+    other = control_run(control_files, tmp_path / "linear", kind="linear")
+    with pytest.raises(ValueError, match="a neutral pulse has kind zero_order"):
+        register_result(other, "pulse", claim="a linear pulse")
 
 
 def test_calibration_device_carries_every_fitted_value_and_lists_the_undetermined(tmp_path):

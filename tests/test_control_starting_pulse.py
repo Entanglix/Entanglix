@@ -323,6 +323,20 @@ def test_a_run_source_reached_through_a_link_outside_the_runs_root_is_refused(co
     assert not list(directory.iterdir())
 
 
+def test_an_early_run_pulse_without_kind_is_frozen_as_a_zero_order_start(control_files):
+    path, definition = control_files
+    source = control_run(control_files, path.parent, amplitudes=AMPLITUDES, kind=None)
+    del definition["pulse"]["seed"]
+    definition["starting_pulse"] = {"run": f"{source.parent.name}/{source.name}"}
+    path.write_text(tomli_w.dumps(definition))
+    directory, gate = compiled(path, runs_root=source.parent.parent)
+    assert gate["parent_run_ids"] == [source.name]
+    with np.load(directory / STARTING_PULSE) as frozen:
+        assert frozen["kind"].item() == "zero_order"
+        assert frozen["channels"].tolist() == ["x", "y"]
+        np.testing.assert_array_equal(frozen["amplitudes_ghz"], AMPLITUDES)
+
+
 def test_base_binds_its_starting_file_and_replays_from_the_frozen_copy(
     start_files, starting_repository
 ):
