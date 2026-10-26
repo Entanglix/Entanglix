@@ -1,6 +1,6 @@
 # ADR-0005: Control Problems, Solvers, and Control Checks
 
-**Date:** 2026-10-11, revised 2026-10-24
+**Date:** 2026-10-11, revised 2026-10-25
 **Status:** Accepted
 **Purpose:** fix how a control problem is stated and shared between solvers, where the solver is named, how solvers attach, what they report and how they receive a supplied starting pulse, how Piccolo is run, and which checks a control result offers. Field lists, formats, and command names are documented with the implementation.
 
@@ -97,7 +97,7 @@ The harness does only what the user requests.
 - Julia is optional. The core and the default tests do not need it, and a Piccolo request without it is a configuration error that names what is missing.
 - It declares no starting-pulse capability: Piccolo's ProblemSpec runner takes no initial pulse.
 
-**Rationale:** the runner already writes every record `amico-run` adds, and already stops a job's process group. A wrapper that moves Julia into another group, and needs longer than the runner's grace to stop it, would leave a solve running without a record. Acceptance of the generated file by `amico-run` remains interoperability evidence, not a dependency of the adapter.
+**Rationale:** the runner already writes every record `amico-run` adds, and already stops a job's process group. A wrapper that moves Julia into another group, and needs longer than the runner's grace to stop it, would leave a solve running without a record.
 
 ### 2.7 Control checks
 
@@ -154,6 +154,5 @@ Measurements: [control probe results](../../tests/probes/m4_control_results.json
   - §5 adds `rerun_control`.
 - ADR-0001's mandate table describes the control spec and Piccolo's role in these terms.
 - The roadmap and checklist replace the open ProblemSpec choice, the `amico-run` adapter, and "both verified" with the control spec, the direct adapter, and candidates passing the checks requested.
-- Acceptance of a generated ProblemSpec by `amico-run` stays with the interoperability block.
 - The first gate problem, with its duration, bounds, and fidelity target, is recorded with its example.
 - Tests cover: one generated file for every solver; the export convention against an independent replay; a solver name the registry lacks, with and without a fallback; a field outside a solver's support refused by name; a pulse from each open solver with an active derivative bound, the bound recomputed from the neutral pulse; ignored guidance fields listed; the baseline's gradient against finite differences at every interval, zero-amplitude ones included; the iteration cap and tolerance reaching Piccolo as arguments; a stop ending a Piccolo solve with a terminal record; the duration held within tolerance; each control check passing and failing on a constructed pulse, including an accurately reported pulse below its target; a check requested outside the subset reported as inapplicable; and `control` admitted, refused, counted, and rerun inside an investigation.

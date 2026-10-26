@@ -339,14 +339,14 @@ The [M4 guide](m4-guide.md) records the implementation approach; [ADR-0005](adr/
 
 ### [ ] Block 12 — Interoperability
 
-**Depends on:** Blocks 3 and 7; shared calibration schemas extend conformance when Block 10 is available.
+**Depends on:** Blocks 3–5, 7, 10 and 11; Block 9's records join when it is built.
 
-- [ ] A `control` run dir opens in amicode's Run Inspector, including `index`, `latest`, and the Inspector's required fields
-- [ ] A ProblemSpec authored here solves under `amico-run` with no edits
-- [ ] Shared device / experiment-card schemas where they overlap; calibration conformance when Block 10 is available
+- [ ] Published and internal files named; each published input, record and CLI/MCP reply listed with its version; opaque extensions named
+- [ ] A machine-readable schema shipped for each published format, generated from the reading or writing code where possible; the committed schemas match the code
+- [ ] Writers' outputs, accepted inputs and committed fixtures of each supported version conform to their schemas
+- [ ] Compatibility rule: supported versions named, with their direction; what changes a version; unversioned results; historical files never rewritten; inspection kept separate from replay; the release-note entry
 - [ ] Applicable quality evidence recorded
-- [ ] **Done:** both run-directory and ProblemSpec conformance checks hold
-- Optional: amicode Domain Pack, if wanted by both sides.
+- [ ] **Done:** a program that does not import Entanglix, using only the shipped schemas and documented semantic conventions, validates the published structures of a run of each protocol and constructs inputs for each protocol that Entanglix accepts through its normal validation; the committed fixtures of every supported version validate, and a change that breaks them without a version change fails the tests
 
 ---
 

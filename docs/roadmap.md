@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-28
 **Project:** Entanglix — quantum device physics research harness: composable modeling, simulation, search, control, and calibration
-**Status:** Direction pinned on 2026-09-28: expert-guided research, bounded autonomy, independently useful workflows, and professional quality across milestones. Authoritative for scope, milestones, and build dependencies. Project name: Entanglix; command: `entanglix` (no `-run` suffix). `amico-run` remains the external Piccolo launcher. Concrete choices still open are listed in §7.
+**Status:** Direction pinned on 2026-09-28: expert-guided research, bounded autonomy, independently useful workflows, and professional quality across milestones. Authoritative for scope, milestones, and build dependencies. Project name: Entanglix; command: `entanglix` (no `-run` suffix). Concrete choices still open are listed in §7.
 **Authority:** [`../HARNESS_CONTRACT.md`](../HARNESS_CONTRACT.md) derives enforceable guarantees from this roadmap; [`checklist.md`](checklist.md) tracks implementation and acceptance evidence. [`adr/0001-mandate.md`](adr/0001-mandate.md) records the Accepted foundation mandate from Decision 0; later choices retain their own gates.
 **Source documents:** amicode `packages/extension/CONTRACT.md` (run-dir shape), amicode `packages/schema/schemas/problemspec.oss.schema.json` (control spec), amicode ADR-0008 (domain-pack boundary), ADR-0011 (harness contract).
 
@@ -44,7 +44,7 @@ Every milestone must demonstrate these qualities for the capabilities it introdu
 - **Two engines that do not compose through autodiff.** cuDensityMat is large-scale, batched, non-differentiable. JAX (dynamiqs) is differentiable and moderate-size. When a workflow needs direct cross-engine array exchange, use DLPack / CuPy with measured copy/zero-copy behavior; gradients do not cross. Build that boundary with its first consumer, potentially control or co-design. Engine selection is a declared property of a protocol run ("needs gradients?" × declared device × Hilbert-space size), never an agent's judgment call.
 - **Solver-agnostic control spec.** A control problem is one generated file in amicode's ProblemSpec OSS schema (`system`, `goal`, `pulse`, `problem`), shared unchanged by every solver. The solver is named in Entanglix's `control` spec; which solver ran is recorded, never assumed.
 - **Private solver plugins.** High-performance solvers may be proprietary. They attach through a `SolverBackend` / `Integrator` protocol via Python entry points and are never imported by this repo. The repo's tests run with open solvers only. Verification never depends on a private solver (contract §1, §3).
-- **amicode's role is contracts and a corrector, not substrate.** Run-dir shape and schemas are adopted for interoperability; Piccolo, run through its ProblemSpec runner, is an open second-opinion control solver. Dynamics never route through Julia.
+- **amicode's role is a format and an open solver, not substrate.** The generated ProblemSpec follows ProblemSpec OSS, and run directories follow amicode's layout convention; Piccolo, run through its ProblemSpec runner, is an open second-opinion control solver. Dynamics never route through Julia.
 
 ### Key principles
 
@@ -226,10 +226,12 @@ The evaluation protocol names a scripted experiment-selection policy, comparable
 
 ### Block 12 — Interoperability
 
-- **Depends on:** Blocks 3 and 7; shared calibration schemas extend conformance when Block 10 is available.
-- Conformance: run dirs readable by amicode's Run Inspector, including `index`, `latest`, and the Inspector's required fields; ProblemSpec files accepted by `amico-run` unchanged; shared device / experiment-card schemas.
-- Optional: package as an amicode Domain Pack if wanted by both sides.
-- **Done when:** a `control` run dir opens in the Run Inspector; a ProblemSpec authored here solves under `amico-run` with no edits.
+- **Depends on:** the blocks whose formats it publishes: Blocks 3–5, 7, 10 and 11. Block 9 adds its records when built.
+- Publish the formats that programs outside Entanglix write or read: authored inputs (system, simulation, sweep, control, calibration and investigation specs, and measurement datasets), the records the harness writes (run, runner and terminal records, each protocol's results, check results, investigation, catalog and proposal records, and neutral pulses), and the JSON replies of the CLI and MCP tools. Files that are not published are named as internal. Authored and solver-native artifacts, and authored result fields beyond the common structure, are opaque extensions: a reference publishes their path, digest and any declared format, not their contents.
+- Each published format has a machine-readable schema shipped with the package. The schema carries the format's `format_version` or `record_version`, and is generated from the code that reads or writes the format where possible. Conformance tests check writers' outputs, accepted inputs and committed fixtures of each supported version against the schemas.
+- A compatibility rule names the supported versions and their direction: new readers accept every supported version, and an incompatible change requires a version change. Historical files are never rewritten. Inspecting a record of a supported version does not promise replay or checks of a historical run.
+- The generated ProblemSpec remains ProblemSpec OSS at its recorded amicode revision (Block 7). No amicode runtime or viewer is involved.
+- **Done when:** a program that does not import Entanglix, using only the shipped schemas and documented semantic conventions, validates the published structures of a run of each protocol and constructs inputs for each protocol that Entanglix accepts through its normal validation; the committed fixtures of every supported version validate, and a change that breaks them without a version change fails the tests.
 
 ### Upgrade path (not blocks)
 
@@ -290,7 +292,7 @@ Supporting milestones are scheduled by their dependencies and research need:
 | S1 — Cluster execution | Block 9 | same sweep on the scheduler; executor tests pass locally against a stubbed scheduler; scheduler accounting and failure handling demonstrated |
 | S2 — Calibration | Block 10 | standalone synthetic round trip with uncertainty and holdout evaluation; inspectable model-update proposal |
 | S3 — Results catalog | Block 11 | promoted candidate reused with lineage; pulse warm-start demonstrated when control is available |
-| S4 — Interoperability | Block 12 | Run Inspector opens a run; `amico-run` accepts a ProblemSpec |
+| S4 — Interoperability | Block 12 | published schemas for public inputs, records and replies; an external program validates runs and constructs accepted inputs without Entanglix; supported versions keep their fixtures |
 
 The Harmoniqs conversation is gated by concrete artifacts: the shared ProblemSpec solved by the open baseline and Piccolo, each candidate with its requested check reports, in inspectable run directories. These are normally delivered at M4, but standalone control may supply them before M3. Agent integration is not a sharing prerequisite; the audience/license decision and removal of Appendix A still apply.
 
@@ -307,6 +309,7 @@ The Harmoniqs conversation is gated by concrete artifacts: the shared ProblemSpe
 - Co-design extensions, until a concrete workflow needs them: uncertainty evaluation beyond a single periodic circuit coordinate, flux correspondence, dressed-transition calibration, device-dependent relaxation, and lab-frame validation of the control model.
 - Calibration extensions, until a concrete workflow needs them: dynamics-based calibration (time-domain traces, gate-error tables), gate-charge axes, several loops driven from one coil, profile likelihood and posterior sampling, and laboratory-format converters.
 - Catalog extensions, until a concrete workflow needs them: starting pulses for Piccolo, resampling a pulse onto another grid, and withdrawing an entry.
+- Interoperability extensions, until a concrete consumer needs them: amicode's Run Inspector and `amico-run` records, an amicode Domain Pack, and converters to other tools' formats.
 
 ---
 
@@ -340,4 +343,4 @@ Settled: project name Entanglix; command `entanglix`; runner in Python (`uv`), s
 - `packages/schema/schemas/problemspec.oss.schema.json` — the control spec adopted in Block 7.
 - `packages/amico-run/src/local_executor.ts`, `remote_executor.ts`, `types.ts` — reference for the executor interface and mirroring lifecycle.
 - `packages/extension/julia/verify_rollout.jl` — their re-rollout corrector; ours differs by using a different engine and solver.
-- `docs/adr/0008-autoresearch-identity-domain-pack-boundary.md`, `docs/adr/0011-harness-contract.md` — domain-pack boundary and harness-as-contract, the basis for Block 12.
+- `docs/adr/0008-autoresearch-identity-domain-pack-boundary.md`, `docs/adr/0011-harness-contract.md` — domain-pack boundary and harness-as-contract.
