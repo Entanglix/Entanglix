@@ -6,7 +6,9 @@ import subprocess
 import sys
 import tomllib
 from concurrent.futures import ThreadPoolExecutor
+from importlib.metadata import version
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -181,12 +183,24 @@ def test_environment_fingerprint_and_cpu_only_metadata(tmp_path, monkeypatch):
     assert a["env_hash"] != capture_environment(lock)["env_hash"]
     script = (
         "import sys; from pathlib import Path; "
-        "from entanglix.runner import capture_environment; "
+        "from entanglix.runner import capture_environment, list_capabilities; "
         f"capture_environment(Path({str(lock)!r})); "
+        f"list_capabilities(Path({str(tmp_path)!r})); "
         "assert not {'jax', 'cupy', 'cuquantum', 'qutip', 'scqubits'} & set(sys.modules)"
     )
     result = subprocess.run([sys.executable, "-c", script], capture_output=True, text=True)
     assert result.returncode == 0, result.stderr
+
+
+def test_environment_records_every_installed_distribution(tmp_path, monkeypatch):
+    lock = tmp_path / "uv.lock"
+    lock.write_text("version = 1\n")
+    recorded = capture_environment(lock)["distributions"]["tomli-w"]
+    assert recorded["version"] == version("tomli-w") and len(recorded["record_sha256"]) == 64
+    unrecorded = SimpleNamespace(metadata={"Name": "Mine"}, version="1", read_text=lambda _: None)
+    monkeypatch.setattr("entanglix.runner.distributions", lambda path: [unrecorded])
+    with pytest.raises(ValueError, match="Mine has no install record"):
+        capture_environment(lock)
 
 
 @pytest.fixture

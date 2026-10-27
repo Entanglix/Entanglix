@@ -183,7 +183,16 @@ def compile_sweep(
         point_path.write_text(tomli_w.dumps(point_spec))
         target = directory / "points" / f"{index:06d}"
         target.mkdir(parents=True)
-        point_gate = compile_simulation(point_path, target, extras, repository, probe_device=False)
+        # Every point runs on the base's resolved engine.
+        point_gate = compile_simulation(
+            point_path,
+            target,
+            extras,
+            repository,
+            probe_device=False,
+            pinned_engine=gate["engine"],
+            record_environment=False,
+        )
         (target / "simulate.toml").unlink()
         points.append(
             {

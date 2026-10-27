@@ -86,21 +86,30 @@ gradients are supported by dynamiqs with a fixed frame.
 
 ### Engine-selection policy
 
-The bundled [TOML table](../../src/entanglix/engines/selection.toml) has `format_version = 1` and `table_id = "declared-needs-engines-v3"`. `entanglix.engines.selection.select_engine(system, request, available_engines=..., needs_gradients=..., device=..., batched=..., fallbacks=...)` evaluates declared needs without launching a job. The caller supplies verified engine availability.
+An engine runs a computation in this order:
 
-| Declared need | Current eligible engine |
+1. A rerun's source run's engine.
+2. The engine a `simulate` spec, or a sweep base, names in its top-level `engine` field.
+3. The user's default for the declared device, from `ENTANGLIX_ENGINES` in the environment of the process that prepares runs (the shell for CLI commands, the MCP server's configuration for agents), for example `ENTANGLIX_ENGINES="cpu=my-engine,cuda=cudensitymat"`.
+4. The built-in rule on declared needs.
+
+The bundled [TOML table](../../src/entanglix/engines/selection.toml) has `format_version = 1` and `table_id = "declared-needs-engines-v3"`. It gives the built-in rule and the capabilities of the built-in engines:
+
+| Declared need | Built-in rule |
 |---|---|
 | No gradients, CPU or undeclared device | QuTiP CPU |
 | No gradients, declared CUDA device | cuDensityMat |
-| No gradients, CPU unavailable, explicit compatible fallback | cuDensityMat or dynamiqs on CUDA |
 | Gradients | dynamiqs on the declared CPU or CUDA device |
 | Batching | Refuse until an engine advertises it |
 
-There is no harness-imposed dimension cap or pre-launch memory estimate. Missing
-engines or unsupported capabilities cause `EngineSelectionError`. A fallback must
-be explicitly named and satisfy the same needs; the decision records `fallback_from`
-and its reason. QuTiP cannot satisfy a gradient request. [Simulation dispatch](protocols.md)
-records the decision and checks the actual job environment. Allocation failures and
+Plugin engines are discovered through the `entanglix.integrators` entry-point group; each entry loads a factory returning an object with the `Integrator` interface (`capabilities()` and `evolve(system, request)`). Plugin names must differ from the built-in names and from each other. A plugin's declared device and open-system support are checked; plugin engines serve runs without gradients or batching, whatever they declare.
+
+A chosen engine that is not installed, or whose capabilities do not meet the declared device, gradients, batching, or open-system needs, refuses the run before admission with `EngineSelectionError`, naming the engine and where the choice came from. No other engine replaces it. With a default that is not differentiable, a run declaring gradients names a differentiable engine, such as `dynamiqs`, in its spec. Spectrum runs use the QuTiP CPU eigensolver, ignore defaults, and refuse any other named engine.
+
+`entanglix.engines.selection.select_engine(system, request, available_engines=..., needs_gradients=..., device=..., batched=..., engine=..., pinned=..., defaults=...)` applies this order without launching a job; the caller supplies verified built-in availability. The selection records `engine`, `table_id`, `source` (`source_run`, `spec`, `default`, or `rule`), and the engine's `distribution`, `version`, and `record_sha256`, the digest of the distribution's install record ([run reference](runs.md#environment-and-code-provenance)).
+
+There is no harness-imposed dimension cap or pre-launch memory estimate. [Simulation dispatch](protocols.md)
+records the selection in the preview and the run, and checks the actual job environment. Allocation failures and
 unexplained signal deaths follow the [run outcome rules](runs.md#execution-outcomes).
 
 ## Numerical checks for the bundled models

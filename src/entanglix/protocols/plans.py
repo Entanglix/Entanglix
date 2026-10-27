@@ -50,7 +50,8 @@ class EvolutionSpec(StrictModel):
 class ExecutionPlan(StrictModel):
     format_version: Literal[1]
     kind: Literal["lindblad", "spectrum"]
-    engine: Literal["qutip-cpu", "dynamiqs", "cudensitymat"] = "qutip-cpu"
+    # Any built-in or plugin name; availability and capabilities are resolved at admission.
+    engine: str = Field(default="qutip-cpu", pattern=r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
     device: Literal["cpu", "cuda"] = "cpu"
     levels: int | None = Field(default=None, strict=True, gt=0)
     evolution: EvolutionSpec | None = None

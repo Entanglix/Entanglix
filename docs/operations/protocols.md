@@ -30,12 +30,17 @@ Catalog entries resolve in the configured runs root; see [device reuse](catalog.
 The run freezes their system and referenced files and records the entry and source-run lineage.
 
 `[needs]` declares `gradients` (default false) and `device` (`"cpu"`, the default, or
-`"cuda"`). Non-gradient CPU requests use QuTiP; CUDA requests use cuDensityMat;
-gradient requests use dynamiqs on the declared device. This selects capability,
+`"cuda"`). Optional top-level `engine` names the engine, built in or from an installed
+plugin; leave it unset to use the user's default for the device or the built-in rule:
+non-gradient CPU requests use QuTiP, CUDA requests use cuDensityMat, and gradient
+requests use dynamiqs on the declared device. A named or default engine that is
+missing or cannot meet the needs refuses the run; no other engine replaces it
+([engine selection](system-spec.md#engine-selection-policy)). This selects capability,
 not performance. There is no harness-imposed dimension cap or pre-launch memory
 estimate. CUDA requests require exactly one visible GPU, selected automatically;
 `CUDA_VISIBLE_DEVICES` can restrict visibility. Its UUID is recorded in the attempt,
-not the portable protocol. Spectra require CPU without gradients.
+not the portable protocol. Spectra require CPU without gradients and use the QuTiP CPU eigensolver; defaults do
+not apply to them, and any other named engine is refused.
 
 For `"lindblad"`, `[evolution]` supplies:
 
@@ -108,8 +113,9 @@ explains the environment profile. Numeric indices in `CUDA_VISIBLE_DEVICES` are
 resolved in `nvidia-smi` order, which may differ from CUDA's order on a multi-GPU
 machine; use a GPU UUID to select a device unambiguously. CUDA jobs see only the
 allocated UUID, and JAX preallocation is disabled before initialization. The gate
-probes the exact job environment, records native runtime versions, and initializes
-the selected device.
+probes the job environment and confirms the device and driver; for cuDensityMat it
+also records native runtime versions and initializes the library on the device. A
+CUDA plugin engine needs no cuQuantum stack.
 Device ownership is taken before the probe and admission. A busy device refuses
 the launch without creating an attempt or using investigation allowance; the
 [ownership reference](runs.md#local-gpu-ownership) covers reconciliation and dry runs.
@@ -129,8 +135,11 @@ verdict. Execution code `0` means the requested checks completed, even if a chec
   and metrics. The initial-state Frobenius limit is `1e-8`; it cannot detect a fault
   shared by the declared and stored state.
 - `segments`: local convergence comparisons in the source frame, using the source's
-  CPU engine or QuTiP for GPU runs. Tightened tolerances and refined truncation can
-  share systematic error with the source and do not validate the engine.
+  built-in CPU engine, or QuTiP for GPU and plugin-engine runs. Tightened tolerances
+  and refined truncation can share systematic error with the source and do not
+  validate the engine. For a plugin-engine run the comparison also includes engine
+  differences, and its scope says so; no check needs the plugin, so a run is read
+  and checked where its plugin is not installed.
 - `diagnostics`: top-level populations, ordered static cutoff shifts and outside
   weights, and static full/RWA shifts when applicable. Missing refinement omits
   cutoff quantities with the reason. These are not dynamics error estimates.
@@ -160,7 +169,8 @@ refined dimensions, CPU engine, and effective tolerances before a check is reque
 Segments run in one process; `--timeout` and cancellation control execution cost.
 
 `simulate --dry-run simulate.toml` validates and previews model dimensions, output
-count, chosen engine/device, and the same check listing shown before a real launch
+count, chosen engine/device with the source of the choice and the engine's distribution
+version and record digest, and the same check listing shown before a real launch
 and by `read_run`. It creates no attempt and runs no scientific solve. Environment
 synchronization and a requested-device probe still run.
 
@@ -168,7 +178,8 @@ synchronization and a requested-device probe still run.
 
 `rerun-simulation RUN` uses the frozen protocol and data under a new ID with `RUN`
 as its parent. It rejects changed input digests and records current code and its
-actual environment. The command reports `replay.code_matches` and
+actual environment. It runs on the parent's engine, whatever the current default, and
+is refused if that engine is not installed. The command reports `replay.code_matches` and
 `replay.environment_matches` against the parent; differing provenance does not block
 execution. The earlier record remains unchanged. For an interrupted attempt,
 reconcile its process ownership first. Matching provenance and numerical output
@@ -224,7 +235,8 @@ uv run --locked --exact entanglix check research_runs/<system_id>/<run_id> integ
 uv run --locked --exact entanglix rerun-sweep research_runs/<system_id>/<run_id>
 ```
 
-Points execute serially using the base's selected engine/device. All states and
+Points execute serially using the base's selected engine/device; a sweep rerun keeps
+the parent's engine. All states and
 observables, or reported spectral arrays, remain in per-point artifacts. A point
 publishes its array archive first and then its atomic result. `read-run` shows
 completed points while the run is active or interrupted. No aggregate result

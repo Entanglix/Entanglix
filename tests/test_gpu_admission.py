@@ -82,6 +82,7 @@ def launch_context(tmp_path, runner_repository, monkeypatch):
         assert not list(runs.glob("*/*/run.toml"))
         env = kwargs["env"]
         assert env["CUDA_VISIBLE_DEVICES"] == DEVICE
+        assert (env["JAX_PLATFORMS"], env["XLA_PYTHON_CLIENT_PREALLOCATE"]) == ("cuda,cpu", "false")
         assert kwargs["pass_fds"] == (int(env["ENTANGLIX_GPU_LOCK_FD"]),)
         os.fstat(kwargs["pass_fds"][0])
         request = json.loads(kwargs["input"])
@@ -89,7 +90,7 @@ def launch_context(tmp_path, runner_repository, monkeypatch):
             compile_sweep if Path(request["protocol"]).name == "sweep.toml" else compile_simulation
         )
         with monkeypatch.context() as patch:
-            patch.setattr(launcher, "check_gpu_environment", lambda _: {"gpu": {}})
+            patch.setattr(launcher, "check_gpu_environment", lambda *_, **__: {"gpu": {}})
             patch.setenv("CUDA_VISIBLE_DEVICES", DEVICE)
             patch.setenv("ENTANGLIX_GPU_LOCK_FD", env["ENTANGLIX_GPU_LOCK_FD"])
             compiled = compile(
@@ -106,6 +107,7 @@ def launch_context(tmp_path, runner_repository, monkeypatch):
         assert_owned()
         assert _load_record(gpu.record_path)["run"] == str(owner.path)
         assert environment["ENTANGLIX_GPU_LOCK_FD"] == str(gpu.fileno())
+        assert environment["JAX_PLATFORMS"] == "cuda,cpu"
         calls.append("execute")
         record_finish(
             owner,

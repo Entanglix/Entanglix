@@ -1,7 +1,7 @@
 ---
 name: simulate
 description: Run and inspect one Entanglix spectrum or dynamics computation, request relevant checks, or replay frozen inputs.
-version: 0.1.1
+version: 0.1.2
 ---
 
 # One computation
@@ -14,7 +14,9 @@ initial-state meaning, observables, times, drives, and lab or explicit RWA frame
 The frame is an approximation choice, not an automatic acceleration guarantee.
 For a spectrum declare the lowest `levels` to report. Request CPU or CUDA through
 the protocol's needs, and gradients only when needed; engine choice expresses
-capability, not a measured performance crossover.
+capability, not a measured performance crossover. Leave `engine` unset unless the
+user asks for a specific engine; the user's default or the built-in rule chooses it,
+and a chosen engine that cannot run refuses the launch without a substitute.
 
 Validate the system, then call `simulate` with the protocol. In an investigation,
 read effective terms first, use an approved base, and send only allowed `values`.

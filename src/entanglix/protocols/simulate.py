@@ -36,6 +36,7 @@ from entanglix.runner import (
     capture_environment,
     check_gpu_environment,
     create_run,
+    engine_defaults,
     process_failure,
     record_finish,
     select_gpu,
@@ -63,6 +64,7 @@ class SimulationSpec(SystemSource):
     format_version: Literal[1]
     parameters: dict[str, float] = Field(default_factory=dict)
     kind: Literal["lindblad", "spectrum"] = "lindblad"
+    engine: str | None = Field(default=None, pattern=r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
     needs: Needs = Field(default_factory=Needs)
     levels: int | None = None
     evolution: SimulationEvolution | None = None
@@ -90,8 +92,10 @@ def compile_simulation(
     retain_base=False,
     runs_root=Path("research_runs"),
     replay_source=None,
+    pinned_engine=None,
+    record_environment=True,
 ):
-    """Compile and check in the exactly synced job environment, before admission."""
+    """Compile and check in the synchronized job environment, before admission."""
     content = protocol.read_bytes()
     raw = tomllib.loads(content.decode())
     original = SimulationSpec.model_validate(raw)
@@ -195,9 +199,15 @@ def compile_simulation(
     plan = directory / "plan.toml"
     plan.write_text(tomli_w.dumps(definition))
     loaded = load_plan(directory / "system.toml", plan)
+    # A replay keeps its source run's engine, whatever the current default.
+    if replay_source is not None:
+        pinned_engine = _load_record(replay_source / "run.toml")["engine"]
     if spec.kind == "spectrum":
         if spec.needs.device != "cpu" or spec.needs.gradients:
             raise ValueError("spectrum requires device cpu without gradients")
+        named = pinned_engine or spec.engine
+        if named not in {None, "qutip-cpu"}:
+            raise ValueError(f"spectrum uses the qutip-cpu eigensolver; engine {named} is refused")
         selection = None
     else:
         available = {"qutip-cpu"}
@@ -213,6 +223,9 @@ def compile_simulation(
             available_engines=available,
             needs_gradients=spec.needs.gradients,
             device=spec.needs.device,
+            engine=spec.engine,
+            pinned=pinned_engine,
+            defaults=engine_defaults(),
         )
         definition.update(engine=selection.engine, device=spec.needs.device)
         plan.write_text(tomli_w.dumps(definition))
@@ -227,7 +240,9 @@ def compile_simulation(
         if descriptor is None:
             raise ValueError("GPU launch check requires the inherited device lock")
         os.fstat(int(descriptor))
-        gpu_check = check_gpu_environment(os.environ["CUDA_VISIBLE_DEVICES"])
+        gpu_check = check_gpu_environment(
+            os.environ["CUDA_VISIBLE_DEVICES"], engine=loaded.definition.engine
+        )
     paths = {**loaded.inputs, "simulate.toml": directory / "simulate.toml", **base_paths}
     selection_details = (
         {key: value for key, value in selection.__dict__.items() if value is not None}
@@ -259,7 +274,9 @@ def compile_simulation(
             repository / "uv.lock",
             extras=tuple(extras),
             gpu=gpu_check["gpu"] if gpu_check else None,
-        ),
+        )
+        if record_environment
+        else None,
     }
 
 
@@ -325,10 +342,13 @@ def _launch_protocol(
     except (OSError, ValueError) as exc:
         raise ValueError(f"{operation} rejected: {exc}") from exc
     with acquire_gpu(select_gpu()) if device == "cuda" else nullcontext() as gpu:
-        gate_environment = environment.copy()
+        # The gate loads plugin engines, so it sees the job's CUDA settings.
         if gpu is not None:
-            gate_environment.update(
-                CUDA_VISIBLE_DEVICES=gpu.device, ENTANGLIX_GPU_LOCK_FD=str(gpu.fileno())
+            environment.update(
+                CUDA_VISIBLE_DEVICES=gpu.device,
+                JAX_PLATFORMS="cuda,cpu",
+                XLA_PYTHON_CLIENT_PREALLOCATE="false",
+                ENTANGLIX_GPU_LOCK_FD=str(gpu.fileno()),
             )
         with tempfile.TemporaryDirectory(prefix=f"entanglix-{operation}-") as scratch:
             check = subprocess.run(
@@ -345,7 +365,7 @@ def _launch_protocol(
                         **({"values": values} if operation in {"simulate", "control"} else {}),
                     }
                 ),
-                env=gate_environment,
+                env=environment,
                 text=True,
                 capture_output=True,
                 pass_fds=(gpu.fileno(),) if gpu is not None else (),
@@ -426,13 +446,6 @@ def _launch_protocol(
                 try:
                     if _load_record(run / "run.toml")["spec_sha256"] != gate["spec_sha256"]:
                         raise ValueError(f"inputs changed after {operation} validation")
-                    if gpu is not None:
-                        environment.update(
-                            CUDA_VISIBLE_DEVICES=gpu.device,
-                            JAX_PLATFORMS="cuda,cpu",
-                            XLA_PYTHON_CLIENT_PREALLOCATE="false",
-                            ENTANGLIX_GPU_LOCK_FD=str(gpu.fileno()),
-                        )
                     environment.update(ENTANGLIX_RUN_DIR=str(run))
                     result = _execute_job(
                         owner,

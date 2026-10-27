@@ -29,10 +29,17 @@ def compute(loaded):
             integrator = DynamiqsIntegrator(
                 device_kind="gpu" if loaded.definition.device == "cuda" else "cpu"
             )
-        else:
+        elif loaded.definition.engine == "qutip-cpu":
             from entanglix.engines import QuTiPIntegrator
 
             integrator = QuTiPIntegrator()
+        else:
+            from entanglix.engines.selection import load_engine
+
+            integrator, identity = load_engine(loaded.definition.engine)
+            launch = _load_record(Path(os.environ["ENTANGLIX_RUN_DIR"]) / "run.toml")["launch"]
+            if identity["record_sha256"] != launch["selection"].get("record_sha256"):
+                raise ValueError("engine installation changed after launch validation")
         result = integrator.evolve(loaded.system, loaded.request)
         arrays = {"times_ns": result.times_ns, "states": np.asarray(result.states)}
         arrays.update({f"observable.{name}": value for name, value in result.expectations.items()})

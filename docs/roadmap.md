@@ -41,9 +41,9 @@ Every milestone must demonstrate these qualities for the capabilities it introdu
 ### Substrate decisions (fixed)
 
 - **Python-first, single substrate.** Modeling with `scqubits`; dynamics on cuQuantum's cuDensityMat through `qutip-cuquantum`; differentiable dynamics with `dynamiqs` (JAX); QuTiP CPU as the exact small-size reference.
-- **Two engines that do not compose through autodiff.** cuDensityMat is large-scale, batched, non-differentiable. JAX (dynamiqs) is differentiable and moderate-size. When a workflow needs direct cross-engine array exchange, use DLPack / CuPy with measured copy/zero-copy behavior; gradients do not cross. Build that boundary with its first consumer, potentially control or co-design. Engine selection is a declared property of a protocol run ("needs gradients?" × declared device × Hilbert-space size), never an agent's judgment call.
+- **Two engines that do not compose through autodiff.** cuDensityMat is large-scale, batched, non-differentiable. JAX (dynamiqs) is differentiable and moderate-size. When a workflow needs direct cross-engine array exchange, use DLPack / CuPy with measured copy/zero-copy behavior; gradients do not cross. Build that boundary with its first consumer, potentially control or co-design. An engine is the one the spec names, otherwise the user's default for the device, otherwise a built-in rule on declared needs ("needs gradients?" × declared device); agents name an engine only at the user's request.
 - **Solver-agnostic control spec.** A control problem is one generated file in amicode's ProblemSpec OSS schema (`system`, `goal`, `pulse`, `problem`), shared unchanged by every solver. The solver is named in Entanglix's `control` spec; which solver ran is recorded, never assumed.
-- **Private solver plugins.** High-performance solvers may be proprietary. They attach through the `SolverBackend` protocol via `entanglix.solvers` entry points and are never imported by this repo. The repo's tests run with open solvers only. Verification never depends on a private solver (contract §1, §3).
+- **Private solver and engine plugins.** High-performance solvers and engines may be proprietary. They attach through the `SolverBackend` and `Integrator` protocols via `entanglix.solvers` and `entanglix.integrators` entry points, are installed by the user in the runner environment, and are never imported by this repo. The repo's tests run with open implementations only. Verification never depends on a private plugin (contract §1, §3).
 - **amicode's role is a format and an open solver, not substrate.** The generated ProblemSpec follows ProblemSpec OSS, and run directories follow amicode's layout convention; Piccolo, run through its ProblemSpec runner, is an open second-opinion control solver. Dynamics never route through Julia.
 
 ### Key principles
@@ -318,13 +318,12 @@ Settled: project name Entanglix; command `entanglix`; runner in Python (`uv`), s
 
 ---
 
-## Appendix A — Private solver plugins
+## Appendix A — Private solver and engine plugins
 
-- A private solver stays in its own package outside this repository. Entanglix code and docs never name or import it, and need no change to use it.
-- The package registers a backend factory under the `entanglix.solvers` entry-point group, implements the solver interface in the [control reference](operations/control.md#launch-and-solver-selection), and pins the version of the private solver it wraps.
-- Each run records the requested and actual solver and its distribution version. A spec that names a private solver can declare an open `fallback`, used only where the plugin is not installed.
-- A private solver's results receive the same open checks as any other solver's, and no check depends on a private solver.
-- Evolution engines have no plugin entry point yet. One would follow the same pattern when a plugin needs it, with the open engines remaining the default.
+- A private solver or engine stays in its own package outside this repository. Entanglix code and docs never name or import it, and need no change to use it. The user installs the package in the runner environment ([plugins](operations/runs.md#plugins-in-the-runner-environment)).
+- The package registers a backend factory under the `entanglix.solvers` entry-point group, implementing the solver interface in the [control reference](operations/control.md#launch-and-solver-selection), or an engine factory under `entanglix.integrators`, implementing the `Integrator` interface in the [engine selection reference](operations/system-spec.md#engine-selection-policy). It pins the version of the private code it wraps.
+- Each run records the solver or engine with its distribution version and install-record digest. A spec that names a private solver can declare an open `fallback`, used only where the plugin is not installed. An engine has no fallback: the spec or the user's default names it, and a run whose engine cannot run is refused.
+- A private plugin's results receive the same open checks as any other's, and no check depends on a private plugin; checks of plugin-engine runs use QuTiP.
 
 ## Appendix B — amicode touchpoints (read-only references)
 

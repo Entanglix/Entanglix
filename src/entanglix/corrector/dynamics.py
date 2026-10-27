@@ -13,6 +13,7 @@ from entanglix.corrector.checks import check, inapplicable, output_checks, top_l
 from entanglix.corrector.metrics import metric_tolerance, metric_values
 from entanglix.corrector.reference import embedding_matrix, prepare_refinement
 from entanglix.engines.frames import matrix, prepare_dynamics
+from entanglix.engines.selection import BUILT_IN
 from entanglix.evolution import EvolutionInputError, normalize_input
 
 WHOLE_WINDOW_LIMIT = "No built-in check measures whole-window error or the accuracy of a rotating-wave approximation."
@@ -100,7 +101,11 @@ def check_listing(loaded, *, policy=None, timeout_seconds=None, selection=None):
     definition = loaded.definition
     reason = refinement_reason(loaded, policy)
     dimensions = refined_dimensions(loaded)
-    engine = definition.engine if definition.device == "cpu" else "qutip-cpu"
+    engine = (
+        definition.engine
+        if definition.device == "cpu" and definition.engine in BUILT_IN
+        else "qutip-cpu"
+    )
     entries = []
     for name in relevant_checks(definition.kind):
         item = {"name": name, "error_mode": CHECK_DEFINITIONS[name], "available": True}
@@ -284,7 +289,12 @@ def refined_segments(loaded, arrays, policy):
         "outcome": "fail"
         if any(item["outcome"] == "fail" for entry in entries for item in entry["checks"])
         else "pass",
-        "scope": "local convergence comparison in the source frame; inherits accumulated error",
+        "scope": "local convergence comparison in the source frame; inherits accumulated error"
+        + (
+            "; on QuTiP, so it also compares the engines"
+            if loaded.definition.engine not in BUILT_IN
+            else ""
+        ),
         "segments": entries,
         "coverage": segment_coverage(request, windows, changes),
     }

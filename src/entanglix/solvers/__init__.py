@@ -52,10 +52,14 @@ def select_solver(name: str, fallback: str | None = None):
         )
     entry = entries[actual]
     backend = entry.load()()
+    from entanglix.runner import record_digest
+
     return backend, {
         "requested": name,
         "actual": actual,
         "version": entry.dist.version,
+        "distribution": entry.dist.metadata["Name"],
+        "record_sha256": record_digest(entry.dist),
         "fallback_used": actual != name,
     }
 

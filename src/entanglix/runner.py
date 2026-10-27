@@ -11,6 +11,8 @@ import secrets
 import shutil
 import signal
 import subprocess
+import sys
+import sysconfig
 import tempfile
 import time
 import tomllib
@@ -31,6 +33,49 @@ def _digest(content: bytes) -> str:
     return hashlib.sha256(content).hexdigest()
 
 
+def record_digest(dist) -> str:
+    """Identify an installed distribution by the installer's record of its files and hashes."""
+    content = dist.read_text("RECORD")
+    if content is None:
+        raise ValueError(
+            f"distribution {dist.metadata['Name']} has no install record; reinstall it"
+        )
+    return _digest(content.encode())
+
+
+def installed_distributions() -> dict[str, dict]:
+    """Record every distribution installed in this environment; refuse unidentifiable ones."""
+    paths = list(dict.fromkeys(sysconfig.get_path(name) for name in ("purelib", "platlib")))
+    record = {}
+    for dist in distributions(path=paths):
+        name = re.sub(r"[-_.]+", "-", dist.metadata["Name"]).lower()
+        # The project's own editable source is covered by code provenance.
+        direct = json.loads(dist.read_text("direct_url.json") or "{}")
+        if name != "entanglix" and direct.get("dir_info", {}).get("editable"):
+            raise ValueError(
+                f"editable distribution {name} refuses admission; install it non-editable"
+            )
+        if name in record:
+            raise ValueError(f"distribution {name} is installed more than once")
+        record[name] = {"version": dist.version, "record_sha256": record_digest(dist)}
+    return dict(sorted(record.items()))
+
+
+def check_consistency() -> None:
+    """Refuse an environment whose installed requirements conflict."""
+    uv = os.environ.get("UV") or shutil.which("uv")
+    if uv is None:
+        raise ValueError("uv is required to check the runner environment")
+    check = subprocess.run(
+        [uv, "pip", "check", "--python", sys.executable], capture_output=True, text=True
+    )
+    if check.returncode:
+        raise ValueError(
+            "runner environment is inconsistent; repair the installed distributions:\n"
+            + (check.stdout + check.stderr).strip()
+        )
+
+
 def capture_environment(
     lockfile: Path,
     *,
@@ -38,11 +83,12 @@ def capture_environment(
     gpu: dict[str, str] | None = None,
     solver_runtime: dict | None = None,
 ) -> dict:
-    """Fingerprint an exactly synced environment; GPU observations come from the gate."""
+    """Fingerprint a synchronized, consistent environment; GPU observations come from the gate."""
     gpu = gpu or {}
     unknown = gpu.keys() - {"driver", "cuda", "cuquantum"}
     if unknown:
         raise ValueError(f"unknown GPU observation keys: {sorted(unknown)}")
+    check_consistency()
     record = {
         "lock_sha256": _digest(lockfile.read_bytes()),
         "python": platform.python_version(),
@@ -53,11 +99,26 @@ def capture_environment(
         },
         "extras": sorted(set(extras)),
         "gpu": {key: gpu.get(key, "unobserved") for key in ("driver", "cuda", "cuquantum")},
+        "distributions": installed_distributions(),
     }
     if solver_runtime is not None:
         record["solver_runtime"] = solver_runtime
     record["env_hash"] = _digest(json.dumps(record, sort_keys=True, separators=(",", ":")).encode())
     return record
+
+
+def engine_defaults(value: str | None = None) -> dict[str, str]:
+    """The user's per-device engines, from ENTANGLIX_ENGINES such as "cpu=NAME,cuda=NAME"."""
+    value = os.environ.get("ENTANGLIX_ENGINES", "") if value is None else value
+    defaults = {}
+    for item in filter(None, (part.strip() for part in value.split(","))):
+        device, separator, name = (part.strip() for part in item.partition("="))
+        if not separator or device not in {"cpu", "cuda"} or not name or device in defaults:
+            raise ValueError(
+                f"ENTANGLIX_ENGINES lists one engine per device as cpu=NAME,cuda=NAME; got {item!r}"
+            )
+        defaults[device] = name
+    return defaults
 
 
 def failure_message(exc: Exception) -> str:
@@ -98,14 +159,9 @@ def process_failure(process, context: str) -> str:
     return detail.strip() or context
 
 
-def check_gpu_environment(device_uuid: str) -> dict:
-    """Check a selected device in the caller's exact job environment before dispatch."""
+def check_gpu_environment(device_uuid: str, *, engine: str) -> dict:
+    """Check a selected device before dispatch; only cuDensityMat initializes its library."""
     try:
-        import ctypes
-
-        import cupy as cp
-        from cuquantum.densitymat import WorkStream
-
         query = subprocess.run(
             [
                 "nvidia-smi",
@@ -121,6 +177,14 @@ def check_gpu_environment(device_uuid: str) -> dict:
         observed_uuid, driver = (value.strip() for value in query.stdout.strip().split(","))
         if observed_uuid != device_uuid:
             raise ValueError("NVIDIA-SMI returned a different device UUID")
+        if engine != "cudensitymat":
+            gpu = {"driver": driver, "cuda": "unobserved", "cuquantum": "unobserved"}
+            return {"device_uuid": device_uuid, "gpu": gpu}
+        import ctypes
+
+        import cupy as cp
+        from cuquantum.densitymat import WorkStream
+
         for device_id in range(cp.cuda.runtime.getDeviceCount()):
             properties = cp.cuda.runtime.getDeviceProperties(device_id)
             if f"GPU-{uuid.UUID(bytes=properties['uuid'])}" == device_uuid:
@@ -151,9 +215,10 @@ def check_gpu_environment(device_uuid: str) -> dict:
             },
         }
     except Exception as exc:
+        extra = ", the cuquantum extra," if engine == "cudensitymat" else ""
         raise ValueError(
             f"GPU environment rejected for {device_uuid}: {exc}; "
-            "check device visibility, driver access, the cuquantum extra, and free memory"
+            f"check device visibility, driver access{extra} and free memory"
         ) from exc
 
 
@@ -976,7 +1041,7 @@ def _claim_runner_extras(repository: Path, extras: list[str]) -> None:
 
 
 def _cpu_job_context(repository: Path, module: str) -> tuple[list[str], dict, list[str]]:
-    """Use one configured extras set in the shared exact runner environment."""
+    """Use one configured extras set in the shared runner environment."""
     config = _load_record(repository / "pyproject.toml")
     extras = config.get("tool", {}).get("entanglix", {}).get("runner", {}).get("extras", [])
     if "ENTANGLIX_RUNNER_EXTRAS" in os.environ:
@@ -989,10 +1054,11 @@ def _cpu_job_context(repository: Path, module: str) -> tuple[list[str], dict, li
         raise ValueError("tool.entanglix.runner.extras must be a list of extra names")
     uv = shutil.which("uv")
     if uv is None:
-        raise ValueError("uv is required for locked, exactly synced job execution")
+        raise ValueError("uv is required for locked job execution")
     extras = sorted(set(extras))
     _claim_runner_extras(repository, extras)
-    command = [uv, "run", "--locked", "--exact", "--no-env-file", "--project", str(repository)]
+    # Locked dependencies are synchronized; distributions the user installs persist.
+    command = [uv, "run", "--locked", "--inexact", "--no-env-file", "--project", str(repository)]
     for extra in extras:
         command.extend(("--extra", extra))
     command.extend(("python", "-m", module))
@@ -1125,8 +1191,14 @@ def list_capabilities(repository: Path | None = None) -> dict:
     """Inspect the runner environment without creating or synchronizing it."""
     repository = (repository or Path(__file__).resolve().parents[2]).resolve()
     paths = [str(path) for path in (repository / ".venv-runner/lib").glob("python*/site-packages")]
-    found = {
-        package.metadata["Name"].lower(): package.version for package in distributions(path=paths)
+    installed = list(distributions(path=paths))
+    found = {package.metadata["Name"].lower(): package.version for package in installed}
+    # Plugin capabilities are resolved at admission, without importing plugins here.
+    plugins = {
+        entry.name: {"version": package.version, "distribution": package.metadata["Name"]}
+        for package in installed
+        for entry in package.entry_points
+        if entry.group == "entanglix.integrators"
     }
     return {
         "version": version("entanglix"),
@@ -1176,6 +1248,8 @@ def list_capabilities(repository: Path | None = None) -> dict:
             )
             if package in found
         },
+        "plugin_engines": plugins,
+        "engine_defaults": engine_defaults(),
     }
 
 

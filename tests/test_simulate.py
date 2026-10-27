@@ -283,6 +283,20 @@ def test_complex_array_state_and_parameter_override_compile(tmp_path):
     assert plan.system.hamiltonian_ghz[2, 2] == pytest.approx(0.3)
 
 
+def test_spectrum_ignores_defaults_and_refuses_other_engines(tmp_path, monkeypatch):
+    monkeypatch.setenv("ENTANGLIX_ENGINES", "cpu=absent-engine")
+    path, spec = protocol_files(tmp_path / "spectrum", kind="spectrum")
+    for name in ("default", "named", "lindblad"):
+        (tmp_path / name).mkdir()
+    assert compile_simulation(path, tmp_path / "default", [], ROOT)["engine"] == "qutip-cpu"
+    path.write_text(tomli_w.dumps({**spec, "engine": "absent-engine"}))
+    with pytest.raises(ValueError, match="engine absent-engine is refused"):
+        compile_simulation(path, tmp_path / "named", [], ROOT)
+    lindblad, _ = protocol_files(tmp_path / "evolution")
+    with pytest.raises(ValueError, match="'absent-engine' is not installed"):
+        compile_simulation(lindblad, tmp_path / "lindblad", [], ROOT)
+
+
 def test_gpu_autoselection_reports_missing_cupy_extra(tmp_path, monkeypatch):
     path, _ = protocol_files(tmp_path, device="cuda")
     target = tmp_path / "compiled"

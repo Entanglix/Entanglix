@@ -81,11 +81,14 @@ def test_solver_runtime_participates_in_environment_hash(tmp_path):
 
 
 def test_control_plugin_discovery_and_duplicate_names(monkeypatch):
-    entry = SimpleNamespace(
-        name="plugin", dist=SimpleNamespace(version="2.0"), load=lambda: GrapeBackend
+    dist = SimpleNamespace(
+        version="2.0", metadata={"Name": "plugin-dist"}, read_text=lambda _: "RECORD lines"
     )
+    entry = SimpleNamespace(name="plugin", dist=dist, load=lambda: GrapeBackend)
     monkeypatch.setattr("entanglix.solvers.entry_points", lambda **kw: [entry])
-    assert select_solver("plugin")[1]["version"] == "2.0"
+    selection = select_solver("plugin")[1]
+    assert (selection["version"], selection["distribution"]) == ("2.0", "plugin-dist")
+    assert len(selection["record_sha256"]) == 64
     monkeypatch.setattr("entanglix.solvers.entry_points", lambda **kw: [entry, entry])
     with pytest.raises(ValueError, match="duplicate solver entry point"):
         select_solver("plugin")

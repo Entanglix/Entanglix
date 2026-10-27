@@ -9,6 +9,7 @@ import numpy as np
 import tomli_w
 
 from entanglix.corrector.metrics import Coherence
+from entanglix.engines.selection import BUILT_IN
 from entanglix.models import load_system
 from entanglix.protocols.plans import load_plan
 
@@ -125,7 +126,9 @@ def prepare_refinement(loaded, directory: Path, policy):
     )
     plan = loaded.definition.model_dump(exclude_none=True)
     if loaded.request is not None:
-        plan["engine"] = plan["engine"] if plan["device"] == "cpu" else "qutip-cpu"
+        # Only a built-in CPU engine refines its own run, so no check needs a plugin.
+        if plan["device"] != "cpu" or plan["engine"] not in BUILT_IN:
+            plan["engine"] = "qutip-cpu"
         plan["device"] = "cpu"
         evolution = plan["evolution"]
         if "frame" in evolution:

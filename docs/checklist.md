@@ -333,13 +333,13 @@ The [M4 guide](m4-guide.md) records the implementation approach; [ADR-0005](adr/
 
 ## Engine Plugins
 
-### [ ] Engine plugins
+### [x] Engine plugins
 
 **Decisions:** [ADR-0003 §2.2, §2.4, §2.5](adr/0003-runs-verification-and-dispatch.md#22-execution-environment-and-process-ownership).
 
-- [ ] Plugins reach jobs: `--inexact` launches; the installed-distribution record in `env_hash`; consistency and editable refusals; CUDA admission split into shared device checks and engine-specific initialization; a local solver plugin distribution installed in the runner environment solves a control problem and is recorded with version and digest
-- [ ] Engine plugins: `entanglix.integrators` discovery; selection by spec, user default, and built-in rule, with refusals and no fallback; engine names stored structurally; plugin runs read and checked without the plugin, segments on QuTiP; reruns keeping their engine; conduct and skills updated
-- [ ] **Done:** a CPU `simulate` on a plugin engine chosen by the user's default runs end to end, is recorded with the plugin's version and digest, and is read, checked, and rerun as decided, with no check needing the plugin
+- [x] Plugins reach jobs: `--inexact` launches; the installed-distribution record in `env_hash`; consistency and editable refusals; CUDA admission split into shared device checks and engine-specific initialization; a local solver plugin distribution installed in the runner environment solves a control problem and is recorded with version and digest ([plugin integration tests](../tests/test_engine_plugins.py), [environment record tests](../tests/test_run_records.py), [CUDA admission tests](../tests/test_gpu_environment.py), [GPU ownership tests](../tests/test_gpu_admission.py), [plugin reference](operations/runs.md#plugins-in-the-runner-environment))
+- [x] Engine plugins: `entanglix.integrators` discovery; selection by spec, user default, and built-in rule, with refusals and no fallback; engine names stored structurally; plugin runs read and checked without the plugin, segments on QuTiP; reruns keeping their engine; conduct and skills updated ([selection tests](../tests/test_engine_selection.py), [plugin integration tests](../tests/test_engine_plugins.py), [spectrum handling](../tests/test_simulate.py), [engine selection reference](operations/system-spec.md#engine-selection-policy))
+- [x] **Done:** a CPU `simulate` on a plugin engine chosen by the user's default runs end to end, is recorded with the plugin's version and digest, and is read, checked, and rerun as decided, with no check needing the plugin ([plugin integration tests](../tests/test_engine_plugins.py))
 
 ---
 

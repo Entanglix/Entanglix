@@ -29,6 +29,8 @@ The runs root, device and runner extras are explicit. The other settings are opt
 
 For CUDA jobs, name the device and pass `--runner-extras cuquantum differentiable-cuda12`. The server explicitly sets the supervisor's device, extras and state directory, even when the client process inherits `CUDA_VISIBLE_DEVICES=""`. Operator commands must use the same runner extras and state directory. When the operator shell uses a custom `XDG_STATE_HOME` that the runtime does not pass to the server, set `--state-directory` to that directory in the server entry. The existing runner environment refuses a different extras set, rather than removing packages underneath jobs. See [protocol dispatch](protocols.md) and [GPU ownership](runs.md#local-gpu-ownership).
 
+Engine defaults come from `ENTANGLIX_ENGINES` in the server's environment, for example `cpu=my-engine`; set it in the client's server entry, such as the `env` table of a Codex entry. `list_capabilities` reports them as `engine_defaults` and lists installed plugin engines ([engine selection](system-spec.md#engine-selection-policy)).
+
 The resolved runs root and GPU lock directory are recorded in each connection's audit. This exposes configuration differences; it does not enforce a common location across independently configured processes.
 
 ## Tool surface

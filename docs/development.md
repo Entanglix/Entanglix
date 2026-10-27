@@ -39,7 +39,7 @@ Run `uv sync --locked --exact`, `uv run --locked --exact pytest`, `uv run --lock
 
 ## Working rules
 
-- Never name a private solver or private project in repository text, and never import a private solver directly; private plugins attach through entry points ([roadmap Appendix A](roadmap.md#appendix-a--private-solver-plugins)).
+- Never name a private solver or private project in repository text, and never import a private solver directly; private plugins attach through entry points ([roadmap Appendix A](roadmap.md#appendix-a--private-solver-and-engine-plugins)).
 - Keep contributor instructions out of research-agent guidance; research sessions receive their conduct and skills through a separate workspace and the MCP server.
 - Keep core imports and CPU tests usable without GPU or private packages. Preserve [ADR-0001's numerical policy](adr/0001-mandate.md#33-units-time-grid-and-truncation-defaults).
 - Lean by default: reuse existing facilities and implement capabilities when needed.

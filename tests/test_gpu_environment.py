@@ -36,6 +36,8 @@ def gpu_runtime(monkeypatch):
     )
 
     def query(command, **_):
+        if command[1:3] == ["pip", "check"]:
+            return SimpleNamespace(returncode=0, stdout="", stderr="")
         assert f"--id={DEVICE}" in command
         return SimpleNamespace(stdout=f"{DEVICE}, 595.91.07\n")
 
@@ -44,7 +46,7 @@ def gpu_runtime(monkeypatch):
 
 
 def test_gpu_observations_feed_identity(gpu_runtime):
-    observed = check_gpu_environment(DEVICE)
+    observed = check_gpu_environment(DEVICE, engine="cudensitymat")
     assert observed["device_uuid"] == DEVICE
     assert observed["gpu"] == {"driver": "595.91.07", "cuda": "12.9.0", "cuquantum": "0.7.0"}
     identity = capture_environment(ROOT / "uv.lock", extras=("cuquantum",), gpu=observed["gpu"])
@@ -62,7 +64,7 @@ def test_gpu_gate_rejections_are_actionable(gpu_runtime, change, message):
     for key, value in change.items():
         setattr(gpu_runtime, key, value)
     with pytest.raises(ValueError, match=message) as error:
-        check_gpu_environment(DEVICE)
+        check_gpu_environment(DEVICE, engine="cudensitymat")
     assert "GPU environment rejected" in str(error.value)
 
 
@@ -74,13 +76,31 @@ def test_driver_and_native_library_failures_reject(gpu_runtime, monkeypatch):
         with monkeypatch.context() as patch:
             patch.setattr(boundary, fail)
             with pytest.raises(ValueError, match="driver or library unavailable"):
-                check_gpu_environment(DEVICE)
+                check_gpu_environment(DEVICE, engine="cudensitymat")
 
 
-def test_missing_gpu_extra_rejects_without_loading_gpu_stack(monkeypatch):
+def test_missing_gpu_extra_rejects_without_loading_gpu_stack(gpu_runtime, monkeypatch):
     monkeypatch.setitem(sys.modules, "cupy", None)
     with pytest.raises(ValueError, match="cuquantum extra"):
-        check_gpu_environment(DEVICE)
+        check_gpu_environment(DEVICE, engine="cudensitymat")
+
+
+def test_other_cuda_engines_pass_shared_device_checks_without_cuquantum(gpu_runtime, monkeypatch):
+    monkeypatch.setitem(sys.modules, "cupy", None)
+    monkeypatch.setitem(sys.modules, "cuquantum.densitymat", None)
+    observed = check_gpu_environment(DEVICE, engine="mine")
+    assert observed == {
+        "device_uuid": DEVICE,
+        "gpu": {"driver": "595.91.07", "cuda": "unobserved", "cuquantum": "unobserved"},
+    }
+
+    def fail(*_, **__):
+        raise OSError("driver unavailable")
+
+    monkeypatch.setattr("entanglix.runner.subprocess.run", fail)
+    with pytest.raises(ValueError, match="driver unavailable") as error:
+        check_gpu_environment(DEVICE, engine="mine")
+    assert "cuquantum extra" not in str(error.value)
 
 
 @pytest.mark.gpu
@@ -100,9 +120,9 @@ def test_workstation_gpu_environment(record_property):
         model,
         EvolutionInput(np.array([0, 1]), np.array([0, 1])),
         available_engines={"cudensitymat"},
-        fallbacks=("cudensitymat",),
+        device="cuda",
     )
-    observed = check_gpu_environment(device)
+    observed = check_gpu_environment(device, engine=selection.engine)
     environment = capture_environment(
         ROOT / "uv.lock", extras=("cuquantum", "differentiable-cuda12"), gpu=observed["gpu"]
     )
