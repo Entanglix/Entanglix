@@ -88,7 +88,7 @@ The harness does only what the user requests. For an investigation it supplies n
 - A stopped investigation reopens only through a resume decision, after its open reviews are released. Resume permits new admissions and does not revive a cancelled attempt.
 - Completed results are not recomputed because a session changed. An interrupted attempt is reconciled and rerun under a new linked ID, and the rerun counts as a new attempt.
 - Usage carries across sessions, and uncertain usage stays counted at its commitment.
-- M3 adds no restart files; `simulate` and `sweep` have none.
+- Investigations add no restart files; `simulate` and `sweep` have none.
 
 **Rationale:** a check of the investigation's current state alone would let an attempt admitted before a stop start after a later resume. Naming the cancelled attempts in the stop event makes the outcome independent of what follows.
 
@@ -182,7 +182,7 @@ Measurements: [agent-session probe](../../tests/probes/m3_agent_session_results.
 | Reviews opened only by findings | The user sometimes needs a pause that does not depend on the agent's judgment |
 | A review that blocks one branch of an investigation | The runner has no notion of a branch; a review refuses admission for the whole investigation |
 | Cancelling admitted runs when a review opens | A review is a pause for new work, not a stop |
-| Restart files or resumed partial sweeps | No M3 protocol supports them (ADR-0003 §2.1) |
+| Restart files or resumed partial sweeps | No protocol supports them (ADR-0003 §2.1) |
 | A seed sweep shared between the baseline and the agent | Each investigation carries its own accounting and exercises `sweep` |
 | Bayesian search as the first baseline | A one-dimensional monotone crossing does not need it |
 | A model backend, an API key, or a list of supported runtimes | The runtime is the user's own |
@@ -215,9 +215,8 @@ Measurements: [agent-session probe](../../tests/probes/m3_agent_session_results.
   - §6 records a launch before its supervisor starts, puts client-sent request metadata on the tool-call entry, and keeps one immutable session entry per connection.
   - §7 describes the hidden GPU as CUDA visibility and refuses a busy-device launch before an attempt exists.
   - §8 records the client name and version the runtime reports in each session's audit, in place of a pinned runtime, and states the conformance evidence for agent sessions in the terms of §2.8.
-- The roadmap and checklist replace the default checkpoint interval with a checkpoint the user declares, and refer to the user's runtime instead of a selected one.
 - A run's manifest gains its investigation and revision. The run reference and a new investigation reference document the records, the operator command, limits, and recovery.
 - The readout example records the first investigation: its question, scope, claim rule, measured brackets, costs, and stated limits.
 - Tests cover a draft that cannot start or approve itself, a proposed revision taking effect only on a decision, concurrent events, the admission rule of each operation, unknown limit names, concurrent launches against one limit, uncertain usage, the absolute deadline, an approved revision leaving admitted attempts under their dispatch revision, a run admitted but not yet computing after a stop, after a stop followed by a resume, and past the deadline, checkpoint gating that counts failed and aborted attempts, review gating with named release, and a new session continuing from records. They also cover each refusal of a launch on a busy device creating no attempt and no usage, the device lock released when the check, admission, or manifest creation fails, and a launch recovered as pending, admitted, or refused after its connection or response is lost.
-- §2.8 records the agent-session decisions taken before Block 6b and settles ADR-0003's open point on whether a research agent may declare a device.
+- §2.8 records the agent-session decisions and settles ADR-0003's open point on whether a research agent may declare a device.
 - Control and calibration add their operations to the permitted operations when those protocols are built. Co-design links device and control runs under one investigation.

@@ -1,6 +1,6 @@
 # ADR-0007: Calibration from Spectroscopy
 
-**Date:** 2026-10-20
+**Date:** 2026-10-20, revised 2026-10-27
 **Status:** Accepted
 **Purpose:** fix what the first `calibrate` workflow fits and from which data, the measurement format, how peaks are extracted and assigned, how parameters and their uncertainty are reported, how holdout data is kept out of the fit and evaluated, how a measured bias reaches the model, how a device-model update is proposed and applied, and what the first version leaves out. Field lists, formats, and command names are documented with the implementation.
 
@@ -14,7 +14,7 @@ The [harness contract](../../HARNESS_CONTRACT.md) fixes these points for calibra
 - **Tools (§5):** `calibrate` is a controlled job, and `propose_device_update` is a controlled write next to the calibration run.
 - **Write-back (§5, §6):** applying a proposal is a separate human action, and research tools expose no device-model write-back.
 
-The roadmap also asks for a calibration data contract with point-in-time provenance.
+Calibration also needs a data contract with point-in-time provenance.
 
 Before this record:
 - **Parameters:** a system parameter has a value, a unit, an optional source, and an optional uniform prior. Construction uses the value and never samples the prior.
@@ -232,10 +232,6 @@ Measurements: [calibration probe results](../../tests/probes/s2_calibration_resu
 
 - **Contract §3:** the `calibrate` row names the `holdout`, `identifiability`, and `refinement` checks, with the scope stated above.
 - **System spec:** a circuit's external flux accepts a parameter reference.
-- **Roadmap, Block 10:** the data contract becomes the uniform measurement format, and the two lanes become spectroscopy fitting by bounded weighted least squares with a declared search.
-- **Roadmap §6:** adds dynamics-based calibration to the deferred extensions.
-- **Roadmap §7:** records the settled decisions.
-- **Checklist:** the Block 10 items change to match.
 - **Operational references:** a new calibration reference documents the measurement format, the calibration spec, the outcomes and report, the checks, and proposals. The system-spec, investigation, and MCP references document flux parameters, calibration bases, and the new tools.
 - **Example:** a calibration example records a synthetic round trip in its own directory.
 - **Tests cover:**

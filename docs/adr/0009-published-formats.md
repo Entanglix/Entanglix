@@ -1,6 +1,6 @@
 # ADR-0009: Record Compatibility and Deferred Format Publication
 
-**Date:** 2026-10-26
+**Date:** 2026-10-26, revised 2026-10-27
 **Status:** Accepted
 **Purpose:** fix what Entanglix promises about reading the records and inputs that earlier releases wrote, how a version is identified, and that standalone format publication is deferred.
 
@@ -13,7 +13,7 @@ Entanglix users install it, and their agent drives it through the CLI, MCP and P
 Research history outlives a release. Catalog entries cite earlier runs, investigations span upgrades, and collaborators share runs across versions.
 
 Before this record:
-- **Inputs:** each authored input kind carries `format_version = 1` and is read by a strict model that rejects unknown fields. The system schema is committed with the Block 1 model.
+- **Inputs:** each authored input kind carries `format_version = 1` and is read by a strict model that rejects unknown fields. The system schema is committed with the model representation.
 - **Records:** the runner, investigation, catalog, proposal, launch and audit records carry `record_version = 1`, and the investigation and proposal readers require it. Protocol results, sweep point results, the calibration assignment, the launch attempt and the abort request carry no version field.
 - **Pulses:** the neutral pulse names its interpolation `kind`; the earliest control pulses do not, and the catalog's pulse reader refuses them.
 - **Bindings:** check reports and catalog records bind the digests of the files they cite.
@@ -50,7 +50,7 @@ A neutral pulse without `kind` is `zero_order`. The catalog's pulse reader accep
 ### 2.4 Deferred format publication
 
 - Entanglix does not ship standalone schemas, array descriptors or reply schemas for its files until a consumer needs them.
-- CLI/MCP interfaces, and public schemas where provided, keep declaring versions and compatibility expectations. The field references document the records, and the system schema from Block 1 stays as it is.
+- CLI/MCP interfaces, and public schemas where provided, keep declaring versions and compatibility expectations. The field references document the records, and the committed system schema stays as it is.
 - The generated control problem remains ProblemSpec OSS at its recorded amicode revision ([ADR-0005](0005-control-problems-and-solvers.md)).
 
 **Rationale:** no identified consumer currently requires standalone schemas. They could help installed users too, but schemas for every record, array and reply would need models kept in step with each writer and definitions for every command and tool, and that maintenance is not justified now. An installed user's agent can use Entanglix's readers and validation, and people without Entanglix receive reports.
@@ -70,8 +70,6 @@ A neutral pulse without `kind` is `zero_order`. The catalog's pulse reader accep
 ## 4. Consequences
 
 - **Contract:** §2 states implicit version 1 for the historically unversioned formats. §8 states that CLI/MCP interfaces, and public schemas where provided, declare versions; the compatibility rule; and what reading covers. Its "Objects and interfaces" evidence adds regression tests for supported historical record forms.
-- **Roadmap:** Block 12 and milestone S4 are removed. §6 lists published schemas, amicode's records and Domain Pack, and converters until a consumer needs them. §7 records this decision.
-- **Checklist:** the S4 section is removed.
 - **Operational references:** the run reference states the compatibility rule, what reading covers and the implicit version 1; the catalog reference states the legacy pulse reading.
 - **README:** a release note for the legacy pulse reading.
 - **Code:** the catalog's pulse reader accepts a pulse without `kind`.

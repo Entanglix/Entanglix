@@ -10,7 +10,7 @@ import tomli_w
 from pydantic import ValidationError
 
 import entanglix.extraction as extraction
-from entanglix.extraction import ExtractionError, ExtractionSettings, extract, learn_projection
+from entanglix.extraction import ExtractionError, ExtractionSettings, extract
 from entanglix.measurements import load_dataset, split_dataset
 
 FREQUENCY = np.round(np.linspace(4.0, 6.0, 2001), 6)
@@ -119,12 +119,11 @@ def test_projection_is_learned_from_the_map_and_reused_when_given(tmp_path):
     outputs = {"holdout": tmp_path / "holdout.toml", "remainder": tmp_path / "training.toml"}
     split_dataset(source, 0.7, 1.0, **outputs)
     training, held = load_dataset(outputs["remainder"]), load_dataset(outputs["holdout"])
-    learned = learn_projection(training, SETTINGS)
+    learned = extract(training, SETTINGS).projection
     np.testing.assert_allclose(learned, (np.cos(PHASE), np.sin(PHASE)), atol=1e-3)
-    assert extract(training, SETTINGS).projection == learned
     reused = extract(held, SETTINGS, projection=learned)
     assert reused.projection == learned
-    assert reused.projection != learn_projection(held, SETTINGS)
+    assert reused.projection != extract(held, SETTINGS).projection
     assert coverage(reused, BIAS[BIAS >= 0.7])[1] == 2 * np.count_nonzero(BIAS >= 0.7)
 
 

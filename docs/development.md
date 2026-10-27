@@ -37,6 +37,10 @@ For maintainers and coding agents working on Entanglix. Root `AGENTS.md` and `CL
 
 Run `uv sync --locked --exact`, `uv run --locked --exact pytest`, `uv run --locked --exact ruff check .`, `uv run --locked --exact ruff format --check .`, and `git diff --check` as appropriate to the change. Add an optional extra only for checks that need it. Checks run locally; the repository has no CI.
 
+- Tests that launch jobs build runner environments under the temporary directory; where `/tmp` is a quota-limited tmpfs, set `TMPDIR` to a disk-backed directory such as `/var/tmp`.
+- Run GPU tests in their own exact test environment (`UV_PROJECT_ENVIRONMENT`) with both GPU extras, `XLA_PYTHON_CLIENT_PREALLOCATE=false`, and `-m gpu --require-gpu`; dynamiqs on CUDA also needs `JAX_PLATFORMS=cuda,cpu`. Keep the checkout's runner extras unchanged. MCP tests need the `mcp` extra; Julia tests are opt-in through `ENTANGLIX_TEST_JULIA=1` after the Piccolo project is instantiated.
+- Retained evidence under `tests/probes/` is refreshed only where a change reaches it: rerun once the acceptance studies and probes whose plans reach the changed code, and replace only their summaries and reports. A summary may keep an earlier policy version when no later change affects it. Keep the tree and runner profile fixed until the studies finish, write reports outside the checkout, and copy them into `tests/probes/` afterwards, so recorded provenance describes the tree that produced them. A live agent session runs only on the owner's word.
+
 ## Working rules
 
 - Never name a private solver or private project in repository text, and never import a private solver directly; private plugins attach through entry points ([roadmap Appendix A](roadmap.md#appendix-a--private-solver-and-engine-plugins)).

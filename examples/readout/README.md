@@ -10,7 +10,6 @@ include solver times, accepted steps, physicality, spectra, and convergence comp
 
 ```sh
 uv run --locked --exact entanglix validate examples/readout/system.toml
-MPLCONFIGDIR=/tmp/entanglix-m2-matplotlib uv run --locked --exact python tests/probes/m2_feasibility.py --output tests/probes/m2_feasibility_results.json
 ```
 
 ## Model and quantities
@@ -83,15 +82,12 @@ See the [protocol reference](../../docs/operations/protocols.md) for results, pl
 requested checks, cancellation, and replay. CUDA execution makes no performance
 claim; the engine's crossover and workspace costs remain unmeasured.
 
-The [retained CPU simulation/replay](../../tests/probes/m2_simulation_cpu.json)
-and [CUDA simulation/replay](../../tests/probes/m2_simulation_cuda.json) record
-requested integrity, local segments and diagnostics, with identical numerical
-outputs on replay. The CPU summary also includes a 6 × 8, dimension-48 `simulate`
-and its requested integrity check as a more-levels comparison. Reports retain
-coverage and work time. Lab CPU and RWA CUDA outputs are two different models:
-passing local checks establishes neither their whole-window error nor RWA accuracy.
-The [acceptance command](../../docs/environment.md#simulation-acceptance) regenerates
-the records and summaries.
+The retained [CPU](../../tests/probes/m2_simulation_cpu.json) and
+[CUDA](../../tests/probes/m2_simulation_cuda.json) runs from the
+[acceptance probe](../../tests/probes/m2_simulation.py) pass their requested
+integrity, local segments and diagnostics, and replay with identical numerical
+outputs. Lab CPU and RWA CUDA outputs are two different models: passing local
+checks establishes neither their whole-window error nor RWA accuracy.
 
 ## Closed-system Floquet quasienergies
 
@@ -168,11 +164,16 @@ Tightening
 readout integration from `rtol/atol = 1e-10/1e-12` to `1e-11/1e-13` changes normalized
 coherence by less than `9e-9`. Halving output spacing agrees at common timestamps.
 These are same-engine QuTiP refinement checks at the sampled evidence points, not
-independent-engine acceptance of the grid or arbitrary models and windows. The
-[independent-engine study below](#independent-engine-frame-acceptance) passes the
-lab-frame 5 × 6 fixture, including Purcell, against CPU dynamiqs at tightened
-tolerances and 6 × 8 levels. Another model or window needs its own lab-frame
-comparison run; no built-in check supplies one.
+independent-engine acceptance of the grid or arbitrary models and windows. An
+[independent-engine study](../../tests/probes/m2_frames.py) compares this QuTiP
+5 × 6 lab-frame fixture, including Purcell, with CPU dynamiqs at 6 × 8 levels and
+`rtol/atol = 1e-11/1e-13` over the complete output window. It covers the four
+readout corners, `EJ = 13.5` at maximum drive, the `EJ = 12` intermediate-drive
+point and the Purcell case: every sampled observable agrees within `1e-6` and
+physicality passes ([results](../../tests/probes/m2_frames_results.json)). The
+truncation warning and the narrow numerical margin above remain applicable.
+Another model or window needs its own lab-frame comparison run; no built-in check
+supplies one.
 
 The RWA is a separate model approximation. Maximum combined rotating-production
 versus refined-lab residuals are approximately `0.00193` in normalized coherence,
@@ -180,8 +181,9 @@ versus refined-lab residuals are approximately `0.00193` in normalized coherence
 trajectory diagnostic bounds are respectively `0.003`, `0.005`, and `0.008`.
 For the reported readout metric `C(100 ns)`, use a separate candidate absolute bound
 of `5e-4`: the largest sampled endpoint error is `3.96e-4`. The
-[independent-engine study below](#independent-engine-frame-acceptance) accepts these
-bounds at its sampled points; they are not segment tolerances or a built-in RWA accuracy check.
+independent-engine study accepts these bounds against its lab references at its
+sampled points, with endpoint error `8.89e-5` at the additional low-drive point;
+they are not segment tolerances or a built-in RWA accuracy check.
 It additionally covers `EJ = 12, A = 0.001 GHz`; the other intermediate-drive
 points remain unreferenced, so this is not an accepted bound across the whole grid.
 These differences are far above the `1e-6` default segment tolerance, which applies
@@ -207,43 +209,13 @@ Use `vern9`, production `rtol/atol = 1e-10/1e-12`, refined `1e-11/1e-13`, and
 trials and dense-output interpolation; its counted trajectories agree with ordinary
 `vern9` in both short validation cases.
 
-On the measured workstation, rotating readout solves take about 0.26–0.44 s;
-full-window refined lab references take about 10–21 s. Their combined solver cost
-is about 10–22 s per checked readout point. The Purcell rotating solve takes about
-1.6 s and its refined lab reference about 110 s. Times include the probe's step-count
-instrumentation and exclude model construction, environment setup, and runner overhead.
-These are CPU feasibility measurements;
-they make no GPU performance claim. Reference cost dominates and must be included
-in later run estimates when requesting comparison solves. No full-window reference is run automatically.
-
-## Independent-engine frame acceptance
-
-The [shared-interface study](../../tests/probes/m2_frames.py) and
-[retained results](../../tests/probes/m2_frames_results.json) compare QuTiP at
-5 × 6 levels with CPU dynamiqs at 6 × 8, `rtol/atol = 1e-11/1e-13`, and the same
-lab-frame carrier frequency, initial-state embedding, and complete output window.
-It covers the four readout corners, `EJ = 13.5` at maximum drive, the unresolved
-`EJ = 12` intermediate-drive point, and the 1600 ns Purcell case. Every sampled
-lab-production observable agrees within `1e-6`; the largest residual is about
-`9.63e-7` in Purcell photon number. Physicality also passes. The truncation warning
-and narrow numerical margin above remain applicable.
-
-The shared RWA implementation passes the trajectory diagnostic bounds and the
-`5e-4` endpoint-coherence bound against these independent lab references. Maximum
-readout endpoint error remains about `3.96e-4`; at the additional `EJ = 12` low-drive
-point it is `8.89e-5`. This acceptance covers those sampled points and windows,
-preserving the unresolved-increment qualification above. These measurements do not establish accuracy for an untested run.
-
-On this run, independent dynamiqs readout references took about 45–77 s, including
-JAX compilation and device synchronization; the Purcell reference took about 385 s.
-These costs replace the earlier QuTiP refinement timings when estimating independent
-verification, and depend on host load and compilation reuse. The study uses a
-`2_000_000` integration-step ceiling so dynamiqs can cover the full lab-frame solve;
-its ceiling counts per solve, unlike QuTiP's per-output-interval limit.
-
-```sh
-JAX_PLATFORMS=cpu XLA_PYTHON_CLIENT_PREALLOCATE=false MPLCONFIGDIR=/tmp/entanglix-m2-matplotlib uv run --locked --exact --extra differentiable python tests/probes/m2_frames.py --output tests/probes/m2_frames_results.json
-```
+Comparison solves dominate the cost. On CPU, a rotating readout solve took about
+0.26–0.44 s, a full-window refined QuTiP lab reference about 10–21 s, and an
+independent dynamiqs reference about 45–77 s including JAX compilation; for
+Purcell, about 1.6 s, 110 s and 385 s. Include them when estimating requested
+comparison solves; no full-window reference is run automatically. These
+measurements cover the sampled points and windows only and do not establish
+accuracy for an untested run.
 
 ## Serial readout and static sweeps
 
@@ -295,8 +267,7 @@ The [acceptance probe](../../tests/probes/m2_sweep.py) retains CPU/CUDA grid rep
 requested checks, a static companion and a linked narrower CPU grid. Its
 [CPU summary](../../tests/probes/m2_sweep_cpu.json) and
 [CUDA summary](../../tests/probes/m2_sweep_cuda.json) record results and per-point
-coverage; [commands](../../docs/environment.md#sweep-acceptance) regenerate them.
-CUDA demonstrates the execution path and carries no performance claim. Passing
+coverage. CUDA demonstrates the execution path and carries no performance claim. Passing
 segments applies only to selected points and sampled local windows; no run-level
 verdict, whole-window error bound, or RWA certification is produced.
 
@@ -308,16 +279,14 @@ The retained CPU endpoint grid is:
 | 13.5 | 0.995635 | 0.991608 | 0.983839 |
 | 15 | 0.993890 | 0.988401 | 0.976614 |
 
-CUDA endpoints agree within `4.82e-8` at these points. This compares two engines
-for the same RWA declaration. All requested checks pass; local segments sample
-points `0, 2, 6, 7, 8` and three 2 ns windows per point. Integrity, diagnostics
-and the declared expectation cover all nine points. CPU replay is numerically
-identical; CUDA replay differences across stored states and
-observables remain below `1e-7`. Both replays match their parents' code and environment.
-Whole-job execution takes about `5 s` on CPU and `8 min` on CUDA in these
-retained runs, excluding validation and checks. These timings describe this small
-fixture and backend, not a general crossover. The static `χ` values are
-`−0.434875`, `−0.559116`, and `−0.733591 MHz`; requested refinement passes.
+CUDA endpoints agree within `4.82e-8` at these points, comparing two engines on
+the same RWA declaration. All requested checks pass; local segments sample points
+`0, 2, 6, 7, 8` with three 2 ns windows each, and integrity, diagnostics and the
+declared expectation cover all nine points. CPU replay is numerically identical,
+and CUDA replay differs by less than `1e-7`. This same RWA sweep took about 5 s on
+CPU and 8 min on CUDA, excluding validation and checks; the timings describe this
+small fixture, not a general crossover. The static companion's requested spectral
+refinement passes.
 
 ## Threshold characterization
 
@@ -331,7 +300,6 @@ investigation with scoped admission, assessments, and a retained report. The
 [retained probe](../../tests/probes/m3_readout.py) ran the plan on CPU with the
 existing `sweep`, `simulate`, and `check` operations, and its
 [results](../../tests/probes/m3_readout_results.json) name every run.
-[Commands](../../docs/environment.md#threshold-characterization-probe) regenerate them.
 
 - **Fixed:** the model, initial state, 100 ns window, and tolerances above, and
   `EJ = 12, 13.5, 15 GHz`, each with its paired carrier and frame frequency.
@@ -363,11 +331,7 @@ the monotonic assumption. The two lab-frame runs differ in loss by at most `2.4e
 Job time is about 1.1 s for a rotating-frame point, 6.6 s for a lab-frame run, 20 s
 for a refined lab-frame run, and 0.8 s for a check run. The probe's full run, both
 widths at both crossing `EJ` values, is 52 jobs and 41 evaluated points in 301 s of
-job time within 329 s elapsed. The agreed width alone accounts for 30 jobs, 27 points,
-and 176 s of job time. Establishing both agreed-width brackets and then stopping at
-the first failed tighter confirmation accounts for 41 jobs, 34 points, and 240 s.
-The last two figures are sums over the probe's runs; the probe did not run those
-shorter sequences separately.
+job time.
 
 The stated limits are:
 
@@ -426,25 +390,15 @@ points and coarse lab runs are retained without additional checks; findings list
 relevant checks not run. Loss differences and brackets are client interpretations,
 not trusted metrics: reports retain baseline and endpoint values with source IDs.
 
-[Normal acceptance](../../tests/probes/m3_investigation_normal.json) and
-[early-stop acceptance](../../tests/probes/m3_investigation_early_stop.json) record
-the real investigation IDs, source runs, checks, job time and elapsed time. The
-[acceptance driver](../../tests/probes/m3_investigation.py) acts as the operator for
-these declared fixtures; [commands](../../docs/environment.md#scripted-investigation-acceptance)
-regenerate the summaries.
-
-| Case | Outcome | Jobs / points | Job time / elapsed | Assessments | Decisions after start |
-|---|---|---|---|---|---|
-| Normal | Both normal brackets confirmed | 30 / 27 | 178 s / 195 s | 2 | 0 |
-| Early stop | Precision review at `EJ = 13.5` | 41 / 34 | 243 s / 267 s | 4 | 0 |
-
-These are separately executed baselines. Elapsed time runs from the operator start
-to final report preparation; summaries separate computation, checks, and time
-outside jobs. Both reproduce the probe's normal brackets. The tighter `EJ = 13.5`
-confirmation fails because the refined lab loss at the lower end is `3.6e-6` above
-the target; `EJ = 15`'s tighter case stays unattempted. All requested checks with
-pass/fail outcomes passed, and diagnostics are retained. The 100-job limit still
-has 59 jobs available at handoff.
+The retained [normal](../../tests/probes/m3_investigation_normal.json) and
+[early-stop](../../tests/probes/m3_investigation_early_stop.json) runs, with the
+[acceptance driver](../../tests/probes/m3_investigation.py) acting as operator,
+record the investigation IDs, source runs, checks and costs: 30 jobs for the normal
+case and 41 for the early stop, with no decisions after start. Both reproduce the
+probe's normal brackets. The tighter `EJ = 13.5` confirmation fails because the
+refined lab loss at the lower end is `3.6e-6` above the target; `EJ = 15`'s tighter
+case stays unattempted. All requested checks with pass/fail outcomes passed, and
+diagnostics are retained.
 
 Continue with the same `run` command after a session ends. The workspace stores
 base files and a locator; progress is recovered from retained member runs and
@@ -456,134 +410,3 @@ requires the operator to release its reviews and resume it. The
 [session tests](../../tests/test_readout_investigation.py) cover a killed client
 between jobs and an interrupt during a solve. Jobs are blocking in this client;
 it does not supply connection-independent supervision.
-
-## Agent investigation comparison
-
-The [evaluation driver](../../tests/probes/m3_evaluation.py) runs fresh research
-sessions with the shipped conduct, procedures and syntax references. Formulation
-runs as a separate session. Its prompt asks for a bounded next investigation and
-the needed operator decisions, forbids computation, and explicitly cautions against
-inferring readout quality from coherence alone. The session adds a proposed
-fixed-`EJ = 13.5` comparison of three amplitudes across RWA, lab and larger-basis lab
-inputs, with nine simulations, a proposed stability target and bounded resource
-and review declarations. It launches no jobs. The retained proposal is included
-in the results; this is a prompted formulation example, not an independently
-discovered research objective.
-
-The comparison terms are fixed in advance, independently of formulation. Each agent
-drafts exactly the baseline's terms; the driver approves that fixture through the
-operator CLI. Inputs and runs are separate from the baseline, and every solve,
-check, assessment, report and stop goes through the real MCP server. Raw
-transcripts retain the initial guidance and shell reads; the
-[results](../../tests/probes/m3_evaluation_results.json) record the client/model,
-source identities, source-bound claims, checks, decisions and stopping rationales.
-The execution brief prescribes midpoint search, both bracket widths, which runs
-to check, the lab confirmation rule, and the order of normal and tighter cases.
-Numerical search is fixed by those agreed terms. Agent reasoning appears in the
-`EJ = 12` no-crossing report, checkpoint assessments, stop decision and handoff;
-this comparison does not measure the invention of a search algorithm.
-
-| Case | Outcome | Jobs / points | Job time / elapsed | Assessments | Input tokens | 5-hour / weekly used % |
-|---|---|---|---|---|---|---|
-| Formulation | Bounded proposal; no compute | 0 / 0 | — | — | 188,317 | 32→34 / 6→6 |
-| Fresh normal baseline | Both normal brackets confirmed | 30 / 27 | 184 s / 202 s | 2 | — | — |
-| Normal agent 1 | Both normal brackets confirmed | 30 / 27 | 190 s / 330 s | 3 | 2,779,389 | 35→47 / 6→8 |
-| Normal agent 2 | Both normal brackets confirmed | 30 / 27 | 187 s / 391 s | 3 | 2,735,366 | 47→61 / 8→10 |
-| Normal agent 3 | Both normal brackets confirmed | 30 / 27 | 189 s / 349 s | 3 | 2,164,533 | 61→72 / 10→12 |
-| Fresh early-stop baseline | Precision handoff at `EJ = 13.5` | 41 / 34 | 251 s / 277 s | 4 | — | — |
-| Early-stop agent 1 | Precision handoff at `EJ = 13.5` | 41 / 34 | 254 s / 511 s | 4 | 3,407,468 | 72→85 / 12→14 |
-| Early-stop agent 2 | Precision handoff at `EJ = 13.5` | 41 / 34 | 253 s / 464 s | 4 | 2,068,986 | 86→97 / 14→16 |
-| Early-stop agent 3 | Runtime usage limit before compute | 0 / 0 | 0 s / unavailable | 0 | 304,891 | 97→100 / 16→16 |
-
-The five completed agent investigations reproduce the baseline's source-supported
-brackets and handoff. They retain the no-crossing finding at `EJ = 12`, pass the
-requested checks, preserve both normal-width results, and leave tighter `EJ = 15`
-unattempted after failed lab confirmation. All have zero operator decisions after
-start. The third early-stop session exhausted its Codex account allowance after
-drafting; its execution request also failed, without admitting a job. It has no
-scientific outcome or final report. The owner-approved acceptance rule requires
-successful formulation and at least two accepted sessions per case. Other sessions
-must be reported runtime failures before any admitted job; a failure after admission
-still fails the evaluation. This comparison passes with three accepted normal
-sessions, two accepted early-stop sessions and one reported pre-compute runtime
-failure.
-
-Together, formulation, drafting and execution used 13,648,950 input tokens
-(12,990,976 cached), 81,361 output tokens and 177 model requests. Resumed phases
-subtract earlier thread totals, so drafting is counted once. The 5-hour window
-already had 32% used at the first request and reached 100%: a 68-percentage-point
-observed increase; the weekly window went from 6% to 16%. These are rounded
-runtime-reported account windows, not a price estimate or an isolated attribution
-of shared-account usage.
-
-These measurements use non-interactive Codex 0.160.0, `gpt-6.1-sol` at high effort,
-on this workstation. Completed agents use about the same job time and more elapsed
-time than the scripted policy. Agents batch independent CPU jobs while the baseline
-is serial; summed job time therefore differs from occupied elapsed time. The
-summary measures time outside jobs by subtracting the union of execution intervals,
-without counting overlapping jobs twice. It does not identify that entire interval
-as model latency. Elapsed time covers operator start through investigation stop;
-formulation and drafting are recorded separately. This fixture demonstrates
-evidence-based decisions and reporting, with no acceleration claim or general
-runtime success-rate claim.
-
-A separate [pick-up check](../../tests/probes/m3_pickup_results.json) on 2026-10-09
-killed the scripted normal client with SIGKILL between jobs after 12 attempts.
-One fresh Codex 0.160.1 session (`gpt-6.1-sol`, high effort) read the retained
-records and completed 18 more jobs through MCP `simulate` and `check`, reaching
-30 jobs and 27 points without repeated points or checks. It first issued the
-missing check on an existing refined run, confirmed the same brackets, cited all
-30 runs, and stopped with `evidence_completion`. The session used 1,172,667 input
-tokens (1,095,680 cached), 18 model requests and about 250 seconds; its 5-hour
-window went from 0% to 4%. Six requests and about one window percentage point
-were spent before requesting its first new job. This is one session interrupted
-between jobs, with earlier records written by a script and a prompt that named
-those records and prescribed the method. It does not demonstrate recovery during
-an executing job or discovery of unmentioned earlier work; the cut-off checks
-below cover both. The
-[summary probe](../../tests/probes/m3_pickup.py) rebuilds this evidence without
-launching a session.
-
-Four further [pick-up checks](../../tests/probes/m3_pickup_cutoff_results.json) on
-2026-10-10 used Claude Code 2.1.296 with `claude-sonnet-5-5`. The scripted normal
-client was killed during its 25th job, a lab run at `EJ = 15`, which left that
-attempt interrupted beside 24 finished jobs. Each session was asked only to
-continue the investigation and given the method brief; the prompt named neither
-the earlier session nor the interrupted attempt.
-
-| Session | Conduct | Interrupted attempt | Repeated work | Report cites | Requests | 5-hour used % |
-|---|---|---|---|---|---|---|
-| First | 0.1.1 | Not reconciled; point rerun with no link | One check | 28 of 32 attempts | 39 | 19→23 |
-| Second | 0.1.2 | Reconciled; rerun linked to it | None | 42 of 42 attempts | 52 | 27→32 |
-| Third | 0.1.4 | Reconciled; rerun linked to it | None | 31 of 31 attempts, in a finding of the wrong kind | 38 | 9→12 |
-| Fourth | 0.1.6 | Reconciled; rerun linked to it | None | 31 of 31 attempts | 34 | 25→28 |
-
-All four sessions confirmed the baseline's two normal brackets and launched every
-new job through MCP. The first skipped recovery: the conduct did not say how to
-settle an interrupted attempt, and its first read asked for the full record,
-which then lacked attempt metrics and check links. Both were changed before the
-second session, which reconciled the attempt, reran it with `rerun_simulation`,
-and recorded an assessment after a check was refused at a due checkpoint. It then
-continued into the tighter stage, which the normal terms do not request, and
-ended with the precision handoff at `EJ = 13.5` after 17 new jobs where six were
-needed; the brief it received describes both cases. Claude Code also rejected its
-full investigation read of 54,724 characters as over the tool-output limit, and
-accepted the default summary. The brief was then written per case and the single
-investigation read replaced by a status with an attention list and paged tables.
-The third session found the interrupted attempt on that list, ran the six missing
-jobs and no others, and stopped with `evidence_completion`; no reply was rejected.
-It recorded its final report as an `interpretation` finding, so the summary's
-report criterion is not met; the conduct then did not name the kind to use. With
-the kind named, the fourth session did the same six jobs, recorded a `report`
-finding, and met every criterion. These are four sessions on one runtime and one
-cut-off point, with no shell tool granted.
-
-On the same setup, one Codex 0.162.1 session (`gpt-6.1-sol`, high effort, conduct
-0.1.6, sandboxed shell) also met every criterion. It reconciled and replayed the
-attempt, ran the six missing jobs, and cited all 31 attempts in a `report`
-finding, using 997,657 input tokens (926,208 cached), 17 model requests and about
-206 seconds; its 5-hour window went from 0% to 4%. It asked for full detail on
-all 31 run reads, and replies of up to 67,202 characters were accepted. The
-account windows are shared with other use. The
-[summary probe](../../tests/probes/m3_pickup_cutoff.py) rebuilds all five
-sessions without launching one.

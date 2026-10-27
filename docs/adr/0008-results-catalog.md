@@ -169,8 +169,6 @@ Promotion is the user's decision, and the harness does only what the user reques
   - §8: the history-and-promotion evidence names the counted-check rule and evidence binding.
 - **ADR-0003:** the promotion consequence is rewritten in place to the rule of §2.4.
 - **ADR-0005:** rewritten in place. A supplied starting pulse is binding, not guidance; `solve` takes it optionally; the baseline declares support; the Piccolo adapter does not.
-- **Roadmap:** Block 11 drops trial counts and names designs and reuse in jobs and investigations; the evidence plane counts attempts; §6 adds the catalog extensions of §2.9; §7 records the settled decisions.
-- **Checklist:** the Block 11 items change to match.
 - **Operational references:** a new catalog reference documents candidates, staging, promotion, the check scope, and reads. The protocol, control, investigation, and MCP references document an entry in a spec, the starting pulse, a base naming an entry, and the new tools.
 - **Example:** a catalog example registers, promotes, and reuses a co-design candidate.
 - **Tests cover:**

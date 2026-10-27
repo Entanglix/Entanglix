@@ -1,6 +1,6 @@
 # ADR-0002: System Model Representation
 
-**Date:** 2026-09-29
+**Date:** 2026-09-29, revised 2026-10-27
 **Status:** Accepted
 **Purpose:** fix how a system specification describes circuits, coupled subsystems, and explicit operators, so that an authored file keeps one physical meaning across scqubits versions and engine exports. The syntax and field reference are documented with the implementation.
 
@@ -8,7 +8,7 @@
 
 ## 1. Context
 
-[ADR-0001](0001-mandate.md) §3.1 requires modeling of component-defined circuits, coupled quantum subsystems, and explicit operators, with declared bases, units, truncations, and parameter provenance, and it leaves the concrete representation to Block 1. §3.3 fixes GHz and ns, a single explicit angular-frequency conversion, and declared, separately refined cutoffs and retained levels.
+[ADR-0001](0001-mandate.md) §3.1 requires modeling of component-defined circuits, coupled quantum subsystems, and explicit operators, with declared bases, units, truncations, and parameter provenance, and it leaves the concrete representation to this record. §3.3 fixes GHz and ns, a single explicit angular-frequency conversion, and declared, separately refined cutoffs and retained levels.
 
 scqubits quantizes circuits through a coordinate transformation `φ = Mθ` from node fluxes `φ` to quantized coordinates `θ`, classifies each coordinate as periodic, extended, or eliminated (frozen or free), and numbers coordinates and loops internally. Those internal choices depend on topology and can change between releases. The decisions below keep authored inputs tied to user-named objects wherever the physics allows it.
 
@@ -116,7 +116,7 @@ Operators are referenced as `<subsystem>.<name>`. Available names depend on the 
 
 ## 4. Consequences
 
-- The schema, `validate`, and the model adapter implement these rules in Block 1. The derived coordinate offsets, available operator names, and scqubits' default transformation are reported by `validate`.
+- The schema, `validate`, and the model adapter implement these rules. The derived coordinate offsets, available operator names, and scqubits' default transformation are reported by `validate`.
 - The coordinate maps `Mᵀ` and `M⁻ᵀ`, the gauge and eliminated-coordinate rules, the transformation constraint, and the node-phase availability rule need tests. The custom two-mode circuit fixture exercises them.
 - Offset and flux signs need observable checks, such as charge expectations or a multi-loop case, because opposite signs can give identical spectra.
 - Branch-phase operators, further constructors, and additional units or bases are extensions.

@@ -98,11 +98,6 @@ def _principal(residual: np.ndarray) -> tuple[float, float]:
     return float(axis[0]), float(axis[1])
 
 
-def learn_projection(dataset: Dataset, settings: ExtractionSettings) -> tuple[float, float]:
-    """Learn the I/Q direction of a map's lines, signed so that lines are positive."""
-    return _principal(_residual(dataset, settings)[2])
-
-
 def _groups(positions: np.ndarray, separation: float) -> list[list[int]]:
     groups = [[0]]
     for index in range(1, positions.size):

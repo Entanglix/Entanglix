@@ -85,7 +85,7 @@ Each detected maximum that is separated from its neighbours is fitted with every
 
 Failures are reported per column: `no noise estimate` for a constant column, `no peak`, `unresolved overlap` with the frequencies of the maxima involved, and `line fit failed` with the maximum's frequency and a detail: a rank-deficient fit, an optimizer that did not converge, or a non-finite uncertainty.
 
-The Python operation `entanglix.extraction.extract(dataset, settings, projection=None)` returns an `Extraction` with the projection used, the peaks as arrays (`column`, `bias` when the map has a bias axis, `centre`, `centre_uncertainty`, `linewidth`, `amplitude`), the failures, and each column's noise. `learn_projection(dataset, settings)` returns the projection alone.
+The Python operation `entanglix.extraction.extract(dataset, settings, projection=None)` returns an `Extraction` with the projection used, the peaks as arrays (`column`, `bias` when the map has a bias axis, `centre`, `centre_uncertainty`, `linewidth`, `amplitude`), the failures, and each column's noise.
 
 ## The calibrate protocol
 

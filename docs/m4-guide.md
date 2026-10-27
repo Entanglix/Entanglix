@@ -101,7 +101,7 @@ uv run --locked --exact ruff check .
 uv run --locked --exact ruff format --check .
 ```
 
-The default environment has neither extra, so the baseline and MCP tests are skipped there. Each step adds its tests to the existing CI jobs. The differentiable job selects by a file list and a keyword, and both are extended. The Julia tests are opt-in on the workstation; their command is in the [Piccolo acceptance reference](environment.md#piccolo-adapter-acceptance).
+The default environment has neither extra, so the baseline and MCP tests are skipped there. Each step adds its tests to the existing CI jobs. The differentiable job selects by a file list and a keyword, and both are extended. The Julia tests are opt-in on the workstation; their opt-in is in the [development checks](development.md#checks).
 
 ## 6. Exit evidence and handoff
 

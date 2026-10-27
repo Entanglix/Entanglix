@@ -1,6 +1,6 @@
 # ADR-0006: Device–Control Co-design
 
-**Date:** 2026-10-20
+**Date:** 2026-10-20, revised 2026-10-27
 **Status:** Accepted
 **Purpose:** fix how a co-design investigation composes the existing operations, how device candidates and seeds vary within one approved base, which frequency and bound quantities are derived from the model, how a returned pulse is evaluated under declared uncertainty, how lineage is carried, how candidates are compared, how the solve budget is declared, and what the first version leaves out. Field lists, formats, and command names are documented with the implementation.
 
@@ -137,7 +137,6 @@ Measurements: [co-design probe results](../../tests/probes/m5_codesign_results.j
 ## 4. Consequences
 
 - The contract's §3 `control` row adds the uncertainty diagnostic: on request, the returned pulse evaluated on the declared samples, reporting per-sample fidelity and leakage and the worst sampled fidelity without a pass or fail outcome.
-- The roadmap and checklist replace M5's "verified" wording with the checks requested and their scope reported.
 - The control reference documents parameter overrides, the named transition, Rabi-rate bounds, the evaluation table, the diagnostic, and the comparison guidance. The investigation reference documents control variations; the MCP reference documents `parent_run_ids`.
 - The co-design example is recorded with its own directory.
 - Tests cover: parameter overrides frozen in a control run; control variations over parameters and seeds admitted, and an out-of-region request refused; a derived transition recorded and matched against the model; a Rabi-rate bound that reproduces explicitly normalised bounds; a zero matrix element rejected; differing derived derivative bounds refused by channel; each diagnostic sample mode, including a combined sample recalibrated for its calibrated change only; calibrated samples without a named transition reported as inapplicable; requested refinement over the whole sample set, with coverage reported; and `parent_run_ids` through every MCP job tool, with CLI parity.
