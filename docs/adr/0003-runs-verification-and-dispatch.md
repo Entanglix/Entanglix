@@ -1,8 +1,8 @@
 # ADR-0003: Run Records, Verification, and Engine Dispatch
 
-**Date:** 2026-09-30, revised 2026-10-24
+**Date:** 2026-09-30, revised 2026-10-27
 **Status:** Accepted
-**Purpose:** fix how runs are recorded, how a user checks completed runs, how a run reaches the GPU without a performance claim, and how driven evolution is represented in the lab and rotating frames. Field lists, formats, and threshold values are documented with the implementation.
+**Purpose:** fix how runs are recorded, how a user checks completed runs, which engine runs a computation and how it reaches the GPU without a performance claim, and how driven evolution is represented in the lab and rotating frames. Field lists, formats, and threshold values are documented with the implementation.
 
 ---
 
@@ -13,6 +13,8 @@ The [harness contract](../../HARNESS_CONTRACT.md) requires a run directory with 
 M1 established agreement across QuTiP CPU, cuDensityMat, and dynamiqs on reference fixtures, a validated dispatch cap of dimension 30, and a selection policy that sends every non-gradient request to CPU. No measurement yet shows where the GPU is faster. Production runs may take hours, so verification that repeats a run on several engines or refines every sweep point would multiply its cost. On the first example, a refined full-window reference cost 12× to about 210× the run it checked, and the cheaper checks that could follow every run could not certify a result. Drives are constant within each output interval and evolution uses the lab frame, which makes resonant GHz drives impractical.
 
 amicode's run-directory contract supplies the layout, terminal marker, atomic result, and exit codes. Its frozen validators also require a Julia table and control fields (`fidelity`, `iterations`) that do not describe Python simulations or sweeps.
+
+Users may also supply their own engines and solvers as installed plugins.
 
 ## 2. Decisions
 
@@ -28,12 +30,14 @@ amicode's run-directory contract supplies the layout, terminal marker, atomic re
 
 ### 2.2 Execution environment and process ownership
 
-- Every job runs through `uv run --locked --exact` with the same declared extras set for all jobs sharing the environment. `env_hash` covers the lockfile digest, Python and platform, the installed extras, and observed driver, CUDA, and cuQuantum versions.
+- Every job runs through `uv run --locked --inexact` with the same declared extras set for all jobs sharing the environment. Locked dependencies are synchronized at each launch. Distributions the user installs in the runner environment, such as plugins, persist; Entanglix neither installs nor resolves them, and they are installed or updated only while no job uses the environment.
+- Before admission, the runner synchronizes the environment, checks its dependency consistency with uv, and refuses an inconsistent environment. A distribution without an install record, or an editable distribution other than the project itself, refuses admission.
+- The run records every installed distribution with its version and a digest of its install record, the manifest in which the installer lists each installed file with its hash. `env_hash` covers that record, the lockfile digest, Python and platform, the installed extras, and observed driver, CUDA, and cuQuantum versions.
 - Code provenance records the Git revision and dirty state and freezes a patch and untracked source files for uncommitted changes. Authored scripts and data are copied into `spec/` with digests.
 - The runner process supervises its job in a new process group; there is no daemon or queue. Separate invocations read and abort through the run records.
 - The GPU lock is a per-device file lock outside any runs root. The job inherits it, and the lock record names the holding run and process group. Reconciliation checks that process group before the GPU is reused.
 
-**Rationale:** an exact sync with a different extras set would reshape the environment between jobs. An `flock` lock is held while any process sharing its open file description keeps it open, so an inherited lock stays held when the runner dies and its job survives; a lock held only by the runner would be released while the job still uses the GPU.
+**Rationale:** an exact sync with a different extras set would reshape the environment between jobs. An `flock` lock is held while any process sharing its open file description keeps it open, so an inherited lock stays held when the runner dies and its job survives; a lock held only by the runner would be released while the job still uses the GPU. Users install private plugins themselves, and an exact sync would remove them at each launch. Recording every installed distribution, rather than those absent from the lockfile, also covers a locked package that a plugin installs at another version. A version does not identify a locally rebuilt package, but its install record lists the hash of every file it installed, so digesting the records identifies content without reading the environment at each launch. An editable install's record does not cover its source. Under the cooperative trust model, files edited after installation are not detected. Incompatible requirements do not always fail at import, so consistency is checked before admission.
 
 ### 2.3 Verification runs and checks on request
 
@@ -58,11 +62,12 @@ amicode's run-directory contract supplies the layout, terminal marker, atomic re
 ### 2.4 Built-in checks
 
 - **Integrity** (dynamics): trace, Hermiticity, and minimum eigenvalue of every stored state, agreement of the first stored state with the declared initial state in the lab basis, and consistency of reported values with the stored states. It catches corrupted or unphysical output and a run started from the wrong state. It cannot detect a fault that affects the declared and the stored state alike.
-- **Segments** (dynamics): short windows restarted from stored states in the source run's frame, at tightened tolerances and with each truncated subsystem refined by its declared step. They run on CPU with the run's own engine; a GPU run uses QuTiP. They catch local integration and truncation error.
+- **Segments** (dynamics): short windows restarted from stored states in the source run's frame, at tightened tolerances and with each truncated subsystem refined by its declared step. They run on CPU with the run's own built-in engine; a GPU run, or a run on a plugin engine, uses QuTiP. They catch local integration and truncation error.
   - Windows cover the start, middle, and end of the run and its drive changes, up to a policy maximum, spread across the drive changes when more exist than fit. Drive changes left uncovered are reported.
   - A segment that disagrees beyond its tolerance fails. The tolerance is a policy default with an explicit override per observable or metric, in that quantity's units; the effective value is recorded.
   - Passing segments show local agreement over the reported coverage. A restart inherits any error already accumulated, so they are never extrapolated to the whole window.
   - A segment on the run's own engine can share a systematic error with the run. It is a convergence comparison, not independent validation of the engine.
+  - A segment on QuTiP for a plugin-engine run also compares the engines, and its scope says so.
   - Before the user requests segments, the listing shows the source and refined dimensions, the CPU engine, and the selected windows.
 - **Diagnostics** (dynamics): top retained-level population, and static dressed-state shifts and weights at a refined cutoff or between full and rotating-wave Hamiltonians. They are reported and have no pass or fail outcome.
 - **Spectral refinement** (spectra): the reported quantities recomputed at refined cutoffs and retained levels. It catches a truncation too small for the reported energies.
@@ -73,14 +78,14 @@ amicode's run-directory contract supplies the layout, terminal marker, atomic re
   - Integrity and diagnostics cover every point whose states the sweep retained.
   - Segments and spectral refinement run at a deterministic, bounded set of evidence points selected after the sweep.
   - Reports mark each point's coverage and say nothing about unsampled points. Warnings are all reported; when the evidence points cannot cover them within the bound, the report says so.
-- Refined solves run on CPU, with no dimension limit of their own (§2.5).
+- Refined solves run on CPU, with no dimension limit of their own (§2.5). A plugin-engine run's refined solves use QuTiP, so no check needs the plugin.
 - Further checks are added when a need is identified.
 
 **Rationale:**
 - The checks follow how researchers test convergence: physicality first, then spot checks at tighter tolerance and more levels.
 - A refined full-window reference repeats the computation that truncation and the rotating frame exist to avoid. It is another solve, so a user who doubts a result requests one as an ordinary run.
 - Re-solving a spectrum with a second eigensolver, or against an independently constructed model, tests the solver and not the physics. The solver is the user's choice, and those comparisons stay in the acceptance tests of the model and engine layers.
-- A segment tests tolerance and truncation, not the engine, so it uses the run's own engine where that engine runs on CPU. Engine agreement rests on the engine acceptance tests.
+- A segment tests tolerance and truncation, not the engine, so it uses the run's own engine where that engine is built in and runs on CPU. Engine agreement rests on the engine acceptance tests. A plugin engine has no acceptance tests here, and no check depends on private code, so its segments run on QuTiP.
 - A check input that blocked a launch would restrict runs the user never asked to check.
 - Segments see only the intervals they sample. In the probe a delayed pulse escaped start, middle, and end selection, and local residuals did not predict full-window errors.
 - Lab-frame evolution restarted from a rotating-wave state shows local differences between the full and RWA dynamics, not the approximation's accumulated error. On the readout cases those differences exceeded the full-window error, so segments stay in the source run's frame.
@@ -91,7 +96,13 @@ Measurements: [verification feasibility probe](../../tests/probes/m2_verificatio
 
 ### 2.5 Engine dispatch
 
-- Declared needs are `gradients` and `device`. Without gradients, a declared `device = "cuda"` selects cuDensityMat, and an undeclared device selects QuTiP CPU; gradients select dynamiqs. The selection table records needs, not performance.
+- The engine is the one the spec names; otherwise the user's default for the declared device; otherwise the built-in rule on declared needs (`gradients` and `device`): without gradients, a declared `device = "cuda"` selects cuDensityMat and an undeclared device selects QuTiP CPU; gradients select dynamiqs. The selection table records needs, not performance.
+- Engines are built in or discovered through the `entanglix.integrators` entry-point group. Each implements the `Integrator` interface and declares its capabilities.
+- The user sets per-device defaults in the environment of the process that prepares runs. Research agents name an engine only at the user's request.
+- A chosen engine that is not installed, or whose capabilities do not meet the declared needs, refuses the run before admission; no other engine replaces it. Plugin engines serve runs without gradients or batching. Spectrum runs use the QuTiP CPU eigensolver, ignore defaults, and refuse any other named engine.
+- Plans store the engine name. Availability and capabilities are resolved at admission, so a run can be read and checked where its engine is not installed. The preview and run records name the engine, its distribution version and digest, and the source of the choice.
+- A rerun uses its source run's engine and is refused if that engine is unavailable.
+- Every CUDA launch passes the shared device checks: ownership, identity, and refusal of a busy device. Engine-specific initialization runs only for the engine that needs it.
 - The harness imposes no dimension cap, on dispatch or on the corrector's refined solves, and no memory estimate precedes a launch. Tested sizes are acceptance evidence, not a ceiling.
 - A run that exhausts memory fails:
   - An observed allocation failure is reported as out of memory, including one during model construction at the launch gate, before a run exists.
@@ -100,7 +111,7 @@ Measurements: [verification feasibility probe](../../tests/probes/m2_verificatio
 - A launch shows the model's dimensions and output count. These are known inputs, not an estimate.
 - Automatic performance-based dispatch requires measured CPU/GPU crossover and peak memory, together with a review of cuDensityMat open-system usage.
 
-**Rationale:** a declared device exercises the GPU path without an unmeasured performance claim, and dispatch remains a recorded property of the run. The earlier caps, dimension 30 for dispatch and 48 for refined solves, marked how far exact references had been tested. With no reference check, they would only restrict what a user can model. A memory estimate refuses a run on a prediction; the failure itself is reported when it happens.
+**Rationale:** a declared device exercises the GPU path without an unmeasured performance claim, and dispatch remains a recorded property of the run. The earlier caps, dimension 30 for dispatch and 48 for refined solves, marked how far exact references had been tested. With no reference check, they would only restrict what a user can model. A memory estimate refuses a run on a prediction; the failure itself is reported when it happens. A default switches engines for all new work without editing specs, and a named engine records an explicit request. Substituting an engine would report a computation the user did not choose. A plan that required its engine would make history unreadable once a plugin is removed. Pinning a rerun to its source engine keeps a changed default from changing what the replay computes. Shared device checks keep a CUDA plugin from requiring the cuQuantum stack.
 
 ### 2.6 Drives and frames
 
@@ -125,7 +136,7 @@ Measurements: [verification feasibility probe](../../tests/probes/m2_verificatio
 | Convergence refinement at every sweep point | Repeats the production computation at larger dimension |
 | A built-in full-window refined reference | Costs 12× to about 210× the run on the first example and repeats the computation that truncation avoids; a user who doubts a result requests another solve |
 | Spectral comparison with a second eigensolver or an independently constructed model | Tests the solver, not the physics; the solver is the user's choice |
-| Segments on a different engine from the run | A segment tests tolerance and truncation; engine agreement is established by the engine acceptance tests |
+| Segments of a built-in CPU engine's run on a different engine | A segment tests tolerance and truncation; engine agreement is established by the engine acceptance tests |
 | Declared per-observable and per-metric rotating-wave bounds | Each bound needed its own frame study and a lab-frame reference to check it |
 | General linkage and multi-photon analysis as a static screen | A research method rather than a check; diagonalization covers static linkage within retained and refined levels, and drive-induced linkage needs dynamics |
 | Lab-frame segments as approximation evidence for rotating-wave runs | They show local differences between the full and RWA dynamics, not accumulated error, and failed readout cases whose full-window error was within target |
@@ -144,6 +155,15 @@ Measurements: [verification feasibility probe](../../tests/probes/m2_verificatio
 | Automatic GPU selection | No measured crossover supports it |
 | Rotating frames in the system specification | A frame is a computation choice, and one device model serves both frames |
 | A separate corrector distribution | The policy digest provides the needed tamper evidence under the cooperative trust model |
+| Exact sync of the runner environment | Removes user-installed plugins at each launch |
+| Plugins installed by Entanglix, through `uv run --with` or a requirement list | Entanglix would carry plugin requirements; users install plugins themselves |
+| Plugins added to a local `pyproject.toml` and lock | Every run records a dirty checkout, and private names enter recorded patches |
+| Recording only distributions absent from the lockfile | Misses a locked package installed at another version |
+| Selection only from declared needs | A user could not run their own engine |
+| A built-in engine in place of a chosen engine that cannot run | Reports a computation the user did not choose |
+| Segments and refined solves on a plugin engine | A check would depend on private code |
+| Reruns re-selecting the engine | A changed default would change what a replay computes |
+| cuDensityMat initialization at every CUDA launch | A CUDA plugin would require the cuQuantum stack |
 
 ## 4. Consequences
 
@@ -161,3 +181,6 @@ Measurements: [verification feasibility probe](../../tests/probes/m2_verificatio
 - A research agent may request either device through a supported protocol; within an investigation the device belongs to a base the user approved ([ADR-0004 §2.8](0004-investigations-and-agent-sessions.md#28-agent-sessions)).
 - The selection table and the corrector policy drop their dimension caps, and engine selection and the launch gate drop their memory estimates.
 - Batching and performance-based dispatch follow the cuDensityMat usage study. Tolerances and segment limits are set with the implementation.
+- The contract's §1 states that private implementations are distributions the user installs in the runner environment, and §2 states the engine order, the user default, the refusal of a chosen engine that cannot run, rerun pinning, and the installed-distribution record.
+- The research conduct asks agents to leave `engine` unset unless the user asks for one.
+- Tests cover engine precedence, refusals without fallback, spectrum handling, a plugin run read and checked without its plugin with segments on QuTiP, reruns keeping their engine, a local plugin distribution recorded with version and digest, the consistency and editable refusals, and CUDA admission without cuQuantum for another engine with the busy-device refusal unchanged.

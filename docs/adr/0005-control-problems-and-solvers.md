@@ -1,6 +1,6 @@
 # ADR-0005: Control Problems, Solvers, and Control Checks
 
-**Date:** 2026-10-11, revised 2026-10-25
+**Date:** 2026-10-11, revised 2026-10-27
 **Status:** Accepted
 **Purpose:** fix how a control problem is stated and shared between solvers, where the solver is named, how solvers attach, what they report and how they receive a supplied starting pulse, how Piccolo is run, and which checks a control result offers. Field lists, formats, and command names are documented with the implementation.
 
@@ -68,7 +68,7 @@ The harness does only what the user requests.
 ### 2.4 Solvers
 
 - A solver implements `capabilities()` and `solve(problem_spec, options)`, and returns the pulse, its objective, its termination report, and its trace. It may also report the fidelity it attained, as a quantity separate from its objective.
-- Solvers are discovered through the `entanglix.solvers` entry-point group, the open ones included. Repository code never imports a private solver.
+- Solvers are discovered through the `entanglix.solvers` entry-point group, the open ones included. Repository code never imports a private solver. A private solver is a distribution the user installs in the runner environment, which records it ([ADR-0003 §2.2](0003-runs-verification-and-dispatch.md#22-execution-environment-and-process-ownership)).
 - The control spec names the solver and may declare a fallback. A named solver that is missing, with no fallback, is a configuration error before a run exists. The result records the solver that ran and its version.
 - Solver options hold convergence settings such as an iteration cap and a tolerance. The harness adds none. Resource limits are the runner's and are optional.
 - Each solver reads its options in its own meaning. An option name that two solvers share does not make their settings equal.
