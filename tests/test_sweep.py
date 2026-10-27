@@ -14,8 +14,8 @@ from test_simulate import ROOT, protocol_files, wait_for
 from test_simulate import gpu_repository as gpu_repository
 
 from entanglix.corrector.verification import check_run
-from entanglix.protocols.sweep import compile_sweep, load_sweep, rerun_sweep, sweep
-from entanglix.runner import _digest, _load_record, publish_toml, read_run
+from entanglix.protocols.sweep import compile_sweep, load_sweep, sweep
+from entanglix.runner import _digest, _load_record, publish_toml, read_run, rerun
 
 
 def sweep_files(root, *, kind="lindblad", device="cpu", axes=2):
@@ -79,7 +79,7 @@ def test_static_and_dynamic_grids_replay_frozen_inputs(tmp_path, runner_reposito
     assert checks[0]["coverage"]["checked_points"] == [0, 1, 2, 3]
     path.unlink()
     (tmp_path / "system.toml").unlink()
-    replay = rerun_sweep(run, repository=runner_repository)
+    replay = rerun(run, repository=runner_repository)
     assert replay["exit_code"] == 0
     repeated = read_run(Path(replay["path"]))
     assert repeated["manifest"]["parent_run_ids"] == [run.name]
@@ -88,7 +88,7 @@ def test_static_and_dynamic_grids_replay_frozen_inputs(tmp_path, runner_reposito
     frozen.chmod(0o644)
     frozen.write_text(frozen.read_text() + "\n# changed\n")
     with pytest.raises(ValueError, match="digest mismatch"):
-        rerun_sweep(run, repository=runner_repository)
+        rerun(run, repository=runner_repository)
 
 
 def test_cli_preview_and_declared_expectation(tmp_path, runner_repository):
@@ -217,7 +217,7 @@ def test_partial_points_survive_and_rerun_recomputes_grid(tmp_path, runner_repos
             supervisor.communicate(timeout=10)
         assert read_run(run)["sweep_progress"]["completed_count"] == 1
         assert not (run / "result.toml").exists()
-        replay = rerun_sweep(run, repository=runner_repository)
+        replay = rerun(run, repository=runner_repository)
         assert replay["exit_code"] == 0
         assert read_run(Path(replay["path"]))["sweep_progress"]["completed_count"] == 2
     finally:
@@ -241,7 +241,7 @@ def test_gpu_sweep_checks_and_replay(tmp_path, gpu_repository):
         item["outcome"] == "pass"
         for item in check_report(run, ("integrity", "segments"), gpu_repository)
     )
-    assert rerun_sweep(run, repository=gpu_repository)["exit_code"] == 0
+    assert rerun(run, repository=gpu_repository)["exit_code"] == 0
 
 
 def test_readout_coherence_and_dressed_frequency_conventions():

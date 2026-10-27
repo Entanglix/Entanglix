@@ -21,9 +21,8 @@ from entanglix.protocols.control import (
     compile_control,
     control,
     load_control,
-    rerun_control,
 )
-from entanglix.runner import _digest, read_run
+from entanglix.runner import _digest, read_run, rerun
 from entanglix.solvers import Pulse
 from entanglix.solvers.grape import GrapeBackend
 
@@ -297,7 +296,7 @@ def test_sources_are_delivered_recorded_and_replayed_without_catalog(
         root / entry["pulse"]["path"]
     ).read_bytes()
     shutil.rmtree(root / "_catalog")
-    replay = rerun_control(entry_run, repository=starting_repository)
+    replay = rerun(entry_run, repository=starting_repository)
     record = read_run(Path(replay["path"]))
     assert record["status"] == "completed", record["log_tail"]
     assert record["manifest"]["source_entry_ids"] == [entry["entry_id"]]
@@ -379,7 +378,7 @@ def test_base_binds_its_starting_file_and_replays_from_the_frozen_copy(
     write_pulse(path.with_name("start.npz"), AMPLITUDES, ["x", "y"])
     with pytest.raises(ValueError, match=f"changed digests: {STARTING_PULSE}"):
         control(path, **arguments)
-    replay = read_run(Path(rerun_control(run, repository=starting_repository)["path"]))
+    replay = read_run(Path(rerun(run, repository=starting_repository)["path"]))
     assert replay["status"] == "completed", replay["log_tail"]
     original = record["manifest"]["launch"]["starting_pulse"]
     assert replay["manifest"]["launch"]["starting_pulse"] == original

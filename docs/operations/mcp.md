@@ -39,7 +39,7 @@ Tools use the same backing operations as the CLI, with MCP response summaries de
 | Tools | Effect |
 |---|---|
 | `validate_system`, `list_capabilities`, `list_runs`, `read_run`, `list_investigations`, `read_investigation`, `list_catalog`, `read_entry` | Read-only; validation includes operator meanings and model provenance; catalog reads include staged candidates, promoted designs and lineage |
-| `simulate`, `sweep`, `control`, `calibrate`, `run_script`, `rerun_simulation`, `rerun_sweep`, `rerun_control`, `rerun_calibration`, `rerun_script`, `check` | Admit jobs through the runner, returning the launch and run IDs once admission is established |
+| `simulate`, `sweep`, `control`, `calibrate`, `run_script`, `rerun`, `check` | Admit jobs through the runner, returning the launch and run IDs once admission is established |
 | `abort_run`, `stop_investigation` | Cancel work using the existing process-group and investigation rules |
 | `create_investigation`, `revise_investigation`, `record_finding`, `reconcile_run`, `propose_device_update`, `register_result` | Draft terms, propose revisions, append findings, reconcile uncertain attempts, or stage a device-update proposal or catalog candidate |
 
@@ -47,9 +47,9 @@ Only the first row carries the MCP read-only annotation. Jobs and writes may req
 
 `register_result`, `list_catalog` and `read_entry` stage and read catalog designs; see the [catalog reference](catalog.md#research-tools) for arguments, source-run location and reply fields.
 
-Control tools take an authored protocol path, or a source run path for `rerun_control`. An investigation control request names an approved base and passes varied values in `values`, as `simulate` does. Control solves and their requested checks run on CPU; see the [control reference](control.md).
+Control tools take an authored protocol path, or a source run path for `rerun`. An investigation control request names an approved base and passes varied values in `values`, as `simulate` does. Control solves and their requested checks run on CPU; see the [control reference](control.md).
 
-`calibrate` takes an authored calibration spec, which lists training datasets only, and `rerun_calibration` a source run path; an investigation calibration names an approved base and takes no varied values. For a calibration source, `check` also takes `holdout`, the authored path of the withheld dataset, `solution`, a solution index, and `expect_coverage` as `[within, minimum]`, as the CLI's `--holdout`, `--solution` and `--expect-coverage` do. `propose_device_update` takes a completed calibrate run path and an optional `solution`, and returns the proposal it published in the run's `proposals/`. Applying it is the operator's `apply-device-update`; see the [calibration reference](calibration.md#device-update-proposals).
+`calibrate` takes an authored calibration spec, which lists training datasets only, and `rerun` a source run path; an investigation calibration names an approved base and takes no varied values. For a calibration source, `check` also takes `holdout`, the authored path of the withheld dataset, `solution`, a solution index, and `expect_coverage` as `[within, minimum]`, as the CLI's `--holdout`, `--solution` and `--expect-coverage` do. `propose_device_update` takes a completed calibrate run path and an optional `solution`, and returns the proposal it published in the run's `proposals/`. Applying it is the operator's `apply-device-update`; see the [calibration reference](calibration.md#device-update-proposals).
 
 `simulate`, `sweep`, `control` and `run_script` accept an optional `parent_run_ids` list, recorded in the new run's `parent_run_ids` in the given order, as the CLI's repeated `--parent-run ID` is. IDs are recorded as given; pass the `run_id` values returned by earlier job tools. Reruns and checks set their own parent. For example, a candidate solve linked to the screening sweep that chose it:
 
@@ -244,11 +244,11 @@ CUDA_VISIBLE_DEVICES="" claude -p '<task brief>' \
     mcp__entanglix__list_capabilities mcp__entanglix__list_runs \
     mcp__entanglix__list_investigations mcp__entanglix__read_investigation \
     mcp__entanglix__read_run mcp__entanglix__simulate mcp__entanglix__check \
-    mcp__entanglix__rerun_simulation mcp__entanglix__reconcile_run \
+    mcp__entanglix__rerun mcp__entanglix__reconcile_run \
     mcp__entanglix__record_finding mcp__entanglix__stop_investigation
 ```
 
-The entry's `timeout` is Claude Code's per-call limit for this server, in milliseconds; keep it above `--max-wait`. It also sets the floor of Claude Code's idle check, which otherwise aborts a stdio call after 30 silent minutes. In an interactive session, Claude Code moves a call still running after two minutes to a background task; the non-interactive form does not. For a control task, also allow `mcp__entanglix__control` and `mcp__entanglix__rerun_control`; the [live control sessions](../../tests/probes/m4_sessions_results.json) used this form. For a calibration task, also allow `mcp__entanglix__calibrate`, `mcp__entanglix__rerun_calibration` and `mcp__entanglix__propose_device_update`.
+The entry's `timeout` is Claude Code's per-call limit for this server, in milliseconds; keep it above `--max-wait`. It also sets the floor of Claude Code's idle check, which otherwise aborts a stdio call after 30 silent minutes. In an interactive session, Claude Code moves a call still running after two minutes to a background task; the non-interactive form does not. For a control task, also allow `mcp__entanglix__control`; the [live control sessions](../../tests/probes/m4_sessions_results.json) used this form. For a calibration task, also allow `mcp__entanglix__calibrate` and `mcp__entanglix__propose_device_update`.
 
 In four [retained sessions](../../tests/probes/m3_pickup_cutoff_results.json) the conduct was present before the first reply and no repository development instructions appeared. No command setting has been validated for Claude Code: a session without a shell tool cannot run an operator command, but no retained test covers a session that has one, so there the rule rests on the conduct. Claude Code can reject a large tool reply as over its output limit: use the status and paged table views for research reads, and the report command or retained files for full history.
 

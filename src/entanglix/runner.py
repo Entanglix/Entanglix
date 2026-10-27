@@ -1146,7 +1146,29 @@ def run_script(
         )
 
 
-def rerun_script(
+def rerun(
+    run: Path,
+    *,
+    runs_root: Path | None = None,
+    repository: Path | None = None,
+    timeout_seconds: float | None = None,
+) -> dict:
+    """Replay a retained computation or script attempt under a new linked ID, by its protocol."""
+    protocol = _read_attempt(run)["manifest"]["protocol"]
+    if protocol == "script":
+        return _rerun_script(
+            run, runs_root=runs_root, repository=repository, timeout_seconds=timeout_seconds
+        )
+    if protocol not in {"simulate", "sweep", "control", "calibrate"}:
+        raise ValueError(f"rerun replays script and protocol attempts, not {protocol!r} attempts")
+    if timeout_seconds is not None:
+        raise ValueError("a protocol rerun keeps the timeout of the spec it replays")
+    from entanglix.protocols.simulate import _rerun_protocol
+
+    return _rerun_protocol(run, operation=protocol, repository=repository, runs_root=runs_root)
+
+
+def _rerun_script(
     run: Path,
     *,
     runs_root: Path | None = None,
@@ -1212,16 +1234,12 @@ def list_capabilities(repository: Path | None = None) -> dict:
             "read_run",
             "abort_run",
             "reconcile_run",
-            "rerun_script",
+            "rerun",
             "check",
             "simulate",
-            "rerun_simulation",
             "sweep",
-            "rerun_sweep",
             "control",
-            "rerun_control",
             "calibrate",
-            "rerun_calibration",
             "propose_device_update",
             "register_result",
             "list_catalog",

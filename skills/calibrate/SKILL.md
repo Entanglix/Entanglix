@@ -1,7 +1,7 @@
 ---
 name: calibrate
 description: Fit Entanglix device parameters to spectroscopy, request calibration checks with withheld data, and stage a device-update proposal for the operator to apply.
-version: 0.1.1
+version: 0.1.2
 ---
 
 # Calibration from spectroscopy
@@ -55,7 +55,7 @@ human-action rule allows, and never script it or edit the system file yourself. 
 which one so they can inspect it; even a comment-only edit changes its digest.
 
 Settle an interrupted attempt once ownership and group-liveness checks permit
-reconciliation. Use `rerun_calibration`, not a fresh fit of the same inputs, to
+reconciliation. Use `rerun`, not a fresh fit of the same inputs, to
 retain lineage and investigation membership under current approved terms. Checks
 and proposals belong to the run they name, so a rerun has none until they are
 requested. Record findings with source run

@@ -31,15 +31,11 @@ from entanglix.mcp_views import finding_ack, investigation_view, relative_path, 
 
 JOBS = {
     "calibrate",
-    "rerun_calibration",
     "control",
-    "rerun_control",
     "simulate",
     "sweep",
     "run_script",
-    "rerun_simulation",
-    "rerun_sweep",
-    "rerun_script",
+    "rerun",
     "check",
 }
 READS = {
@@ -555,11 +551,6 @@ def build_server(config: Configuration):
         )
 
     @tool
-    async def rerun_control(run: str) -> dict[str, object]:
-        """Re-solve frozen control inputs as a new linked attempt under current terms."""
-        return await job("rerun_control", run=run)
-
-    @tool
     async def calibrate(
         protocol: str,
         investigation_id: str | None = None,
@@ -574,11 +565,6 @@ def build_server(config: Configuration):
             base=base,
             parent_run_ids=tuple(parent_run_ids or ()),
         )
-
-    @tool
-    async def rerun_calibration(run: str) -> dict[str, object]:
-        """Re-fit frozen calibration inputs as a new linked attempt under current terms."""
-        return await job("rerun_calibration", run=run)
 
     @tool
     async def propose_device_update(run: str, solution: int | None = None) -> dict[str, object]:
@@ -610,19 +596,9 @@ def build_server(config: Configuration):
         )
 
     @tool
-    async def rerun_script(run: str, timeout_seconds: float | None = None) -> dict[str, object]:
-        """Replay frozen script inputs as a new linked attempt under current terms."""
-        return await job("rerun_script", run=run, timeout_seconds=timeout_seconds)
-
-    @tool
-    async def rerun_simulation(run: str) -> dict[str, object]:
-        """Replay frozen simulation inputs as a new linked attempt under current terms."""
-        return await job("rerun_simulation", run=run)
-
-    @tool
-    async def rerun_sweep(run: str) -> dict[str, object]:
-        """Replay a frozen grid as a new linked attempt under current terms."""
-        return await job("rerun_sweep", run=run)
+    async def rerun(run: str, timeout_seconds: float | None = None) -> dict[str, object]:
+        """Replay a run's frozen inputs as a new linked attempt; only a script takes a timeout."""
+        return await job("rerun", run=run, timeout_seconds=timeout_seconds)
 
     @tool
     async def check(

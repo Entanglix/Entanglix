@@ -10,8 +10,8 @@ import numpy as np
 import tomli_w
 
 from entanglix.corrector.verification import check_run
-from entanglix.protocols.sweep import rerun_sweep, sweep
-from entanglix.runner import _load_record, read_run
+from entanglix.protocols.sweep import sweep
+from entanglix.runner import _load_record, read_run, rerun
 
 ROOT = Path(__file__).resolve().parents[2]
 EXAMPLE = ROOT / "examples/readout"
@@ -151,7 +151,7 @@ def study(device, output):
     source = launch(device)
     first = requested(source, names)
     print(f"{device} source and requested checks passed: {source}", flush=True)
-    replay = rerun_sweep(source)
+    replay = rerun(source)
     if replay["exit_code"] or not all(replay["replay"].values()):
         raise RuntimeError(f"sweep replay failed: {replay}")
     repeated = requested(Path(replay["path"]), names)

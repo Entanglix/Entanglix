@@ -1,7 +1,7 @@
 ---
 name: simulate
 description: Run and inspect one Entanglix spectrum or dynamics computation, request relevant checks, or replay frozen inputs.
-version: 0.1.2
+version: 0.1.3
 ---
 
 # One computation
@@ -31,7 +31,7 @@ Inspect execution outcome, actual engine, metrics, artifacts, provenance, and th
 check listing. Failed or interrupted work stays part of history. Cancel owned
 work with `abort_run`. Settle an interrupted attempt before continuing: read it,
 then call `reconcile_run` once its owner and process group are gone, retaining
-uncertain usage. Use `rerun_simulation` to replay it with a link to the earlier
+uncertain usage. Use `rerun` to replay it with a link to the earlier
 attempt; do not submit a fresh simulation for the same inputs. Recovery needs no
 operator decision and stays within effective terms.
 
@@ -43,7 +43,7 @@ segments cover local windows and do not establish RWA or whole-window accuracy.
 Compare changed frames or truncations through separately recorded simulations
 when that evidence is needed.
 
-`rerun_simulation` replays frozen inputs with current code/environment and records
+`rerun` replays frozen inputs with current code/environment and records
 whether provenance matches its parent. It creates a new attempt and needs new
 requested checks. Findings distinguish results, check outcomes, and claims,
 and name source runs when deriving a quantity across attempts.

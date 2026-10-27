@@ -1,7 +1,7 @@
 ---
 name: control
 description: Solve an Entanglix closed-system gate problem, reuse a device or starting pulse, inspect candidates, request checks, or re-solve frozen inputs.
-version: 0.1.4
+version: 0.1.5
 ---
 
 # Closed-system control
@@ -62,7 +62,7 @@ compared quantity were chosen, and report an unsupported comparison as
 unresolved.
 
 Settle an interrupted attempt once ownership and group-liveness checks permit
-reconciliation. Use `rerun_control`, not a fresh solve of the same inputs, to
+reconciliation. Use `rerun`, not a fresh solve of the same inputs, to
 retain lineage and investigation membership under current approved terms.
 Each rerun needs its own requested checks. Record findings with source run IDs,
 attained fidelity, unmet targets or constraints, leakage and the next decision.

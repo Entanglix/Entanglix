@@ -20,23 +20,19 @@ current_launch: ContextVar[Path | None] = ContextVar("current_launch", default=N
 
 def _operation(name):
     from entanglix.corrector.verification import check_run
-    from entanglix.protocols.calibrate import calibrate, rerun_calibration
-    from entanglix.protocols.control import control, rerun_control
-    from entanglix.protocols.simulate import rerun_simulation, simulate
-    from entanglix.protocols.sweep import rerun_sweep, sweep
-    from entanglix.runner import rerun_script, run_script
+    from entanglix.protocols.calibrate import calibrate
+    from entanglix.protocols.control import control
+    from entanglix.protocols.simulate import simulate
+    from entanglix.protocols.sweep import sweep
+    from entanglix.runner import rerun, run_script
 
     operations = {
         "calibrate": calibrate,
-        "rerun_calibration": rerun_calibration,
         "control": control,
-        "rerun_control": rerun_control,
         "simulate": simulate,
         "sweep": sweep,
         "run_script": run_script,
-        "rerun_script": rerun_script,
-        "rerun_simulation": rerun_simulation,
-        "rerun_sweep": rerun_sweep,
+        "rerun": rerun,
         "check": check_run,
     }
     if name not in operations:

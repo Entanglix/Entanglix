@@ -12,7 +12,7 @@ import tomli_w
 
 from entanglix.corrector import create_verification_run, load_policy, load_verification
 from entanglix.protocols.plans import load_plan
-from entanglix.protocols.simulate import rerun_simulation, simulate
+from entanglix.protocols.simulate import simulate
 from entanglix.runner import (
     CodeSnapshot,
     _execute_job,
@@ -20,6 +20,7 @@ from entanglix.runner import (
     capture_environment,
     publish_toml,
     read_run,
+    rerun,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -74,7 +75,7 @@ def test_simulation_records_and_replays_frozen_complex_inputs(plan_files, runner
     assert record["finished"]["usage"]["wall_seconds"] > 0
     assert "verdict" not in record["result"]
     (root / "simulate.toml").write_text("invalid original")
-    replay = rerun_simulation(
+    replay = rerun(
         run,
         runs_root=root / "runs",
         repository=runner_repository,

@@ -473,10 +473,6 @@ def _launch_protocol(
     return result
 
 
-def rerun_simulation(run: Path, *, repository: Path | None = None, runs_root: Path | None = None):
-    return _rerun_protocol(run, operation="simulate", repository=repository, runs_root=runs_root)
-
-
 def _rerun_protocol(run, *, operation, repository=None, runs_root=None):
     record = _read_attempt(run)
     if record["manifest"]["protocol"] != operation or record["status"] in {"active", "unknown"}:

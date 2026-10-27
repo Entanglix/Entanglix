@@ -27,8 +27,8 @@ from entanglix.investigations import (
     stop_investigation,
 )
 from entanglix.mcp_views import attempt_data
-from entanglix.protocols.control import control, load_control, rerun_control
-from entanglix.runner import _cpu_job_context, _load_record, read_run
+from entanglix.protocols.control import control, load_control
+from entanglix.runner import _cpu_job_context, _load_record, read_run, rerun
 
 
 @pytest.fixture
@@ -248,12 +248,12 @@ def test_control_cli_and_rerun_keep_original_base_and_current_revision(control_s
     changed["scope"]["operations"] = ["check"]
     approve(control_study, **changed)
     with pytest.raises(ValueError, match="operation outside investigation scope"):
-        rerun_control(run, repository=repository)
+        rerun(run, repository=repository)
     with pytest.raises(ValueError, match="retain their runs root"):
-        rerun_control(run, repository=repository, runs_root=root / "other")
+        rerun(run, repository=repository, runs_root=root / "other")
     approve(control_study)
     replay = subprocess.run(
-        [*command, "rerun-control", str(run), "--detach"],
+        [*command, "rerun", str(run), "--detach"],
         env=environment,
         capture_output=True,
         text=True,
@@ -347,7 +347,7 @@ def test_control_varies_parameters_and_seeds_inside_one_base(varied_study):
     with pytest.raises(ValueError, match="require an investigation"):
         control(protocol, runs_root=root, repository=repository, values={"pulse.seed": 8})
     assert len(list(root.glob("*/*/run.toml"))) == count
-    replay = rerun_control(run, repository=repository)
+    replay = rerun(run, repository=repository)
     repeated = Path(replay["path"])
     assert read_run(repeated)["status"] == "completed"
     assert _load_record(repeated / "run.toml")["launch"]["varied_values"] == {
@@ -360,7 +360,7 @@ def test_control_varies_parameters_and_seeds_inside_one_base(varied_study):
     narrowed["scope"]["bases"][0]["variations"][1]["values"] = [7, 8]
     approve(varied_study, **narrowed)
     with pytest.raises(ValueError, match="outside permitted set: pulse.seed"):
-        rerun_control(run, repository=repository)
+        rerun(run, repository=repository)
     assert len(list(root.glob("*/*/run.toml"))) == count + 1
 
 
@@ -439,7 +439,7 @@ def test_standalone_control_rerun_and_frozen_input_tampering(control_study):
     protocol, _, root, _, repository = control_study
     original = control(protocol, repository=repository, runs_root=root)
     run = Path(original["path"])
-    replay = rerun_control(run, repository=repository)
+    replay = rerun(run, repository=repository)
     repeated = read_run(Path(replay["path"]))
     assert repeated["status"] == "completed", repeated["log_tail"]
     assert repeated["manifest"]["parent_run_ids"] == [run.name]
@@ -448,7 +448,7 @@ def test_standalone_control_rerun_and_frozen_input_tampering(control_study):
     frozen.chmod(0o644)
     frozen.write_text(frozen.read_text() + "\n# tampered\n")
     with pytest.raises(ValueError, match="digest"):
-        rerun_control(run, repository=repository)
+        rerun(run, repository=repository)
 
 
 def test_a_system_named_like_the_control_input_is_refused_for_an_investigation(control_study):

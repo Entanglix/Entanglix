@@ -14,7 +14,7 @@ import tomli_w
 
 from entanglix.corrector.verification import check_run
 from entanglix.protocols.plans import load_plan
-from entanglix.protocols.simulate import compile_simulation, rerun_simulation, simulate
+from entanglix.protocols.simulate import compile_simulation, simulate
 from entanglix.runner import (
     _cpu_job_context,
     _load_record,
@@ -23,6 +23,7 @@ from entanglix.runner import (
     publish_toml,
     read_run,
     record_reconciliation,
+    rerun,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -105,7 +106,9 @@ def test_spectral_simulation_cli_and_frozen_replay(tmp_path, runner_repository):
     assert (first / "artifacts/observables.png").stat().st_size > 100
     (tmp_path / "system.toml").unlink()
     protocol.unlink()
-    replay = rerun_simulation(first, repository=runner_repository)
+    replay = rerun(first, repository=runner_repository)
+    with pytest.raises(ValueError, match="keeps the timeout of the spec"):
+        rerun(first, repository=runner_repository, timeout_seconds=60)
     record = read_run(Path(replay["path"]))
     assert record["manifest"]["parent_run_ids"] == [first.name]
     assert record["manifest"]["env_hash"] == read_run(first)["manifest"]["env_hash"]
@@ -142,7 +145,7 @@ def test_replay_reports_changed_code_and_environment(tmp_path, runner_repository
                 ],
                 check=True,
             )
-        replay = rerun_simulation(run, repository=runner_repository)
+        replay = rerun(run, repository=runner_repository)
         assert replay["exit_code"] == 0
         assert replay["replay"] == {"code_matches": False, "environment_matches": False}
         repeated = read_run(Path(replay["path"]))
@@ -228,18 +231,20 @@ def test_dynamiqs_simulation_verifies_metrics_and_replays(tmp_path, differentiab
     assert record["result"]["metrics"]["excited_population"] == pytest.approx(
         np.exp(-0.1), abs=1e-9
     )
-    replay = rerun_simulation(run, repository=differentiable_repository)
+    replay = rerun(run, repository=differentiable_repository)
     assert read_run(Path(replay["path"]))["verification"] == []
     result = record["result"]
     result["metrics"]["excited_population"] = 1.0
     publish_toml(run / "result.toml", result, replace=True)
     checking = check_run(run, ("integrity",), repository=differentiable_repository)
     assert read_run(Path(checking["path"]))["result"]["report"]["checks"][0]["outcome"] == "fail"
+    with pytest.raises(ValueError, match="not 'verification' attempts"):
+        rerun(Path(checking["path"]), repository=differentiable_repository)
     state = run / "spec/initial-state.npz"
     state.chmod(0o644)
     np.savez(state, initial_state=np.array([1, 0, 0]))
     with pytest.raises(ValueError, match="digest mismatch"):
-        rerun_simulation(run, repository=differentiable_repository)
+        rerun(run, repository=differentiable_repository)
 
 
 @pytest.mark.parametrize("metric_bound", [None, 5e-4])
@@ -339,7 +344,7 @@ def test_gpu_simulation_verifies_after_execution_and_replays(tmp_path, gpu_repos
     assert all(item["outcome"] == "pass" for item in verification["result"]["report"]["checks"])
     assert record["finished"]["ended_at"] <= verification["start"]["started_at"]
     assert record["manifest"]["environment"]["gpu"]["cuda"] != "unobserved"
-    replay = rerun_simulation(run, repository=gpu_repository)
+    replay = rerun(run, repository=gpu_repository)
     assert read_run(Path(replay["path"]))["verification"] == []
 
 
@@ -409,7 +414,7 @@ def test_gpu_simulation_lifecycle_and_interrupted_replay(tmp_path, gpu_repositor
         with pytest.raises(ProcessLookupError):
             os.killpg(group, 0)
         assert read_run(run)["verification"] == []
-        replay = rerun_simulation(run, repository=gpu_repository)
+        replay = rerun(run, repository=gpu_repository)
         assert replay["exit_code"] == 0, read_run(Path(replay["path"]))["log_tail"]
         assert read_run(Path(replay["path"]))["verification"] == []
     finally:

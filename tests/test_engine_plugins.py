@@ -11,8 +11,8 @@ from test_simulate import protocol_files
 
 from entanglix.corrector.verification import check_run
 from entanglix.protocols.control import control
-from entanglix.protocols.simulate import rerun_simulation, simulate
-from entanglix.runner import _load_record, read_run
+from entanglix.protocols.simulate import simulate
+from entanglix.runner import _load_record, read_run, rerun
 
 PLUGIN = "entanglix-test-plugin"
 ENGINE = '''"""Test plugin engine: QuTiP under another name, as a separate distribution."""
@@ -138,12 +138,12 @@ def test_plugin_engine_by_default_is_read_checked_and_rerun_without_it(
     assert "compares the engines" in report[1]["scope"]
     assert {entry["engine"] for entry in report[1]["segments"]} == {"qutip-cpu"}
     with pytest.raises(ValueError, match="fixture-engine' is not installed"):
-        rerun_simulation(run, repository=runner_repository)
+        rerun(run, repository=runner_repository)
 
     # A rebuild at the same version changes the record; a changed default leaves reruns alone.
     install(runner_repository, write_plugin(tmp_path / "plugin", method="fixture-2"))
     monkeypatch.setenv("ENTANGLIX_ENGINES", "cpu=qutip-cpu")
-    replay = rerun_simulation(run, repository=runner_repository)
+    replay = rerun(run, repository=runner_repository)
     assert replay["exit_code"] == 0
     assert replay["replay"]["environment_matches"] is False
     replayed = read_run(Path(replay["path"]))["manifest"]

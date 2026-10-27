@@ -152,19 +152,19 @@ An authored script uses `run-script ... --investigation <investigation_id> --bas
 A [control solve](control.md#investigations-and-reruns) passes varied values in
 the same way, with `--vary`; it varies only `parameters.<name>` and `pulse.seed`.
 The authored control input, system and data stay exact, and changing the solver or
-its options requires another approved base. `rerun-control` inherits membership,
+its options requires another approved base. Its `rerun` inherits membership,
 reuses the original values, and uses current approved terms.
 
 A [calibration](calibration.md#investigations-and-reruns) takes no varied values:
 `calibrate fit.toml --investigation <investigation_id> --base <base_name>` must match
 an exact bundle of the spec, the system and its inputs, and the training datasets.
-`rerun-calibration` inherits membership and uses current approved terms.
+Its `rerun` inherits membership and uses current approved terms.
 
 A named check on a linked source automatically belongs to its investigation:
 
 ```sh
 entanglix check research_runs/<system_id>/<run_id> integrity segments --timeout 60
-entanglix rerun-simulation research_runs/<system_id>/<run_id>
+entanglix rerun research_runs/<system_id>/<run_id>
 ```
 
 Check names and replacement refinements follow the standalone rules. A check is a

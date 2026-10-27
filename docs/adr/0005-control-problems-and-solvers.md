@@ -151,7 +151,7 @@ Measurements: [control probe results](../../tests/probes/m4_control_results.json
   - §1 describes the control spec and the generated ProblemSpec, names the solver in the control spec and the result, and gives `solve` the problem file, solver options and, for a solver that declares support, an optional starting pulse, returning a termination report in place of a certificate.
   - §2 records the Julia version and project digest of a Piccolo run.
   - §3 states the control checks as a replay with independently calculated quantities, and a second solve as a separate requested run.
-  - §5 adds `rerun_control`.
+  - §5's `rerun` replays control runs.
 - ADR-0001's mandate table describes the control spec and Piccolo's role in these terms.
 - The first gate problem, with its duration, bounds, and fidelity target, is recorded with its example.
 - Tests cover: one generated file for every solver; the export convention against an independent replay; a solver name the registry lacks, with and without a fallback; a field outside a solver's support refused by name; a pulse from each open solver with an active derivative bound, the bound recomputed from the neutral pulse; ignored guidance fields listed; the baseline's gradient against finite differences at every interval, zero-amplitude ones included; the iteration cap and tolerance reaching Piccolo as arguments; a stop ending a Piccolo solve with a terminal record; the duration held within tolerance; each control check passing and failing on a constructed pulse, including an accurately reported pulse below its target; a check requested outside the subset reported as inapplicable; and `control` admitted, refused, counted, and rerun inside an investigation.

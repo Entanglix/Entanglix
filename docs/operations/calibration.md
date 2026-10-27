@@ -294,11 +294,11 @@ Research tools can stage proposals but never apply them; the research tool surfa
 
 `calibrate` is an investigation operation. Launched with `--investigation ID --base NAME`, a calibration is admitted only when its inputs match the base exactly: the spec under the fixed name `calibrate.toml`, the system file as `system.toml` with its subsystem sources and array files, and each training dataset and its array file under its own name. Calibration takes no varied values, and a changed input is refused with the base's digest differences. The run also freezes the authored files under `spec/base/`. Checks on the run belong to the investigation; a holdout dataset supplied with a check is not a base input.
 
-`rerun-calibration RUN` re-fits the frozen inputs as a new attempt linked to `RUN`. An investigation rerun uses the authored base files, keeps membership, and passes admission under the current approved revision.
+`rerun RUN` on a calibration run re-fits the frozen inputs as a new attempt linked to `RUN`. An investigation rerun uses the authored base files, keeps membership, and passes admission under the current approved revision.
 
 ```sh
 entanglix calibrate fit.toml --runs-root research_runs --investigation <investigation_id> --base fit
-entanglix rerun-calibration research_runs/<system_id>/<run_id>
+entanglix rerun research_runs/<system_id>/<run_id>
 ```
 
-Research tools reach calibration through the MCP `calibrate`, `rerun_calibration`, `check` and `propose_device_update` tools; see the [MCP reference](mcp.md#tool-surface). `apply-device-update` is a human action: it is absent from those tools and follows the [human-decision rule](mcp.md#human-decisions-and-continuation) of the other operator commands.
+Research tools reach calibration through the MCP `calibrate`, `rerun`, `check` and `propose_device_update` tools; see the [MCP reference](mcp.md#tool-surface). `apply-device-update` is a human action: it is absent from those tools and follows the [human-decision rule](mcp.md#human-decisions-and-continuation) of the other operator commands.

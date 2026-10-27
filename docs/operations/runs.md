@@ -10,7 +10,7 @@ uv run --locked --exact entanglix capabilities
 uv run --locked --exact entanglix list-runs
 uv run --locked --exact entanglix read-run research_runs/<system_id>/<run_id>
 uv run --locked --exact entanglix abort-run research_runs/<system_id>/<run_id>
-uv run --locked --exact entanglix rerun-script research_runs/<system_id>/<run_id>
+uv run --locked --exact entanglix rerun research_runs/<system_id>/<run_id>
 ```
 
 Commands print JSON. `run-script` waits for the job and returns its exit code. Use `--runs-root PATH` to choose the output root, repeated `--input NAME=PATH` to freeze additional files under `spec/`, and repeated `--parent-run ID` to record lineage. The corresponding Python operations are `run_script(system, script, ...)`, `list_capabilities()`, `list_runs(root)`, and `read_run(path)`. Capabilities inspect package metadata in the runner environment without creating or synchronizing it; before its first installation, no installed engines are reported. Engine names match the adapters, with supported `devices` reported separately; installation does not certify hardware availability. `plugin_engines` lists engines that installed plugins register, with their distribution and version; their devices and capabilities are resolved at admission. `engine_defaults` shows the user's per-device defaults ([engine selection](system-spec.md#engine-selection-policy)).
@@ -136,9 +136,9 @@ For an interrupted attempt:
 1. Inspect it with `read-run`; retained records and the log tail show what was observed.
 2. If its orphaned job group is still active, use `abort-run` and inspect again. Do not reconcile a live or unknown group. A paused live supervisor also retains ownership.
 3. Once the owner and group are gone, run `entanglix reconcile-run PATH --state "last observed state and recovery action"`. This calls `record_reconciliation`, retains uncertain usage, and never creates `FINISHED`.
-4. Use `rerun-script PATH` to launch the frozen script, system, referenced assets, and additional inputs under a new ID linked to the earlier attempt. Every frozen input digest is checked before launch. The old attempt is preserved; partial outputs are not resumed.
+4. Use `rerun PATH` to launch the frozen script, system, referenced assets, and additional inputs under a new ID linked to the earlier attempt. Every frozen input digest is checked before launch. The old attempt is preserved; partial outputs are not resumed.
 
-Reruns retain the earlier timeout; `--timeout SECONDS` overrides the timeout and `--runs-root PATH` changes the destination. Python callers use `rerun_script(path, ...)`. Rerunning an active or unknown attempt is refused. Reconstruct the recorded code and environment separately as described below: reruns use the current checkout and configuration and record their actual provenance. Attempts without recorded `[launch]` metadata require manual replay of `spec/script.py`, `spec/system.toml`, and additional `--input` files with `--parent-run ID`.
+Script reruns retain the earlier timeout; `--timeout SECONDS` overrides it and `--runs-root PATH` changes the destination. `rerun` replays any simulation, sweep, control or calibration run the same way, by the protocol its record names; a protocol rerun keeps its frozen spec's timeout and refuses `--timeout`. Python callers use `rerun(path, ...)`. Rerunning an active or unknown attempt is refused. Reconstruct the recorded code and environment separately as described below: reruns use the current checkout and configuration and record their actual provenance. Attempts without recorded `[launch]` metadata require manual replay of `spec/script.py`, `spec/system.toml`, and additional `--input` files with `--parent-run ID`.
 
 ### Local GPU ownership
 
@@ -233,7 +233,7 @@ See the [harness contract](../../HARNESS_CONTRACT.md) for execution and verifica
 
 ## Detached launches and waiting
 
-Job commands accept `--detach`: `simulate`, `sweep`, `run-script`, their rerun commands, and named `check` requests. The command returns the admitted run ID and path; a separate supervisor retains ownership, enforces the job timeout and investigation deadline, and writes the terminal record. Closing the requesting terminal or losing its response does not stop that supervisor. Use `abort-run` to cancel an admitted job. Dry-run previews and check listings remain synchronous and do not accept `--detach`.
+Job commands accept `--detach`: `simulate`, `sweep`, `control`, `calibrate`, `run-script`, `rerun`, and named `check` requests. The command returns the admitted run ID and path; a separate supervisor retains ownership, enforces the job timeout and investigation deadline, and writes the terminal record. Closing the requesting terminal or losing its response does not stop that supervisor. Use `abort-run` to cancel an admitted job. Dry-run previews and check listings remain synchronous and do not accept `--detach`.
 
 ```sh
 uv run --locked --exact entanglix simulate examples/readout/readout.toml --runs-root research_runs --detach

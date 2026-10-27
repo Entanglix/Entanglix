@@ -18,7 +18,6 @@ from entanglix.protocols.plans import load_plan
 from entanglix.protocols.simulate import (
     _adjacent,
     _launch_protocol,
-    _rerun_protocol,
     compile_simulation,
 )
 from entanglix.runner import _digest
@@ -260,10 +259,6 @@ def sweep(
         investigation_id=investigation_id,
         base=base,
     )
-
-
-def rerun_sweep(run, *, repository=None, runs_root=None):
-    return _rerun_protocol(run, operation="sweep", repository=repository, runs_root=runs_root)
 
 
 def partial_results(run):

@@ -62,14 +62,14 @@ def test_mcp_control_cli_results_checks_and_linked_rerun(control_study, tmp_path
                 if row[table["columns"].index("path")] == str(Path(run).relative_to(root))
             )
             assert row["checks"][0][:2] == [checked["run_id"], True]
-            replay = await call(session, "rerun_control", {"run": run})
+            replay = await call(session, "rerun", {"run": run})
             repeated = await call(session, "read_run", {"run": replay["path"], "wait_seconds": 30})
             assert repeated["status"] == "completed", repeated["log_tail"]
             assert repeated["manifest"]["parent_run_ids"] == [launch["run_id"]]
             assert repeated["manifest"]["investigation_id"] == investigation.name
             assert repeated["result"] == record["result"]
             assert repeated["verification"] == []
-            return [("control", launch), ("check", checked), ("rerun_control", replay)]
+            return [("control", launch), ("check", checked), ("rerun", replay)]
 
     jobs = asyncio.run(exercise())
     assert read_investigation(investigation)["usage"]["jobs"] == 4
@@ -114,7 +114,7 @@ def test_mcp_control_refusals_leave_no_attempt_or_allowance(control_study, tmp_p
             completed = await call(session, "read_run", {"run": job["path"], "wait_seconds": 30})
             assert completed["status"] == "completed", completed["log_tail"]
             count = list(root.glob("*/*/run.toml"))
-            for name, request in (("control", args), ("rerun_control", {"run": job["path"]})):
+            for name, request in (("control", args), ("rerun", {"run": job["path"]})):
                 refused = await session.call_tool(name, request)
                 assert refused.is_error and "job_count limit exhausted" in refused.content[0].text
                 assert list(root.glob("*/*/run.toml")) == count

@@ -23,11 +23,10 @@ from entanglix.protocols.calibrate import CalibrationSpec, compile_calibration
 from entanglix.protocols.control import ControlSpec, compile_control
 from entanglix.protocols.simulate import (
     SimulationSpec,
-    rerun_simulation,
     simulate,
 )
-from entanglix.protocols.sweep import rerun_sweep, sweep
-from entanglix.runner import _digest, read_run, rerun_script, run_script
+from entanglix.protocols.sweep import sweep
+from entanglix.runner import _digest, read_run, rerun, run_script
 
 
 @pytest.fixture
@@ -94,7 +93,7 @@ def test_entry_sweep_freezes_all_device_files_and_replays_without_catalog(
     child = register_result(run, "device", claim="second sweep point", point=1)
     assert child["parent_entry_ids"] == [entry["entry_id"]]
     shutil.rmtree(root / "_catalog")
-    replay = rerun_sweep(run, repository=runner_repository)
+    replay = rerun(run, repository=runner_repository)
     assert replay["exit_code"] == 0
     repeated = read_run(Path(replay["path"]))
     assert repeated["manifest"]["source_entry_ids"] == [entry["entry_id"]]
@@ -252,7 +251,7 @@ def test_investigation_run_and_replay_keep_entry_and_current_revision(
     revise_investigation(investigation, revised)
     record_user_decision(investigation, "approve-revision", revision=2)
     shutil.rmtree(root / "_catalog")
-    replay = rerun_simulation(run, repository=runner_repository)
+    replay = rerun(run, repository=runner_repository)
     assert replay["exit_code"] == 0
     repeated = read_run(Path(replay["path"]))["manifest"]
     assert repeated["source_entry_ids"] == [entry["entry_id"]]
@@ -329,7 +328,7 @@ def test_script_base_keeps_entry_provenance_on_replay_without_catalog(
         revise_investigation(investigation, revised)
         record_user_decision(investigation, "approve-revision", revision=2)
     shutil.rmtree(root / "_catalog")
-    repeated = rerun_script(run, repository=runner_repository)
+    repeated = rerun(run, repository=runner_repository)
     assert repeated["exit_code"] == 0
     manifest = read_run(Path(repeated["path"]))["manifest"]
     assert manifest["source_entry_ids"] == [entry["entry_id"]]

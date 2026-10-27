@@ -128,13 +128,15 @@ def _main(argv: list[str] | None = None) -> int:
         "--state", required=True, help="last observed state or recovery diagnostic"
     )
     rerun = subcommands.add_parser(
-        "rerun-script", help="replay frozen inputs under a new linked run ID"
+        "rerun", help="replay a script or protocol run's frozen inputs under a new linked run ID"
     )
     rerun.add_argument("run", type=Path, help="earlier attempt directory")
     rerun.add_argument(
         "--runs-root", type=Path, help="output root; default: the earlier attempt's root"
     )
-    rerun.add_argument("--timeout", type=float, help="override the recorded time limit in seconds")
+    rerun.add_argument(
+        "--timeout", type=float, help="override a script's recorded time limit in seconds"
+    )
     subcommands.add_parser(
         "capabilities", help="list runner operations and installed engine/device support"
     )
@@ -180,11 +182,6 @@ def _main(argv: list[str] | None = None) -> int:
         "--dry-run", action="store_true", help="validate the model and solver without a run"
     )
     controlling.add_argument("--parent-run", action="append", default=[])
-    control_replay = subcommands.add_parser(
-        "rerun-control", help="re-solve frozen control inputs with linked lineage"
-    )
-    control_replay.add_argument("run", type=Path)
-    control_replay.add_argument("--runs-root", type=Path)
     calibrating = subcommands.add_parser(
         "calibrate", help="fit device parameters to training spectroscopy on CPU"
     )
@@ -194,11 +191,6 @@ def _main(argv: list[str] | None = None) -> int:
         "--dry-run", action="store_true", help="validate the inputs and preview without a run"
     )
     calibrating.add_argument("--parent-run", action="append", default=[])
-    calibration_replay = subcommands.add_parser(
-        "rerun-calibration", help="re-fit frozen calibration inputs with linked lineage"
-    )
-    calibration_replay.add_argument("run", type=Path)
-    calibration_replay.add_argument("--runs-root", type=Path)
     proposing = subcommands.add_parser(
         "propose-device-update", help="write a device-update proposal from a calibrate run"
     )
@@ -239,34 +231,19 @@ def _main(argv: list[str] | None = None) -> int:
     )
     entry.add_argument("id", help="staged candidate or promoted entry ID")
     entry.add_argument("--runs-root", type=Path, default=Path("research_runs"))
-    replay = subcommands.add_parser(
-        "rerun-simulation",
-        help="replay a frozen simulation with linked lineage",
-    )
-    replay.add_argument("run", type=Path, help="earlier simulation attempt")
-    replay.add_argument("--runs-root", type=Path)
     grid = subcommands.add_parser("sweep", help="run a serial static or dynamic grid")
     grid.add_argument("protocol", type=Path, help="path to sweep.toml")
     grid.add_argument("--runs-root", type=Path, default=Path("research_runs"))
     grid.add_argument("--parent-run", action="append", default=[])
     grid.add_argument("--dry-run", action="store_true", help="validate and preview the frozen grid")
-    grid_replay = subcommands.add_parser(
-        "rerun-sweep", help="recompute a frozen grid with linked lineage"
-    )
-    grid_replay.add_argument("run", type=Path)
-    grid_replay.add_argument("--runs-root", type=Path)
     for job_parser in (
         script,
         rerun,
         checking,
         simulation,
-        replay,
         grid,
-        grid_replay,
         controlling,
-        control_replay,
         calibrating,
-        calibration_replay,
     ):
         job_parser.add_argument(
             "--detach",
@@ -468,16 +445,12 @@ def _main(argv: list[str] | None = None) -> int:
         "read-run",
         "abort-run",
         "reconcile-run",
-        "rerun-script",
+        "rerun",
         "check",
         "calibrate",
-        "rerun-calibration",
         "control",
-        "rerun-control",
         "simulate",
-        "rerun-simulation",
         "sweep",
-        "rerun-sweep",
     }:
         from entanglix.runner import (
             abort_run,
@@ -486,22 +459,18 @@ def _main(argv: list[str] | None = None) -> int:
             list_runs,
             read_run,
             record_reconciliation,
-            rerun_script,
+            rerun,
             run_script,
         )
 
         if args.command in {
             "run-script",
-            "rerun-script",
+            "rerun",
             "check",
             "calibrate",
-            "rerun-calibration",
             "control",
-            "rerun-control",
             "simulate",
-            "rerun-simulation",
             "sweep",
-            "rerun-sweep",
         }:
             # A supervising command stops its job on termination or hangup, as on Ctrl-C.
             signal.signal(signal.SIGTERM, signal.default_int_handler)
@@ -546,9 +515,9 @@ def _main(argv: list[str] | None = None) -> int:
             elif args.command == "reconcile-run":
                 record_reconciliation(args.run, last_observed_state=args.state)
                 result = read_run(args.run)
-            elif args.command == "rerun-script":
+            elif args.command == "rerun":
                 result = execute(
-                    rerun_script, args.run, runs_root=args.runs_root, timeout_seconds=args.timeout
+                    rerun, args.run, runs_root=args.runs_root, timeout_seconds=args.timeout
                 )
             elif args.command == "capabilities":
                 result = list_capabilities()
@@ -565,71 +534,55 @@ def _main(argv: list[str] | None = None) -> int:
                     solution=args.solution,
                     expect_coverage=args.expect_coverage,
                 )
-            elif args.command in {"calibrate", "rerun-calibration"}:
-                from entanglix.protocols.calibrate import calibrate, rerun_calibration
+            elif args.command == "calibrate":
+                from entanglix.protocols.calibrate import calibrate
 
-                result = (
-                    execute(
-                        calibrate,
-                        args.protocol,
-                        runs_root=args.runs_root,
-                        parent_run_ids=tuple(args.parent_run),
-                        dry_run=args.dry_run,
-                        investigation_id=args.investigation,
-                        base=args.base,
-                    )
-                    if args.command == "calibrate"
-                    else execute(rerun_calibration, args.run, runs_root=args.runs_root)
+                result = execute(
+                    calibrate,
+                    args.protocol,
+                    runs_root=args.runs_root,
+                    parent_run_ids=tuple(args.parent_run),
+                    dry_run=args.dry_run,
+                    investigation_id=args.investigation,
+                    base=args.base,
                 )
-            elif args.command in {"control", "rerun-control"}:
-                from entanglix.protocols.control import control, rerun_control
+            elif args.command == "control":
+                from entanglix.protocols.control import control
 
-                result = (
-                    execute(
-                        control,
-                        args.protocol,
-                        values=_varied_values(args.vary),
-                        runs_root=args.runs_root,
-                        parent_run_ids=tuple(args.parent_run),
-                        dry_run=args.dry_run,
-                        investigation_id=args.investigation,
-                        base=args.base,
-                    )
-                    if args.command == "control"
-                    else execute(rerun_control, args.run, runs_root=args.runs_root)
+                result = execute(
+                    control,
+                    args.protocol,
+                    values=_varied_values(args.vary),
+                    runs_root=args.runs_root,
+                    parent_run_ids=tuple(args.parent_run),
+                    dry_run=args.dry_run,
+                    investigation_id=args.investigation,
+                    base=args.base,
                 )
-            elif args.command in {"simulate", "rerun-simulation"}:
-                from entanglix.protocols.simulate import rerun_simulation, simulate
+            elif args.command == "simulate":
+                from entanglix.protocols.simulate import simulate
 
-                result = (
-                    execute(
-                        simulate,
-                        args.protocol,
-                        values=_varied_values(args.vary),
-                        runs_root=args.runs_root,
-                        parent_run_ids=tuple(args.parent_run),
-                        dry_run=args.dry_run,
-                        investigation_id=args.investigation,
-                        base=args.base,
-                    )
-                    if args.command == "simulate"
-                    else execute(rerun_simulation, args.run, runs_root=args.runs_root)
+                result = execute(
+                    simulate,
+                    args.protocol,
+                    values=_varied_values(args.vary),
+                    runs_root=args.runs_root,
+                    parent_run_ids=tuple(args.parent_run),
+                    dry_run=args.dry_run,
+                    investigation_id=args.investigation,
+                    base=args.base,
                 )
-            elif args.command in {"sweep", "rerun-sweep"}:
-                from entanglix.protocols.sweep import rerun_sweep, sweep
+            elif args.command == "sweep":
+                from entanglix.protocols.sweep import sweep
 
-                result = (
-                    execute(
-                        sweep,
-                        args.protocol,
-                        runs_root=args.runs_root,
-                        parent_run_ids=tuple(args.parent_run),
-                        dry_run=args.dry_run,
-                        investigation_id=args.investigation,
-                        base=args.base,
-                    )
-                    if args.command == "sweep"
-                    else execute(rerun_sweep, args.run, runs_root=args.runs_root)
+                result = execute(
+                    sweep,
+                    args.protocol,
+                    runs_root=args.runs_root,
+                    parent_run_ids=tuple(args.parent_run),
+                    dry_run=args.dry_run,
+                    investigation_id=args.investigation,
+                    base=args.base,
                 )
             elif args.command == "list-runs":
                 result = list_runs(args.runs_root)
@@ -644,16 +597,12 @@ def _main(argv: list[str] | None = None) -> int:
             if args.command
             in {
                 "run-script",
-                "rerun-script",
+                "rerun",
                 "check",
                 "calibrate",
-                "rerun-calibration",
                 "control",
-                "rerun-control",
                 "simulate",
-                "rerun-simulation",
                 "sweep",
-                "rerun-sweep",
             }
             else 0
         )

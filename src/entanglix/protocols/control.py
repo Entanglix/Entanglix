@@ -751,10 +751,3 @@ def control(
         base=base,
         values=values,
     )
-
-
-def rerun_control(run: Path, *, repository: Path | None = None, runs_root: Path | None = None):
-    """Re-solve retained control inputs as a new linked attempt under current terms."""
-    from entanglix.protocols.simulate import _rerun_protocol
-
-    return _rerun_protocol(run, operation="control", repository=repository, runs_root=runs_root)

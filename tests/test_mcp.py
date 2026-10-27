@@ -94,6 +94,8 @@ def test_tool_parity_annotations_and_immutable_audit(study, runner_repository, t
         async with client(runner_repository, runs, tmp_path / "state") as session:
             tools = (await session.list_tools()).tools
             assert {tool.name for tool in tools} == set(list_capabilities()["operations"])
+            # One rerun replays every protocol, by the protocol its source manifest records.
+            assert [tool.name for tool in tools if tool.name.startswith("rerun")] == ["rerun"]
             for tool in tools:
                 assert tool.annotations.read_only_hint == (tool.name in READS)
             assert (await call(session, "list_runs"))["rows"] == []
@@ -696,7 +698,7 @@ def test_transport_checks_replay_and_admission_refusals(study, runner_repository
             record = await call(session, "read_run", {"run": checked["path"], "wait_seconds": 30})
             assert record["status"] == "completed", record["log_tail"]
             assert read_run(Path(run))["verification"][0]["checks"][0]["outcome"] == "pass"
-            rejected = await session.call_tool("rerun_simulation", {"run": run})
+            rejected = await session.call_tool("rerun", {"run": run})
             assert rejected.is_error
             assert "job_count" in rejected.content[0].text
             # A standalone replay records new lineage, using the same backing operation.
@@ -704,7 +706,7 @@ def test_transport_checks_replay_and_admission_refusals(study, runner_repository
             assert (await call(session, "read_run", {"run": solo["path"], "wait_seconds": 30}))[
                 "status"
             ] == "completed"
-            replay = await call(session, "rerun_simulation", {"run": solo["path"]})
+            replay = await call(session, "rerun", {"run": solo["path"]})
             assert (await call(session, "read_run", {"run": replay["path"], "wait_seconds": 30}))[
                 "manifest"
             ]["parent_run_ids"] == [solo["run_id"]]
@@ -907,10 +909,7 @@ def test_record_paths_stay_within_configured_runs_root(
                 ("read_run", {"run": address(run)}),
                 ("reconcile_run", {"run": address(run), "last_observed_state": "interrupted"}),
                 ("abort_run", {"run": address(run)}),
-                ("rerun_script", {"run": address(run)}),
-                ("rerun_simulation", {"run": address(run)}),
-                ("rerun_sweep", {"run": address(run)}),
-                ("rerun_control", {"run": address(run)}),
+                ("rerun", {"run": address(run)}),
                 ("check", {"run": address(run), "checks": ["integrity"]}),
                 ("read_investigation", {"investigation": address(investigation)}),
                 ("revise_investigation", {"investigation": address(investigation), "spec": terms}),

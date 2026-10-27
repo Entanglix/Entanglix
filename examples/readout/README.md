@@ -104,7 +104,7 @@ at `rtol/atol = 1e-10/1e-12` and a 100,000-step ceiling.
 ```sh
 uv run --locked --exact entanglix run-script examples/readout/floquet.py --system examples/readout/system.toml
 uv run --locked --exact entanglix read-run research_runs/readout/<run_id>
-uv run --locked --exact entanglix rerun-script research_runs/readout/<run_id>
+uv run --locked --exact entanglix rerun research_runs/readout/<run_id>
 ```
 
 Use the same [runner extras profile](../../docs/operations/runs.md#authored-cpu-jobs)
@@ -237,7 +237,7 @@ uv run --locked --exact entanglix sweep examples/readout/dephasing.toml --dry-ru
 uv run --locked --exact entanglix sweep examples/readout/dephasing.toml
 uv run --locked --exact entanglix read-run research_runs/readout/<run_id>
 uv run --locked --exact entanglix check research_runs/readout/<run_id> integrity segments diagnostics declared_expectation
-uv run --locked --exact entanglix rerun-sweep research_runs/readout/<run_id>
+uv run --locked --exact entanglix rerun research_runs/readout/<run_id>
 ```
 
 For CPU dynamics, copy `system.toml`, `readout.toml`, `readout-state.npz` and

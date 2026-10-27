@@ -140,8 +140,7 @@ CLI and MCP share backing operations and expose available capabilities. Research
 | `list_catalog` / `read_entry` | Read-only | Inspect promoted entries, staged candidates, and provenance |
 | `simulate` / `sweep` / `control` / `calibrate` | Controlled job | Execute through the runner, enforcing any configured limits |
 | `run_script` | Controlled job | Execute an authored script through the runner, enforcing any configured limits |
-| `rerun_script` | Controlled job | Replay frozen script inputs as a new attempt linked to the prior run |
-| `rerun_simulation` / `rerun_sweep` / `rerun_control` | Controlled job | Replay frozen simulation inputs, recompute a frozen sweep grid, or re-solve a frozen control problem as a new linked attempt, recording current code/environment provenance |
+| `rerun` | Controlled job | Replay a retained attempt's frozen inputs, by its recorded protocol, as a new attempt linked to it, recording current code/environment provenance; a script rerun may set a new timeout |
 | `check` | Controlled job | Run the named built-in checks on a completed run (§3) |
 | `abort_run` / `stop_investigation` | Controlled job | Cancel work; investigation stop also closes admission and records its reason |
 | `create_investigation` / `revise_investigation` | Controlled write | Draft a new investigation or propose a revision; a revision takes effect on a user decision |

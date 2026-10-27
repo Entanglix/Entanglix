@@ -35,6 +35,7 @@ def test_help_and_required_protocol_input():
     help_result = subprocess.run(["entanglix", "--help"], capture_output=True, text=True)
     assert help_result.returncode == 0
     assert "--version" in help_result.stdout
+    assert " rerun " in help_result.stdout and "rerun-" not in help_result.stdout
     result = subprocess.run(["entanglix", "control"], capture_output=True, text=True)
     assert result.returncode == 64
     assert result.stdout == ""

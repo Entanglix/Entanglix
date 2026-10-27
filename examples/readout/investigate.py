@@ -27,9 +27,9 @@ from entanglix.investigations import (
     stop_investigation,
 )
 from entanglix.models import load_system
-from entanglix.protocols.simulate import rerun_simulation, simulate
-from entanglix.protocols.sweep import rerun_sweep, sweep
-from entanglix.runner import read_run
+from entanglix.protocols.simulate import simulate
+from entanglix.protocols.sweep import sweep
+from entanglix.runner import read_run, rerun
 
 EXAMPLE = Path(__file__).resolve().parent
 TARGET = 0.01
@@ -296,7 +296,7 @@ class Client:
             self.before_job()
             previous = self.failed.get(("rwa", ()))
             job = (
-                rerun_sweep(previous, repository=self.repository)
+                rerun(previous, repository=self.repository)
                 if previous
                 else sweep(
                     self.workspace / "rwa/sweep.toml",
@@ -320,7 +320,7 @@ class Client:
             self.before_job()
             previous = self.failed.get((base, tuple(sorted(values.items()))))
             job = (
-                rerun_simulation(previous, repository=self.repository)
+                rerun(previous, repository=self.repository)
                 if previous
                 else simulate(
                     self.workspace / base / "simulate.toml",

@@ -23,6 +23,7 @@ Users may also supply their own engines and solvers as installed plugins.
 - Runs follow amicode's layout and terminal semantics: `run.toml` written first, `FINISHED` written last with `status` and `exit_code`, `result.toml` published by temporary-file rename, exit codes `0`, `130`, `64`, or the job's code, and run IDs of the form `r<UTC-timestamp>Z-<hex>`. amicode's Julia table, control result fields, iteration log lines, iteration plot names, `index`, and `latest` are not adopted.
 - The runner writes each applicable record once: `run.toml` when the attempt is created (identity, parent runs, declared needs, spec digests, code provenance, `env_hash`, engine, device); `runner/started.toml` before the job computes (start time, GPU allocation, process group); `FINISHED` when the supervising runner observes the end, with status `completed`, `failed`, or `aborted` (exit code, end time, usage); and `runner/reconciled.toml` only after runner loss, in place of `FINISHED` (last observed state, usage marked uncertain).
 - There is no separate ledger store or index; listing scans the runs root. An attempt without a valid `FINISHED` is incomplete. Reconciliation never writes `FINISHED`, so a result left by an interrupted attempt cannot substantiate completion. Reruns receive new IDs linked to the earlier attempt.
+- One `rerun` operation replays a supported retained computation or script attempt by the protocol its manifest records, and refuses an active or uncertain attempt or a changed frozen input. A script rerun may override its recorded timeout; a protocol rerun keeps its frozen spec's limit.
 - Jobs write only `result.toml` and `artifacts/`. Runner records use separate, read-only paths.
 - A sweep is one run. Its points (static spectral points, or dynamic points that are undriven or driven, in either frame) run serially inside the job. Completed points stay in `artifacts/` if the run is interrupted. A rerun is a new linked run that recomputes the grid, and verification treats the sweep as one source run with per-point coverage.
 
@@ -163,6 +164,7 @@ Measurements: [verification feasibility probe](../../tests/probes/m2_verificatio
 | A built-in engine in place of a chosen engine that cannot run | Reports a computation the user did not choose |
 | Segments and refined solves on a plugin engine | A check would depend on private code |
 | Reruns re-selecting the engine | A changed default would change what a replay computes |
+| One rerun per protocol | Five commands and tools expose one action already identified by the manifest |
 | cuDensityMat initialization at every CUDA launch | A CUDA plugin would require the cuQuantum stack |
 
 ## 4. Consequences
@@ -171,7 +173,7 @@ Measurements: [verification feasibility probe](../../tests/probes/m2_verificatio
   - §1 and §2 describe results without check outcomes, and limit amicode compatibility to layout and terminal semantics, with the runner records and the declared device need.
   - §2 no longer refuses a request for its size, and states how an out-of-memory failure and an unexplained signal death are reported.
   - §3 replaces three-engine agreement and verdicts with built-in checks that run on request and report their own outcomes.
-  - §5 lists `check` in place of `compare_reference`.
+  - §5 lists `check` in place of `compare_reference`, and one `rerun`.
   - §6 identifies the runner records as the run ledger. Promotion shows the checks run on a result and their outcomes, and refuses a result with a failed check reporting numerical disagreement or a violated pulse constraint; a violated declared expectation or an unmet target is recorded ([ADR-0008 §2.4](0008-results-catalog.md#24-promotion)).
   - §7's launch checks include no scientific check.
 - Tests cover runner loss while the job survives, lock inheritance, reconciliation, the evidence-point bound, and refinement-step minimums. They also cover a run above dimension 30 launching and completing, an allocation failure reported as out of memory, a signal death reported as its signal, engine agreement at dimension 64, a run completing with no verification run and with no refinement declared, a malformed refinement rejected, a replacement refinement on a check request and a tampered one rejected, per-check outcomes and inapplicable requests, a terminated verification run reporting no outcome, a wrong initial state failing integrity, segment failures on the run's own engine and selection at drive changes, and the top-Fock diagnostic case.

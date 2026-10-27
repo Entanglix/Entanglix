@@ -616,10 +616,3 @@ def calibrate(
         investigation_id=investigation_id,
         base=base,
     )
-
-
-def rerun_calibration(run: Path, *, repository: Path | None = None, runs_root: Path | None = None):
-    """Re-fit retained calibration inputs as a new linked attempt under current terms."""
-    from entanglix.protocols.simulate import _rerun_protocol
-
-    return _rerun_protocol(run, operation="calibrate", repository=repository, runs_root=runs_root)

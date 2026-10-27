@@ -233,6 +233,8 @@ LAUNCH_TOOLS = {
     "simulate",
     "sweep",
     "check",
+    "rerun",
+    # Retained sessions predate the single rerun tool.
     "rerun_simulation",
     "rerun_sweep",
     "rerun_script",

@@ -52,7 +52,7 @@ def test_mcp_calibration_matches_the_cli_and_stages_only_proposals(runner_reposi
         )
         async with client(repository, root, tmp_path / "state") as session:
             names = {tool.name for tool in (await session.list_tools()).tools}
-            assert {"calibrate", "rerun_calibration", "propose_device_update"} <= names
+            assert {"calibrate", "rerun", "propose_device_update"} <= names
             # Device-model write-back is absent from the research surface.
             assert names == set(list_capabilities()["operations"])
             assert not {name for name in names if "apply" in name}
@@ -94,7 +94,7 @@ def test_mcp_calibration_matches_the_cli_and_stages_only_proposals(runner_reposi
                 {"name": "identifiability", "solution": 0, "outcome": "descriptive"},
             ]
 
-            replay = await call(session, "rerun_calibration", {"run": run})
+            replay = await call(session, "rerun", {"run": run})
             repeated = await call(
                 session, "read_run", {"run": replay["path"], "wait_seconds": 30, "detail": True}
             )
@@ -128,7 +128,7 @@ def test_mcp_calibration_matches_the_cli_and_stages_only_proposals(runner_reposi
                 assert refused.is_error and message in refused.content[0].text, name
                 assert sorted(root.glob("*/*/run.toml")) == attempts
             assert not (Path(checked["path"]) / "proposals").exists()
-            return [("calibrate", launch), ("check", checked), ("rerun_calibration", replay)]
+            return [("calibrate", launch), ("check", checked), ("rerun", replay)]
 
     jobs = asyncio.run(exercise())
     for name, job in jobs:

@@ -16,8 +16,8 @@ from entanglix.investigations import (
     record_user_decision,
 )
 from entanglix.mcp_views import attempt_data
-from entanglix.protocols.calibrate import calibrate, load_calibration, rerun_calibration
-from entanglix.runner import read_run
+from entanglix.protocols.calibrate import calibrate, load_calibration
+from entanglix.runner import read_run, rerun
 
 
 def started(protocol, root):
@@ -87,7 +87,7 @@ def test_an_exact_base_admits_calibrate_and_reruns_keep_membership(calibration_s
     # The fitting job holds the training split only.
     assert "holdout.toml" not in source["manifest"]["spec_sha256"]
 
-    replay = rerun_calibration(run, repository=repository)
+    replay = rerun(run, repository=repository)
     repeated = read_run(Path(replay["path"]))
     assert repeated["status"] == "completed", repeated["log_tail"]
     assert repeated["manifest"]["parent_run_ids"] == [run.name]

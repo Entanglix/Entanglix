@@ -418,9 +418,7 @@ def test_detached_check_and_rerun_keep_links(study, runner_repository):
     assert report["status"] == "completed", report["log_tail"]
     assert report["manifest"]["parent_run_ids"] == [run.name]
     assert read_launch(Path(checking["launch_path"]))["investigation_id"] == study[4].name
-    replay = launch_job(
-        "rerun_simulation", {"run": run, "repository": runner_repository}, runs_root=runs
-    )
+    replay = launch_job("rerun", {"run": run, "repository": runner_repository}, runs_root=runs)
     repeated = read_run(Path(replay["path"]), wait_seconds=30)
     assert repeated["status"] == "completed", repeated["log_tail"]
     assert repeated["manifest"]["parent_run_ids"] == [run.name]
@@ -450,7 +448,7 @@ def test_detached_script_and_sweep_replay(study, runner_repository, operation):
             "{'engine':'authored','metrics':{'value':1}}, replace=True)\n"
         )
         args = {"system": protocol.parent / "system.toml", "script": script, "inputs": None}
-        replay_operation = "rerun_script"
+        replay_operation = "rerun"
     else:
         grid = protocol.parent / "sweep.toml"
         grid.write_text(
@@ -465,7 +463,7 @@ def test_detached_script_and_sweep_replay(study, runner_repository, operation):
             )
         )
         args = {"protocol": grid}
-        replay_operation = "rerun_sweep"
+        replay_operation = "rerun"
     first = launch_job(
         operation, args | {"repository": runner_repository, "runs_root": runs}, runs_root=runs
     )

@@ -14,7 +14,7 @@ uv run --locked --exact entanglix simulate examples/readout/purcell.toml
 uv run --locked --exact entanglix check research_runs/<system_id>/<run_id>
 uv run --locked --exact entanglix check research_runs/<system_id>/<run_id> integrity segments diagnostics
 uv run --locked --exact entanglix read-run research_runs/<system_id>/<run_id>
-uv run --locked --exact entanglix rerun-simulation research_runs/<system_id>/<run_id>
+uv run --locked --exact entanglix rerun research_runs/<system_id>/<run_id>
 ```
 
 ## Specification
@@ -176,7 +176,7 @@ synchronization and a requested-device probe still run.
 
 ## Replay
 
-`rerun-simulation RUN` uses the frozen protocol and data under a new ID with `RUN`
+`rerun RUN` on a simulation uses the frozen protocol and data under a new ID with `RUN`
 as its parent. It rejects changed input digests and records current code and its
 actual environment. It runs on the parent's engine, whatever the current default, and
 is refused if that engine is not installed. The command reports `replay.code_matches` and
@@ -232,7 +232,7 @@ the expectation may itself be wrong. No expectation is inferred from the model.
 uv run --locked --exact entanglix sweep sweep.toml --dry-run
 uv run --locked --exact entanglix sweep sweep.toml
 uv run --locked --exact entanglix check research_runs/<system_id>/<run_id> integrity segments diagnostics declared_expectation
-uv run --locked --exact entanglix rerun-sweep research_runs/<system_id>/<run_id>
+uv run --locked --exact entanglix rerun research_runs/<system_id>/<run_id>
 ```
 
 Points execute serially using the base's selected engine/device; a sweep rerun keeps
@@ -258,7 +258,7 @@ unsampled points or about whole-window/RWA accuracy.
 
 A sweep-level `timeout_seconds` covers the whole job, including imports and all points;
 the base's single-simulation timeout does not apply separately at each point.
-Cancellation and runner-loss recovery use the existing run lifecycle. `rerun-sweep`
+Cancellation and runner-loss recovery use the existing run lifecycle. `rerun` on a sweep
 checks frozen input digests, recomputes the entire grid with current code/environment,
 and reports provenance matches against its parent. To explore a narrower or finer
 grid, copy and edit the specs and launch with `--parent-run ID`. Partial points are

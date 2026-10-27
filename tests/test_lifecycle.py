@@ -23,7 +23,7 @@ from entanglix.runner import (
     record_finish,
     record_reconciliation,
     record_start,
-    rerun_script,
+    rerun,
     run_script,
 )
 
@@ -231,7 +231,7 @@ publish_toml(run / 'result.toml', {'engine': 'numpy', 'metrics': {'value': (run 
     script.write_text("raise RuntimeError('changed original')")
     data.write_text("changed")
     response = subprocess.run(
-        ["entanglix", "rerun-script", str(run)],
+        ["entanglix", "rerun", str(run)],
         capture_output=True,
         text=True,
         timeout=15,
@@ -247,7 +247,7 @@ publish_toml(run / 'result.toml', {'engine': 'numpy', 'metrics': {'value': (run 
     frozen.chmod(0o644)
     frozen.write_text("corrupted")
     with pytest.raises(ValueError, match="digest mismatch"):
-        rerun_script(run, repository=runner_repository)
+        rerun(run, repository=runner_repository)
 
 
 @pytest.fixture

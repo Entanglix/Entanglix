@@ -23,8 +23,8 @@ from entanglix.investigations import (
     record_user_decision,
     revise_investigation,
 )
-from entanglix.protocols.simulate import compile_simulation, rerun_simulation, simulate
-from entanglix.protocols.sweep import rerun_sweep, sweep
+from entanglix.protocols.simulate import compile_simulation, simulate
+from entanglix.protocols.sweep import sweep
 from entanglix.runner import (
     CodeSnapshot,
     _digest,
@@ -36,7 +36,7 @@ from entanglix.runner import (
     record_finish,
     record_reconciliation,
     record_start,
-    rerun_script,
+    rerun,
     run_script,
 )
 
@@ -182,7 +182,7 @@ def test_simulation_checks_findings_and_replay_use_current_revision(study, runne
     current = record_finding(study[4], assessment([run.name]))
     assert current["evidence"][0]["requested_checks_not_run"] == []
     assert current["evidence"][0]["relevant_checks_not_run"] == ["segments"]
-    replay = rerun_simulation(run, repository=runner_repository)
+    replay = rerun(run, repository=runner_repository)
     assert replay["exit_code"] == 0
     assert read_run(Path(replay["path"]))["manifest"]["investigation_revision"] == 2
     assert read_run(run)["manifest"]["investigation_limits"] == {}
@@ -190,7 +190,7 @@ def test_simulation_checks_findings_and_replay_use_current_revision(study, runne
     revise_investigation(study[4], terms)
     record_user_decision(study[4], "approve-revision", revision=3)
     with pytest.raises(ValueError, match="permitted set"):
-        rerun_simulation(run, repository=runner_repository)
+        rerun(run, repository=runner_repository)
 
 
 @pytest.mark.parametrize(
@@ -251,7 +251,7 @@ def test_sweep_validates_each_point_and_replays_base(study, runner_repository):
     assert read_investigation(study[4])["usage"]["evaluated_points"] == 4
     checked = check_run(Path(result["path"]), ("integrity",), repository=runner_repository)
     assert checked["exit_code"] == 0
-    repeated = rerun_sweep(Path(result["path"]), repository=runner_repository)
+    repeated = rerun(Path(result["path"]), repository=runner_repository)
     assert repeated["exit_code"] == 0
     document["axes"][1]["values"][-1] = 0.03
     protocol.write_text(tomli_w.dumps(document))
@@ -607,7 +607,7 @@ def test_authored_script_requires_exact_bundle_and_replays(study, runner_reposit
         base="authored",
     )
     assert first["exit_code"] == 0
-    replay = rerun_script(Path(first["path"]), repository=runner_repository)
+    replay = rerun(Path(first["path"]), repository=runner_repository)
     assert replay["exit_code"] == 0
     script.write_text(script.read_text() + "\nprint('changed')\n")
     with pytest.raises(ValueError, match="base input digests"):

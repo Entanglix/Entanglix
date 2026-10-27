@@ -11,8 +11,8 @@ import numpy as np
 import tomli_w
 
 from entanglix.corrector.verification import check_run
-from entanglix.protocols.simulate import rerun_simulation, simulate
-from entanglix.runner import read_run
+from entanglix.protocols.simulate import simulate
+from entanglix.runner import read_run, rerun
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -73,7 +73,7 @@ def study(device, output):
     source = launch(device)
     first = requested(source, names)
     print(f"{device} source completed with requested checks: {source}", flush=True)
-    replay = rerun_simulation(source)
+    replay = rerun(source)
     if replay["exit_code"] or not all(replay["replay"].values()):
         raise RuntimeError(f"replay failed acceptance: {replay}")
     repeated = requested(Path(replay["path"]), names)

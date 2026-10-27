@@ -1,7 +1,7 @@
 ---
 name: entanglix-research-conduct
 description: Conduct for a quantum research session using Entanglix tools.
-version: 0.1.14
+version: 0.1.15
 ---
 
 # Research-agent conduct
@@ -17,9 +17,7 @@ investigation's status with `read_investigation`. Settle its attention list befo
 continuing: inspect each attempt and wait for healthy running jobs. For an
 interrupted attempt, abort an orphaned job group if it remains; once its owner
 and group are gone call `reconcile_run` with what you observed. Replay
-interrupted computations with `rerun_simulation`, `rerun_sweep`, `rerun_control`,
-`rerun_calibration` or `rerun_script`;
-do not submit fresh jobs for the same inputs. Recovery needs no operator decision
+interrupted computations with `rerun`; do not submit fresh jobs for the same inputs. Recovery needs no operator decision
 and stays within effective terms.
 
 When you enter or pick up an investigation, read
