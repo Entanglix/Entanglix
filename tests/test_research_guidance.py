@@ -23,8 +23,7 @@ def test_skills_name_existing_operations_references():
         assert all((ROOT / "docs/operations" / Path(path).name).is_file() for path in named)
 
 
-@pytest.mark.parametrize("mode", ["instruction-only", "runtime-configured"])
-def test_shipped_guidance_and_declared_restrictions_reach_connection(tmp_path, mode):
+def test_shipped_guidance_reaches_connection(tmp_path):
     import sys
 
     expected, metadata = supplied_guidance(ROOT)
@@ -57,7 +56,7 @@ def test_shipped_guidance_and_declared_restrictions_reach_connection(tmp_path, m
     async def exercise():
         args = [
             "-m", "entanglix.mcp", "--runs-root", str(tmp_path / "runs"),
-            "--device", "", "--runner-extras", "--command-restriction", mode,
+            "--device", "", "--runner-extras",
         ]  # fmt: skip
         async with stdio_client(StdioServerParameters(command=sys.executable, args=args)) as (
             reader,
@@ -73,4 +72,3 @@ def test_shipped_guidance_and_declared_restrictions_reach_connection(tmp_path, m
     assert audit["supplied_guidance"] == metadata
     assert audit["guidance_status"] == "supplied"
     assert audit["loaded_skills"] == "unknown"
-    assert audit["command_restriction"] == {"source": "operator-declared", "mode": mode}

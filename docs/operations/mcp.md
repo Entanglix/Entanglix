@@ -1,6 +1,6 @@
 # Stdio research tools
 
-The optional `entanglix.mcp` module exposes the runner's existing research operations over MCP stdio. A client may use any runtime that supports that transport. Human decisions remain in the operator CLI; approving a runtime tool call does not start an investigation or approve proposed terms.
+The optional `entanglix.mcp` module exposes the runner's existing research operations over MCP stdio. A client may use any runtime that supports that transport. Human decisions remain operator CLI commands; approving a research-tool call does not start an investigation or approve proposed terms.
 
 ## Server process and configuration
 
@@ -24,7 +24,6 @@ The runs root, device and runner extras are explicit. The other settings are opt
 | `--device` | Physical GPU UUID or `nvidia-smi` index for runner-launched CUDA jobs; an empty string supplies no GPU |
 | `--runner-extras` | Space-separated extras for the separate `.venv-runner` job environment; the bare flag selects none |
 | `--state-directory` | Optional shared state directory; defaults to the runner's `XDG_STATE_HOME`, or `~/.local/state` when unset. GPU locks live under its `entanglix/gpu/` directory |
-| `--command-restriction` | Operator-declared `instruction-only` (the default) or `runtime-configured`; recorded in the connection audit, not an observed enforcement guarantee |
 | `--max-wait` | Longest `read_run` wait in seconds, finite and positive, 30 by default; recorded in the connection audit. Keep the runtime's per-call tool timeout above it |
 
 For CUDA jobs, name the device and pass `--runner-extras cuquantum differentiable-cuda12`. The server explicitly sets the supervisor's device, extras and state directory, even when the client process inherits `CUDA_VISIBLE_DEVICES=""`. Operator commands must use the same runner extras and state directory. When the operator shell uses a custom `XDG_STATE_HOME` that the runtime does not pass to the server, set `--state-directory` to that directory in the server entry. The existing runner environment refuses a different extras set, rather than removing packages underneath jobs. See [protocol dispatch](protocols.md) and [GPU ownership](runs.md#local-gpu-ownership).
@@ -145,7 +144,7 @@ The request event contains no outcome or result hash; those belong to the outcom
 
 Hashes are SHA-256 of canonical JSON (sorted keys, compact separators) for arguments and MCP results. If a call is interrupted without a result, its result hash is `unknown`. Client request metadata belongs to the call and never rewrites the connection entry. It is provenance, not authenticated identity.
 
-The server reads the versioned [research conduct](../research-agent.md) and skill metadata from `skills/*/SKILL.md`, with front matter declaring `name`, `description`, and `version`. It sends the conduct body as its instructions and records all supplied names/versions. Supplying a skill does not mean its body reached the model: install the files in the workspace as described below. Loaded skills and transcript location stay unknown because the server cannot observe them. The audit labels the command-restriction mode as operator-declared; `runtime-configured` alone does not establish that commands were blocked.
+The server reads the versioned [research conduct](../research-agent.md) and skill metadata from `skills/*/SKILL.md`, with front matter declaring `name`, `description`, and `version`. It sends the conduct body as its instructions and records all supplied names/versions. Supplying a skill does not mean its body reached the model: install the files in the workspace as described below. Loaded skills and transcript location stay unknown because the server cannot observe them.
 
 ## Research workspace
 
@@ -184,7 +183,7 @@ Create `.codex/config.toml` in that workspace. Replace the placeholders with abs
 ```toml
 [mcp_servers.entanglix]
 command = "<absolute-checkout-path>/.venv-mcp/bin/python"
-args = ["-m", "entanglix.mcp", "--runs-root", "<absolute-workspace-path>/runs", "--device", "<GPU-UUID>", "--runner-extras", "cuquantum", "differentiable-cuda12", "--command-restriction", "runtime-configured", "--max-wait", "3600"]
+args = ["-m", "entanglix.mcp", "--runs-root", "<absolute-workspace-path>/runs", "--device", "<GPU-UUID>", "--runner-extras", "cuquantum", "differentiable-cuda12", "--max-wait", "3600"]
 startup_timeout_sec = 60
 tool_timeout_sec = 3660
 default_tools_approval_mode = "approve"
@@ -213,18 +212,20 @@ CUDA_VISIBLE_DEVICES="" codex exec --json --skip-git-repo-check \
   -o "$ENTANGLIX_WORKSPACE/last-message.txt" '<task brief>'
 ```
 
-The documented operator invocation form is the bare `entanglix investigation-decision ...`, `entanglix apply-device-update ...` or `entanglix promote ...`, with `entanglix` on `PATH`. Do not suggest `uv run ... entanglix ...`, an absolute executable path, a Python API, or a shell wrapper as a substitute: the supplied rule is not claimed to cover those forms. The [retained conformance run](../../tests/probes/m3_guidance_results.json) supports the restriction claim for the bare `investigation-decision` and `promote` commands. The [live calibration session](../environment.md#live-calibration-session) supports it for all three bare commands, including `apply-device-update`, under the documented rule. The claim covers these bare forms in the tested non-interactive configurations only. An interactive session must start as `instruction-only` and retain live refusals for every documented human-action command before declaring `runtime-configured`. Offline rule matching or an agent's verbal refusal is not a passed blocked-command test.
+The documented operator invocation form is the bare `entanglix investigation-decision ...`, `entanglix apply-device-update ...` or `entanglix promote ...`, with `entanglix` on `PATH`. Do not suggest `uv run ... entanglix ...`, an absolute executable path, a Python API, or a shell wrapper as a substitute: the supplied rule is not claimed to cover those forms. The [retained conformance run](../../tests/probes/m3_guidance_results.json) supports the restriction claim for the bare `investigation-decision` and `promote` commands. The [live calibration session](../environment.md#live-calibration-session) supports it for all three bare commands, including `apply-device-update`, under the documented rule. The claim covers these bare forms in the tested non-interactive configurations only. An interactive session claims the refusal only after retaining live refusals for every documented human-action command. Offline rule matching or an agent's verbal refusal is not a passed blocked-command test.
+
+To approve each human-action command instead of refusing it, set `decision="prompt"` in that rule, in an interactive session only: an unattended session cannot answer the prompt, so keep `forbidden` there. Approve each invocation on its own, never with an option that approves later commands. No retained session tests this setting.
 
 ### Claude Code example
 
-Supply the conduct as workspace `CLAUDE.md` in place of `AGENTS.md`, and retain `skills/` for plain-text reading. Create `.mcp.json` in the workspace with the same absolute Python command and arguments; this CPU-only example declares the instruction-only restriction:
+Supply the conduct as workspace `CLAUDE.md` in place of `AGENTS.md`, and retain `skills/` for plain-text reading. Create `.mcp.json` in the workspace with the same absolute Python command and arguments, here for CPU only:
 
 ```json
 {
   "mcpServers": {
     "entanglix": {
       "command": "<absolute-checkout-path>/.venv-mcp/bin/python",
-      "args": ["-m", "entanglix.mcp", "--runs-root", "<absolute-workspace-path>/runs", "--device", "", "--runner-extras", "cuquantum", "differentiable-cuda12", "--command-restriction", "instruction-only", "--max-wait", "3600"],
+      "args": ["-m", "entanglix.mcp", "--runs-root", "<absolute-workspace-path>/runs", "--device", "", "--runner-extras", "cuquantum", "differentiable-cuda12", "--max-wait", "3600"],
       "timeout": 3660000
     }
   }
@@ -249,22 +250,38 @@ CUDA_VISIBLE_DEVICES="" claude -p '<task brief>' \
 
 The entry's `timeout` is Claude Code's per-call limit for this server, in milliseconds; keep it above `--max-wait`. It also sets the floor of Claude Code's idle check, which otherwise aborts a stdio call after 30 silent minutes. In an interactive session, Claude Code moves a call still running after two minutes to a background task; the non-interactive form does not. The retained sessions predate `--max-wait` and `timeout`, and ran with the 30-second default. For a control task, also allow `mcp__entanglix__control` and `mcp__entanglix__rerun_control`; the [live control sessions](../environment.md#live-control-sessions) used this form. For a calibration task, also allow `mcp__entanglix__calibrate`, `mcp__entanglix__rerun_calibration` and `mcp__entanglix__propose_device_update`.
 
-In four [retained sessions](../../tests/probes/m3_pickup_cutoff_results.json) the conduct was present before the first reply and no repository development instructions appeared. No command restriction has been validated for Claude Code: a session without a shell tool cannot run an operator command, but no retained test covers a session that has one, so declare `instruction-only`. Claude Code rejected a 54,724-character investigation reply and accepted one of 32,757 characters in the two sessions that predate the status and paged table views; the third and fourth used those views and no reply was rejected. Use them for research reads, and the report command or retained files for full history.
+In four [retained sessions](../../tests/probes/m3_pickup_cutoff_results.json) the conduct was present before the first reply and no repository development instructions appeared. No command setting has been validated for Claude Code: a session without a shell tool cannot run an operator command, but no retained test covers a session that has one, so there the rule rests on the conduct. Claude Code rejected a 54,724-character investigation reply and accepted one of 32,757 characters in the two sessions that predate the status and paged table views; the third and fourth used those views and no reply was rejected. Use them for research reads, and the report command or retained files for full history.
+
+In an interactive session with a shell tool, a project `.claude/settings.json` sets how Claude Code handles the human-action commands: listed under `deny` they are refused, under `ask` Claude Code asks before each one.
+
+```json
+{
+  "permissions": {
+    "deny": [
+      "Bash(entanglix investigation-decision:*)",
+      "Bash(entanglix apply-device-update:*)",
+      "Bash(entanglix promote:*)"
+    ]
+  }
+}
+```
+
+Approve each invocation on its own; a permission mode that skips prompts runs commands without asking and is not approval. No retained session tests either setting.
 
 ### Other stdio runtimes
 
-Use the same absolute Python command and arguments in your runtime's MCP entry, and supply the conduct under the instruction filename your runtime reads. Start the session with `CUDA_VISIBLE_DEVICES=""` and configure job/write tool approval as needed. Keep the runtime's per-call tool timeout, and any idle timeout, above `--max-wait`. Use `--command-restriction instruction-only` until a retained live test establishes the configured restriction for the forms you document. There is no list of supported model backends.
+Use the same absolute Python command and arguments in your runtime's MCP entry, and supply the conduct under the instruction filename your runtime reads. Start the session with `CUDA_VISIBLE_DEVICES=""` and configure job/write tool approval as needed. Keep the runtime's per-call tool timeout, and any idle timeout, above `--max-wait`. Claim that the runtime refuses or asks before the human-action commands only after a retained live test shows it for the forms you document; until then the rule rests on the conduct. There is no list of supported model backends.
 
 ## Human decisions and continuation
 
-The agent may draft an investigation and propose revisions; the operator reviews complete terms, checkpoint, evidence, and any requested limits in their own terminal. The [investigation reference](investigations.md) defines these declarations and commands. Use the same runs root as the server and put the installed bare `entanglix` command on the operator's `PATH` too.
+The agent may draft an investigation and propose revisions; the operator reviews complete terms, checkpoint, evidence, and any requested limits. The [investigation reference](investigations.md) defines these declarations and commands. Use the same runs root as the server and put the installed bare `entanglix` command on the operator's `PATH` too.
 
 ```sh
 entanglix read-investigation "$ENTANGLIX_WORKSPACE/runs/_investigations/<investigation_id>"
 entanglix investigation-decision "$ENTANGLIX_WORKSPACE/runs/_investigations/<investigation_id>" start --revision 1
 ```
 
-Only the operator runs that second command. Subsequent approvals, resumes and named review releases use the same bare command with the affected revision/review name. The agent reads the retained decision before continuing; it cannot turn a tool-approval prompt into one. At a checkpoint it records an assessment; at a named review it hands off for the operator's decision. A finding recommending stop does not itself stop jobs: use the supported `stop_investigation` tool to cancel owned work and close admission.
+That second command is the user's decision. The user runs it, or, where the runtime is set to ask, approves the agent's run of that exact command in the runtime's prompt; the decision record is the same either way. Subsequent approvals, resumes and named review releases use the same bare command with the affected revision/review name. The agent reads the retained decision before continuing; approving a research-tool call does not make one. At a checkpoint it records an assessment; at a named review it hands off for the operator's decision. A finding recommending stop does not itself stop jobs: use the supported `stop_investigation` tool to cancel owned work and close admission.
 
 When you tell the agent which investigation to work on, name it by its ID or as `_investigations/<investigation_id>`. The operator commands above take a path from your shell; the agent's tools resolve a relative record path from the runs root first, then from the server's working directory if it is not found. A workspace-relative `runs/_investigations/...` also works when the server starts in that workspace, provided the resolved path stays inside the configured runs root.
 

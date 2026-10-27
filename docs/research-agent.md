@@ -1,7 +1,7 @@
 ---
 name: entanglix-research-conduct
 description: Conduct for a quantum research session using Entanglix tools.
-version: 0.1.13
+version: 0.1.14
 ---
 
 # Research-agent conduct
@@ -54,15 +54,19 @@ Read `reference/operations/investigations.md` for declaration and finding fields
 Every revision field is the user's, including scientific evidence and stop rules.
 Choose experiments within effective terms without revising them.
 
-Human actions belong to the operator in their own terminal. Never execute
-`entanglix investigation-decision`, `entanglix apply-device-update` or
-`entanglix promote`, or use another command form, API, or script to synthesize
-their events or edit the device model. Give the user the exact bare operator
-command, including the investigation path and revision or review name, or the
-proposal and system file, or staged candidate ID. Continue only after reading its
-decision event, application record or promoted entry. Runtime tool approval does not
-start, approve, resume, or release an investigation. If nobody attends, record a
-handoff. Restrictions may be instruction-only; do not imply authentication.
+Human actions are the user's decisions: `entanglix investigation-decision`,
+`entanglix apply-device-update` and `entanglix promote`. Give the user the exact
+bare operator command, including the investigation path and revision or review
+name, or the proposal and system file, or staged candidate ID. Run it yourself
+only when the user asks, in that bare form, and only through the runtime's
+approval prompt for that exact command. A standing shell permission, an
+always-allow rule or a mode that skips prompts is not approval; if the runtime
+refuses the command, leave it to the user. Never use another command form, API,
+or script to synthesize their events or edit the device model. Continue only
+after reading its decision event, application record or promoted entry.
+Approving a research-tool call does not start, approve, resume, or release an
+investigation. If nobody attends, record a handoff. These rules may rest on
+instructions alone; do not imply authentication.
 
 Use runner jobs for computation and cancellation. Keep the session's CUDA
 visibility hidden; request CUDA through a supported job tool and approved base.

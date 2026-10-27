@@ -111,7 +111,6 @@ class Configuration:
     runner_extras: tuple[str, ...]
     state_directory: Path = field(default_factory=runner._state_directory)
     repository: Path = Path(__file__).resolve().parents[2]
-    command_restriction: str = "instruction-only"
     max_wait: float = MAX_WAIT
 
     def __post_init__(self):
@@ -195,10 +194,6 @@ def build_server(config: Configuration):
                     },
                     "supplied_guidance": supplied,
                     "guidance_status": "supplied" if supplied else "none supplied",
-                    "command_restriction": {
-                        "source": "operator-declared",
-                        "mode": config.command_restriction,
-                    },
                     "loaded_skills": "unknown",
                     "model": "unknown",
                     "transcript_location": "unknown",
@@ -711,12 +706,6 @@ def main(argv=None):
         help="runner state directory (default: XDG_STATE_HOME or ~/.local/state)",
     )
     parser.add_argument(
-        "--command-restriction",
-        choices=("instruction-only", "runtime-configured"),
-        default="instruction-only",
-        help="operator-declared shell restriction; not an observed enforcement guarantee",
-    )
-    parser.add_argument(
         "--max-wait",
         type=float,
         default=MAX_WAIT,
@@ -729,7 +718,6 @@ def main(argv=None):
             args.device,
             tuple(args.runner_extras),
             args.state_directory or runner._state_directory(),
-            command_restriction=args.command_restriction,
             max_wait=args.max_wait,
         )
     except ValueError as exc:

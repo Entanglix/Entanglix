@@ -1,7 +1,7 @@
 ---
 name: calibrate
 description: Fit Entanglix device parameters to spectroscopy, request calibration checks with withheld data, and stage a device-update proposal for the operator to apply.
-version: 0.1.0
+version: 0.1.1
 ---
 
 # Calibration from spectroscopy
@@ -48,10 +48,10 @@ unexplained, unresolved and undetermined peaks against the fit.
 Call `propose_device_update` with the run, and `solution` when several remain, only
 when the user wants an update. It writes a proposal beside the run and changes
 nothing else. Report its proposed and not-proposed parameters, uncertainties,
-bounds hit and the checks it records. Applying is the operator's action: give the
+bounds hit and the checks it records. Applying is the user's decision: give the
 exact bare command `entanglix apply-device-update <run path>/proposals/<n>.toml
-<system file>` with the user's authored system file, and never run it, script it or
-edit the system file yourself. If apply reports a changed model input, tell the user
+<system file>` with the user's authored system file. Run it only as the conduct's
+human-action rule allows, and never script it or edit the system file yourself. If apply reports a changed model input, tell the user
 which one so they can inspect it; even a comment-only edit changes its digest.
 
 Settle an interrupted attempt once ownership and group-liveness checks permit

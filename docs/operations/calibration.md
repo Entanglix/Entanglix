@@ -301,4 +301,4 @@ entanglix calibrate fit.toml --runs-root research_runs --investigation <investig
 entanglix rerun-calibration research_runs/<system_id>/<run_id>
 ```
 
-Research tools reach calibration through the MCP `calibrate`, `rerun_calibration`, `check` and `propose_device_update` tools; see the [MCP reference](mcp.md#tool-surface). `apply-device-update` is a human action: it is absent from those tools, and agent runtimes are configured to deny it like the other operator commands.
+Research tools reach calibration through the MCP `calibrate`, `rerun_calibration`, `check` and `propose_device_update` tools; see the [MCP reference](mcp.md#tool-surface). `apply-device-update` is a human action: it is absent from those tools and follows the [human-decision rule](mcp.md#human-decisions-and-continuation) of the other operator commands.

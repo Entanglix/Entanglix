@@ -112,7 +112,10 @@ entanglix investigation-decision research_runs/_investigations/<investigation_id
 
 Decision records retain the action, revision, timestamp, operator CLI source,
 OS user, and optional note. `investigation-decision` is a human action and is absent
-from the research operations advertised by `capabilities`. This separation follows
+from the research operations advertised by `capabilities`. The user runs it, or
+approves the agent's run of the exact command in the runtime's prompt
+([human decisions](mcp.md#human-decisions-and-continuation)); the record is the
+same either way. This separation follows
 the cooperative workflow in the [harness contract](../../HARNESS_CONTRACT.md);
 it is not OS authentication. Resume and named review release use the same operator
 command, as described below.

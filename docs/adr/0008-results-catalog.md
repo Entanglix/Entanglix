@@ -1,6 +1,6 @@
 # ADR-0008: Results Catalog
 
-**Date:** 2026-10-24, revised 2026-10-25
+**Date:** 2026-10-24, revised 2026-10-27
 **Status:** Accepted
 **Purpose:** fix what a catalogued candidate is, where catalog records live, how a candidate is staged and promoted, which recorded checks block promotion, how lineage is read, how a later job reuses a catalogued device, how a control solve starts from a supplied pulse, and what the first version leaves out. Field lists, formats, and command names are documented with the implementation.
 
@@ -121,7 +121,7 @@ Promotion is the user's decision, and the harness does only what the user reques
 ### 2.8 Tools and conduct
 
 - **MCP:** `register_result` as a controlled write, and `list_catalog` and `read_entry` as read-only tools. No tool promotes. The job tools are unchanged; their specs carry an entry and a starting pulse.
-- **Conduct:** stage only when the user asks, never promote, and cite an entry with its check scope.
+- **Conduct:** stage only when the user asks, run `promote` only under the operator-command approval rule of [ADR-0004 §2.8](0004-investigations-and-agent-sessions.md#28-agent-sessions), and cite an entry with its check scope.
 - **Skills:** the design-sweep and control skills gain the reuse steps.
 
 **Rationale:** the permission classes are the contract's, and live refusals of the bare `promote` command under the documented rule are already retained.

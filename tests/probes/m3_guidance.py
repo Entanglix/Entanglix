@@ -78,7 +78,6 @@ level = 1
     args = [
         "-m", "entanglix.mcp", "--runs-root", str(workspace / "runs"),
         "--device", device, "--runner-extras", *extras,
-        "--command-restriction", "runtime-configured",
     ]  # fmt: skip
     (workspace / ".codex/config.toml").write_text(
         "[mcp_servers.entanglix]\n"

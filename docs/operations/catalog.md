@@ -84,7 +84,7 @@ Check outcomes are not copied. They stay in the source run's verification histor
 
 ## Promotion
 
-The user promotes a staged candidate in their own terminal:
+The user promotes a staged candidate, or approves the agent's run of the exact command in the runtime's prompt ([human decisions](mcp.md#human-decisions-and-continuation)):
 
 ```sh
 entanglix promote s20261025T153012123456Z-1a2b3c4d --runs-root research_runs

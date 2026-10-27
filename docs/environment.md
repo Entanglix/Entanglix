@@ -286,7 +286,7 @@ package pins.
 The [workspace reference](operations/mcp.md#research-workspace) describes conduct,
 plain-text skills, command settings, and the operator decision path. Scripted
 initialization tests check that the real server sends the shipped conduct and
-records supplied versions and operator-declared restriction mode:
+records supplied versions:
 
 ```sh
 TMPDIR=/var/tmp UV_PROJECT_ENVIRONMENT=/var/tmp/entanglix-mcp-test uv run --locked --exact --extra mcp pytest -q tests/test_research_guidance.py tests/test_mcp.py -m 'not gpu'

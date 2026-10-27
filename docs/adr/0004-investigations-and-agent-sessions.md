@@ -127,9 +127,9 @@ Measurements: [readout threshold probe](../../tests/probes/m3_readout_results.js
 - A research workspace is a directory outside the repository, so repository development instructions are not loaded there. The user sets it up by documented steps; there is no setup command.
 
 **User decisions**
-- The operator command in the user's own terminal is the only decision path in M3.
+- The operator command is the only decision path. The user runs it in their own terminal, or lets the agent run the exact command after approving it in the runtime's prompt for that command; a standing shell permission or a mode that skips prompts is not that approval. The decision record names the operator CLI and the OS user either way.
 - An agent that needs a decision states the exact command, with the investigation and revision, and continues only after reading the decision event. A session that nobody attends hands off, and a later session continues from records.
-- A runtime's approval of a tool call permits invoking a research operation. It does not create an investigation start, a revision approval, a resume, or a review release.
+- A runtime's approval of a research-tool call permits invoking a research operation. It does not create an investigation start, a revision approval, a resume, or a review release.
 
 **Job tools**
 - A job tool returns the run ID once the manifest exists and a supervisor that outlives the call owns the attempt.
@@ -140,18 +140,20 @@ Measurements: [readout threshold probe](../../tests/probes/m3_readout_results.js
 **Permissions**
 - An agent may request a job on either device through a supported protocol. Within an investigation the device is part of a base the user approved, and admission checks the base by digest, so a job request cannot change it. Which physical GPU the runner uses, and its runner extras, are operator configuration.
 - The user starts the runtime with `CUDA_VISIBLE_DEVICES=""`, and the server entry names the device for runner-launched jobs. This is CUDA visibility: ordinary CUDA code in the session finds no device. It is not an operating-system boundary.
-- Where the runtime can restrict commands, its settings deny the human-action commands. The restriction is claimed for a runtime and a command form only where a test shows the configured setting refusing the command. Setup documents the invocation forms covered by the restriction, and conformance tests exercise those forms. In a runtime without such a setting the conduct text carries the rule, the session is recorded as instruction-only, and no blocked-command test is claimed.
+- Where the runtime can restrict commands, the documented settings refuse the human-action commands. A user who prefers to approve each command sets the runtime to ask before running them. A setting's behaviour is claimed for a runtime and a command form only where a test shows it. Setup documents the invocation forms the setting covers, and conformance tests exercise those forms. In a runtime without such a setting the conduct text carries the rule, and no refusal or approval is claimed.
 - The server entry sets the runs root, the device, the runner extras, and the state directory when the user's shell sets one, because a runtime may not pass its own environment to the server. The server and the operator commands use the same runs root, and every runner instance uses the same GPU lock location.
 - The server's tools act only on attempts, launches, and investigations inside the configured runs root, and refuse a path that resolves outside it. Authored inputs, such as a system, protocol, or script file, may live elsewhere.
 
 **Session audit**
-- There is one session-audit entry per MCP connection, and its ID is the tool-call audit's session ID. The entry is immutable. It holds the client name and version reported at the handshake, the server's configuration, the operator-declared command-restriction mode (defaulting to `instruction-only`), and the conduct version and skill names and versions the harness supplied. The restriction declaration is not evidence of runtime enforcement. Supplying a skill does not show that the runtime loaded it.
+- There is one session-audit entry per MCP connection, and its ID is the tool-call audit's session ID. The entry is immutable. It holds the client name and version reported at the handshake, the server's configuration, and the conduct version and skill names and versions the harness supplied. Supplying a skill does not show that the runtime loaded it.
 - Metadata a client sends with a request, such as a session, turn, or model identifier, is recorded on that tool-call entry, because it can change during a connection. It is reported by the client and is not authenticated.
-- What the server cannot observe, such as the skills the runtime loaded and its transcript location, is recorded as unknown. An evaluation records its model and transcripts in its own configuration.
+- What the server cannot observe, such as the skills the runtime loaded and its transcript location, is recorded as unknown. An evaluation records its model, runtime settings, and transcripts in its own configuration.
 
 **Rationale:**
 - Runtimes differ in whether they read a workspace file, when they show server instructions, which environment they pass to a server, whether they cancel a call they abandon, whether they ask for approval of a tool, and whether they can restrict commands. Each decision states what the harness does and what holds in a runtime without the feature.
-- An instruction is not enforcement (contract §8), so an instruction-only session is recorded as one and is not counted as a blocked command.
+- Approving a research-tool call approves an operation whose effect is not a decision, and runtimes can approve a server's tools in bulk. The operator command is itself the decision, and the runtime's prompt for it shows the user the exact command before it runs.
+- Refusal stays the documented setting: a session that nobody attends cannot answer a prompt, and a runtime mode that skips prompts may run a command set to ask without approval. A user who attends and prefers to approve changes one setting.
+- An instruction is not enforcement (contract §8), so a rule carried by instructions alone is not counted as a refusal. The server cannot check an operator's statement of the runtime's setting, so the session audit records none; an evaluation records its runtime settings with its transcripts.
 - A wait inside `read_run` avoids both a new tool and repeated empty calls. The MCP server caps it because a runtime can abandon a call at its own timeout without telling the server; a terminal has no such timeout. The server cannot see that timeout, so the operator sets the cap below it. An agent that waits one call at a time spends a model request each time a wait returns, so a cap that covers the job lets one wait suffice. The cap bounds one call, not a job or an investigation.
 - A launch can be admitted after its connection is lost, so the absence of a run cannot be read as refusal until the launch is resolved.
 - A server sees a connection and its requests, not an agent session or a model. Recording what the client reports, labelled as such, is the most the server can state.
@@ -187,8 +189,10 @@ Measurements: [agent-session probe](../../tests/probes/m3_agent_session_results.
 | A pinned runtime or a live agent session in automated tests | Automated tests do not require a logged-in runtime, and the harness does not own the runtime |
 | A job queue, scheduler, grant service, or workflow engine | ADR-0001 and contract §7 reuse process and runtime facilities |
 | A generated workspace instruction file, or detection of what a runtime loaded | A shipped file the user supplies is enough, and a server cannot observe a model's context |
-| A runtime prompt or an in-session decision tool | Nothing in M3 needs one; the operator command is the single decision path |
-| A runtime's tool approval treated as a user decision | Approval permits a call; only the operator command records a decision |
+| An in-session decision tool | The operator command is the single decision path, and the runtime's prompt for that command already lets the user approve it in session |
+| A research tool that runs a human-action command after the runtime's approval | Runtimes can approve a server's tools in bulk; a command prompt names the exact command |
+| A runtime's approval of a research-tool call treated as a user decision | Approval permits a call; only the operator command records a decision |
+| Asking before human-action commands as the documented setting | A session that nobody attends cannot answer, and a mode that skips prompts may run the command without approval |
 | Polling `read_run` without a wait, or a separate wait tool | Polling spends calls on nothing, and a second tool duplicates `read_run` |
 | An uncapped wait through MCP | A runtime abandons a long call at its own timeout and may not cancel it |
 | A capped wait on the command line | The cap answers a runtime's tool timeout, which a terminal does not have |
@@ -197,6 +201,7 @@ Measurements: [agent-session probe](../../tests/probes/m3_agent_session_results.
 | A harness guard in the terminal for human-action commands | Another cooperative mechanism that leaves the limitation in place |
 | An instruction-only rule counted as a blocked command | An instruction is not enforcement (contract §8) |
 | An agent self-report tool for model and transcript | Unverifiable; the client's metadata or the evaluation's configuration records them |
+| An operator-declared command setting in the session audit | The server cannot check it; an evaluation records its runtime settings with its transcripts |
 | A retry service or idempotency key for launches | Audit and run records already distinguish a pending, admitted, or refused launch |
 | Counting a launch refused for a busy device | It did no work, and retries would use up an allowance |
 | A setup command for the research workspace | The setup is a few documented steps that differ by runtime |
@@ -206,7 +211,7 @@ Measurements: [agent-session probe](../../tests/probes/m3_agent_session_results.
 
 - The contract changes accordingly:
   - §4 states that every change to a revision takes effect only on a user decision, in place of routine revisions without approval, that admitted attempts retain their dispatch revision and limits, and that a stop cancels its outstanding attempts permanently.
-  - §5 describes `revise_investigation` as proposing a revision. It gives `read_run` an optional wait, reports attempts and unresolved launches, permits a runtime user-input path only when it is implemented and validated, and limits the command restriction to runtimes and command forms where a test shows it.
+  - §5 describes `revise_investigation` as proposing a revision. It gives `read_run` an optional wait, reports attempts and unresolved launches, permits a runtime user-input path only when it is implemented and validated, lets the user approve the agent's run of an exact operator command, and claims a runtime's command setting only for runtimes and command forms where a test shows it.
   - §6 records a launch before its supervisor starts, puts client-sent request metadata on the tool-call entry, and keeps one immutable session entry per connection.
   - §7 describes the hidden GPU as CUDA visibility and refuses a busy-device launch before an attempt exists.
   - §8 records the client name and version the runtime reports in each session's audit, in place of a pinned runtime, and states the conformance evidence for agent sessions in the terms of §2.8.

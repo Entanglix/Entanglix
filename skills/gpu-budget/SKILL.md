@@ -1,7 +1,7 @@
 ---
 name: gpu-budget
 description: Assess measured Entanglix job costs, optional investigation limits, and GPU ownership before continuing or stopping research.
-version: 0.1.0
+version: 0.1.1
 ---
 
 # Resources and GPU use
@@ -39,4 +39,5 @@ Resource availability does not justify continued research without learning.
 Assess convergence, meaningful precision, observed cost, and possible next
 experiments. Record a supported stop/review handoff when scope or evidence cannot
 settle the question. Propose complete revised terms for a limit change and give
-the user the operator command; never approve the change yourself.
+the user the operator command. The approval is the user's: run that command only
+as the conduct's human-action rule allows.
