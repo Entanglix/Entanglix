@@ -19,7 +19,8 @@ from entanglix.corrector.checks import check, inapplicable
 from entanglix.engines import QuTiPIntegrator
 from entanglix.evolution import EvolutionInput
 from entanglix.models import ConstructedSystem
-from entanglix.protocols.control import load_control, override_system
+from entanglix.protocols import override_system
+from entanglix.protocols.control import load_control
 from entanglix.solvers import validate_problem
 
 CONTROL_LIMIT = (

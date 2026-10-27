@@ -22,7 +22,7 @@ from entanglix.corrector.dynamics import check_listing
 from entanglix.corrector.metrics import Metric
 from entanglix.engines.selection import select_engine
 from entanglix.models import StrictModel, load_system
-from entanglix.protocols import SystemSource
+from entanglix.protocols import SystemSource, with_parameters
 from entanglix.protocols.plans import EvolutionSpec, Refinement, load_plan
 from entanglix.runner import (
     _cpu_job_context,
@@ -144,14 +144,10 @@ def compile_simulation(
         shutil.copyfile(path, directory / name)
         if _digest((directory / name).read_bytes()) != hashes[name]:
             raise ValueError(f"system input changed during compilation: {name}")
-    document = tomllib.loads((directory / "system.toml").read_text())
-    for name, value in spec.parameters.items():
-        if name not in document.get("parameters", {}) or not math.isfinite(value):
-            raise ValueError(f"parameter override must name a finite declared parameter: {name}")
-        document["parameters"][name]["value"] = value
     if spec.parameters:
-        (directory / "system.toml").write_text(tomli_w.dumps(document))
-        system = load_system(directory / "system.toml")
+        system_file = directory / "system.toml"
+        system_file.write_bytes(with_parameters(system_file.read_bytes(), spec.parameters))
+        system = load_system(system_file)
     definition = {
         "format_version": 1,
         "kind": spec.kind,

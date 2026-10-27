@@ -16,6 +16,22 @@ from entanglix.evolution import (
 from entanglix.models import ConstructedSystem
 
 
+def timed_hamiltonian(base, drives, amplitudes: dict[str, float], carriers) -> qt.QobjEvo:
+    """Angular-frequency operators: constant drives join the base, carrier drives a cosine."""
+    timed = [base]
+    for name, amplitude in amplitudes.items():
+        carrier = carriers.get(name)
+        if carrier is None:
+            timed[0] += amplitude * drives[name]
+        else:
+
+            def coefficient(t, amplitude=amplitude, carrier=carrier):
+                return amplitude * np.cos(2 * np.pi * carrier.frequency_ghz * t + carrier.phase_rad)
+
+            timed.append([drives[name], coefficient])
+    return qt.QobjEvo(timed)
+
+
 class QuTiPIntegrator:
     def capabilities(self) -> EngineCapabilities:
         return EngineCapabilities("qutip-cpu", "cpu", True, False)
@@ -34,23 +50,11 @@ class QuTiPIntegrator:
             name: qt.Qobj(2 * np.pi * matrix(terms), dims=qdims, dtype="CSR")
             for name, terms in prepared.drives.items()
         }
+        # A rotating frame has already absorbed the carriers.
+        carriers = normalized.carriers if normalized.frame is None else {}
 
         def hamiltonian(amplitudes: dict[str, float]):
-            timed = [base_hamiltonian]
-            for name, amplitude in amplitudes.items():
-                operator = drives[name]
-                carrier = normalized.carriers.get(name) if normalized.frame is None else None
-                if carrier is None:
-                    timed[0] += amplitude * operator
-                else:
-
-                    def coefficient(t, amplitude=amplitude, carrier=carrier):
-                        return amplitude * np.cos(
-                            2 * np.pi * carrier.frequency_ghz * t + carrier.phase_rad
-                        )
-
-                    timed.append([operator, coefficient])
-            return qt.QobjEvo(timed)
+            return timed_hamiltonian(base_hamiltonian, drives, amplitudes, carriers)
 
         options = {
             "method": "vern9",

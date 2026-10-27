@@ -5,6 +5,7 @@ from __future__ import annotations
 import numpy as np
 
 from entanglix.engines.frames import prepare_dynamics
+from entanglix.engines.qutip_cpu import timed_hamiltonian
 from entanglix.evolution import (
     EngineCapabilities,
     EvolutionInput,
@@ -76,25 +77,16 @@ class CuQuantumIntegrator:
                 values = [term.coefficient_ghz * tensor_operator(term.factors) for term in terms]
                 return sum(values[1:], values[0])
 
-            base_hamiltonian = terms_operator(prepared.hamiltonian)
-            drives = {name: terms_operator(terms) for name, terms in prepared.drives.items()}
+            base_hamiltonian = 2 * np.pi * terms_operator(prepared.hamiltonian)
+            drives = {
+                name: 2 * np.pi * terms_operator(terms) for name, terms in prepared.drives.items()
+            }
             collapse = [terms_operator(terms) for terms in prepared.collapse]
+            # A rotating frame has already absorbed the carriers.
+            carriers = normalized.carriers if normalized.frame is None else {}
 
             def hamiltonian(amplitudes: dict[str, float]):
-                timed = [2 * np.pi * base_hamiltonian]
-                for name, amplitude in amplitudes.items():
-                    carrier = normalized.carriers.get(name) if normalized.frame is None else None
-                    if carrier is None:
-                        timed[0] += 2 * np.pi * amplitude * drives[name]
-                    else:
-
-                        def coefficient(t, amplitude=amplitude, carrier=carrier):
-                            return amplitude * np.cos(
-                                2 * np.pi * carrier.frequency_ghz * t + carrier.phase_rad
-                            )
-
-                        timed.append([2 * np.pi * drives[name], coefficient])
-                return qt.QobjEvo(timed)
+                return timed_hamiltonian(base_hamiltonian, drives, amplitudes, carriers)
 
             initial = qt.Qobj(
                 qcu.CuState(

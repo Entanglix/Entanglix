@@ -16,7 +16,14 @@ from pydantic import Field, model_validator
 from entanglix.engines.frames import matrix, prepare_dynamics
 from entanglix.evolution import Carrier, EvolutionInput, RotatingFrame, normalize_input
 from entanglix.models import ConstructedSystem, StrictModel, load_system
-from entanglix.protocols import SystemSource
+from entanglix.protocols import (
+    SystemSource,
+    base_files,
+    override_system,
+    read_inputs,
+    with_parameters,
+    write_frozen,
+)
 from entanglix.protocols.plans import FrameSpec, Refinement
 from entanglix.solvers import Pulse as NeutralPulse
 
@@ -354,35 +361,6 @@ def _vary(document: dict, values: dict) -> None:
             raise ValueError(f"control varies only parameters.<name> and pulse.seed: {target}")
 
 
-def override_system(content: bytes, changes: dict[str, float]) -> bytes:
-    """Set declared parameters and circuit offset charges, named by evaluation target."""
-    if not changes:
-        return content
-    document = tomllib.loads(content.decode("utf-8"))
-    for target, value in changes.items():
-        if target.startswith("parameters."):
-            name = target.removeprefix("parameters.")
-            if name not in document.get("parameters", {}):
-                raise ValueError(
-                    f"parameter override must name a finite declared parameter: {name}"
-                )
-            document["parameters"][name]["value"] = value
-        else:
-            node = target.removeprefix("model.offset_charges.")
-            charges = document["model"].get("offset_charges", {})
-            if node not in charges:
-                raise ValueError(f"offset charge must name a declared circuit node: {node}")
-            charges[node] = value
-    return tomli_w.dumps(document).encode("utf-8")
-
-
-def _with_parameters(content: bytes, parameters: dict[str, float]) -> bytes:
-    """Override declared system parameters as simulate does; the result is the frozen system."""
-    return override_system(
-        content, {f"parameters.{name}": value for name, value in parameters.items()}
-    )
-
-
 def _agreed(declared, derived, label):
     """Keep a declared value that agrees with the derived one; frozen inputs carry both."""
     if declared is None:
@@ -516,7 +494,7 @@ def load_control(
     spec = ControlSpec.model_validate(document)
     source, catalog = spec.resolve_system(protocol, runs_root, replay_source)
     authored = source.read_bytes()
-    original = load_system(source, content=_with_parameters(authored, spec.parameters))
+    original = load_system(source, content=with_parameters(authored, spec.parameters))
     if spec.evaluation is not None:
         # Only the names are checked here; the corrector builds each sampled model.
         override_system(authored, dict.fromkeys(spec.evaluation.quantities, 0.0))
@@ -698,47 +676,24 @@ def compile_control(
             raise ValueError(
                 f"solver {selection['actual']!r} does not support the declared CPU control problem and constraints"
             )
-    frozen = {}
-    for name, source in loaded.inputs.items():
-        content = source.read_bytes()
-        if hashlib.sha256(content).hexdigest() != loaded.input_digests[name]:
-            raise ValueError(f"control input changed during compilation: {name}")
-        frozen[name] = content
+    frozen = read_inputs(loaded.inputs, loaded.input_digests, "control")
     base_inputs = loaded.input_digests if retain_base else {}
     if start and loaded.definition.starting_pulse.file is not None:
         # An authored file is a base input under its fixed name; entries and runs are not.
         frozen[STARTING_PULSE] = start_bytes
         if retain_base:
             base_inputs = {**base_inputs, STARTING_PULSE: start_record["sha256"]}
-    base_files = {}
-    if retain_base:
-        # Admission and reruns use the authored bytes, before canonicalization.
-        base_files = {f"base/{name}": content for name, content in frozen.items()}
-        if loaded.definition.system is not None and loaded.definition.system != "system.toml":
-            alias = f"base/{loaded.definition.system}"
-            if alias in base_files:
-                raise ValueError(
-                    f"the system file {loaded.definition.system!r} would replace the control "
-                    "input of that name in the investigation base; rename the system file"
-                )
-            base_files[alias] = frozen["system.toml"]
-    # Use the runner's canonical system filename in the frozen control input.
-    definition = loaded.definition.model_dump(exclude_none=True)
-    definition.pop("system_entry", None)
-    definition["system"] = "system.toml"
+    base = base_files(frozen, loaded.definition.system, "control") if retain_base else {}
+    definition = loaded.definition.frozen_document()
     if start:
         # The start is frozen beside the unchanged ProblemSpec, so reruns need no catalog.
         definition["starting_pulse"] = {"file": STARTING_PULSE}
         frozen[STARTING_PULSE] = start_bytes
     frozen["control.toml"] = tomli_w.dumps(definition).encode("utf-8")
-    frozen["system.toml"] = _with_parameters(frozen["system.toml"], loaded.definition.parameters)
+    frozen["system.toml"] = with_parameters(frozen["system.toml"], loaded.definition.parameters)
     frozen["problem.toml"] = loaded.problem_bytes
-    frozen.update(base_files)
-    for name, content in frozen.items():
-        (directory / name).parent.mkdir(parents=True, exist_ok=True)
-        with (directory / name).open("xb") as target:
-            target.write(content)
-        (directory / name).chmod(0o444)
+    frozen.update(base)
+    write_frozen(directory, frozen)
     result = {
         **catalog,
         "system_id": loaded.system.id,

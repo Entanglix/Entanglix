@@ -20,7 +20,8 @@ from test_sweep import sweep_files
 from entanglix.catalog import list_catalog, read_entry, register_result
 from entanglix.cli import main
 from entanglix.models import load_system
-from entanglix.protocols.control import compile_control, override_system
+from entanglix.protocols import override_system
+from entanglix.protocols.control import compile_control
 from entanglix.protocols.simulate import compile_simulation
 from entanglix.protocols.sweep import compile_sweep
 from entanglix.runner import (

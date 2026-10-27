@@ -18,6 +18,7 @@ from scipy.linalg import expm
 from entanglix.engines import QuTiPIntegrator
 from entanglix.evolution import Carrier, EvolutionInput, RotatingFrame
 from entanglix.models import load_system
+from entanglix.protocols import override_system
 from entanglix.protocols.control import (
     AMICODE_REVISION,
     RESOLVED_RELATIVE_TOLERANCE,
@@ -284,6 +285,16 @@ def test_parameters_and_varied_values_override_only_the_frozen_inputs(tmp_path):
         load_control(path, values={"pulse.seed": 1})
     with pytest.raises(ValueError, match="declared parameter: Cx"):
         load_control(path)
+
+
+@pytest.mark.parametrize("target", ["parameters.EJ", "model.offset_charges.island"])
+@pytest.mark.parametrize("value", [math.inf, math.nan])
+def test_system_overrides_refuse_non_finite_values(target, value):
+    content = tomli_w.dumps(
+        {"parameters": {"EJ": {"value": 15.0}}, "model": {"offset_charges": {"island": 0.0}}}
+    ).encode()
+    with pytest.raises(ValueError, match="must name a finite declared"):
+        override_system(content, {target: value})
 
 
 @pytest.fixture

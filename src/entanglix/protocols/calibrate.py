@@ -27,7 +27,7 @@ from entanglix.calibration import (
 from entanglix.extraction import ExtractionSettings, extract, frequency_step
 from entanglix.measurements import Dataset, load_dataset
 from entanglix.models import ConstructedSystem, StrictModel, load_system
-from entanglix.protocols import SystemSource
+from entanglix.protocols import SystemSource, base_files, read_inputs, write_frozen
 from entanglix.protocols.plans import Refinement
 
 ENGINE = "scipy-least-squares"
@@ -564,34 +564,11 @@ def compile_calibration(
     from entanglix.runner import capture_environment
 
     loaded = load_calibration(protocol, runs_root=runs_root, replay_source=replay_source)
-    frozen = {}
-    for name, source in loaded.inputs.items():
-        data = source.read_bytes()
-        if hashlib.sha256(data).hexdigest() != loaded.input_digests[name]:
-            raise ValueError(f"calibration input changed during compilation: {name}")
-        frozen[name] = data
-    base_files = {}
-    if retain_base:
-        # Admission and reruns use the authored bytes, before canonicalization.
-        base_files = {f"base/{name}": data for name, data in frozen.items()}
-        if loaded.spec.system is not None and loaded.spec.system != "system.toml":
-            alias = f"base/{loaded.spec.system}"
-            if alias in base_files:
-                raise ValueError(
-                    f"the system file {loaded.spec.system!r} would replace the calibration input "
-                    "of that name in the investigation base; rename the system file"
-                )
-            base_files[alias] = frozen["system.toml"]
-    canonical = loaded.spec.model_dump(exclude_none=True)
-    canonical.pop("system_entry", None)
-    canonical["system"] = "system.toml"
-    frozen["calibrate.toml"] = tomli_w.dumps(canonical).encode("utf-8")
-    frozen.update(base_files)
-    for name, data in frozen.items():
-        (directory / name).parent.mkdir(parents=True, exist_ok=True)
-        with (directory / name).open("xb") as target:
-            target.write(data)
-        (directory / name).chmod(0o444)
+    frozen = read_inputs(loaded.inputs, loaded.input_digests, "calibration")
+    base = base_files(frozen, loaded.spec.system, "calibration") if retain_base else {}
+    frozen["calibrate.toml"] = tomli_w.dumps(loaded.spec.frozen_document()).encode("utf-8")
+    frozen.update(base)
+    write_frozen(directory, frozen)
     # The job loads exactly these files, so they must validate as frozen.
     load_calibration(directory / "calibrate.toml")
     digests = {name: hashlib.sha256(data).hexdigest() for name, data in frozen.items()}
