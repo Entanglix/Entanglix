@@ -29,7 +29,7 @@ An existing environment without a profile is rejected: stop its jobs and confirm
 a sync with the intended extras before recording that list, or recreate the
 environment and let its first launch claim the profile. To change profiles, use a
 separate checkout or stop all jobs before removing both the environment and its
-profile. Keep one extras set in the shell override or project configuration.
+profile.
 
 The job runs noninteractively in its own process group, with `artifacts/` as its working directory so ordinary relative outputs land in the job's area. It inherits the owner's descriptor and waits until `runner/started.toml` has been published before executing the frozen script. Output and diagnostics go to `run.log`. `ENTANGLIX_RUN_DIR` names the attempt and `ENTANGLIX_SYSTEM_SPEC` its frozen system spec; additional data is under `<ENTANGLIX_RUN_DIR>/spec/`.
 
@@ -53,11 +53,11 @@ Entanglix neither installs nor resolves plugins. Each launch synchronizes the lo
 
 ## Computation records
 
-Simulations appear as `protocol = "simulate"`; historical `"plan"` and `"reference"` records remain readable. A simulation's `spec/` contains `system.toml`, `simulate.toml`, its compiled `plan.toml`, referenced model files, and numeric inputs. The manifest records the computation kind, plan digest, selected engine, environment, and code provenance. The plan digest covers normalized content and model/numeric input digests; separate `spec_sha256` entries preserve raw-file integrity. The plan format is internal and is not a public authoring interface.
+Simulations appear as `protocol = "simulate"`. A simulation's `spec/` contains `system.toml`, `simulate.toml`, its compiled `plan.toml`, referenced model files, and numeric inputs. The manifest records the computation kind, plan digest, selected engine, environment, and code provenance. The plan digest covers normalized content and model/numeric input digests; separate `spec_sha256` entries preserve raw-file integrity. The plan format is internal and is not a public authoring interface.
 
 The result records the actual engine, method, dimensions, device, and solver diagnostics. `artifacts/output.npz` holds `states`, `times_ns`, and `observable.<name>` arrays for dynamics, or `energies_ghz` for spectra; its digest is checked before completion. Computation completion describes execution only; checks run separately on request.
 
-CPU dynamiqs jobs require `extras = ["differentiable"]` in `[tool.entanglix.runner]` in `pyproject.toml`. Installing an extra only in the development environment does not configure the job environment. Keep one extras set for all jobs sharing `.venv-runner/`; no CUDA extra is needed for CPU jobs.
+CPU dynamiqs jobs need the `differentiable` extra in the runner extras set; an extra installed only in the development environment does not reach jobs, and CPU jobs need no CUDA extra.
 
 Sweeps appear as `protocol = "sweep"`. Their frozen inputs include the base protocol,
 `sweep.toml`, an internal sweep manifest, and each point's effective model/plan
@@ -74,10 +74,9 @@ describes sweep checks, coverage and full-grid replay.
 
 The corrector ships with [versioned thresholds](../../src/entanglix/corrector/thresholds.toml).
 Its policy version hashes the code and thresholds; a change between admission and
-load fails execution without check outcomes. There is no harness-imposed dimension
-cap. The [dimension-48 exact regression](../../tests/test_corrector.py) and
-[dimension-64 cross-engine case](../../tests/test_engine_acceptance.py) are engine
-acceptance evidence, not ceilings.
+load fails execution without check outcomes. There is no dimension cap or pre-launch
+memory estimate; an allocation failure is reported as out of memory
+([execution outcomes](#execution-outcomes)).
 
 ```sh
 uv run --locked --exact entanglix check research_runs/<system_id>/<run_id>
@@ -113,17 +112,9 @@ identity match, and completed check reports. Earlier reports remain history unde
 their recorded policy. A newer failure does not erase earlier outcomes or substitute
 them for its missing report.
 
-MCP reads summarize nested check details while retaining outcomes, scopes,
-coverage, policy versions and source identity matches. Sweep points retain their
-coordinates, metrics and any recorded error. Log tails remain complete. Manifests
-name omitted provenance fields in `detail_omitted`; oversized metrics are also
-marked as omitted. Use `read_run(path, detail=True)` through MCP
-for full reports and point details; CLI and Python backing reads remain complete.
-Large full check or sweep reads can exceed a runtime tool-reply limit. The complete
-report is retained in the run directory: read `result.toml`, point results under
-`artifacts/`, and their archives with the session's file tools. MCP `list_runs` uses
-the same paged table form as investigation history; CLI listing stays complete.
-See the [MCP response reference](mcp.md#investigation-views-and-tables).
+MCP reads summarize check and sweep details and page run listings; see the
+[MCP response reference](mcp.md#investigation-views-and-tables). CLI and Python reads
+are complete.
 
 ## Limits, interruption, and recovery
 
@@ -146,11 +137,11 @@ For a CUDA simulation or sweep, the runner resolves the single visible device th
 
 The stable `<UUID>.lock` file is never unlinked. Once the attempt exists, `<UUID>.toml` records its absolute run path and, once started, process group. A failure of the launch check, admission, or manifest creation releases ownership. A failure after manifest publication retains a failed attempt.
 
-The launch-check child inherits the GPU descriptor. The local executor then passes both the attempt and GPU descriptors to its job, retaining device ownership continuously through `FINISHED` and closing without explicit unlocking. A surviving inheriting child therefore blocks reuse after runner death. Once the lock becomes free, a live or indeterminate recorded group still blocks reuse. An allocation without `FINISHED` requires explicit reconciliation even after the group disappears; missing history also blocks reuse. Completed allocation metadata is removed when the lease closes; reconciled metadata can be replaced by a subsequent owner. Lock files remain. This is cooperative ownership, not device containment or a scheduler.
+The launch check and then the job hold the device lock continuously through `FINISHED`, so a job that survives its runner blocks reuse. Once the lock is free, a live or indeterminate recorded group still blocks reuse, and an allocation without `FINISHED` needs reconciliation even after its group disappears; missing history also blocks reuse. This is cooperative ownership, not device containment or a scheduler.
 
 ## Location and identity
 
-The default runs root is `research_runs/` relative to the caller's working directory. `create_run(runs_root=...)` overrides it explicitly and returns a `RunHandle`; its `.path` names the attempt directory:
+The default runs root is `research_runs/` relative to the caller's working directory; `--runs-root` (Python: `runs_root=`) changes it. An attempt directory holds:
 
 ```text
 <runs_root>/<system_id>/<run_id>/
@@ -171,7 +162,7 @@ The default runs root is `research_runs/` relative to the caller's working direc
 
 Run IDs have the form `r20260930T153012123456Z-<8 hexadecimal digits>`: a UTC timestamp with microseconds and a random suffix. Creation is exclusive; an existing directory is never reused. System IDs must start with an ASCII letter or digit and contain only letters, digits, `.`, `_`, and `-`. Parent run IDs preserve lineage; a rerun gets a new ID.
 
-Every research run, including an authored script, requires a validated system spec frozen as `spec/system.toml`. The caller supplies all referenced specs, numeric assets, scripts, and data as a mapping of relative destination names to source paths. Names must be UTF-8 encodable, cannot be absolute or contain `..`, and must not alias another file or use a file as a directory; `spec/code/` is reserved for provenance. Files are copied, hashed, and made read-only, so subsequent source edits do not change the attempt. Validation of the scientific model and collection of its referenced files belong to the launch gate.
+Every research run, including an authored script, requires a validated system spec frozen as `spec/system.toml`. The launch gate validates the model and collects the files it references; additional inputs keep the names given with `--input NAME=PATH`. Names must be UTF-8 encodable and relative, without `..`, must not alias another file or use a file as a directory, and cannot use `spec/code/`, which is reserved for provenance. Files are copied, hashed, and made read-only, so later source edits do not change the attempt.
 
 ## Record fields and ownership
 
@@ -188,29 +179,25 @@ Runner records are published once and made read-only. Jobs own `result.toml` and
 
 **Versions and compatibility.** A new release reads supported earlier versions of the records and inputs that earlier releases wrote. Every version written so far is supported, and a version leaves support only with a release-note entry. Reading means inspecting a record's retained contents; compiling, reusing, replaying or checking an earlier run is not promised. Historical records are never rewritten. Protocol results, sweep point results, the calibration assignment, launch attempts and abort requests carry no `record_version` and are version 1; their first incompatible revision carries the field. Records that carry `record_version` keep requiring it.
 
-`run.toml` is the first published file. Inputs are then frozen before the caller may start computation. UTF-8 serialization, missing-input errors, normalized-path duplicates, and file/directory conflicts are checked before creating the attempt directory. On a handled failure before manifest publication, the exclusively created attempt directory is removed because no run was admitted. If preparation fails after publication, `create_run` publishes `FINISHED` with `failed/64` and zero job usage while holding ownership, then raises `RunCreationError` carrying the attempt path in `.run`. If storage prevents that terminal write, the original error retains the path and an explanatory note; the attempt remains incomplete and can be reconciled without a start record. Creation failures close the owner handle before raising.
+`run.toml` is the first published file, and inputs are frozen before computation starts. Input names, missing inputs, duplicates and file/directory conflicts are checked before the attempt directory exists. For handled preparation failures: one before `run.toml` is published removes the directory, because no run was admitted; one after publication records `FINISHED` with `failed/64` and zero job usage, and the error names the attempt path. If storage prevents that write, the attempt stays incomplete and can be reconciled without a start record.
 
-`publish_toml` serializes before writing, flushes the temporary file, publishes atomically, and flushes the containing directory. Its default refuses to replace any existing record, including concurrent publication by another caller. A job publishes its result with `publish_toml(path, result, replace=True)`, using temporary-file rename; a failed serialization leaves the previous result intact.
+Records are published atomically and durably, and a runner record is never replaced, even by a concurrent caller. A job replaces its own result with `publish_toml(path, result, replace=True)`; a failed serialization leaves the previous result intact.
 
-`create_run` takes an exclusive `flock` on the attempt directory immediately after creating it and before publishing `run.toml`. Its returned handle retains that ownership. `record_start(handle, ...)` and `record_finish(handle, ...)` require the open handle and do not reacquire the lock. The supervising caller keeps it open through publication of `FINISHED`, then closes it, or uses it as a context manager. Closing the handle only closes its descriptor; it does not issue an explicit unlock that could release an inheriting job's ownership.
+The runner owns each attempt through an exclusive lock, taken before `run.toml` is published, and passes the lock to the job, whose child processes can inherit it. Ownership is held by the processes that hold a copy of the lock and is released when all of them have closed it, so a job that survives its runner keeps the attempt. This lock covers CPU and GPU runs; the per-device GPU lock is separate.
 
-For process launch, pass `handle.fileno()` to the job through `subprocess.Popen(..., pass_fds=(handle.fileno(),))`. The shared lock remains held until the runner and every inheriting process close their copies. This attempt lock applies to CPU and GPU runs; the per-device GPU allocation lock is separate.
-
-`record_reconciliation(path, ...)` tries the directory lock without waiting. It refuses while the runner or an inheriting job holds ownership, including when the job has exited but its runner has not published `FINISHED`. After obtaining ownership, it refuses a finished or unadmitted directory and checks any recorded process group with `os.killpg(group, 0)`. A live group, or permission failure that prevents determining liveness, blocks reconciliation. Only when both ownership and process checks permit it does reconciliation publish its record while holding the lock. No start record is required; such an attempt can be reconciled only after its owner handle closes. Direct calls to the generic publisher do not enforce these ownership rules.
+`reconcile-run` refuses while the runner or a surviving job owns the attempt, including after the job exits but before its runner publishes `FINISHED`. It also refuses a finished or unadmitted attempt, and a recorded process group that is live or whose liveness cannot be determined. Only when ownership and the process check both permit it does it publish its record. An attempt without a start record can be reconciled once ownership has been released.
 
 ## Environment and code provenance
 
-`capture_environment(lockfile, extras=..., gpu=...)` records the lockfile SHA-256, Python version, OS, architecture, libc name/version, sorted declared extras, supplied GPU observations, and the installed distributions. Kernel releases do not participate in the identity. The function does not import GPU packages or probe the driver. The `gpu` fields are `driver`, `cuda` (the observed CUDA runtime version), and `cuquantum` (the observed native library version); unknown keys are rejected and unavailable observations are explicitly `"unobserved"`. Missing GPU observations do not prevent CPU record creation. Installed versions do not establish runtime versions or GPU availability.
+Each run's `environment` records the lockfile SHA-256, Python version, OS, architecture, libc name and version, the sorted extras, GPU observations, and the installed distributions; kernel releases are excluded. The `gpu` fields are `driver`, `cuda` (the observed CUDA runtime version) and `cuquantum` (the loaded native cuDensityMat library version); a field not observed, as on every CPU run, is `"unobserved"`. Installed versions do not establish runtime versions or GPU availability.
 
-`distributions` lists every distribution in the environment's `site-packages`, keyed by normalized name, with its `version` and `record_sha256`: the SHA-256 of its install record (`RECORD`), in which the installer lists each installed file with its hash. A package rebuilt and reinstalled at the same version therefore changes the record; files edited after installation do not. Before recording, the function runs `uv pip check` against the current interpreter and refuses an inconsistent environment, an editable distribution other than `entanglix`, and a distribution without `RECORD`. The project's own editable source is covered by code provenance.
+`distributions` lists every distribution in the runner environment's `site-packages`, keyed by normalized name, with its `version` and `record_sha256`: the SHA-256 of its install record (`RECORD`), in which the installer lists each installed file with its hash. A package rebuilt and reinstalled at the same version therefore changes the record; files edited after installation do not. Recording refuses an environment that `uv pip check` reports as inconsistent, an editable distribution other than `entanglix`, and a distribution without `RECORD`. The project's own editable source is covered by code provenance.
 
-`env_hash` is SHA-256 of the environment table before the hash is added, serialized as UTF-8 JSON with sorted keys and compact separators. Lockfile, Python, platform, extras, GPU observations, and installed distributions therefore participate in the identity. Supported execution uses `uv run --locked --inexact` with the same extras set for all jobs sharing an environment; the record API itself does not synchronize that environment.
+`env_hash` is the SHA-256 of the environment table before `env_hash` is added, serialized as UTF-8 JSON with sorted keys and compact separators, so every field above participates in the identity.
 
-`check_gpu_environment(device_uuid, engine=...)` checks a selected GPU in the caller's job environment. For every engine it confirms NVIDIA-SMI's canonical UUID and observes the driver; device ownership and the refusal of a busy device are [shared](#local-gpu-ownership). Only for `cudensitymat` does it import CuPy and cuQuantum (the `cuquantum` extra), match a CUDA-visible device, observe the loaded CUDA and native cuDensityMat versions, and initialize the native library on that device. Other engines record `cuda` and `cuquantum` as `"unobserved"` and need no cuQuantum stack. Failures explain device visibility, driver access, and, for cuDensityMat, the extra. CPU execution does not call this function or import GPU packages.
+Before a CUDA launch, the runner checks the selected GPU in the job environment. For every engine it confirms NVIDIA-SMI's canonical UUID and observes the driver; device ownership and the refusal of a busy device are [shared](#local-gpu-ownership). Only for `cudensitymat` does it import CuPy and cuQuantum (the `cuquantum` extra), match a CUDA-visible device, observe the loaded CUDA and native cuDensityMat versions, and initialize the native library on that device; other engines record `cuda` and `cuquantum` as `"unobserved"` and need no cuQuantum stack. Failures explain device visibility, driver access, and, for cuDensityMat, the extra. The device UUID and index are dispatch data, separate from `env_hash`. CPU runs neither run this check nor import GPU packages.
 
-Pass the returned `gpu` table to `capture_environment(..., gpu=observations["gpu"])` and retain the resulting identity in the run manifest. The `cuquantum` identity field names the loaded native cuDensityMat library version. The returned device UUID/index are dispatch data, separate from `env_hash`. There is no pre-launch memory estimate. Simulation dispatch connects this check to inherited allocation ownership; CPU checks run only on request after completed execution.
-
-`capture_code(repository)` requires a Git repository with a committed `HEAD`. The code table records `revision`, `dirty`, `patch_sha256`, and `untracked_sha256`. `changes.patch` contains the combined staged and unstaged diff from `HEAD`, including binary changes, with color disabled and fixed `a/` and `b/` prefixes regardless of Git configuration; `code/untracked/` retains all non-ignored untracked files. Untracked symlinks are rejected rather than silently copied as regular files. Ignored scripts and data must be supplied explicitly as inputs. Capture a stable working tree before dispatch.
+Code provenance requires a Git repository with a committed `HEAD`. The `code` table records `revision`, `dirty`, `patch_sha256`, and `untracked_sha256`. `changes.patch` contains the combined staged and unstaged diff from `HEAD`, including binary changes, with color disabled and fixed `a/` and `b/` prefixes regardless of Git configuration; `code/untracked/` retains all non-ignored untracked files. Untracked symlinks are rejected rather than silently copied as regular files. Ignored scripts and data must be supplied explicitly as inputs. Capture a stable working tree before dispatch.
 
 The patch and untracked contents have a combined default limit of 16 MiB, configurable through `max_snapshot_bytes`. The limit is checked from file sizes before untracked files are read. Exceeding it fails with a diagnostic instead of omitting files. Keep unrelated generated data ignored, supply research data explicitly, or raise the limit for a larger source snapshot.
 
@@ -218,18 +205,18 @@ To reconstruct code, check out the recorded revision in a separate checkout, app
 
 ## Execution outcomes
 
-The record API and CPU launcher distinguish pre-start failure, observed job outcomes, and reconciliation:
+Records distinguish pre-start failure, observed job outcomes, and reconciliation:
 
-- The launcher returns `64` with a diagnostic for invalid arguments or a failed pre-launch gate before `run.toml` exists, without creating a run. The Python API raises exceptions for invalid inputs.
-- After creation, a supervising caller records known failures rather than deleting the attempt. Before a start record exists, `failed/64` or cancellation as `aborted/130` with zero job wall time is valid; any GPU allocation time is still charged, including a failed spawn. Job outcomes require a start record.
-- Observed successful execution uses `completed` and code `0`; a job exiting `130`, a timeout, or runner-triggered cancellation is `aborted/130`. Other job failures preserve exit codes in `0–255`. For signal death outside a requested cancellation, the launcher converts Python's negative subprocess return code to `128 + signal` (for example, `SIGKILL` becomes `137`); `record_finish` requires the normalized code and rejects inconsistent status/code pairs.
+- Invalid arguments or a failed launch gate return `64` with a diagnostic before `run.toml` exists, and create no run; Python operations raise an exception.
+- After creation, known failures are recorded and the attempt is kept. Before a start record exists, an attempt ends `failed/64`, or `aborted/130` if cancelled, with zero job wall time; any GPU allocation time is still charged, including a failed spawn. Job outcomes require a start record.
+- Observed successful execution uses `completed` and code `0`; a job exiting `130`, a timeout, or runner-triggered cancellation is `aborted/130`. Other job failures preserve exit codes in `0–255`. A signal death outside a requested cancellation records `128 + signal` (for example, `SIGKILL` becomes `137`).
 - An observed allocation failure is identified as out of memory in the diagnostic, including a launch-gate failure before an attempt exists. A signal death the runner did not request is reported as that signal with its cause unknown; for `SIGKILL` the diagnostic names exhausted memory as a possible cause only. A positive shell-encoded status alone cannot distinguish a signal from an explicit job exit with that code, and the diagnostic states that uncertainty. If the supervisor also dies, the interruption and reconciliation rules apply.
-- `wall_seconds` is elapsed job time from publication of the start record until the supervisor observes the whole process group's termination, measured once with a monotonic clock. Input preparation and result validation are excluded; a known pre-start preparation failure or cancellation records zero. Allocated `gpu_seconds` means allocated devices multiplied by allocation duration, including the launch check and failed preparation for an admitted attempt; CPU jobs record zero. The caller supplies these observations; the record API does not measure them.
+- `wall_seconds` is elapsed job time from publication of the start record until the supervisor observes the whole process group's termination, measured once with a monotonic clock. Input preparation and result validation are excluded; a known pre-start preparation failure or cancellation records zero. Allocated `gpu_seconds` means allocated devices multiplied by allocation duration, including the launch check and failed preparation for an admitted attempt; CPU jobs record zero.
 - Runner loss leaves no `FINISHED`, and a surviving job may still own the attempt and GPU. Reconciliation, described above, records uncertainty without fabricating completion.
 
 Without a valid `FINISHED`, artifacts cannot substantiate a completed scientific result. With `FINISHED`, successful execution still does not establish verification. A sweep is one run with per-point artifacts; interrupted partial results are retained, and a new linked rerun recomputes the grid.
 
-See the [harness contract](../../HARNESS_CONTRACT.md) for execution and verification guarantees as the corresponding capabilities become available.
+The [harness contract](../../HARNESS_CONTRACT.md) states the execution and verification guarantees.
 
 ## Detached launches and waiting
 

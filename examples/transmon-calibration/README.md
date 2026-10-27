@@ -31,16 +31,16 @@ This example calibrates a flux-tunable transmon's junction energies and shunt ca
 Use the runner profile already configured for the checkout. Each path's fit takes about 12 minutes on the CPU:
 
 ```sh
-uv run --locked --exact python examples/transmon-calibration/calibration.py run --via cli --runs-root research_runs/s2-calibration-cli --output tests/probes/s2_example_cli.json
-uv run --locked --exact --extra mcp python examples/transmon-calibration/calibration.py run --via mcp --runs-root research_runs/s2-calibration-mcp --output tests/probes/s2_example_mcp.json
+uv run --locked --exact python examples/transmon-calibration/calibration.py run --via cli --runs-root research_runs/calibration-cli --output research_runs/calibration-cli.json
+uv run --locked --exact --extra mcp python examples/transmon-calibration/calibration.py run --via mcp --runs-root research_runs/calibration-mcp --output research_runs/calibration-mcp.json
 ```
 
 Each run prints the operator's command. Applying the proposal is the operator's action, on a copy outside the runs root; the tracked system file keeps its design values. Afterwards `applied` adds the application record and the updated copy to the summary:
 
 ```sh
-cp examples/transmon-calibration/system.toml research_runs/s2-device-cli.toml
-uv run --locked --exact entanglix apply-device-update <run path>/proposals/1.toml research_runs/s2-device-cli.toml
-uv run --locked --exact python examples/transmon-calibration/calibration.py applied --summary tests/probes/s2_example_cli.json --device research_runs/s2-device-cli.toml
+cp examples/transmon-calibration/system.toml research_runs/device-cli.toml
+uv run --locked --exact entanglix apply-device-update <run path>/proposals/1.toml research_runs/device-cli.toml
+uv run --locked --exact python examples/transmon-calibration/calibration.py applied --summary research_runs/calibration-cli.json --device research_runs/device-cli.toml
 ```
 
 Each step the script takes is an ordinary command; `entanglix validate-dataset` reports a dataset before any fit:
@@ -51,7 +51,7 @@ entanglix check <run> holdout identifiability refinement --holdout examples/tran
 entanglix propose-device-update <run>
 ```
 
-To regenerate the datasets, run `generate.py --output DIR`. The [example tests](../../tests/test_calibration_example.py) check that it reproduces the tracked files, that the spec lists the training map only, and that the holdout measurement lies outside the training bias range and is readable by the holdout check.
+To regenerate the datasets, run `generate.py --output DIR`.
 
 ## Results
 
@@ -92,7 +92,7 @@ The fitting run froze `calibrate.toml`, `system.toml`, `training.toml` and `trai
 
 Nothing is listed as not proposed. The offset and the period stay in the run's result. The proposal records the three checks with solution 0, and is bound to the system file's digest.
 
-**Application.** For each path, the operator copied the system file to `research_runs/s2-device-<path>.toml` and applied that run's proposal to the copy:
+**Application.** For each path, the operator copied the system file outside the runs root and applied that run's proposal to the copy:
 - The copy's digest before apply matched the tracked file.
 - Each parameter's value and source changed; its unit and prior did not. The source names the proposal, the solution and the proposal's digest.
 - The updated copy validates.
@@ -104,4 +104,4 @@ The tracked `system.toml` keeps its design values.
 
 - **Laboratory data.** The data were generated with the same model and family that fit them, with a known line shape and white noise. It does not test a line the family omits, a defect, a drifting background, or a conversion from a laboratory format. The probe's failure-mode cases cover a line-shape mismatch, defect lines and an unmodelled line.
 - **That the anchor is right.** f01 is the strongest line by construction here. An anchor that held in every column does not establish that it was right on a real device.
-- **Fast iteration.** Full construction at every evaluation takes about 0.3 s for the 21 columns. The anchor phase fits all five parameters to the single 0-1 line, which leaves a nearly flat direction. In a traced in-process run, the first start's anchor fit took 290 s, while the recorded fit took about 350 s per start.
+- **Fast iteration.** Full construction at every evaluation takes about 0.3 s for the 21 columns, and the anchor phase fits all five parameters to the single 0-1 line, which leaves a nearly flat direction; the recorded fit took about 350 s per start.

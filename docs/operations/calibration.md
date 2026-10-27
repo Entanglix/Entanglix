@@ -1,6 +1,6 @@
 # Calibration
 
-Calibration fits device parameters to measured spectroscopy. This reference describes measurement datasets, with the format every measurement is converted to, validation, digests, raw-file checks, and holdout splits; peak extraction from maps; the `calibrate` protocol: its spec, assignment, fit, outcomes and report; the checks a calibration run takes on request; device-update proposals and their application; and calibration in investigations, reruns and research tools.
+Calibration fits device parameters to measured spectroscopy.
 
 ## Measurement datasets
 
@@ -141,7 +141,7 @@ offset = 0.13
 period = 1.03
 ```
 
-The system and the datasets are files beside the spec. Alternatively, replace `system` with `system_entry` to use a promoted [catalog device](catalog.md#reusing-a-device) from the configured runs root; declare exactly one. Its model files are frozen with the run, while the datasets remain beside the spec. An optional `[refinement.<subsystem>]` table, in the simulation refinement form (`retained_levels_step`, `cutoff_steps`), is frozen with the run; the fit does not use it. The harness sets no defaults for the matching settings, scales, starts or merge tolerance; the values above are examples from the synthetic two-junction transmon of the [calibration example](../../examples/transmon-calibration/README.md).
+The system and the datasets are files beside the spec. Alternatively, replace `system` with `system_entry` to use a promoted [catalog device](catalog.md#reusing-a-device) from the configured runs root; declare exactly one. Its model files are frozen with the run, while the datasets remain beside the spec. An optional `[refinement.<subsystem>]` table, in the simulation refinement form (`retained_levels_step`, `cutoff_steps`), is frozen with the run; the fit does not use it. The harness sets no defaults for the matching settings, scales, starts or merge tolerance; the values above are examples from the synthetic two-junction transmon of the [calibration example](../../examples/transmon-calibration/README.md). Each `[[starts]]` table names exactly the fitted and nuisance parameters, within their bounds.
 
 ### Parameters and the axis map
 
@@ -151,11 +151,11 @@ Each key of `[parameters]` names a parameter in the system file's `[parameters]`
 
 ### Candidate family
 
-The family lists every transition the fit may predict. `initial`, with `final` or `max_level`, generates each transition from an initial level to a higher final level, at each of the `photons` orders (default `[1]`). A generated member is labelled `i-f`, or `i-f/k` for `k` photons, and its frequency is `(E_f - E_i) / k`, with levels numbered by energy order at each bias. `[family.lines.<name>]` adds a named line with `initial`, `final` and an optional `photons`: levels, or bare product states such as `[1, 0]`, one level per subsystem. Bare states are matched one to one to the dressed states they overlap most at each evaluation. Names must not take the generated form, and members must be distinct transitions. Every level must lie within the system's dimension.
+The family lists every transition the fit may predict. `initial`, with `final` or `max_level`, generates each transition from an initial level to a higher final level, at each of the `photons` orders (default `[1]`). A generated member is labelled `i-f`, or `i-f/k` for `k` photons, and its frequency is `(E_f - E_i) / k`, with levels numbered by energy order at each bias. `[family.lines.<name>]` adds a named line with `initial`, `final` and an optional `photons`: levels, or bare product states such as `[1, 0]`, one level per subsystem. Bare states are matched one to one to the dressed states they overlap most at each evaluation. Names must not take the generated form or be `unexplained` or `unresolved`, and members must be distinct transitions. Every level must lie within the system's dimension.
 
 ### Procedure
 
-With `[extraction]`, every training dataset's map is extracted under the declared settings, with the projection learned from that map; points stored in the dataset are not used. Without it, every dataset's points are used.
+With `[extraction]`, every training dataset's map is extracted under the declared settings, with the projection learned from that map; points stored in the dataset are not used. Without it, every dataset's points are used. A dataset without the level its procedure reads is refused.
 
 When every training point carries an assignment, the labels are used as given: each must name a family member, and the spec must declare no `[matching]`. A partly labelled input is refused. Otherwise assignment is automatic and needs `[matching]`, each point's linewidth, and, with an anchor, each point's amplitude; extracted peaks carry both.
 
@@ -196,10 +196,6 @@ None of these is a pass or a fail. A search finds only the solutions reachable f
 The covariance is unscaled, a local linear approximation conditional on the assignment and on the centre uncertainties. The ratio to the prior width is descriptive; a large ratio means the parameter is weakly constrained over its declared range. The tolerances are `rank_rtol = 1e-6` (singular values below this fraction of the largest are not counted in the rank), `undetermined_tolerance = 1e-3`, `jacobian_step = 1e-5` (the finite-difference step, in units of the smaller of each parameter's scale and the width of its bounds), `equivalence_rtol = 1e-8` and the declared `merge_tolerance`; every result records them. The Jacobian is sampled strictly inside the bounds: central differences where both neighbours fit, otherwise second-order one-sided differences toward the farther bound. A step is at most `jacobian_step` of its interval, so the bounds themselves are never sampled.
 
 `artifacts/assignment.toml` lists the bias columns, every peak with its column, centre, uncertainty, and linewidth and amplitude when known, the extraction failures, and for each solution the assignment of every peak (a member label, `unexplained` or `unresolved`) and the missing lines: family lines predicted inside a map's frequency range in a column where no peak was assigned to them. Points have no frequency range, so no line is reported missing for them.
-
-### Refused at launch
-
-A fitted name that is not in the system's parameter table, has no prior, or enters no construction; an axis-map flux that is fitted, not in `Phi0`, or unused; a dataset whose level the procedure needs is absent; a map without a uniform frequency grid of at least three points, when it is to be extracted; a bias axis without an axis map, or the reverse; bias units that differ; a label outside the family; a partly labelled input; `[matching]` with supplied labels, or none without them; an anchor outside the family; a point missing a field its procedure uses; a named line called `unexplained` or `unresolved`; a level beyond the system's dimension; a start without exactly the fitted and nuisance names or outside the bounds; and inconsistent conventions.
 
 ## Checks
 
@@ -287,9 +283,6 @@ Every model input is checked again after the update is validated and immediately
 The file is rewritten as canonical TOML: comments and the original layout are not kept, and the parsed content changes only in the applied values and sources. The source reads `calibration proposal <system_id>/<run_id>/proposals/<n>.toml, solution <N>, sha256 <proposal digest>`. Apply then publishes `proposals/<n>.applied.toml` with the time, `source = { kind = "operator-cli", os_user = ... }`, the proposal's digest, the system file's path and its digests before and after, and the names of the parameters applied.
 
 The new content is built from the run's frozen system file, so it is the same on every attempt. If the file was replaced but the application record could not be published, apply reports it. Applying the same proposal to the same file again then publishes the record with `recovered = true`, provided the file still holds exactly the applied content.
-
-Research tools can stage proposals but never apply them; the research tool surface has no apply operation.
-
 ## Investigations and reruns
 
 `calibrate` is an investigation operation. Launched with `--investigation ID --base NAME`, a calibration is admitted only when its inputs match the base exactly: the spec under the fixed name `calibrate.toml`, the system file as `system.toml` with its subsystem sources and array files, and each training dataset and its array file under its own name. Calibration takes no varied values, and a changed input is refused with the base's digest differences. The run also freezes the authored files under `spec/base/`. Checks on the run belong to the investigation; a holdout dataset supplied with a check is not a base input.

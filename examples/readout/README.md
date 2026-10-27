@@ -3,8 +3,7 @@
 [system.toml](system.toml) is a validated transmon–resonator model. Carrier drives
 and explicit rotating-wave frames are available through the
 [Python evolution interface](../../docs/operations/system-spec.md#carriers-and-rotating-frames).
-Public simulation and serial static/dynamic grid sweeps are available. The
-[CPU feasibility probe](../../tests/probes/m2_feasibility.py) evaluates
+The [CPU feasibility probe](../../tests/probes/m2_feasibility.py) evaluates
 these cases directly in QuTiP; its [retained measurements](../../tests/probes/m2_feasibility_results.json)
 include solver times, accepted steps, physicality, spectra, and convergence comparisons.
 
@@ -69,8 +68,7 @@ The common frame frequency `7.002760675881172 GHz` is the dressed readout midpoi
 at `EJ = 15 GHz` from the frame study. With no drive, the RWA depends on excitation
 conservation rather than this particular frequency. Both protocols use the same
 model, initial state, 1600 ns window, and refinement to 6 × 8 retained levels.
-No check runs automatically. Request `integrity`, `segments`, or `diagnostics` after
-completion; segment tolerances default to `1e-6` and do not bound the RWA error.
+Request `integrity`, `segments`, or `diagnostics` after completion; segment tolerances default to `1e-6` and do not bound the RWA error.
 
 ```sh
 export ENTANGLIX_RUNNER_EXTRAS=cuquantum,differentiable-cuda12
@@ -148,8 +146,7 @@ fixed basis, not evidence of basis convergence.
 These results claim quasienergies under strictly periodic driving only. Crossings
 alone do not establish transition probabilities or dissipative accuracy. Integration
 refinement leaves the construction cutoff and retained levels fixed. Authored scripts
-receive no built-in checks; the [CPU runner test](../../tests/test_floquet_example.py)
-checks the numerical evidence, label assignments, artifact and pinned shift values.
+receive no built-in checks.
 
 ## Numerical evidence and candidate frame bounds
 
@@ -205,9 +202,7 @@ drive, the rotating-frame loss from baseline differs from the refined-lab result
 by about 13% at `EJ = 12`, versus 0.64% at `EJ = 15`. Agreement within a stated metric bound would not imply that every sweep increment is resolved.
 
 Use `vern9`, production `rtol/atol = 1e-10/1e-12`, refined `1e-11/1e-13`, and
-100,000 maximum steps per output interval. Step counts in the probe exclude rejected
-trials and dense-output interpolation; its counted trajectories agree with ordinary
-`vern9` in both short validation cases.
+100,000 maximum steps per output interval.
 
 Comparison solves dominate the cost. On CPU, a rotating readout solve took about
 0.26–0.44 s, a full-window refined QuTiP lab reference about 10–21 s, and an
@@ -225,11 +220,9 @@ accuracy for an untested run.
 and the endpoint metric `C(T) = 2|ρq,01(T)|`. The carrier and both frame frequencies
 are paired explicitly with `EJ` in the sweep: `7.0017536727417085`,
 `7.002206406997239`, and `7.002760675881172 GHz`. These are the current model's
-four-label dressed midpoints and stay fixed during truncation refinement. The
-[CPU convention test](../../tests/test_sweep.py) checks coherence normalization,
-dressed assignment and the midpoint at the default `EJ`.
+four-label dressed midpoints and stay fixed during truncation refinement.
 
-On the workstation, preserve the shared runner extras profile:
+The sweep runs on CUDA; keep the runner's extras profile, for example:
 
 ```sh
 export ENTANGLIX_RUNNER_EXTRAS=cuquantum,differentiable-cuda12
@@ -355,7 +348,7 @@ The client drafts five bases: rotating frame, lab frame, and one refined lab-fra
 base per `EJ`, binding each embedded state to that value. It waits for an operator
 start; the client never approves, starts, releases a review, or resumes an
 investigation itself. Declare the checkpoint and, optionally, a job-count limit.
-On the workstation, preserve the shared runner extras profile:
+Keep the runner's extras profile, for example:
 
 ```sh
 export ENTANGLIX_RUNNER_EXTRAS=cuquantum,differentiable-cuda12
@@ -381,7 +374,6 @@ then bisects in ascending `EJ` order to `1.5625e-5 GHz`, stopping at the first f
 lab confirmation. It preserves the confirmed normal results, opens the named
 `precision` review, proposes a lab-frame search, and marks remaining tighter work
 unattempted. It does not extend the range or consume the remaining allowance.
-Bayesian search adds nothing to this one-dimensional midpoint policy.
 
 Check requests on the seed and final rotating-frame endpoints are conditional on
 their role in this procedure, recorded in the evidence requirements. Integrity is
@@ -406,7 +398,5 @@ findings. Completed simulations and matching checks under the current policy are
 reused. A failed or aborted attempt is retried under a new linked ID and counts
 again. An outstanding attempt must first finish, or be aborted and reconciled
 through the [run operations](../../docs/operations/runs.md). An investigation stop
-requires the operator to release its reviews and resume it. The
-[session tests](../../tests/test_readout_investigation.py) cover a killed client
-between jobs and an interrupt during a solve. Jobs are blocking in this client;
+requires the operator to release its reviews and resume it. Jobs are blocking in this client;
 it does not supply connection-independent supervision.

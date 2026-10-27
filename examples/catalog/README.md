@@ -12,20 +12,9 @@ After promotion, the client:
 
 The gate is a closed rotating-wave model, and its uncertainty samples are the source's declared quasistatic offsets. Checks cover that model and those samples; they establish neither hardware performance nor lab-frame accuracy. Promotion adds no checks, and source checks are not checks of the new runs. There is no run-level verdict.
 
-## Source check reuse
-
-The retained source checks are reused, with their original policy version `36d1f1148dba13ce985c794a98818753da483ed10618d2bbbf71cc79f50f0009`. Both source outputs still match their check bindings, and the current control exporter reproduces each source's frozen ProblemSpec byte for byte. The four control-check implementations and the control, uncertainty and refinement thresholds they use are unchanged.
-
-The later calibration checks and `[calibration]` thresholds change the aggregate policy version but do not enter these control checks. The shared `prepare_refinement` refactor is not on their path: control uncertainty uses its own sampled-model refinement. Flux-parameter references do not affect this circuit, which has no external flux. The baseline's starting-pulse support changes how a new solve starts, not how these returned pulses are checked. The warm-start result receives its own four checks under the current policy.
-
 ## Recorded results
 
-On 2026-10-25, the operator promoted a copy of the 60 fF candidate in each runs root. The [CLI summary](../../tests/probes/s3_catalog_cli.json) and [scripted MCP summary](../../tests/probes/s3_catalog_mcp.json) record the promoter, the comparison claim, source checks and ancestry, and each entry's sweep and warm-start reuse:
-
-| Path | Promoted entry |
-|---|---|
-| CLI | `e20261025T223011726333Z-41516720` |
-| MCP | `e20261025T223016968649Z-e3e40072` |
+On 2026-10-25, the operator promoted a copy of the 60 fF candidate in each runs root. The [CLI summary](../../tests/probes/s3_catalog_cli.json) and [scripted MCP summary](../../tests/probes/s3_catalog_mcp.json) record the promoted entries, the promoter, the comparison claim, source checks and ancestry, and each entry's sweep and warm-start reuse.
 
 Both paths preserved `Csh = 60 fF` and returned identical spectra:
 
@@ -41,7 +30,7 @@ The sweep and warm-start manifests name the entry and its source run; the new ch
 
 ## Run
 
-Use the checkout's existing runner extras profile. On the documented workstation:
+Use the checkout's existing runner extras profile, for example:
 
 ```sh
 export ENTANGLIX_RUNNER_EXTRAS=cuquantum,differentiable-cuda12
@@ -49,38 +38,31 @@ export OPENBLAS_NUM_THREADS=1
 . .venv/bin/activate
 ```
 
-The retained sources are:
-
-| Path | Source run, relative to the checkout |
-|---|---|
-| CLI | `research_runs/m5-codesign-cli/junction_with_shunt/r20261020T060226778812Z-9e23ddb6` |
-| MCP | `research_runs/m5-codesign-mcp/junction_with_shunt/r20261020T060337748070Z-7a2fafa7` |
-
-The run directories are local research data. If unavailable, produce one standalone source from the co-design model and control input with `Csh = 60` and `pulse.seed = 19`, with the same gate, bounds, solver settings, evaluation samples and four requested checks. There is no need to repeat the complete search.
+Each path's source is its 60 fF, seed 19 control run from the [co-design example](../transmon-codesign/README.md#run). Without one, produce a standalone source from the co-design model and control input with `Csh = 60` and `pulse.seed = 19`, with the same gate, bounds, solver settings, evaluation samples and four requested checks. There is no need to repeat the complete search.
 
 Stage the CLI source:
 
 ```sh
 uv run --locked --exact python examples/catalog/reuse.py stage --via cli \
-  --source research_runs/m5-codesign-cli/junction_with_shunt/r20261020T060226778812Z-9e23ddb6
+  --source research_runs/codesign-cli/junction_with_shunt/<run_id>
 ```
 
-Inspect the staged candidate with `entanglix read-entry STAGED_ID --runs-root research_runs/m5-codesign-cli`, then run the printed bare `entanglix promote ...` command in the operator terminal. Continue with the returned entry ID:
+Inspect the staged candidate with `entanglix read-entry STAGED_ID --runs-root research_runs/codesign-cli`, then run the printed bare `entanglix promote ...` command in the operator terminal. Continue with the returned entry ID:
 
 ```sh
 uv run --locked --exact python examples/catalog/reuse.py reuse --via cli \
-  --entry ENTRY_ID --runs-root research_runs/m5-codesign-cli \
-  --workspace research_runs/s3-catalog-cli-inputs --output tests/probes/s3_catalog_cli.json
+  --entry ENTRY_ID --runs-root research_runs/codesign-cli \
+  --workspace research_runs/catalog-cli-inputs --output research_runs/catalog-cli.json
 ```
 
 For the scripted MCP path, stage its source and repeat the operator promotion:
 
 ```sh
 uv run --locked --exact --extra mcp python examples/catalog/reuse.py stage --via mcp \
-  --source research_runs/m5-codesign-mcp/junction_with_shunt/r20261020T060337748070Z-7a2fafa7
+  --source research_runs/codesign-mcp/junction_with_shunt/<run_id>
 uv run --locked --exact --extra mcp python examples/catalog/reuse.py reuse --via mcp \
-  --entry ENTRY_ID --runs-root research_runs/m5-codesign-mcp \
-  --workspace research_runs/s3-catalog-mcp-inputs --output tests/probes/s3_catalog_mcp.json
+  --entry ENTRY_ID --runs-root research_runs/codesign-mcp \
+  --workspace research_runs/catalog-mcp-inputs --output research_runs/catalog-mcp.json
 ```
 
 The MCP server is CPU-only and receives the existing runner extras; this launches no agent runtime session. Each path creates three ordinary jobs: a sweep, a warm-start control solve and its checks. Inputs are written in the supplied workspace and frozen by the runner. The summary keeps promotion scope, run and entry lineage, spectral values, fidelity and refinement diagnostics, and execution usage; full reports stay in the runs root.

@@ -1,6 +1,6 @@
 # Stdio research tools
 
-The optional `entanglix.mcp` module exposes the runner's existing research operations over MCP stdio. A client may use any runtime that supports that transport. Human decisions remain operator CLI commands; approving a research-tool call does not start an investigation or approve proposed terms.
+The optional `entanglix.mcp` module exposes the runner's existing research operations over MCP stdio. A client may use any runtime that supports that transport. Human decisions remain operator CLI commands ([human decisions](#human-decisions-and-continuation)).
 
 ## Server process and configuration
 
@@ -76,7 +76,7 @@ Tables return `columns`, positional `rows`, `total` and `next_after`. Each page
 holds at most 50 rows, oldest first. Pass `next_after` as the integer `after`
 offset to continue until it is null. The same encoder and cursor serve
 `list_runs(after=...)`, including unresolved launches. No filters are supported.
-Paths in these tables and `list_investigations` are relative to the configured runs root and accepted by the read tools. Relative record paths resolve from that root first, then from the server's working directory if no path exists under the root; the resolved path must remain inside the configured runs root.
+Paths in these tables and `list_investigations` are relative to the configured runs root and accepted by the read tools.
 
 Attempt columns cover path, protocol, base, execution status, varied values,
 metrics, parents, checks and completed sweep-point count. A sweep is one row.
@@ -91,7 +91,7 @@ Source checks carry check run ID, source identity match, name/outcome pairs and
 any diagnostic; check rows carry name/outcome pairs. A calibration check adds the
 index of the solution it checked as a third element. A null outcome denotes
 information without a pass/fail judgment. Metric values exceeding 512 JSON bytes
-are explicitly omitted; full values remain in the run's `result.toml`. An attempt
+are explicitly omitted here and in `read_run` summaries; full values remain in the run's `result.toml`. An attempt
 whose records cannot be read keeps its row, with the reason in a `result_error` column.
 
 Use `read_investigation(investigation, event_id="00000001")` for one complete
@@ -101,8 +101,9 @@ investigation reads remain complete.
 usage, checkpoint and reviews.
 
 `read_run` retains summary reads and `detail=True`. Summaries keep execution
-state, complete log tails, metrics and check outcomes, scope and coverage, with a calibration check's solution index.
-Manifest `spec_sha256`, `code` and `environment` are named under `detail_omitted`.
+state, complete log tails, metrics and check outcomes, scope and coverage, with a calibration check's solution index,
+and each completed sweep point's coordinates, metrics and any error. Manifest `spec_sha256`, `code` and `environment`,
+and further check fields, are named under `detail_omitted`.
 Read detail or the retained files for full provenance and reports. Paging limits
 row count, not arbitrary text size.
 
@@ -201,7 +202,7 @@ prefix_rule(
 )
 ```
 
-This launch uses the tested non-interactive setup, with the workspace trusted explicitly, the `workspace-write` sandbox, and shell environment inheritance. The model and reasoning effort are your choice through your Codex configuration; the retained probe results record the settings used for acceptance. Retain the prompt/transcript to establish whether guidance actually arrived. Codex's [skills](https://developers.openai.com/codex/skills), [rules](https://developers.openai.com/codex/rules), and [MCP configuration](https://developers.openai.com/codex/mcp) document these mechanisms.
+This launch uses the tested non-interactive setup, with the workspace trusted explicitly, the `workspace-write` sandbox, and shell environment inheritance. The model and reasoning effort are your choice through your Codex configuration. Retain the prompt/transcript to establish whether guidance actually arrived. Codex's [skills](https://developers.openai.com/codex/skills), [rules](https://developers.openai.com/codex/rules), and [MCP configuration](https://developers.openai.com/codex/mcp) document these mechanisms.
 
 ```sh
 cd "$ENTANGLIX_WORKSPACE"
@@ -212,7 +213,7 @@ CUDA_VISIBLE_DEVICES="" codex exec --json --skip-git-repo-check \
   -o "$ENTANGLIX_WORKSPACE/last-message.txt" '<task brief>'
 ```
 
-The documented operator invocation form is the bare `entanglix investigation-decision ...`, `entanglix apply-device-update ...` or `entanglix promote ...`, with `entanglix` on `PATH`. Do not suggest `uv run ... entanglix ...`, an absolute executable path, a Python API, or a shell wrapper as a substitute: the supplied rule is not claimed to cover those forms. The [retained conformance run](../../tests/probes/m3_guidance_results.json) supports the restriction claim for the bare `investigation-decision` and `promote` commands. The [live calibration session](../../tests/probes/s2_sessions_results.json) supports it for all three bare commands, including `apply-device-update`, under the documented rule. The claim covers these bare forms in the tested non-interactive configurations only. An interactive session claims the refusal only after retaining live refusals for every documented human-action command. Offline rule matching or an agent's verbal refusal is not a passed blocked-command test.
+The documented operator invocation form is the bare `entanglix investigation-decision ...`, `entanglix apply-device-update ...` or `entanglix promote ...`, with `entanglix` on `PATH`. Do not suggest `uv run ... entanglix ...`, an absolute executable path, a Python API, or a shell wrapper as a substitute: the supplied rule is not claimed to cover those forms. The refusal is claimed for the three bare commands in the tested non-interactive configuration only ([conformance run](../../tests/probes/m3_guidance_results.json), [live calibration session](../../tests/probes/s2_sessions_results.json)); an interactive session is not covered. Offline rule matching or an agent's verbal refusal is not a passed blocked-command test.
 
 To approve each human-action command instead of refusing it, set `decision="prompt"` in that rule, in an interactive session only: an unattended session cannot answer the prompt, so keep `forbidden` there. Approve each invocation on its own, never with an option that approves later commands. No retained session tests this setting.
 
@@ -248,7 +249,7 @@ CUDA_VISIBLE_DEVICES="" claude -p '<task brief>' \
     mcp__entanglix__record_finding mcp__entanglix__stop_investigation
 ```
 
-The entry's `timeout` is Claude Code's per-call limit for this server, in milliseconds; keep it above `--max-wait`. It also sets the floor of Claude Code's idle check, which otherwise aborts a stdio call after 30 silent minutes. In an interactive session, Claude Code moves a call still running after two minutes to a background task; the non-interactive form does not. For a control task, also allow `mcp__entanglix__control`; the [live control sessions](../../tests/probes/m4_sessions_results.json) used this form. For a calibration task, also allow `mcp__entanglix__calibrate` and `mcp__entanglix__propose_device_update`.
+The entry's `timeout` is Claude Code's per-call limit for this server, in milliseconds; keep it above `--max-wait`. It also sets the floor of Claude Code's idle check, which otherwise aborts a stdio call after 30 silent minutes. In an interactive session, Claude Code moves a call still running after two minutes to a background task; the non-interactive form does not. For a control task, also allow `mcp__entanglix__control`. For a calibration task, also allow `mcp__entanglix__calibrate` and `mcp__entanglix__propose_device_update`.
 
 In four [retained sessions](../../tests/probes/m3_pickup_cutoff_results.json) the conduct was present before the first reply and no repository development instructions appeared. No command setting has been validated for Claude Code: a session without a shell tool cannot run an operator command, but no retained test covers a session that has one, so there the rule rests on the conduct. Claude Code can reject a large tool reply as over its output limit: use the status and paged table views for research reads, and the report command or retained files for full history.
 
@@ -283,7 +284,7 @@ entanglix investigation-decision "$ENTANGLIX_WORKSPACE/runs/_investigations/<inv
 
 That second command is the user's decision. The user runs it, or, where the runtime is set to ask, approves the agent's run of that exact command in the runtime's prompt; the decision record is the same either way. Subsequent approvals, resumes and named review releases use the same bare command with the affected revision/review name. The agent reads the retained decision before continuing; approving a research-tool call does not make one. At a checkpoint it records an assessment; at a named review it hands off for the operator's decision. A finding recommending stop does not itself stop jobs: use the supported `stop_investigation` tool to cancel owned work and close admission.
 
-When you tell the agent which investigation to work on, name it by its ID or as `_investigations/<investigation_id>`. The operator commands above take a path from your shell; the agent's tools resolve a relative record path from the runs root first, then from the server's working directory if it is not found. A workspace-relative `runs/_investigations/...` also works when the server starts in that workspace, provided the resolved path stays inside the configured runs root.
+When you tell the agent which investigation to work on, name it by its ID or as `_investigations/<investigation_id>`; the agent's tools resolve it as described under [tool surface](#tool-surface). The operator commands above take a path from your shell.
 
 A new session starts from listings and the effective investigation revision, findings, attempts, usage, and open gates. If a launch call lost its response, recover the launch before sending another. For a stopped investigation, the operator's resume permits new admissions and never revives cancelled attempts. Report partial results, requested/relevant checks not run, and the next useful decision without resetting history or allowances.
 

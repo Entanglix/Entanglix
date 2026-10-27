@@ -53,17 +53,17 @@ This example runs one device–control co-design investigation over the shunt ca
 Use the runner profile already configured for the checkout. Draft the terms, review them, and start the investigation as the operator:
 
 ```sh
-uv run --locked --exact python examples/transmon-codesign/codesign.py draft --via cli --runs-root research_runs/m5-codesign-cli
+uv run --locked --exact python examples/transmon-codesign/codesign.py draft --via cli --runs-root research_runs/codesign-cli
 uv run --locked --exact entanglix investigation-decision <investigation path> start --revision 1
-uv run --locked --exact python examples/transmon-codesign/codesign.py run --via cli --runs-root research_runs/m5-codesign-cli --investigation <investigation path> --output tests/probes/m5_example_cli.json
+uv run --locked --exact python examples/transmon-codesign/codesign.py run --via cli --runs-root research_runs/codesign-cli --investigation <investigation path> --output research_runs/codesign-cli.json
 ```
 
 For the scripted MCP client, run the same steps with the `mcp` extra:
 
 ```sh
-uv run --locked --exact --extra mcp python examples/transmon-codesign/codesign.py draft --via mcp --runs-root research_runs/m5-codesign-mcp
+uv run --locked --exact --extra mcp python examples/transmon-codesign/codesign.py draft --via mcp --runs-root research_runs/codesign-mcp
 uv run --locked --exact --extra mcp entanglix investigation-decision <investigation path> start --revision 1
-uv run --locked --exact --extra mcp python examples/transmon-codesign/codesign.py run --via mcp --runs-root research_runs/m5-codesign-mcp --investigation <investigation path> --output tests/probes/m5_example_mcp.json
+uv run --locked --exact --extra mcp python examples/transmon-codesign/codesign.py run --via mcp --runs-root research_runs/codesign-mcp --investigation <investigation path> --output research_runs/codesign-mcp.json
 ```
 
 Each step the script takes is an ordinary command:
