@@ -1,32 +1,6 @@
-# Planning and documentation index
+# Documentation index
 
-This index supports project planning and implementation. Operational entry points are the root README, harness contract, and research-agent conduct. Root auto-load files guide repository development.
-
-## Documentation boundary
-
-| Class | Examples | Lifecycle |
-|---|---|---|
-| Planning/development | Roadmap, checklist, phase guides, development instructions | Internal implementation guidance; plans are removable after building |
-| Operational harness | Root README, harness contract, research-agent conduct, skills | Retained and maintained for production users and agents |
-| Decision records | ADRs | Retained public decisions, rewritten in place when a decision changes, with earlier text in git; consulted when relevant, not automatically loaded into runtime context |
-
-- Operational docs stand alone: they never link to or depend on planning/development docs. Planning docs may link to anything.
-- Before a planning doc is removed, move lasting decisions into an ADR and operating guidance into an operational doc.
-- Repository auto-load files are development entry points. Research sessions use a separate workspace with a copy of the shipped conduct in initial context, the same conduct as MCP instructions, and plain-text skills. Nothing is generated. Avoid `AGENTS.md` or `CLAUDE.md` filenames under `docs/`.
-
-## Planning and development
-
-- [roadmap.md](roadmap.md) — Research direction, scope, milestones, dependencies, quality criteria, and open choices.
-- [checklist.md](checklist.md) — Completion status and links to acceptance evidence; progress narratives stay in conversation.
-- [m1-guide.md](m1-guide.md) — Completed implementation guide for M1 (Blocks 1–2): model representation, engine integration, scientific fixtures, and acceptance evidence.
-- [m2-guide.md](m2-guide.md) — Implementation guide for M2 (Blocks 3–5): run records, verification, drives and frames, and the first simulation and sweep.
-- [m3-guide.md](m3-guide.md) — Implementation guide for M3 (Blocks 6a–6b): the first investigation and its evaluation, investigation records, admission, checkpoints and reviews, and agent integration.
-- [m4-guide.md](m4-guide.md) — Completed implementation guide for M4 (Block 7): the control spec and generated ProblemSpec, the open baseline, the Piccolo adapter, control checks, and the first gate.
-- [m5-guide.md](m5-guide.md) — Implementation guide for M5 (Block 8): control parameters and seed variation, named transitions and Rabi-rate bounds, lineage through MCP, the uncertainty diagnostic, comparison guidance, and the co-design example.
-- [s2-guide.md](s2-guide.md) — Implementation guide for S2 (Block 10): the measurement format, flux parameters and axis binding, extraction, the calibrate protocol, the calibration checks, device-update proposals, investigations and tools, and the calibration example.
-- [s3-guide.md](s3-guide.md) — Implementation guide for S3 (Block 11): catalog records and staging, promotion with its check scope, device reuse in jobs and investigation bases, control starting pulses, tools, and the catalog example.
-- [development.md](development.md) — Maintainer and coding-agent instructions. Root [AGENTS.md](../AGENTS.md) and [CLAUDE.md](../CLAUDE.md) are one-line pointers here; they are excluded from research-runtime guidance.
-- Phase guides may be added as needed, including before code exists.
+Operational entry points are the root README, the harness contract, and the research-agent conduct. Decision records keep the decisions behind them.
 
 ## Operational harness
 
@@ -56,11 +30,3 @@ This index supports project planning and implementation. Operational entry point
 - [adr/0007-calibration-from-spectroscopy.md](adr/0007-calibration-from-spectroscopy.md) — Accepted calibration from spectroscopy: the uniform measurement format, extraction, assignment, the fit and its uncertainty report, holdout and the calibration checks, flux binding, device-update proposals, and first-version scope.
 - [adr/0008-results-catalog.md](adr/0008-results-catalog.md) — Accepted results catalog: candidates as design objects, catalog records, staging and promotion with check scope, lineage, device reuse, control starting pulses, and first-version scope.
 - [adr/0009-published-formats.md](adr/0009-published-formats.md) — Accepted record compatibility and deferred format publication: supported earlier record versions stay readable, implicit version 1 for historically unversioned records, the legacy pulse reading, and standalone schemas deferred until a consumer needs them.
-
-## Sharing rule
-
-This repository remains private until the verified shared ProblemSpec and open-solver artifacts required by roadmap §5 are available and the audience/license decision permits sharing. These artifacts normally arrive at M4; standalone control may provide them earlier. Agent integration is not a prerequisite. Before any file leaves the owner's machines:
-
-- Remove `roadmap.md` Appendix A. It names a private solver.
-- Any file matching `*-private.md` stays.
-- Open-repo text says "private solver plugins", never a product name.

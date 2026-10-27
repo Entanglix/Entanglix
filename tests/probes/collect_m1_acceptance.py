@@ -23,7 +23,7 @@ def source_snapshot(root):
     paths += list((root / "examples").rglob("*.toml"))
     paths += list((root / "examples").rglob("*.npz"))
     paths += list((root / "examples").glob("*.py"))
-    paths += [root / ".gitignore", root / ".github/workflows/ci.yml", root / "uv.lock"]
+    paths += [root / ".gitignore", root / "uv.lock"]
     return {
         "git_revision": subprocess.check_output(
             ["git", "rev-parse", "HEAD"], cwd=root, text=True

@@ -1,7 +1,7 @@
 # ADR-0001: Mandate and Constraints
 
-**Date:** 2026-09-28, revised 2026-10-10
-**Status:** Accepted — Decision 0 closed on 2026-09-28. The agreed modeling mandate, local target, numerical conventions, and audience/license policy are recorded in §3; concrete model schemas, supported representation details, and fixtures follow during Block 1.
+**Date:** 2026-09-28, revised 2026-10-27
+**Status:** Accepted — Decision 0 closed on 2026-09-28. The agreed modeling mandate, local target, numerical conventions, and license are recorded in §3; concrete model schemas, supported representation details, and fixtures follow during Block 1.
 **Purpose:** record the foundation choices needed by Blocks 0–2. Implementation starting points are distinguished from mandate decisions. Sweep metrics, investigation design, and deployment mechanisms are decided when their prerequisites are available (§4).
 
 ---
@@ -42,7 +42,7 @@ Entanglix supports expert-guided superconducting-circuit research through indepe
 ### 3.2 Target local machine and environment policy
 
 - **Binds:** supported development environment and where Block 2 GPU validation runs. Local execution through M2 is settled; a scheduler is not required for foundation.
-- **Decision — agreed 2026-09-28:** use the owner's current Linux workstation with an NVIDIA RTX 5090 (owner-confirmed) as the initial verification environment. Support one documented local GPU environment and CPU-only installation/foundation CI. Select a scheduler when Block 9 is needed. GPU identity is supplied by the owner; sandbox access is not a prerequisite for selecting this target.
+- **Decision — agreed 2026-09-28:** use the owner's current Linux workstation with an NVIDIA RTX 5090 (owner-confirmed) as the initial verification environment. Support one documented local GPU environment and CPU-only installation; checks run on this workstation. Select a scheduler when Block 9 is needed. GPU identity is supplied by the owner; sandbox access is not a prerequisite for selecting this target.
 - Actual GPU/driver/toolkit compatibility and package versions are verified during Block 2: compatible package versions are pinned in `uv.lock`, and GPU, driver, CUDA, cuQuantum, Python, and engine-package observations are recorded in `docs/environment.md`. The hashed run environment record is introduced with the runner in Block 3. Hardware observations do not block scaffolding; GPU agreement tests must pass before Block 2 completes.
 
 ### 3.3 Units, time grid, and truncation defaults
@@ -52,10 +52,10 @@ Entanglix supports expert-guided superconducting-circuit research through indepe
 - **Output grid:** declare a uniform sampling grid; integrators may take adaptive/internal steps while reporting at the declared output times.
 - **Truncation and convergence:** declare model/fixture-specific basis cutoffs and retained subsystem levels separately. Check the relevant observables as these are refined against declared tolerances. A +2-level increment is a possible refinement step, not a universal convergence rule; numerical defaults and refinement policies are justified with the selected fixtures.
 
-### 3.4 License, audience, and sharing policy
+### 3.4 License
 
-- **Binds:** repository/license policy, permitted audience, and conditions for sharing.
-- **Decision — agreed 2026-09-28:** private development by the owner and explicitly permitted collaborators. Defer distribution-license selection until before external distribution. The Harmoniqs conversation requires a shared ProblemSpec solved by the open baseline and Piccolo, each candidate independently checked, with inspectable run directories and corrector reports. Agent integration is not a prerequisite. Before sharing, remove private appendices and exclude files marked `*-private.md`; public text uses "private solver plugins" without product names. Collaborator access does not authorize onward distribution.
+- **Binds:** the terms under which Entanglix's code, documentation, and examples are distributed.
+- **Decision — agreed 2026-10-27:** Entanglix is licensed under the Apache License 2.0. It is permissive, so private solver plugins can attach through entry points, and it carries an explicit patent grant.
 
 ## 4. Later decisions and implementation evidence
 
@@ -77,4 +77,4 @@ Agent-integration acceptance requires a declared sweep/search investigation with
 
 ## 5. Consequences
 
-Decision 0 is closed and Block 0 is unblocked. Modeling supports actual component-based and coupled-subsystem research, with an explicit-operator path; a fixture list does not limit that mandate. Concrete representation and validation choices are made during Block 1. The local target, unit/grid/truncation policy, and audience/license policy are accepted; later decisions retain the capability-specific prerequisites recorded in §4.
+Decision 0 is closed and Block 0 is unblocked. Modeling supports actual component-based and coupled-subsystem research, with an explicit-operator path; a fixture list does not limit that mandate. Concrete representation and validation choices are made during Block 1. The local target, unit/grid/truncation policy, and license are accepted; later decisions retain the capability-specific prerequisites recorded in §4.

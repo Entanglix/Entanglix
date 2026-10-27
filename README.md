@@ -18,7 +18,7 @@ Shared execution guarantees are in [HARNESS_CONTRACT.md](HARNESS_CONTRACT.md); [
 
 ## Setup and CLI
 
-Use Git and [uv](https://docs.astral.sh/uv/getting-started/installation/), then enter your authorized local clone. This checkout supports Linux and Python 3.13; `.python-version` pins 3.13.12. The current modeling and CPU reference path requires no GPU dependencies or device access.
+Use Git and [uv](https://docs.astral.sh/uv/getting-started/installation/), then clone the repository and enter it. This checkout supports Linux and Python 3.13; `.python-version` pins 3.13.12. The current modeling and CPU reference path requires no GPU dependencies or device access.
 
 ```sh
 uv sync --locked --no-dev
@@ -50,4 +50,6 @@ Version 0.1.0 established the installable package and CLI foundation.
 
 Before 1.0, minor versions may break interfaces; changes are recorded in these release notes.
 
-Access is limited to the owner and explicitly permitted collaborators. Collaborator access does not authorize onward distribution.
+## License
+
+Copyright 2026 Lambert Lin. Entanglix is licensed under the [Apache License 2.0](LICENSE).

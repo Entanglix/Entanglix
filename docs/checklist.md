@@ -29,8 +29,6 @@ Supporting milestones, scheduled by dependency and research need:
 | S2 — Calibration | Block 10 | **complete** |
 | S3 — Results catalog | Block 11 | **complete** |
 
-The Harmoniqs conversation requires the shared ProblemSpec and the checked open-solver artifacts specified in roadmap §5, normally delivered at M4. Agent integration is not a prerequisite. The audience/license decision applies, and `roadmap.md` Appendix A must be removed before sharing.
-
 ## Acceptance Evidence for Every Block
 
 Each block's quality checkbox covers the applicable standards in [roadmap §4](roadmap.md#4-standing-disciplines-every-block) and conformance requirements in [contract §8](../HARNESS_CONTRACT.md#8-versioning-and-conformance). Record links to the relevant tests, reports, examples, or run artifacts when checking it.
@@ -51,9 +49,9 @@ M3 demonstrates quality for a complete sweep/search workflow. The preferred sequ
 - [x] Research direction pinned: expert-guided formulation, bounded autonomy, independently useful workflows, and enterprise-grade quality across milestones.
 - [x] Core progression pinned: local sweep with checks → bounded agent-assisted exploration → control → co-design; supporting capabilities follow their own dependencies.
 - [x] System-modeling mandate: component-defined circuits, coupled subsystems, and explicit operators; representative validation required, with concrete coverage and fixtures selected during Block 1 (ADR §3.1)
-- [x] Initial verification target: this Linux workstation with an owner-confirmed NVIDIA RTX 5090; one local GPU environment plus CPU-only foundation CI; compatible version pins and GPU validation follow in Block 2 (ADR §3.2)
+- [x] Initial verification target: this Linux workstation with an owner-confirmed NVIDIA RTX 5090; one local GPU environment; compatible version pins and GPU validation follow in Block 2 (ADR §3.2)
 - [x] GHz/ns conventions with explicit angular-frequency conversion; uniform output grid with internal stepping allowed; separate basis/retained-level cutoffs and model-specific convergence policy (ADR §3.3)
-- [x] Private development by the owner and explicitly permitted collaborators; distribution license selected before external distribution; existing sharing gates retained (ADR §3.4)
+- [x] License: Apache License 2.0 (ADR §3.4)
 - [x] Foundation decisions recorded in the Accepted mandate ADR
 - **Unblocks:** Block 0.
 
@@ -62,12 +60,12 @@ M3 demonstrates quality for a complete sweep/search workflow. The preferred sequ
 **Depends on:** Decision 0 (Accepted). Reduced single-project foundation implemented and validated. GPU environment validation is deferred to Block 2, environment capture/hashing to Block 3, schemas to Block 1, and MCP/skills to Block 6b.
 
 - [x] `HARNESS_CONTRACT.md` at repo root, aligned with the pinned roadmap
-- [x] `docs/README.md` index with the documentation boundary and sharing rule
+- [x] `docs/README.md` index of operational docs and ADRs; documentation boundary in [development.md](development.md#documentation-boundary)
 - [x] `docs/roadmap.md` and `docs/checklist.md`, with aligned milestones and dependencies
 - [x] Single-package layout: `src/entanglix/`, `docs/`, and `tests/`
 - [x] Root [project configuration](../pyproject.toml), [`uv.lock`](../uv.lock), and [Python pin](../.python-version)
 - [x] [`.gitignore`](../.gitignore) covers runs, caches, `.env`, and generated numerical arrays, with exceptions for small reference fixtures
-- [x] [CPU CI workflow](../.github/workflows/ci.yml): locked installation, lint/format checks, and pytest; [GPU selection policy](../tests/conftest.py) skips unavailable devices and rejects empty/unavailable required-GPU runs
+- [x] [Development checks](development.md#checks): locked installation, lint/format checks, and pytest; [GPU selection policy](../tests/conftest.py) skips unavailable devices and rejects empty/unavailable required-GPU runs
 - [x] Root [AGENTS.md](../AGENTS.md) and [CLAUDE.md](../CLAUDE.md) are one-line development pointers to [development.md](development.md); [research-agent.md](research-agent.md) preserves draft research conduct separately until Block 6b
 - [x] Operational [setup/CLI usage](../README.md#setup-and-cli) and [release notes](../README.md#changes-and-compatibility), independent of planning docs
 - [x] [Installed entry-point and CPU import checks](../tests/test_cli.py), lint/format, and documentation checks pass
@@ -116,7 +114,7 @@ The [M1 guide](m1-guide.md) records the implementation approach. Supported conve
 - [x] Required-GPU adapter tests identify the actual engines and RTX 5090 devices; skipped required-GPU tests fail ([test hook](../tests/conftest.py), [GPU tests](../tests/test_engine_cuquantum.py), [GPU/CPU dynamiqs tests](../tests/test_engine_dynamiqs.py))
 - [x] Verified optional engine pins in [`uv.lock`](../uv.lock) and [environment observations](environment.md): GPU, driver, CUDA, cuQuantum, Python, and engine packages; hashing follows with the runner
 - [x] Versioned engine-selection table (contract §2); no harness-imposed dimension cap or pre-launch memory estimate; non-gradient requests default to CPU, with explicit compatible fallbacks recorded; advertise only implemented/tested capabilities (`batched = false` until sweep batching is validated) ([table](../src/entanglix/engines/selection.toml), [selection tests](../tests/test_engine_selection.py), [selection policy](operations/system-spec.md#engine-selection-policy))
-- [x] Applicable quality evidence recorded ([acceptance results and commands](../tests/probes/m1_acceptance_results.json), [environment](environment.md), [interface and numerical reference](operations/system-spec.md), [loss example](../examples/dynamics_reference.py), [gradient example](../examples/differentiable_reference.py), [usage and changes](../README.md), [CPU CI](../.github/workflows/ci.yml))
+- [x] Applicable quality evidence recorded ([acceptance results and commands](../tests/probes/m1_acceptance_results.json), [environment](environment.md), [interface and numerical reference](operations/system-spec.md), [loss example](../examples/dynamics_reference.py), [gradient example](../examples/differentiable_reference.py), [usage and changes](../README.md))
 - [x] **Done:** required agreement, gradient, storage, and refinement checks pass with retained commands/results and actual GPU evidence from CI or a documented manual run; all M1 acceptance items above are satisfied
 
 ---
@@ -157,7 +155,7 @@ The [M2 guide](m2-guide.md) records the implementation approach; [ADR-0003](adr/
 - [x] Shared series function checks a declared monotonicity expectation without removing other checks ([implementation](../src/entanglix/corrector/checks.py), [expectation tests](../tests/test_verification.py)); application to actual sweeps belongs to 5D
 - [x] Reports identify check scope, tolerances, residuals, reference engine and dimension, each point's coverage, and inapplicable checks with reasons (contract §3) ([verification tests](../tests/test_verification.py), [report semantics](operations/runs.md#corrector-policy-and-verification-records))
 - [x] `check` lists or executes named checks through one linked verification run ([implementation](../src/entanglix/corrector/verification.py), [CLI and execution tests](../tests/test_verification.py))
-- [x] Applicable quality evidence recorded ([requested checks](operations/runs.md#corrector-policy-and-verification-records), [scientific and lifecycle tests](../tests/test_verification.py), [CPU reference regression](../tests/test_corrector.py), [CPU CI](../.github/workflows/ci.yml))
+- [x] Applicable quality evidence recorded ([requested checks](operations/runs.md#corrector-policy-and-verification-records), [scientific and lifecycle tests](../tests/test_verification.py), [CPU reference regression](../tests/test_corrector.py))
 - [x] **Done:** deliberately insufficient refinement reports a failed check; a hash mismatch fails execution; check prerequisites do not block computation ([acceptance tests](../tests/test_verification.py), [scientific cases](../tests/test_verification_cost.py))
 
 ### [x] Block 5 — Protocols `simulate` and `sweep`
@@ -181,7 +179,7 @@ The [M2 guide](m2-guide.md) records the implementation approach; [ADR-0003](adr/
 - [x] Spectral-only studies remain usable independently ([CPU spectral simulation and replay test](../tests/test_simulate.py))
 - [x] Plots and `result.toml` summaries expose metric grids and extrema for inspection and refinement; completed partial points remain queryable ([worker](../src/entanglix/protocols/_sweep_job.py), [run records](operations/runs.md#computation-records), [partial-result tests](../tests/test_sweep.py))
 - [x] Documented CLI examples for simulation and iterative sweep refinement ([readout commands and narrower-grid example](../examples/readout/README.md#serial-readout-and-static-sweeps), [linked narrower grid in CPU acceptance](../tests/probes/m2_sweep_cpu.json))
-- [x] Applicable quality evidence recorded ([protocol reference](operations/protocols.md), [CPU CI with dynamiqs sweep coverage](../.github/workflows/ci.yml), [CPU/CUDA simulation acceptance](environment.md#simulation-acceptance), [sweep acceptance and commands](environment.md#sweep-acceptance), [CPU lifecycle and scientific tests](../tests/test_sweep.py), [GPU sweep report](../tests/probes/m2_sweep_gpu.xml))
+- [x] Applicable quality evidence recorded ([protocol reference](operations/protocols.md), [CPU/CUDA simulation acceptance](environment.md#simulation-acceptance), [sweep acceptance and commands](environment.md#sweep-acceptance), [CPU lifecycle and scientific tests](../tests/test_sweep.py), [GPU sweep report](../tests/probes/m2_sweep_gpu.xml))
 - [x] **Done:** a documented simulation and agreed dynamics sweep run through `entanglix`, GPU execution passes, the requested checks pass and report their scope, and a user can inspect/refine the sweep without control or calibration ([simulation acceptance](environment.md#simulation-acceptance), [sweep acceptance](environment.md#sweep-acceptance), [example](../examples/readout/README.md#serial-readout-and-static-sweeps))
 
 ---
@@ -260,7 +258,6 @@ The [M4 guide](m4-guide.md) records the implementation approach; [ADR-0005](adr/
 - [x] MCP `control` and `rerun_control` tools, advertised capabilities, and versioned `control` skill; integration evidence is a scripted stdio client and four live sessions, two each on Claude Code and Codex ([live sessions](environment.md#live-control-sessions), [session summary](../tests/probes/m4_sessions_results.json), [tools](../src/entanglix/mcp.py), [procedure](../skills/control/SKILL.md), [CLI parity, check, rerun and refusal tests](../tests/test_mcp_control.py), [guidance tests](../tests/test_research_guidance.py), [CPU report](../tests/probes/m4_mcp.xml), [setup and command](environment.md#control-mcp-and-guidance-acceptance))
 - [x] Applicable quality evidence recorded ([export and pulse-convention tests](../tests/test_control.py), [gradient and constraint evidence](../tests/test_control_solver.py), [independent first-gate checks](../tests/probes/m4_control_checks_results.json), [execution and plugin tests](../tests/test_control_investigations.py), [CLI/MCP conformance and guidance report](../tests/probes/m4_mcp.xml), [operational reference](operations/control.md))
 - [x] **Done:** open baseline and Piccolo solve the same gate problem from one generated ProblemSpec, each candidate passing the checks requested, both in run dirs; a private plugin, if present, is discovered and its candidate is checked by the same open replay ([first-gate checks on both candidates](../tests/probes/m4_control_checks_results.json), [baseline candidate](../tests/probes/m4_baseline_results.json), [Piccolo candidate](../tests/probes/m4_piccolo_results.json), [measurements and limits](../examples/transmon-control/README.md#requested-check-evidence), [plugin discovery and replay](../tests/test_control_investigations.py))
-- **Unblocks:** the Harmoniqs conversation once the shared ProblemSpec, the open-baseline and Piccolo runs, and their check reports are inspectable; audience/license and Appendix A rules still apply.
 
 ---
 

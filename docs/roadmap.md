@@ -43,7 +43,7 @@ Every milestone must demonstrate these qualities for the capabilities it introdu
 - **Python-first, single substrate.** Modeling with `scqubits`; dynamics on cuQuantum's cuDensityMat through `qutip-cuquantum`; differentiable dynamics with `dynamiqs` (JAX); QuTiP CPU as the exact small-size reference.
 - **Two engines that do not compose through autodiff.** cuDensityMat is large-scale, batched, non-differentiable. JAX (dynamiqs) is differentiable and moderate-size. When a workflow needs direct cross-engine array exchange, use DLPack / CuPy with measured copy/zero-copy behavior; gradients do not cross. Build that boundary with its first consumer, potentially control or co-design. Engine selection is a declared property of a protocol run ("needs gradients?" × declared device × Hilbert-space size), never an agent's judgment call.
 - **Solver-agnostic control spec.** A control problem is one generated file in amicode's ProblemSpec OSS schema (`system`, `goal`, `pulse`, `problem`), shared unchanged by every solver. The solver is named in Entanglix's `control` spec; which solver ran is recorded, never assumed.
-- **Private solver plugins.** High-performance solvers may be proprietary. They attach through a `SolverBackend` / `Integrator` protocol via Python entry points and are never imported by this repo. The repo's tests run with open solvers only. Verification never depends on a private solver (contract §1, §3).
+- **Private solver plugins.** High-performance solvers may be proprietary. They attach through the `SolverBackend` protocol via `entanglix.solvers` entry points and are never imported by this repo. The repo's tests run with open solvers only. Verification never depends on a private solver (contract §1, §3).
 - **amicode's role is a format and an open solver, not substrate.** The generated ProblemSpec follows ProblemSpec OSS, and run directories follow amicode's layout convention; Piccolo, run through its ProblemSpec runner, is an open second-opinion control solver. Dynamics never route through Julia.
 
 ### Key principles
@@ -87,9 +87,9 @@ The core capability progression is **foundation → local sweep with checks → 
 
 ### Decision 0 — Mandate ADR
 
-- Name, command, and repo are settled: Entanglix, `entanglix`, this repository. Audience and license timing are agreed: private development by the owner and explicitly permitted collaborators; choose a distribution license before external distribution and retain the sharing gates.
+- Name, command, and repo are settled: Entanglix, `entanglix`, this repository, licensed under the Apache License 2.0 (ADR-0001 §3.4).
 - Actual system modeling includes component-defined circuits, coupled quantum subsystems, and explicit-operator models. This mandate is accepted in ADR §3.1; concrete schemas, supported representation details, and fixtures follow during Block 1. Named qubit examples do not define the capability's limits.
-- Initial verification target agreed: the owner's current Linux workstation with an NVIDIA RTX 5090 (owner-confirmed), plus CPU-only foundation CI. Compatible version pins and GPU execution are verified during foundation and Block 2; hardware measurements do not gate scaffolding.
+- Initial verification target agreed: the owner's current Linux workstation with an NVIDIA RTX 5090 (owner-confirmed). Compatible version pins and GPU execution are verified during foundation and Block 2; hardware measurements do not gate scaffolding.
 - Numerical policy agreed: user-facing energy/frequency parameters in GHz, time in ns, explicit angular-frequency conversion for dynamics, a uniform output grid with internal stepping allowed, and separate basis/retained-level cutoffs with model-specific convergence checks. Concrete fixture defaults follow the selected models.
 - **Complete:** `docs/adr/0001-mandate.md` records these foundation choices and is Accepted; Block 0 is unblocked. The first sweep metric is chosen before Block 5; investigation policy, any requested limits, and evaluation design follow M2 measurements before Blocks 6a–6b.
 
@@ -97,9 +97,9 @@ The core capability progression is **foundation → local sweep with checks → 
 
 - **Depends on:** Decision 0.
 - Layout: one installable project with `src/entanglix/` (library and the `entanglix` command), `docs/`, and `tests/`; root `pyproject.toml`, `uv.lock`, `.python-version`, and `.gitignore`. CLI help/version, CPU importability, and development checks establish the foundation. Schemas arrive in Block 1, GPU environment validation in Block 2, run environment identity in Block 3, and MCP/skills in Block 6b.
-- CI: unit tests on CPU (no GPU required) and a `gpu` marker for GPU tests.
-- Foundation documentation: operational `README.md` and `HARNESS_CONTRACT.md`; repository `AGENTS.md` and `CLAUDE.md` are one-line pointers to internal `docs/development.md`; research conduct is a draft in `docs/research-agent.md` until Block 6b; planning index `docs/README.md`; decision records in `docs/adr/`. Operational docs state capability availability and work without the plans ([documentation boundary](README.md#documentation-boundary)).
-- The root README covers setup, available commands, and an initial versioning and compatibility policy; CI defines the development checks.
+- Tests: unit tests on CPU (no GPU required) and a `gpu` marker for GPU tests.
+- Foundation documentation: operational `README.md` and `HARNESS_CONTRACT.md`; repository `AGENTS.md` and `CLAUDE.md` are one-line pointers to internal `docs/development.md`; research conduct is a draft in `docs/research-agent.md` until Block 6b; planning index `docs/README.md`; decision records in `docs/adr/`. Operational docs state capability availability and work without the plans ([documentation boundary](development.md#documentation-boundary)).
+- The root README covers setup, available commands, and an initial versioning and compatibility policy; the development instructions define the checks.
 - **Done when:** clone → `uv sync` → `pytest` green on a machine without a GPU.
 
 ### Block 1 — System Spec and Model Adapter
@@ -206,7 +206,7 @@ The evaluation protocol names a scripted experiment-selection policy, comparable
 
 - **Depends on:** Blocks 3–5. Build when remote compute is needed; it does not gate local exploration or control.
 - Slurm or Kubernetes executor behind the same `Executor` interface as local; artifact mirroring (small arrays back, large arrays referenced by path + digest); warming and lost-contact timeouts; abort. Use the scheduler's time limits, GPU allocation, cancellation, and accounting rather than Entanglix equivalents; retain lineage. Define any stronger access/isolation guarantees required by the deployment before claiming them.
-- Development and CI stay on the workstation: one executor test suite runs against the local executor and a stubbed scheduler (fake submit/status/accounting commands). Acceptance adds one documented smoke run on the target cluster.
+- Development and tests stay on the workstation: one executor test suite runs against the local executor and a stubbed scheduler (fake submit/status/accounting commands). Acceptance adds one documented smoke run on the target cluster.
 - **Done when:** `sweep` runs unchanged on the cluster and locally; the executor test suite passes locally against the stubbed scheduler; a lost job terminates as `aborted`, never as `completed`; usage comes from scheduler accounting and recovery diagnostics are recorded.
 
 ### Block 10 — Protocol `calibrate`
@@ -236,7 +236,7 @@ Stronger authorization and isolation are conditional deployment work. Before a d
 
 ## 3. Harness Contract
 
-[`../HARNESS_CONTRACT.md`](../HARNESS_CONTRACT.md) defines bounded investigations (§4), tools and permissions (§5), history/audit/promotion (§6), execution environments and trust boundaries (§7), and versioning/conformance (§8). Quality standards and open decisions remain in this roadmap (§4 and §7); the checklist tracks acceptance evidence. Document classes and lifecycles are in the [documentation boundary](README.md#documentation-boundary).
+[`../HARNESS_CONTRACT.md`](../HARNESS_CONTRACT.md) defines bounded investigations (§4), tools and permissions (§5), history/audit/promotion (§6), execution environments and trust boundaries (§7), and versioning/conformance (§8). Quality standards and open decisions remain in this roadmap (§4 and §7); the checklist tracks acceptance evidence. Document classes and lifecycles are in the [documentation boundary](development.md#documentation-boundary).
 
 Block 6a adds investigation execution to the runner and ledger from Block 3 and corrector from Block 4; Block 6b adds cooperative agent access through MCP and evidence-based continuation/stopping. Blocks 7 and 10 extend agent access to control and calibration when both capabilities are present; Block 11 adds the promoted catalog.
 
@@ -284,8 +284,6 @@ Supporting milestones are scheduled by their dependencies and research need:
 | S2 — Calibration | Block 10 | standalone synthetic round trip with uncertainty and holdout evaluation; inspectable model-update proposal |
 | S3 — Results catalog | Block 11 | promoted candidate reused with lineage; pulse warm-start demonstrated when control is available |
 
-The Harmoniqs conversation is gated by concrete artifacts: the shared ProblemSpec solved by the open baseline and Piccolo, each candidate with its requested check reports, in inspectable run directories. These are normally delivered at M4, but standalone control may supply them before M3. Agent integration is not a sharing prerequisite; the audience/license decision and removal of Appendix A still apply.
-
 ---
 
 ## 6. Things Not to Build Yet
@@ -307,7 +305,7 @@ The Harmoniqs conversation is gated by concrete artifacts: the shared ProblemSpe
 
 Settled: project name Entanglix; command `entanglix`; runner in Python (`uv`), same substrate as the engines. Expert-guided problem formulation and bounded autonomous investigations; independently useful entry points; the core milestone progression in §5; supporting capabilities scheduled by dependency and need; enterprise-grade quality across every milestone. The initial agent harness supports sweep/search; control and calibration extend it as those capabilities become available. The first end-to-end sweep exercises open-system GPU dynamics; 5A has settled its coherence metric and feasibility choices in the readout example.
 
-- **During Block 1:** concrete modeling schemas/APIs, supported representation details, and validation fixtures/parameters implementing the accepted mandate in ADR §3.1. Decision 0 is closed; the RTX 5090 target/environment policy, numerical conventions/convergence policy, and audience/license timing are accepted in ADR §3.2–§3.4.
+- **During Block 1:** concrete modeling schemas/APIs, supported representation details, and validation fixtures/parameters implementing the accepted mandate in ADR §3.1. Decision 0 is closed; the RTX 5090 target/environment policy, numerical conventions/convergence policy, and the license are accepted in ADR §3.2–§3.4.
 - **Settled in 5A:** dynamics metric, drive, parameter region, windows, grids, refinement, and candidate frame bounds for the first GPU sweep ([readout example](../examples/readout/README.md)); independent-engine acceptance of the frame bounds remains in 5B.
 - **Settled in [ADR-0004](adr/0004-investigations-and-agent-sessions.md):** user-decision recording, progress-assessment fields, a checkpoint the user declares with no default, resume behaviour, the evaluation protocol with its scripted selection policy and user-declared allowances, and the user's own agent runtime. The first investigation is recorded in the [readout example](../examples/readout/README.md#threshold-characterization). Usage recording and optional limits are fixed by contract §4; ordinary investigations do not require preallocated budgets.
 - **Settled in [ADR-0004 §2.8](adr/0004-investigations-and-agent-sessions.md#28-agent-sessions):** instruction delivery, the operator CLI as the decision path, job tools with a wait and recoverable launches, the permission settings and what holds in a runtime without them, session audit per connection, and busy-device admission ([probe results](../tests/probes/m3_agent_session_results.json)).

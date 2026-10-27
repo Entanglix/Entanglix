@@ -15,7 +15,7 @@ def _runner_repository(tmp_path, extras):
     repository = tmp_path / "checkout"
     repository.mkdir(parents=True)
     shutil.copytree(root / "src", repository / "src", ignore=shutil.ignore_patterns("__pycache__"))
-    for name in ("uv.lock", ".gitignore"):
+    for name in ("uv.lock", ".gitignore", "LICENSE"):
         shutil.copyfile(root / name, repository / name)
     config = tomllib.loads((root / "pyproject.toml").read_text())
     config["tool"].setdefault("entanglix", {})["runner"] = {"extras": extras}

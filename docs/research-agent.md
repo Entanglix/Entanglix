@@ -1,7 +1,7 @@
 ---
 name: entanglix-research-conduct
 description: Conduct for a quantum research session using Entanglix tools.
-version: 0.1.11
+version: 0.1.12
 ---
 
 # Research-agent conduct
@@ -112,6 +112,3 @@ Read only the procedure relevant to the next action; each is usable as plain tex
 The copied operational references may link to repository tests or example pages
 that are absent from this workspace. Do not search outside the workspace for
 those links; ask the operator for any additional material needed for the task.
-
-Access is limited to the owner and explicitly permitted collaborators; access
-does not authorize onward distribution.

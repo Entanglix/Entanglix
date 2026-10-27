@@ -1,6 +1,6 @@
 # ADR-0004: Investigations, User Decisions, and Agent Sessions
 
-**Date:** 2026-10-06, revised 2026-10-21
+**Date:** 2026-10-06, revised 2026-10-27
 **Status:** Accepted
 **Purpose:** fix how an investigation is recorded, who may change its terms, how its jobs are admitted and stopped, how progress is assessed and work resumed, how the first agent-assisted investigation is evaluated, whose runtime drives the harness, and how an agent session is instructed, restricted, and audited. Field lists, formats, and command names are documented with the implementation.
 
@@ -114,9 +114,9 @@ Measurements: [readout threshold probe](../../tests/probes/m3_readout_results.js
 
 - The runtime is the user's own. The harness holds no model backend and no API key, and it does not limit the runtime: any runtime that speaks MCP over stdio can drive it.
 - Each session's audit records the client name and version the runtime reports (§2.8).
-- CI tests the harness side with a scripted MCP client and needs no runtime. Checks that need a session run on the workstation in the user's runtime and are retained.
+- Automated tests cover the harness side with a scripted MCP client and do not require a logged-in runtime. Checks that need a session run on the workstation in the user's runtime and are retained.
 
-**Rationale:** the harness provides tools, records, and procedures; the model and its runtime are the user's choice, as the solver is. CI has no logged-in user, and a runtime the harness does not own is not the harness's to pin.
+**Rationale:** the harness provides tools, records, and procedures; the model and its runtime are the user's choice, as the solver is. Automated tests do not require a logged-in runtime, and a runtime the harness does not own is not the harness's to pin.
 
 ### 2.8 Agent sessions
 
@@ -184,7 +184,7 @@ Measurements: [agent-session probe](../../tests/probes/m3_agent_session_results.
 | A seed sweep shared between the baseline and the agent | Each investigation carries its own accounting and exercises `sweep` |
 | Bayesian search as the first baseline | A one-dimensional monotone crossing does not need it |
 | A model backend, an API key, or a list of supported runtimes | The runtime is the user's own |
-| A pinned runtime or a live agent session in CI | CI has no logged-in user, and the harness does not own the runtime |
+| A pinned runtime or a live agent session in automated tests | Automated tests do not require a logged-in runtime, and the harness does not own the runtime |
 | A job queue, scheduler, grant service, or workflow engine | ADR-0001 and contract §7 reuse process and runtime facilities |
 | A generated workspace instruction file, or detection of what a runtime loaded | A shipped file the user supplies is enough, and a server cannot observe a model's context |
 | A runtime prompt or an in-session decision tool | Nothing in M3 needs one; the operator command is the single decision path |
@@ -209,7 +209,7 @@ Measurements: [agent-session probe](../../tests/probes/m3_agent_session_results.
   - §5 describes `revise_investigation` as proposing a revision. It gives `read_run` an optional wait, reports attempts and unresolved launches, permits a runtime user-input path only when it is implemented and validated, and limits the command restriction to runtimes and command forms where a test shows it.
   - §6 records a launch before its supervisor starts, puts client-sent request metadata on the tool-call entry, and keeps one immutable session entry per connection.
   - §7 describes the hidden GPU as CUDA visibility and refuses a busy-device launch before an attempt exists.
-  - §8 records the client name and version the runtime reports in each session's audit, in place of a runtime pinned in CI, and states the conformance evidence for agent sessions in the terms of §2.8.
+  - §8 records the client name and version the runtime reports in each session's audit, in place of a pinned runtime, and states the conformance evidence for agent sessions in the terms of §2.8.
 - The roadmap and checklist replace the default checkpoint interval with a checkpoint the user declares, and refer to the user's runtime instead of a selected one.
 - A run's manifest gains its investigation and revision. The run reference and a new investigation reference document the records, the operator command, limits, and recovery.
 - The readout example records the first investigation: its question, scope, claim rule, measured brackets, costs, and stated limits.
