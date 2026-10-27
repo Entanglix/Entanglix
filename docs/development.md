@@ -56,7 +56,7 @@ Run `uv sync --locked --exact`, `uv run --locked --exact pytest`, `uv run --lock
 - All branches and release tags live in the public repository.
 - `development` holds the full history and every document. Work and pull requests go here.
 - `main` holds the release history without the development history; each release adds one commit. It omits `docs/roadmap.md`, `docs/checklist.md`, `docs/development.md`, and `docs/*-guide.md`, and its own `AGENTS.md` and `CLAUDE.md` point to setup and the research workspace.
-- `checkpoint` marks the `development` commit of the latest release.
+- `checkpoint` holds each release's source without the development history: one commit per release, whose tree is that release's `development` commit before the omissions and `AGENTS.md` changes for `main`.
 - Never merge `development` into `main`. Before a release, `pyproject.toml` and the README release notes name the version, and the worktree is clean. Release `X.Y.Z` from `development` commit `C`:
 
   ```
@@ -67,7 +67,7 @@ Run `uv sync --locked --exact`, `uv run --locked --exact pytest`, `uv run --lock
   git add AGENTS.md CLAUDE.md
   git commit -m "Entanglix X.Y.Z (development C)"
   git tag -a vX.Y.Z -m "Entanglix X.Y.Z"
-  git branch -f checkpoint C
+  git branch -f checkpoint "$(git commit-tree 'C^{tree}' -p checkpoint -m 'Entanglix X.Y.Z release checkpoint (development C)')"  # first release: omit -p checkpoint
   ```
 
 - The owner reviews and pushes `main`, `checkpoint`, and the tag.
