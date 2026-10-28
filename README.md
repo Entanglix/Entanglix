@@ -22,7 +22,7 @@ Project setup configures the agent's runtime to refuse those commands, or, with 
 
 ## Requirements
 
-Linux on x86_64 or aarch64, with git, curl, tar and sha256sum. No root and no Python of your own: the installer brings its own uv and Python. GPU engines need an NVIDIA driver.
+Linux on x86_64 or aarch64, with git, curl, tar, sha256sum and flock. No root and no Python of your own: the installer brings its own uv and Python. GPU engines need an NVIDIA driver.
 
 ## Install
 
@@ -35,7 +35,7 @@ This installs Entanglix 0.1.0 in `~/.local/share/entanglix/0.1.0`, with CPU engi
 - `entanglix components add gpu`: the cuDensityMat and dynamiqs GPU engines, about 7 GB, mostly NVIDIA libraries;
 - `entanglix components add piccolo`: the Piccolo solver with its own Julia, about 3.5 GB.
 
-`entanglix components` shows what is installed. A newer version installs beside the old one and shares its package cache; `entanglix remove VERSION` deletes a version nothing is using.
+`entanglix components` shows what is installed. Your own engines and solvers attach as [plugins](docs/operations/runs.md#plugins-in-the-runner-environment), added with `entanglix plugins add PATH`. A newer version installs beside the old one and shares its package cache; `entanglix remove VERSION` deletes a version nothing is using, and removing the last one also deletes the cache and the `entanglix` command.
 
 ## Start a project
 

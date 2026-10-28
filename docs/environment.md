@@ -66,7 +66,7 @@ The CPU cases in the same test file exercise missing dependencies, driver/librar
 
 ## Installation disk use
 
-Observed on this workstation on 2026-10-28. A job environment with both GPU extras takes 7.0 GB, 4.5 GB of it NVIDIA's CUDA libraries, which JAX and cuQuantum ship as wheels instead of using a system CUDA; this is why GPU engines are a separate component. In the [clean-install run](../tests/probes/clean_install_results.json), uv's shared cache took 0.86 GB, a first version with the Piccolo component 3.7 GB (mostly its Julia and precompiled depot), and a second, base-only version 185 MB more, its unchanged packages hardlinked from the shared cache. Hardlinking needs the cache and the installations on one filesystem; otherwise uv copies.
+Observed on this workstation on 2026-10-28. A job environment with both GPU extras takes 7.0 GB, 4.5 GB of it NVIDIA's CUDA libraries, which JAX and cuQuantum ship as wheels instead of using a system CUDA; this is why GPU engines are a separate component. In the [clean-install run](../tests/probes/clean_install_results.json), Entanglix's uv cache, `~/.local/share/entanglix/cache`, took 0.86 GB, a first version with the Piccolo component 3.7 GB (mostly its Julia and precompiled depot), and a second, base-only version 190 MB more, its unchanged packages hardlinked from the cache, which sits beside the versions on one filesystem. Removing the last version deletes the cache.
 
 ## Reproduce GPU compatibility from a source checkout
 

@@ -9,6 +9,7 @@ import tomli_w
 from test_control import control_files as control_files
 from test_simulate import protocol_files
 
+from entanglix import installation
 from entanglix.corrector.verification import check_run
 from entanglix.protocols.control import control
 from entanglix.protocols.simulate import simulate
@@ -153,6 +154,54 @@ def test_plugin_engine_by_default_is_read_checked_and_rerun_without_it(
     assert _load_record(Path(replay["path"]) / "result.toml")["method"] == "fixture-2"
     preview = simulate(path, runs_root=root, repository=runner_repository, dry_run=True)["preview"]
     assert preview["execution"]["selection"]["source"] == "default"
+
+
+def plugins_command(repository, cache, command, *arguments):
+    """An installation's plugins command, run on the fixture checkout's runner environment."""
+    installed = {"version": "0.1.0", "uv": shutil.which("uv"), "cache_dir": str(cache)}
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(installation, "record", lambda root: installed)
+        return command(*arguments, repository)
+
+
+def test_plugins_add_refreshes_a_code_only_edit_and_remove_uninstalls(
+    tmp_path, runner_repository, monkeypatch
+):
+    path, _ = protocol_files(tmp_path / "work")
+    root = tmp_path / "runs"
+    cache = tmp_path / "uv-cache"
+    simulate(path, runs_root=root, repository=runner_repository, dry_run=True)
+    plugin = write_plugin(tmp_path / "plugin")
+    added = plugins_command(runner_repository, cache, installation.add_plugin, plugin)
+    assert added == {
+        "plugin": PLUGIN,
+        "status": "installed",
+        "version": "0.1.0",
+        "engines": ["fixture-cuda-engine", "fixture-engine"],
+        "solvers": ["fixture-solver"],
+    }
+    monkeypatch.setenv("ENTANGLIX_ENGINES", "cpu=fixture-engine")
+    recorded = []
+    for method in ("fixture-1", "fixture-2"):
+        if method != "fixture-1":
+            # Only the code changes; pyproject.toml is untouched, so uv sees the same project.
+            (plugin / "src/entanglix_test_plugin/__init__.py").write_text(
+                ENGINE.format(method=method)
+            )
+            plugins_command(runner_repository, cache, installation.add_plugin, plugin)
+        result = simulate(path, runs_root=root, repository=runner_repository)
+        assert result["exit_code"] == 0, (Path(result["path"]) / "run.log").read_text()
+        run = Path(result["path"])
+        assert _load_record(run / "result.toml")["method"] == method
+        recorded.append(read_run(run)["manifest"]["environment"]["distributions"][PLUGIN])
+    assert recorded[0]["version"] == recorded[1]["version"]
+    assert recorded[0]["record_sha256"] != recorded[1]["record_sha256"]
+
+    removed = plugins_command(runner_repository, cache, installation.remove_plugin, PLUGIN)
+    assert removed == {"plugin": PLUGIN, "status": "removed"}
+    assert plugins_command(runner_repository, cache, installation.plugins) == {}
+    with pytest.raises(ValueError, match="fixture-engine' is not installed"):
+        simulate(path, runs_root=root, repository=runner_repository, dry_run=True)
 
 
 def test_cuda_plugin_loads_in_the_gate_with_the_job_cuda_settings(

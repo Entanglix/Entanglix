@@ -9,7 +9,7 @@ An installation's server is its `.venv/bin/python -m entanglix.mcp`, which [proj
 ```sh
 UV_PROJECT_ENVIRONMENT="$PWD/.venv-mcp" uv sync --locked --exact --extra mcp
 .venv-mcp/bin/python -m entanglix.mcp \
-  --runs-root "$HOME/Projects/entanglix-research/runs" \
+  --runs-root "$HOME/Projects/entanglix-research/research_runs" \
   --device ""
 ```
 
@@ -118,7 +118,7 @@ A runtime that waits one call at a time spends a model request each time a wait 
 A session need not stay open through a job of hours. The agent can end its turn with the run path, and the operator resumes the session after the job, from the workspace and with the first launch's configuration overrides:
 
 ```sh
-entanglix read-run runs/<run> --wait <seconds>
+entanglix read-run research_runs/<run> --wait <seconds>
 codex exec resume <session-id> 'The run has finished; continue.'
 ```
 
@@ -159,7 +159,7 @@ entanglix setup-project DIR --runtime claude,codex
 `DIR` is the path of the project directory, new or existing; setup creates it if needed.
 
 - `--runtime` lists `claude`, `codex` and `other`. Setup copies the conduct verbatim as `CLAUDE.md` for Claude Code and `AGENTS.md` for Codex and other runtimes, with `skills/` and the seven references under `reference/operations/`. For Claude Code it writes `.mcp.json` and `.claude/settings.json`; for Codex, `.codex/config.toml`, `.codex/rules/operator.rules` and the `.agents/skills` link. For `other` it writes no runtime configuration and prints the server entry and the commands to block ([other runtimes](#other-stdio-runtimes)).
-- The server entry names the installation's Python, `DIR/runs` as the runs root, the device, `--max-wait 3600`, the runtime's tool timeouts, and `--state-directory` when your shell sets `XDG_STATE_HOME`. It names no runner extras, so each launch uses the installation's components.
+- The server entry names the installation's Python, `DIR/research_runs` as the runs root, the CLI's default from `DIR`, the device, `--max-wait 3600`, the runtime's tool timeouts, and `--state-directory` when your shell sets `XDG_STATE_HOME`. It names no runner extras, so each launch uses the installation's components.
 - `--device auto`, the default, computes on a GPU only with the GPU component and exactly one GPU; several GPUs are refused with a list to choose from with `--device UUID`. `--device cpu` supplies none.
 - `--agent-command-privilege none`, the default, configures the runtime to refuse the human-action commands; `on-request` configures it to ask before each one, for interactive sessions only ([human decisions](#human-decisions-and-continuation)).
 - Setup refuses, writing nothing, when a file it would write exists and is not its own, or when a file or symlink stands where it needs a directory; existing directories are used as they are. It then prints the server entry to add by hand, and it never merges into your configuration.
@@ -203,7 +203,7 @@ Setup writes `.codex/config.toml` and the rule below for an installation, with t
 ```toml
 [mcp_servers.entanglix]
 command = "<absolute-checkout-path>/.venv-mcp/bin/python"
-args = ["-m", "entanglix.mcp", "--runs-root", "<absolute-workspace-path>/runs", "--device", "<GPU-UUID>", "--runner-extras", "cuquantum", "differentiable-cuda12", "--max-wait", "3600"]
+args = ["-m", "entanglix.mcp", "--runs-root", "<absolute-workspace-path>/research_runs", "--device", "<GPU-UUID>", "--runner-extras", "cuquantum", "differentiable-cuda12", "--max-wait", "3600"]
 startup_timeout_sec = 60
 tool_timeout_sec = 3660
 default_tools_approval_mode = "approve"
@@ -245,7 +245,7 @@ Setup writes `CLAUDE.md`, `.mcp.json` and `.claude/settings.json` for an install
   "mcpServers": {
     "entanglix": {
       "command": "<absolute-checkout-path>/.venv-mcp/bin/python",
-      "args": ["-m", "entanglix.mcp", "--runs-root", "<absolute-workspace-path>/runs", "--device", "", "--runner-extras", "cuquantum", "differentiable-cuda12", "--max-wait", "3600"],
+      "args": ["-m", "entanglix.mcp", "--runs-root", "<absolute-workspace-path>/research_runs", "--device", "", "--runner-extras", "cuquantum", "differentiable-cuda12", "--max-wait", "3600"],
       "timeout": 3660000
     }
   }
@@ -297,8 +297,8 @@ Approve each invocation on its own; a permission mode that skips prompts runs co
 The agent may draft an investigation and propose revisions; the operator reviews complete terms, checkpoint, evidence, and any requested limits. The [investigation reference](investigations.md) defines these declarations and commands. Use the same runs root as the server, with the bare `entanglix` on your `PATH`. Run the commands from the project directory or below it, so the launcher uses the project's installation, the one its server uses.
 
 ```sh
-entanglix read-investigation "$ENTANGLIX_WORKSPACE/runs/_investigations/<investigation_id>"
-entanglix investigation-decision "$ENTANGLIX_WORKSPACE/runs/_investigations/<investigation_id>" start --revision 1
+entanglix read-investigation "$ENTANGLIX_WORKSPACE/research_runs/_investigations/<investigation_id>"
+entanglix investigation-decision "$ENTANGLIX_WORKSPACE/research_runs/_investigations/<investigation_id>" start --revision 1
 ```
 
 That second command is the user's decision. The user runs it, or, where the runtime is set to ask, approves the agent's run of that exact command in the runtime's prompt; the decision record is the same either way. Subsequent approvals, resumes and named review releases use the same bare command with the affected revision/review name. The agent reads the retained decision before continuing; approving a research-tool call does not make one. At a checkpoint it records an assessment; at a named review it hands off for the operator's decision. A finding recommending stop does not itself stop jobs: use the supported `stop_investigation` tool to cancel owned work and close admission.

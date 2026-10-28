@@ -58,15 +58,33 @@ Linked [investigation jobs](investigations.md#usage-and-optional-limits) also re
 
 ### Plugins in the runner environment
 
-Plugins are Python distributions that register engines under `entanglix.integrators` ([engine selection](system-spec.md#engine-selection-policy)) or solvers under `entanglix.solvers` ([control](control.md#launch-and-solver-selection)). The user installs them into `.venv-runner` after the first launch has created it, and only while no job uses it:
+Plugins are Python distributions that register engines under `entanglix.integrators` ([engine selection](system-spec.md#engine-selection-policy)) or solvers under `entanglix.solvers` ([control](control.md#launch-and-solver-selection)). An installation adds them to its job environment, and changes them only while no launch or job uses it:
 
 ```bash
-uv pip install --python .venv-runner/bin/python PATH_OR_WHEEL
+entanglix plugins add PATH       # a project directory with a pyproject.toml, or a wheel
+entanglix plugins                # installed plugins and the engines and solvers they register
+entanglix plugins remove NAME
 ```
 
-In an installation, run it from the directory `entanglix components` reports as `path`, with the installation's uv, `.installation/bin/uv`.
+`plugins add` installs a project or wheel that registers an engine or a solver, declared in a project's `pyproject.toml`, with the installation's uv, which resolves its dependencies. Repeat it after editing the plugin's code: it reinstalls the plugin even when its version is unchanged. A plugin need not be a whole upstream codebase. A small project can hold the adapter and the modules it imports, with its code in `src/my_integrator/`:
 
-Entanglix neither installs nor resolves plugins. Each launch and `components add gpu` synchronize the locked dependencies and keep the other installed distributions. Before admission, the runner refuses an environment that `uv pip check` reports as inconsistent, an editable distribution other than the project itself, and a distribution without an install record. A plugin requiring another version of a locked package is undone by the next synchronization, which restores the locked version; the consistency check then refuses launches until the plugin is changed. Every run records the installed distributions ([environment provenance](#environment-and-code-provenance)).
+```toml
+[project]
+name = "my-integrator"
+version = "0.1.0"
+dependencies = ["numpy"]
+
+[project.entry-points."entanglix.integrators"]
+my-integrator = "my_integrator:Engine"
+
+[build-system]
+requires = ["uv_build>=0.12,<0.13"]
+build-backend = "uv_build"
+```
+
+Every module a plugin imports must be in its distribution or in its dependencies: the run records installed distributions, so code imported from elsewhere leaves no record. In a development checkout, install plugins with `uv pip install --python .venv-runner/bin/python PATH` after the first launch has created `.venv-runner`.
+
+Each launch and `components add gpu` synchronize the locked dependencies and keep the other installed distributions. Before admission, the runner refuses an environment that `uv pip check` reports as inconsistent, an editable distribution other than the project itself, and a distribution without an install record. A plugin requiring another version of a locked package is undone by the next synchronization, which restores the locked version; the consistency check then refuses launches until the plugin is changed. Every run records the installed distributions ([environment provenance](#environment-and-code-provenance)).
 
 ## Computation records
 

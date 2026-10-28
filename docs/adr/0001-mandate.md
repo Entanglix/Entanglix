@@ -63,14 +63,14 @@ Entanglix supports expert-guided superconducting-circuit research through indepe
 - **Decision — agreed 2026-10-28:**
   - Entanglix supports Linux. One command installs it per user, without root: a bootstrap script pinned to a release tag clones that tag into a directory for its version, with its own pinned uv and Python and a base job environment, and installs a launcher in the user's local `bin` directory. It edits no shell profile; when that directory is not on `PATH`, it says so and shows the full launcher path.
   - The base installation serves CPU work, including the open control baseline. GPU engines and the Piccolo solver are components the user adds on request; the installation records which it has.
-  - Each version keeps its own directory. All versions share one uv cache. The launcher runs the version a project records, otherwise the newest complete installation; project setup always runs on the newest. A version is removed only while none of its processes, launches, or jobs is running.
+  - Each version keeps its own directory. All versions share one uv cache, Entanglix's own, beside them. The launcher runs the version a project records, otherwise the newest complete installation; project setup always runs on the newest. Installs and removals run one at a time. A version is removed only while none of its processes, launches, or jobs is running. Removing the last version also removes the cache and the launcher; removal deletes only Entanglix-owned paths.
   - An installation's runtimes and state live in one directory that Git ignores, so its runs record clean code.
   - macOS, Windows, and a package-index distribution are not offered.
 - **Rationale:**
   - A user-level install needs no administrator. Runs record Git provenance, so the installation is a clone.
-  - A clone updated in place would change code under running jobs and under projects set up with it. Separate versions keep both on their code, and a shared cache avoids downloading again and, where uv can hardlink, storing again what versions share.
+  - A clone updated in place would change code under running jobs and under projects set up with it. Separate versions keep both on their code, and a shared cache avoids downloading again and, where uv can hardlink, storing again what versions share. The environments are hardlinks into the cache, so only a cache of Entanglix's own lets removal free the space, and it leaves the user's uv cache alone.
   - The GPU set is large, and a detected GPU may serve only a display, so it is added on request rather than by detection.
-  - A version removed under a running process or job would take its code away.
+  - A version removed under a running process or job would take its code away. Concurrent installs and removals would work on the same directories, and running them in parallel gains little on one workstation.
 
 ## 4. Later decisions and implementation evidence
 

@@ -63,7 +63,7 @@ def test_claude_and_codex_receive_copies_and_their_configuration(tmp_path):
         "-m",
         "entanglix.mcp",
         "--runs-root",
-        str(directory / "runs"),
+        str(directory / "research_runs"),
         "--device",
         "",
         "--max-wait",
@@ -83,7 +83,7 @@ def test_claude_and_codex_receive_copies_and_their_configuration(tmp_path):
     rules = (directory / ".codex/rules/operator.rules").read_text()
     assert 'decision="forbidden"' in rules and '"apply-device-update"' in rules
     assert (directory / ".agents/skills").readlink() == Path("../skills")
-    assert (directory / "runs").is_dir()
+    assert (directory / "research_runs").is_dir()
     record = project_record(directory)
     assert record["installation_version"] == "0.1.0"
     assert record["runtimes"] == ["claude", "codex"] and record["device"] == ""
@@ -126,7 +126,7 @@ def test_a_file_setup_did_not_write_stops_it_before_any_write(tmp_path):
     assert sorted(path.name for path in directory.iterdir()) == [".mcp.json"]
 
 
-@pytest.mark.parametrize("name", [".codex", "runs", ".entanglix", "skills", ".agents"])
+@pytest.mark.parametrize("name", [".codex", "research_runs", ".entanglix", "skills", ".agents"])
 def test_a_file_where_setup_needs_a_directory_stops_it_before_any_write(tmp_path, name):
     root = installed(tmp_path / "0.1.0")
     directory = tmp_path / "project"

@@ -21,7 +21,7 @@ from pathlib import Path
 REPOSITORY = Path(__file__).resolve().parents[2]
 TOOLS = (
     "bash sh env git curl tar gzip sha256sum uname mkdir rm mv cp grep sed sort tail head "
-    "dirname basename cat ls readlink sleep id"
+    "dirname basename cat ls readlink sleep id flock"
 ).split()
 CLIENT = """
 import asyncio, json, os, sys
@@ -53,6 +53,32 @@ time.sleep(float(os.environ.get("SLOW_SECONDS", "30")))
 Path(os.environ["ENTANGLIX_RUN_DIR"], "result.toml").write_text(
     'engine = "authored-script"\\n[metrics]\\nslept = 1\\n'
 )
+"""
+# The plugin reference's minimal project, with an adapter around an open engine.
+PLUGIN_PROJECT = """[project]
+name = "probe-engine"
+version = "0.1.0"
+dependencies = ["numpy"]
+
+[project.entry-points."entanglix.integrators"]
+probe-engine = "probe_engine:Engine"
+
+[build-system]
+requires = ["uv_build>=0.12,<0.13"]
+build-backend = "uv_build"
+"""
+PLUGIN_ENGINE = """
+from dataclasses import replace
+
+from entanglix.engines import EngineCapabilities, QuTiPIntegrator
+
+
+class Engine:
+    def capabilities(self):
+        return EngineCapabilities("probe-engine", "cpu", True, False)
+
+    def evolve(self, system, request):
+        return replace(QuTiPIntegrator().evolve(system, request), engine="probe-engine")
 """
 HOSTILE = {
     "UV_NO_SYNC": "1",
@@ -290,15 +316,11 @@ def cpu_world(work, repository, revisions):
             solvers=capabilities.get("solvers"),
         )
 
-    done, result = job(
-        home, env, claude, "simulate", str(readout / "cpu.toml"), "--runs-root", "runs"
-    )
+    done, result = job(home, env, claude, "simulate", str(readout / "cpu.toml"))
     completed(
         "CPU simulation through the installed command", done, result, claude, revisions["0.1.0"]
     )
-    done, result = job(
-        home, env, claude, "control", str(control / "control-short.toml"), "--runs-root", "runs"
-    )
+    done, result = job(home, env, claude, "control", str(control / "control-short.toml"))
     completed("GRAPE control solve", done, result, claude, revisions["0.1.0"])
     through = run(
         [
@@ -319,6 +341,15 @@ def cpu_world(work, repository, revisions):
         served.get("status") == "completed",
         stderr=through.stderr[-2000:],
     )
+    listed = entanglix(home, env, claude, "list-runs")
+    found = json.loads(listed.stdout) if listed.returncode == 0 else []
+    step(
+        "the CLI's default runs root finds the server's run",
+        served.get("manifest", {}).get("run_id") in {entry.get("run_id") for entry in found}
+        and Path(served.get("path", "/")).is_relative_to(claude / "research_runs"),
+        run=served.get("path"),
+        stderr=listed.stderr,
+    )
 
     before = tree_state(first)
     again = install(repository, "0.1.0", home, env)
@@ -334,9 +365,7 @@ def cpu_world(work, repository, revisions):
     hostile = env | HOSTILE
     # A project of the user's may pin another Python; jobs keep the installation's.
     (claude / ".python-version").write_text("3.12\n")
-    done, result = job(
-        home, hostile, claude, "simulate", str(readout / "cpu.toml"), "--runs-root", "runs"
-    )
+    done, result = job(home, hostile, claude, "simulate", str(readout / "cpu.toml"))
     record = completed(
         "job with hostile uv, Python and Julia variables", done, result, claude, revisions["0.1.0"]
     )
@@ -356,8 +385,6 @@ def cpu_world(work, repository, revisions):
             str(claude / "inputs/slow.py"),
             "--system",
             str(readout / "system.toml"),
-            "--runs-root",
-            "runs",
         ],
         env=env | {"SLOW_SECONDS": "40"},
         cwd=claude,
@@ -400,9 +427,7 @@ def cpu_world(work, repository, revisions):
     )
     server.stdin.close()
     server.wait(timeout=60)
-    done, result = job(
-        home, env, claude, "control", str(control / "piccolo-short.toml"), "--runs-root", "runs"
-    )
+    done, result = job(home, env, claude, "control", str(control / "piccolo-short.toml"))
     record = completed("minimal Piccolo solve", done, result, claude, revisions["0.1.0"])
     runtime = record["environment"]["solver_runtime"]
     step(
@@ -411,7 +436,7 @@ def cpu_world(work, repository, revisions):
         runtime=runtime,
     )
 
-    # A second version beside the first, sharing the uv cache.
+    # A second version beside the first, sharing Entanglix's uv cache.
     pinned = home / "project-pinned"
     entanglix(home, env, home, "setup-project", str(pinned), "--runtime", "claude")
     inputs(pinned)
@@ -433,22 +458,18 @@ def cpu_world(work, repository, revisions):
     )
     # du counts a hardlinked file once, under the first argument that holds it.
     sizes = run(
-        ["du", "-sk", str(home / ".cache/uv"), str(first), str(data / "0.1.1")],
+        ["du", "-sk", str(data / "cache"), str(first), str(data / "0.1.1")],
         {"PATH": "/usr/bin:/bin"},
         home,
     ).stdout
     results["disk"] = {"du_kib_cache_then_first_then_second": sizes.splitlines()}
     old_version = entanglix(home, env, claude, "--version").stdout.strip()
-    created = entanglix(
-        home, env, claude, "create-investigation", str(terms), "--runs-root", "runs"
-    )
+    created = entanglix(home, env, claude, "create-investigation", str(terms))
     investigation = json.loads(created.stdout)["path"] if created.returncode == 0 else ""
     decided = entanglix(
         home, env, claude, "investigation-decision", investigation, "start", "--revision", "1"
     )
-    done, result = job(
-        home, env, claude, "simulate", str(readout / "cpu.toml"), "--runs-root", "runs"
-    )
+    done, result = job(home, env, claude, "simulate", str(readout / "cpu.toml"))
     completed(
         "older project still runs jobs on its version", done, result, claude, revisions["0.1.0"]
     )
@@ -474,8 +495,6 @@ def cpu_world(work, repository, revisions):
             str(pinned / "inputs/slow.py"),
             "--system",
             str(pinned / "inputs/readout/system.toml"),
-            "--runs-root",
-            "runs",
         ],
         env=env | {"SLOW_SECONDS": "30"},
         cwd=pinned,
@@ -523,6 +542,16 @@ def cpu_world(work, repository, revisions):
         recovered.returncode == 0,
         stderr=recovered.stderr,
     )
+    last = entanglix(home, env, home, "remove", "0.1.1")
+    step(
+        "removing the last version deletes the cache and the launcher; only the data lock stays",
+        last.returncode == 0
+        and sorted(path.name for path in data.iterdir()) == [".lock"]
+        and not (home / ".local/bin/entanglix").exists()
+        and not (home / ".cache/uv").exists(),
+        output=last.stdout,
+        stderr=last.stderr,
+    )
 
 
 def gpu_world(work, repository, revisions):
@@ -534,6 +563,18 @@ def gpu_world(work, repository, revisions):
         seconds=done.seconds,
         output=done.stdout[-1500:],
         stderr=done.stderr[-2000:],
+    )
+    plugin = home / "probe-engine"
+    (plugin / "src/probe_engine").mkdir(parents=True)
+    (plugin / "pyproject.toml").write_text(PLUGIN_PROJECT)
+    (plugin / "src/probe_engine/__init__.py").write_text(PLUGIN_ENGINE)
+    installed = entanglix(home, env, home, "plugins", "add", str(plugin))
+    step(
+        "plugins add installs a plugin project with the installation's uv",
+        installed.returncode == 0
+        and json.loads(installed.stdout).get("engines") == ["probe-engine"],
+        output=installed.stdout,
+        stderr=installed.stderr[-2000:],
     )
     added = entanglix(home, env, home, "components", "add", "gpu", timeout=5400)
     report = json.loads(added.stdout) if added.returncode == 0 else {}
@@ -554,10 +595,31 @@ def gpu_world(work, repository, revisions):
         output=setup.stdout,
     )
     readout, _ = inputs(project)
+    listed = entanglix(home, env, home, "plugins")
+    done, result = job(
+        home,
+        env | {"ENTANGLIX_ENGINES": "cpu=probe-engine"},
+        project,
+        "simulate",
+        str(readout / "cpu.toml"),
+    )
+    record = completed(
+        "the plugin survives the GPU component and runs a job",
+        done,
+        result,
+        project,
+        revisions["0.1.0"],
+    )
+    step(
+        "the plugin's engine ran, recorded with its distribution",
+        "probe-engine" in json.loads(listed.stdout or "{}")
+        and record.get("engine") == "probe-engine"
+        and "probe-engine" in record.get("environment", {}).get("distributions", {}),
+        plugins=listed.stdout,
+        engine=record.get("engine"),
+    )
     for label, spec in (("cuDensityMat", "cuda.toml"), ("dynamiqs on CUDA", "cuda-gradients.toml")):
-        done, result = job(
-            home, env, project, "simulate", str(readout / spec), "--runs-root", "runs"
-        )
+        done, result = job(home, env, project, "simulate", str(readout / spec))
         completed(f"CUDA job on {label}", done, result, project, revisions["0.1.0"])
 
 

@@ -300,6 +300,13 @@ def _main(argv: list[str] | None = None) -> int:
     )
     adding.add_argument("action", nargs="?", choices=["add"])
     adding.add_argument("name", nargs="?", choices=["gpu", "piccolo"])
+    plugging = subcommands.add_parser(
+        "plugins", help="list the job environment's plugins, or add or remove one"
+    )
+    plugging.add_argument("action", nargs="?", choices=["add", "remove"])
+    plugging.add_argument(
+        "target", nargs="?", help="add: a project directory or wheel; remove: the plugin's name"
+    )
     removing = subcommands.add_parser(
         "remove", help="delete an installed version that no process, launch or job uses"
     )
@@ -352,6 +359,19 @@ def _main(argv: list[str] | None = None) -> int:
                 raise ValueError("name the component to add: gpu or piccolo")
             else:
                 result = installation.add_component(args.name)
+        elif args.command == "plugins":
+            if args.action is None:
+                result = installation.plugins()
+            elif args.target is None:
+                raise ValueError(
+                    "name a project directory or wheel to add"
+                    if args.action == "add"
+                    else "name the plugin to remove"
+                )
+            elif args.action == "add":
+                result = installation.add_plugin(Path(args.target))
+            else:
+                result = installation.remove_plugin(args.target)
         elif args.command == "remove":
             result = installation.remove_version(args.version)
         elif args.command == "setup-project":
@@ -375,7 +395,7 @@ def _main(argv: list[str] | None = None) -> int:
     except (OSError, ValueError) as exc:
         print(f"entanglix: {failure_message(exc)}", file=sys.stderr)
         return 64
-    if args.command in {"components", "remove"}:
+    if args.command in {"components", "plugins", "remove"}:
         print(json.dumps(result, default=str, indent=2))
         return 0
     if args.command in {

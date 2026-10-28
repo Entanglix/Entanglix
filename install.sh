@@ -14,7 +14,7 @@ main() {
   if [ "$(uname -s)" != Linux ]; then
     fail "Entanglix supports Linux only"
   fi
-  for tool in git curl tar sha256sum; do
+  for tool in git curl tar sha256sum flock; do
     command -v "$tool" >/dev/null 2>&1 || fail "Entanglix needs $tool; install it and run this again"
   done
   case "$(uname -m)" in
@@ -34,6 +34,9 @@ main() {
   state=$target/.installation
   uv=$state/bin/uv
   mkdir -p "$data"
+  # One install or removal at a time, so none sees another's directories half made.
+  exec 9>>"$data/.lock"
+  flock -n 9 || fail "another Entanglix install or removal is running; run this again after it ends"
 
   if [ ! -f "$state/installation.toml" ]; then
     if [ -e "$target" ] && [ ! -d "$target/.git" ]; then
@@ -59,8 +62,8 @@ main() {
       rm -f "$archive"
     fi
   fi
-  # The cache follows the user's uv settings once; every later call uses this recorded one.
-  cache=$(cd "$HOME" && "$uv" cache dir)
+  # Entanglix's own uv cache, shared by its versions; removing the last version deletes it.
+  cache=$data/cache
 
   if [ ! -f "$state/installation.toml" ]; then
     echo "Creating the Entanglix environment"

@@ -25,6 +25,8 @@ REFERENCES = (
 )
 DECISION_COMMANDS = ("investigation-decision", "apply-device-update", "promote")
 PROJECT_RECORD = Path(".entanglix/project.toml")
+# The CLI's default runs root, so operator commands run from the project find the server's records.
+RUNS = Path("research_runs")
 MAX_WAIT = 3600
 
 
@@ -34,7 +36,7 @@ def _digest(content: bytes) -> str:
 
 def server_entry(root: Path, directory: Path, device: str) -> tuple[str, list[str]]:
     """The installation's absolute server command; the extras set is resolved per launch."""
-    arguments = ["-m", "entanglix.mcp", "--runs-root", str(directory / "runs"), "--device", device]
+    arguments = ["-m", "entanglix.mcp", "--runs-root", str(directory / RUNS), "--device", device]
     if "XDG_STATE_HOME" in os.environ:
         arguments += ["--state-directory", str(Path(os.environ["XDG_STATE_HOME"]).resolve())]
     arguments += ["--max-wait", str(MAX_WAIT)]
@@ -186,7 +188,7 @@ def setup_project(
         ):
             conflicts.append(f"{name} was edited since setup wrote it")
     # The directories setup writes into are checked before any write too.
-    required = {"runs"}
+    required = {str(RUNS)}
     for name in [*files, *links, str(PROJECT_RECORD)]:
         required.update(str(parent) for parent in Path(name).parents if parent != Path("."))
     for name in sorted(required):
@@ -210,7 +212,7 @@ def setup_project(
         if not path.is_symlink():
             path.parent.mkdir(parents=True, exist_ok=True)
             path.symlink_to(target)
-    (directory / "runs").mkdir(exist_ok=True)
+    (directory / RUNS).mkdir(exist_ok=True)
     project = {
         "record_version": 1,
         "installation_version": installed["version"],

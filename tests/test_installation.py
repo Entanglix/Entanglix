@@ -3,9 +3,12 @@
 import fcntl
 import os
 import re
+import signal
 import subprocess
 import sys
+import time
 import tomllib
+import zipfile
 from pathlib import Path
 
 import pytest
@@ -31,7 +34,7 @@ HOSTILE = {
 }
 
 
-def fake_installation(root: Path, version="0.1.0", components=("base",)) -> Path:
+def fake_installation(root: Path, version="0.1.0", components=("base",), cache=None) -> Path:
     """An installed version's records, without its environments."""
     (root / ".installation").mkdir(parents=True)
     for name in ("pyproject.toml", ".python-version"):
@@ -41,7 +44,7 @@ def fake_installation(root: Path, version="0.1.0", components=("base",)) -> Path
         "record_version": 1,
         "version": version,
         "uv": str(root / ".installation/bin/uv"),
-        "cache_dir": str(root.parent / "uv-cache"),
+        "cache_dir": str(cache or root.parent / "uv-cache"),
     }
     (root / ".installation/installation.toml").write_text(tomli_w.dumps(record))
     state = {"components": sorted(components), "runner_extras": extras}
@@ -117,7 +120,7 @@ def test_launches_and_component_changes_exclude_each_other(tmp_path):
         with pytest.raises(ValueError, match="a launch or job is using the job environment"):
             installation.environment_lease(root, exclusive=True)
     with installation.environment_lease(root, exclusive=True):
-        with pytest.raises(ValueError, match="components are being changed"):
+        with pytest.raises(ValueError, match="components or plugins are being changed"):
             installation.environment_lease(root)
 
 
@@ -162,7 +165,7 @@ def test_a_failed_change_leaves_a_mark_that_refuses_launches(tmp_path, monkeypat
     with pytest.raises(ValueError, match="rerun `entanglix components add gpu`"):
         installation.environment_lease(root)
     synced = []
-    monkeypatch.setattr(installation, "_sync_runner", lambda _, extras, __: synced.append(extras))
+    monkeypatch.setattr(installation, "_sync_runner", lambda _, extras, *__: synced.append(extras))
     monkeypatch.setattr(installation, "_gpu_check", lambda *_: [])
     assert installation.add_component("gpu", root)["status"] == "added"
     expected = ["cuquantum", "differentiable", "differentiable-cuda12"]
@@ -180,9 +183,9 @@ def test_only_rerunning_a_failed_change_clears_its_mark(tmp_path, monkeypatch):
     root = fake_installation(tmp_path / "0.1.0", components=("base", "gpu"))
     monkeypatch.setattr(installation, "gpus", lambda: [{"uuid": "GPU-1", "name": "Test"}])
     synced = []
-    monkeypatch.setattr(installation, "_sync_runner", lambda _, extras, __: synced.append(extras))
+    monkeypatch.setattr(installation, "_sync_runner", lambda _, extras, *__: synced.append(extras))
     monkeypatch.setattr(installation, "_gpu_check", lambda *_: [])
-    monkeypatch.setattr(installation, "_install_julia", lambda _: "/julia")
+    monkeypatch.setattr(installation, "_install_julia", lambda *_: "/julia")
     # The change failed after recording the component, before clearing its mark.
     mark = root / ".installation/incomplete.toml"
     mark.write_text(tomli_w.dumps({"component": "gpu"}))
@@ -201,7 +204,7 @@ def test_a_change_reads_the_components_under_its_lock(tmp_path, monkeypatch):
     monkeypatch.setattr(installation, "gpus", lambda: [{"uuid": "GPU-1", "name": "Test"}])
     monkeypatch.setattr(installation, "_sync_runner", lambda *_: None)
     monkeypatch.setattr(installation, "_gpu_check", lambda *_: [])
-    monkeypatch.setattr(installation, "_install_julia", lambda _: "/julia")
+    monkeypatch.setattr(installation, "_install_julia", lambda *_: "/julia")
     lease = installation.environment_lease
     finished = []
 
@@ -230,7 +233,7 @@ def test_the_gpu_check_holds_the_environment_and_each_free_device(tmp_path, monk
     def check(command, **options):
         device = command[-1]
         assert options["env"]["CUDA_VISIBLE_DEVICES"] == device and len(options["pass_fds"]) == 2
-        with pytest.raises(ValueError, match="components are being changed"):
+        with pytest.raises(ValueError, match="components or plugins are being changed"):
             installation.environment_lease(root)
         with pytest.raises(ValueError, match="still owned"):
             acquire_gpu(device)
@@ -363,7 +366,8 @@ def test_removal_waits_for_servers_processes_launches_and_jobs(tmp_path):
         job.kill()
         job.wait()
     assert installation.remove_version("0.1.0", current)["removed"] == "0.1.0"
-    assert sorted(path.name for path in tmp_path.iterdir()) == ["0.2.0"]
+    # The data lock stays while versions remain.
+    assert sorted(path.name for path in tmp_path.iterdir()) == [".lock", "0.2.0"]
     for version in ("0.1.0", "../0.2.0", ".hidden"):
         with pytest.raises(ValueError, match="not an installed version|is not installed"):
             installation.remove_version(version, current)
@@ -388,6 +392,219 @@ def test_the_use_lock_refuses_a_version_being_removed(tmp_path):
         remover.kill()
         remover.wait()
     assert "Entanglix 0.1.0 is being removed" in check.stderr
+
+
+def test_installs_and_removals_run_one_at_a_time(tmp_path):
+    data = tmp_path / "data/entanglix"
+    current = fake_installation(data / "0.1.0", cache=data / "cache")
+    other = holder(data / ".lock", mode="exclusive")
+    try:
+        with pytest.raises(ValueError, match="an Entanglix install or removal is running"):
+            installation.remove_version("0.1.0", current)
+        environment = {
+            "PATH": os.environ["PATH"],
+            "HOME": str(tmp_path / "home"),
+            "XDG_DATA_HOME": str(tmp_path / "data"),
+            "ENTANGLIX_INSTALL_REPOSITORY": str(tmp_path / "absent"),
+        }
+        installing = subprocess.run(
+            ["bash", str(REPOSITORY / "install.sh")],
+            env=environment,
+            capture_output=True,
+            text=True,
+        )
+    finally:
+        other.kill()
+        other.wait()
+    assert installing.returncode == 1
+    assert "another Entanglix install or removal is running" in installing.stderr
+    assert current.exists() and sorted(path.name for path in data.iterdir()) == [".lock", "0.1.0"]
+
+
+def test_only_the_last_removal_deletes_the_cache_and_launcher(tmp_path):
+    data = tmp_path / "data"
+    cache = data / "cache"
+    fake_installation(data / "0.1.0", cache=cache)
+    current = fake_installation(data / "0.2.0", version="0.2.0", cache=cache)
+    (cache / "archive-v0").mkdir(parents=True)
+    # A failed install leaves an incomplete version or an interrupted clone.
+    (data / "0.3.0/.git").mkdir(parents=True)
+    (data / "0.4.0.partial").mkdir()
+    bin_directory = tmp_path / "bin"
+    launcher = installation.write_launcher(bin_directory, data)
+    kept = installation.remove_version("0.1.0", current, bin_directory)
+    assert (
+        kept["note"]
+        == f"Entanglix's uv cache {cache} stays; {data} still holds 0.2.0, 0.3.0, 0.4.0.partial"
+    )
+    for name in ("0.3.0/.git", "0.3.0", "0.4.0.partial"):
+        (data / name).rmdir()
+    assert installation.remove_version("0.2.0", current, bin_directory) == {
+        "removed": "0.2.0",
+        "note": f"the last version is removed; deleted {cache} and {launcher}",
+    }
+    # The data lock stays; an installer may hold it open.
+    assert sorted(path.name for path in data.iterdir()) == [".lock"] and not launcher.exists()
+
+
+def test_the_last_removal_keeps_paths_entanglix_does_not_own(tmp_path):
+    data = tmp_path / "data"
+    users_cache = tmp_path / "home/.cache/uv"
+    (users_cache / "archive-v0").mkdir(parents=True)
+    current = fake_installation(data / "0.1.0", cache=users_cache)
+    (data / "cache").mkdir()
+    for name, written in (("bin", "#!/bin/sh\necho mine\n"), ("other", None)):
+        if written is None:
+            installation.write_launcher(tmp_path / name, tmp_path / "elsewhere")
+        else:
+            (tmp_path / name).mkdir()
+            (tmp_path / name / "entanglix").write_text(written)
+    note = installation.remove_version("0.1.0", current, tmp_path / "bin")["note"]
+    assert note == (
+        "the last version is removed; its packages stay in "
+        f"{users_cache}, which Entanglix does not own"
+    )
+    # The empty cache directory stays too: only the cache the record names is deleted.
+    assert users_cache.exists() and (data / "cache").exists()
+    assert (tmp_path / "bin/entanglix").read_text() == "#!/bin/sh\necho mine\n"
+    current = fake_installation(data / "0.1.0", cache=data / "cache")
+    installation.remove_version("0.1.0", current, tmp_path / "other")
+    assert (tmp_path / "other/entanglix").exists()
+
+
+def plugin_project(directory: Path, name="My_Plugin", engines=True) -> Path:
+    project = {"name": name, "version": "0.1.0"}
+    if engines:
+        project["entry-points"] = {"entanglix.integrators": {"my-engine": "my_plugin:Engine"}}
+    directory.mkdir(parents=True)
+    (directory / "pyproject.toml").write_text(tomli_w.dumps({"project": project}))
+    return directory
+
+
+def plugin_wheel(path: Path) -> Path:
+    with zipfile.ZipFile(path, "w") as wheel:
+        info = "my_plugin-0.2.0.dist-info"
+        wheel.writestr(
+            f"{info}/METADATA", "Metadata-Version: 2.1\nName: My_Plugin\nVersion: 0.2.0\n"
+        )
+        wheel.writestr(
+            f"{info}/entry_points.txt", "[entanglix.solvers]\nmine = my_plugin:Backend\n"
+        )
+    return path
+
+
+def test_plugins_install_by_name_with_the_installation_uv(tmp_path, monkeypatch):
+    root = fake_installation(tmp_path / "0.1.0")
+    for name, value in HOSTILE.items():
+        monkeypatch.setenv(name, value)
+    calls = []
+    monkeypatch.setattr(installation, "_run", lambda command, env, *_: calls.append((command, env)))
+    project = plugin_project(tmp_path / "plugin")
+    wheel = plugin_wheel(tmp_path / "my_plugin-0.2.0-py3-none-any.whl")
+    for source in (project, wheel):
+        assert installation.add_plugin(source, root) == {
+            "plugin": "my-plugin",
+            "status": "installed",
+        }
+    python = str(root / ".venv-runner/bin/python")
+    for (command, environment), source in zip(calls, (project, wheel), strict=True):
+        assert command == [
+            str(root / ".installation/bin/uv"),
+            "pip",
+            "install",
+            "--no-config",
+            "--python",
+            python,
+            "--reinstall-package",
+            "my-plugin",
+            str(source),
+        ]
+        assert environment["UV_CACHE_DIR"] == str(tmp_path / "uv-cache")
+        assert "UV_PROJECT_ENVIRONMENT" not in environment and "VIRTUAL_ENV" not in environment
+
+
+def test_plugin_changes_are_refused_while_the_environment_is_used_or_incomplete(
+    tmp_path, monkeypatch
+):
+    root = fake_installation(tmp_path / "0.1.0")
+    monkeypatch.setattr(installation, "_run", lambda *_: pytest.fail("uv ran"))
+    project = plugin_project(tmp_path / "plugin")
+    with installation.environment_lease(root):
+        with pytest.raises(ValueError, match="a launch or job is using the job environment"):
+            installation.add_plugin(project, root)
+        with pytest.raises(ValueError, match="a launch or job is using the job environment"):
+            installation.remove_plugin("my-plugin", root)
+    (root / ".installation/incomplete.toml").write_text('component = "gpu"\n')
+    with pytest.raises(ValueError, match="rerun `entanglix components add gpu`"):
+        installation.add_plugin(project, root)
+    (root / ".installation/incomplete.toml").unlink()
+    (tmp_path / "broken.whl").write_bytes(b"not a zip")
+    for source, message in (
+        (tmp_path, "needs a pyproject.toml"),
+        (plugin_project(tmp_path / "self", name="entanglix"), "Entanglix itself is not a plugin"),
+        (plugin_project(tmp_path / "library", engines=False), "registers no entanglix"),
+        (tmp_path / "broken.whl", "is not a wheel"),
+        (tmp_path / "plugin.tar.gz", "is neither"),
+    ):
+        with pytest.raises(ValueError, match=message):
+            installation.add_plugin(source, root)
+    with pytest.raises(ValueError, match="numpy is not an installed plugin; installed: none"):
+        installation.remove_plugin("numpy", root)
+
+
+@pytest.mark.parametrize("change", ["add", "remove"])
+def test_a_plugin_change_keeps_launches_out_after_its_command_dies(tmp_path, change):
+    root = fake_installation(tmp_path / "0.1.0")
+    info = root / ".venv-runner/lib/python3.13/site-packages/my_plugin-0.1.0.dist-info"
+    info.mkdir(parents=True)
+    (info / "METADATA").write_text("Metadata-Version: 2.1\nName: my-plugin\nVersion: 0.1.0\n")
+    (info / "entry_points.txt").write_text("[entanglix.integrators]\nmine = my_plugin:Engine\n")
+    # A uv that reports its process and keeps working.
+    started = tmp_path / "uv.pid"
+    uv = root / ".installation/bin/uv"
+    uv.parent.mkdir()
+    uv.write_text(
+        f"#!/bin/sh\necho $$ > {started}.new && mv {started}.new {started}\nexec sleep 60\n"
+    )
+    uv.chmod(0o755)
+    call = (
+        f"installation.add_plugin(Path({str(plugin_project(tmp_path / 'plugin'))!r}), root)"
+        if change == "add"
+        else "installation.remove_plugin('my-plugin', root)"
+    )
+    command = subprocess.Popen(
+        [
+            sys.executable,
+            "-c",
+            f"from pathlib import Path; from entanglix import installation; "
+            f"root = Path({str(root)!r}); {call}",
+        ]
+    )
+    deadline = time.monotonic() + 30
+    while not started.exists():
+        assert command.poll() is None and time.monotonic() < deadline
+        time.sleep(0.05)
+    command.kill()
+    command.wait()
+    uv_process = int(started.read_text())
+    try:
+        with pytest.raises(ValueError, match="components or plugins are being changed"):
+            installation.environment_lease(root)
+    finally:
+        os.kill(uv_process, signal.SIGKILL)
+    # Its lease ends with the orphaned step.
+    while True:
+        try:
+            installation.environment_lease(root).close()
+            break
+        except ValueError:
+            assert time.monotonic() < deadline
+            time.sleep(0.05)
+
+
+def test_a_checkout_installs_plugins_with_uv(capsys):
+    assert main(["plugins", "add", "."]) == 64
+    assert "installs plugins with uv pip install" in capsys.readouterr().err
 
 
 def launcher_world(tmp_path):
@@ -486,7 +703,7 @@ def test_installing_finishes_once_and_a_reinstall_changes_nothing(tmp_path, monk
     root = tmp_path / "data/0.1.0"
     root.mkdir(parents=True)
     synced = []
-    monkeypatch.setattr(installation, "_sync_runner", lambda _, extras, __: synced.append(extras))
+    monkeypatch.setattr(installation, "_sync_runner", lambda _, extras, *__: synced.append(extras))
     monkeypatch.setattr(installation, "gpus", lambda: [])
     monkeypatch.setenv("PATH", "/usr/bin:/bin")
     arguments = dict(uv="/data/uv", cache=str(tmp_path / "cache"), bin_directory=tmp_path / "bin")
