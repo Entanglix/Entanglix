@@ -295,6 +295,32 @@ def _main(argv: list[str] | None = None) -> int:
             "--investigation", help="started investigation ID under the runs root"
         )
         launch_parser.add_argument("--base", help="permitted investigation base name")
+    adding = subcommands.add_parser(
+        "components", help="show this installation's components, or add gpu or piccolo"
+    )
+    adding.add_argument("action", nargs="?", choices=["add"])
+    adding.add_argument("name", nargs="?", choices=["gpu", "piccolo"])
+    removing = subcommands.add_parser(
+        "remove", help="delete an installed version that no process, launch or job uses"
+    )
+    removing.add_argument("version")
+    setting = subcommands.add_parser(
+        "setup-project", help="prepare a research project directory for an agent runtime"
+    )
+    setting.add_argument("directory", type=Path)
+    setting.add_argument(
+        "--runtime",
+        help="comma-separated runtimes: claude, codex, other (a refresh defaults to the recorded)",
+    )
+    setting.add_argument("--device", help="auto (default), cpu, or a GPU UUID")
+    setting.add_argument(
+        "--agent-command-privilege",
+        choices=["none", "on-request"],
+        help="whether the agent may run the user's decision commands when asked (default none)",
+    )
+    setting.add_argument(
+        "--refresh", action="store_true", help="move the project to this installation"
+    )
     for launch_parser in (simulation, controlling):
         launch_parser.add_argument(
             "--vary",
@@ -304,6 +330,54 @@ def _main(argv: list[str] | None = None) -> int:
             help="varied value within the investigation scope; repeat as needed",
         )
     args = parser.parse_args(argv)
+    from entanglix import installation
+    from entanglix.runner import failure_message
+
+    try:
+        # Removal takes no use lock, so a version can remove itself.
+        if args.command != "remove":
+            installation.hold_use_lock()
+        if args.command != "setup-project":
+            # Attempts, investigations, proposals and runs roots belong to one installation;
+            # authored inputs may live anywhere.
+            installation.check_project_paths(
+                getattr(args, name)
+                for name in ("run", "runs_root", "investigation", "proposal")
+                if getattr(args, name, None) is not None
+            )
+        if args.command == "components":
+            if args.action is None:
+                result = installation.status()
+            elif args.name is None:
+                raise ValueError("name the component to add: gpu or piccolo")
+            else:
+                result = installation.add_component(args.name)
+        elif args.command == "remove":
+            result = installation.remove_version(args.version)
+        elif args.command == "setup-project":
+            from entanglix.project_setup import setup_project
+
+            setup = setup_project(
+                args.directory,
+                runtimes=tuple(filter(None, (args.runtime or "").replace(" ", "").split(",")))
+                or None,
+                device=args.device,
+                privilege=args.agent_command_privilege,
+                refresh=args.refresh,
+            )
+            print(
+                f"Set up {setup['directory']} for {', '.join(setup['runtimes'])} on Entanglix "
+                f"{setup['installation_version']} (device {setup['device']}, agent command "
+                f"privilege {setup['agent_command_privilege']})."
+            )
+            print("\n".join(setup["next"]))
+            return 0
+    except (OSError, ValueError) as exc:
+        print(f"entanglix: {failure_message(exc)}", file=sys.stderr)
+        return 64
+    if args.command in {"components", "remove"}:
+        print(json.dumps(result, default=str, indent=2))
+        return 0
     if args.command in {
         "create-investigation",
         "revise-investigation",

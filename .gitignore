@@ -3,6 +3,8 @@
 .venv-mcp/
 .venv-runner/
 .venv-runner-extras.toml
+# An installed version's own tools, components, locks and records
+.installation/
 __pycache__/
 *.py[cod]
 *.egg-info/

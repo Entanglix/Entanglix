@@ -98,7 +98,11 @@ def select_engine(
         source = "rule"
     if name in engines:
         if name not in available_engines:
-            raise EngineSelectionError(f"engine {name} ({source}) is not installed")
+            from entanglix.installation import missing_hint
+
+            raise EngineSelectionError(
+                f"engine {name} ({source}) is not installed" + missing_hint(name)
+            )
         row = engines[name]
         try:
             identity = _identity(distribution(BUILT_IN[name]))

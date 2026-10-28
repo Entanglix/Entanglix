@@ -104,7 +104,8 @@ def supplied_guidance(repository):
 class Configuration:
     runs_root: Path
     device: str
-    runner_extras: tuple[str, ...]
+    # None leaves each launch to resolve the installation's set, or the project default.
+    runner_extras: tuple[str, ...] | None = None
     state_directory: Path = field(default_factory=runner._state_directory)
     repository: Path = Path(__file__).resolve().parents[2]
     max_wait: float = MAX_WAIT
@@ -114,11 +115,13 @@ class Configuration:
             raise ValueError("max_wait must be finite and positive")
 
     def environment(self):
-        return os.environ | {
+        environment = os.environ | {
             "CUDA_VISIBLE_DEVICES": self.device,
-            "ENTANGLIX_RUNNER_EXTRAS": ",".join(self.runner_extras),
             "XDG_STATE_HOME": str(self.state_directory.resolve()),
         }
+        if self.runner_extras is not None:
+            environment["ENTANGLIX_RUNNER_EXTRAS"] = ",".join(self.runner_extras)
+        return environment
 
 
 @dataclass
@@ -181,7 +184,11 @@ def build_server(config: Configuration):
                         "source": "server-observed",
                         "runs_root": str(root),
                         "device": config.device,
-                        "runner_extras": list(config.runner_extras),
+                        "runner_extras": (
+                            list(config.runner_extras)
+                            if config.runner_extras is not None
+                            else "resolved at each launch"
+                        ),
                         "state_directory": str(config.state_directory.resolve()),
                         "gpu_lock_directory": str(
                             config.state_directory.resolve() / "entanglix/gpu"
@@ -675,7 +682,11 @@ def main(argv=None):
     parser.add_argument(
         "--device", required=True, help="physical device UUID/index, or empty for CPU only"
     )
-    parser.add_argument("--runner-extras", nargs="*", required=True)
+    parser.add_argument(
+        "--runner-extras",
+        nargs="*",
+        help="override the job environment's extras set (default: the installation's set)",
+    )
     parser.add_argument(
         "--state-directory",
         type=Path,
@@ -689,10 +700,13 @@ def main(argv=None):
     )
     args = parser.parse_args(argv)
     try:
+        from entanglix.installation import hold_use_lock
+
+        hold_use_lock()
         config = Configuration(
             args.runs_root,
             args.device,
-            tuple(args.runner_extras),
+            tuple(args.runner_extras) if args.runner_extras is not None else None,
             args.state_directory or runner._state_directory(),
             max_wait=args.max_wait,
         )

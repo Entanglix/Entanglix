@@ -12,6 +12,7 @@ from types import SimpleNamespace
 import pytest
 from test_sweep import sweep_files
 
+from entanglix.installation import environment_lease
 from entanglix.investigations import (
     create_investigation,
     read_investigation,
@@ -75,6 +76,10 @@ def launch_context(tmp_path, runner_repository, monkeypatch):
         with pytest.raises(ValueError, match="still owned"):
             acquire_gpu(DEVICE)
 
+    def assert_environment_held():
+        with pytest.raises(ValueError, match="a launch or job is using the job environment"):
+            environment_lease(runner_repository, exclusive=True)
+
     def gate(command, **kwargs):
         if command[0] != "gate":
             return real_run(command, **kwargs)
@@ -83,8 +88,12 @@ def launch_context(tmp_path, runner_repository, monkeypatch):
         env = kwargs["env"]
         assert env["CUDA_VISIBLE_DEVICES"] == DEVICE
         assert (env["JAX_PLATFORMS"], env["XLA_PYTHON_CLIENT_PREALLOCATE"]) == ("cuda,cpu", "false")
-        assert kwargs["pass_fds"] == (int(env["ENTANGLIX_GPU_LOCK_FD"]),)
-        os.fstat(kwargs["pass_fds"][0])
+        # The gate inherits the device lock and the environment lock.
+        assert len(kwargs["pass_fds"]) == 2
+        assert int(env["ENTANGLIX_GPU_LOCK_FD"]) in kwargs["pass_fds"]
+        for descriptor in kwargs["pass_fds"]:
+            os.fstat(descriptor)
+        assert_environment_held()
         request = json.loads(kwargs["input"])
         compile = (
             compile_sweep if Path(request["protocol"]).name == "sweep.toml" else compile_simulation
@@ -103,8 +112,10 @@ def launch_context(tmp_path, runner_repository, monkeypatch):
         calls.append("gate")
         return SimpleNamespace(returncode=0, stdout=json.dumps(compiled))
 
-    def execute(owner, command, environment, *, gpu, **kwargs):
+    def execute(owner, command, environment, *, gpu, environment_lock, **kwargs):
         assert_owned()
+        assert_environment_held()
+        os.fstat(environment_lock)
         assert _load_record(gpu.record_path)["run"] == str(owner.path)
         assert environment["ENTANGLIX_GPU_LOCK_FD"] == str(gpu.fileno())
         assert environment["JAX_PLATFORMS"] == "cuda,cpu"

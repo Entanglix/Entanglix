@@ -20,7 +20,8 @@ from pydantic import Field
 
 from entanglix.corrector.dynamics import check_listing
 from entanglix.corrector.metrics import Metric
-from entanglix.engines.selection import select_engine
+from entanglix.engines.selection import EngineSelectionError, select_engine
+from entanglix.installation import environment_lease, missing_hint
 from entanglix.models import StrictModel, load_system
 from entanglix.protocols import SystemSource, with_parameters
 from entanglix.protocols.plans import EvolutionSpec, Refinement, load_plan
@@ -223,6 +224,14 @@ def compile_simulation(
             pinned=pinned_engine,
             defaults=engine_defaults(),
         )
+        if selection.engine == "dynamiqs" and spec.needs.device == "cuda":
+            try:
+                version("jax-cuda12-plugin")
+            except PackageNotFoundError as exc:
+                raise EngineSelectionError(
+                    f"engine dynamiqs ({selection.source}) needs JAX's CUDA plugin for device cuda"
+                    + missing_hint("dynamiqs-cuda")
+                ) from exc
         definition.update(engine=selection.engine, device=spec.needs.device)
         plan.write_text(tomli_w.dumps(definition))
         loaded = load_plan(directory / "system.toml", plan)
@@ -301,11 +310,19 @@ def simulate(
     )
 
 
-def _launch_protocol(
+def _launch_protocol(protocol, *, repository, **arguments):
+    repository = (repository or Path(__file__).resolve().parents[3]).resolve()
+    # The lease covers resolving the extras set, the launch gate and the job's whole life.
+    with environment_lease(repository) as lease:
+        return _launch_leased(protocol, repository=repository, lease=lease, **arguments)
+
+
+def _launch_leased(
     protocol,
     *,
     runs_root,
     repository,
+    lease,
     parent_run_ids,
     dry_run,
     operation,
@@ -318,7 +335,6 @@ def _launch_protocol(
         raise ValueError("base and varied values require an investigation")
     if investigation_id is not None and base is None:
         raise ValueError("an investigation launch requires its base name")
-    repository = (repository or Path(__file__).resolve().parents[3]).resolve()
     command, environment, extras = _cpu_job_context(
         repository, f"entanglix.protocols._{operation}_job"
     )
@@ -364,7 +380,7 @@ def _launch_protocol(
                 env=environment,
                 text=True,
                 capture_output=True,
-                pass_fds=(gpu.fileno(),) if gpu is not None else (),
+                pass_fds=(lease.fileno(), *((gpu.fileno(),) if gpu is not None else ())),
             )
             if check.returncode:
                 raise ValueError(process_failure(check, f"{operation} launch rejected"))
@@ -449,6 +465,7 @@ def _launch_protocol(
                         environment,
                         timeout_seconds=gate["timeout_seconds"],
                         gpu=gpu,
+                        environment_lock=lease.fileno(),
                         job_input={
                             "sweep": "sweep-manifest.toml",
                             "simulate": "plan.toml",

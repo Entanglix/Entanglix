@@ -1,7 +1,6 @@
 """Run the pinned Piccolo project in the runner job's existing process group."""
 
 import hashlib
-import shutil
 import subprocess
 import tomllib
 from pathlib import Path
@@ -9,12 +8,16 @@ from pathlib import Path
 import numpy as np
 import tomli_w
 
+from entanglix import installation
 from entanglix.solvers import Pulse, Solution, validate_problem
 
 PROJECT = Path(__file__).with_name("julia")
 
 
 class PiccoloBackend:
+    # Validation resolves Julia once; the solve uses that same executable.
+    julia: tuple[str, dict[str, str]] | None = None
+
     def capabilities(self):
         return {
             "gradients": True,
@@ -25,13 +28,13 @@ class PiccoloBackend:
 
     def validate(self, problem_spec, options):
         validate_problem(problem_spec, options, "piccolo")
-        executable = shutil.which("julia")
-        if executable is None:
-            raise ValueError("piccolo requires Julia on PATH and its pinned project instantiated")
+        self.julia = installation.julia()
+        executable, environment = self.julia
         version = subprocess.check_output(
-            [executable, "--startup-file=no", "--version"], text=True
+            [executable, "--startup-file=no", "--version"], text=True, env=environment
         ).strip()
         return {
+            "julia_executable": executable,
             "julia_version": version,
             "project_sha256": hashlib.sha256((PROJECT / "Project.toml").read_bytes()).hexdigest(),
             "manifest_sha256": hashlib.sha256((PROJECT / "Manifest.toml").read_bytes()).hexdigest(),
@@ -47,9 +50,10 @@ class PiccoloBackend:
             transport_options["tol"] = float(transport_options["tol"])
         settings.write_text(tomli_w.dumps(transport_options))
         iterations = []
+        executable, environment = self.julia or installation.julia()
         child = subprocess.Popen(
             [
-                "julia",
+                executable,
                 "--startup-file=no",
                 f"--project={PROJECT}",
                 str(PROJECT / "solve.jl"),
@@ -60,6 +64,7 @@ class PiccoloBackend:
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
+            env=environment,
         )
         for line in child.stdout:
             print(line, end="", flush=True)

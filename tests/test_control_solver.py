@@ -36,7 +36,7 @@ def test_piccolo_missing_julia_is_refused_before_attempt(
     definition["solver"]["backend"] = "piccolo"
     path.write_text(tomli_w.dumps(definition))
     # Exercise the gate in-process with a backend-independent preflight.
-    monkeypatch.setattr("entanglix.solvers.piccolo.shutil.which", lambda _: None)
+    monkeypatch.setattr("entanglix.installation.shutil.which", lambda _: None)
     from entanglix.protocols.control import compile_control
 
     directory = tmp_path / "compiled"

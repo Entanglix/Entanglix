@@ -1003,3 +1003,12 @@ def test_optional_state_directory_uses_runner_default(
     with acquire_gpu(device) as lease:
         assert Path(record["configuration"]["gpu_lock_directory"]) == lease.record_path.parent
     assert record["configuration"]["state_directory"] == str(_state_directory())
+
+
+def test_a_server_without_runner_extras_leaves_each_launch_to_resolve_them(tmp_path, monkeypatch):
+    monkeypatch.delenv("ENTANGLIX_RUNNER_EXTRAS", raising=False)
+    resolved = Configuration(tmp_path / "runs", "", state_directory=tmp_path / "state")
+    assert resolved.runner_extras is None
+    assert "ENTANGLIX_RUNNER_EXTRAS" not in resolved.environment()
+    explicit = Configuration(tmp_path / "runs", "", ("cuquantum",), tmp_path / "state")
+    assert explicit.environment()["ENTANGLIX_RUNNER_EXTRAS"] == "cuquantum"

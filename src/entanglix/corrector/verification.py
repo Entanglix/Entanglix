@@ -28,6 +28,7 @@ from entanglix.corrector.dynamics import (
 from entanglix.corrector.metrics import metric_values, spectral_arrays
 from entanglix.corrector.reference import prepare_refinement
 from entanglix.evolution import normalize_input
+from entanglix.installation import environment_lease
 from entanglix.protocols.plans import Refinement
 from entanglix.runner import (
     _cpu_job_context,
@@ -287,44 +288,48 @@ def check_run(
             return sweep_listing(loaded)
         return check_listing(loaded)
     repository = (repository or Path(__file__).resolve().parents[3]).resolve()
-    command, environment, extras = _cpu_job_context(repository, "entanglix.corrector._job")
-    gate = subprocess.run(
-        [*command, "check"],
-        input=json.dumps({"repository": str(repository), "extras": extras}),
-        text=True,
-        capture_output=True,
-        env=environment,
-    )
-    if gate.returncode:
-        raise ValueError(process_failure(gate, "check environment rejected"))
-    with create_verification_run(
-        source,
-        checks=checks,
-        environment=json.loads(gate.stdout),
-        code=capture_code(repository),
-        runs_root=source.parent.parent,
-        timeout_seconds=timeout_seconds,
-        refinement=refinement,
-        holdout=holdout,
-        solution=solution,
-        expect_coverage=expect_coverage,
-    ) as owner:
-        environment.update(ENTANGLIX_RUN_DIR=str(owner.path))
-        launch = _load_record(owner.path / "run.toml")["launch"]
-        return _execute_job(
-            owner,
-            command,
-            environment,
-            timeout_seconds=timeout_seconds,
-            job_input=(
-                "control.toml"
-                if "problem_sha256" in launch
-                else "calibrate.toml"
-                if "calibration_sha256" in launch
-                else "plan.toml"
-            ),
-            validate_result=verification_result,
+    # The lease covers resolving the extras set through the check job's end.
+    with environment_lease(repository) as lease:
+        command, environment, extras = _cpu_job_context(repository, "entanglix.corrector._job")
+        gate = subprocess.run(
+            [*command, "check"],
+            input=json.dumps({"repository": str(repository), "extras": extras}),
+            text=True,
+            capture_output=True,
+            env=environment,
+            pass_fds=(lease.fileno(),),
         )
+        if gate.returncode:
+            raise ValueError(process_failure(gate, "check environment rejected"))
+        with create_verification_run(
+            source,
+            checks=checks,
+            environment=json.loads(gate.stdout),
+            code=capture_code(repository),
+            runs_root=source.parent.parent,
+            timeout_seconds=timeout_seconds,
+            refinement=refinement,
+            holdout=holdout,
+            solution=solution,
+            expect_coverage=expect_coverage,
+        ) as owner:
+            environment.update(ENTANGLIX_RUN_DIR=str(owner.path))
+            launch = _load_record(owner.path / "run.toml")["launch"]
+            return _execute_job(
+                owner,
+                command,
+                environment,
+                timeout_seconds=timeout_seconds,
+                job_input=(
+                    "control.toml"
+                    if "problem_sha256" in launch
+                    else "calibrate.toml"
+                    if "calibration_sha256" in launch
+                    else "plan.toml"
+                ),
+                validate_result=verification_result,
+                environment_lock=lease.fileno(),
+            )
 
 
 def verification_history(source):

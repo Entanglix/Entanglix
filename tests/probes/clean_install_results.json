@@ -1,0 +1,322 @@
+{
+  "steps": [
+    {
+      "step": "base install, nvidia-smi hidden",
+      "passed": true,
+      "seconds": 4.8,
+      "output": "Cloning Entanglix 0.1.0\nDownloading uv 0.12.0\nCreating the Entanglix environment\nEntanglix 0.1.0 is installed in /var/tmp/claude-84/clean-work/cpu/home/.local/share/entanglix/0.1.0\nCommand: /var/tmp/claude-84/clean-work/cpu/home/.local/bin/entanglix\n/var/tmp/claude-84/clean-work/cpu/home/.local/bin is not on PATH; add this line to your shell profile: export PATH=\"/var/tmp/claude-84/clean-work/cpu/home/.local/bin:$PATH\"\nNo NVIDIA driver found; CPU engines and GRAPE control are installed\nAdd the Piccolo solver (its own Julia) with: /var/tmp/claude-84/clean-work/cpu/home/.local/bin/entanglix components add piccolo\nSet up a project: /var/tmp/claude-84/clean-work/cpu/home/.local/bin/entanglix setup-project DIR --runtime claude|codex|other\n",
+      "stderr": "iwisolver\n Downloaded pydantic-core\n Downloaded cryptography\n Downloaded fonttools\n Downloaded sympy\n Downloaded scqubits\n Downloaded pillow\n Downloaded matplotlib\n Downloaded numpy\n Downloaded qutip\n Downloaded scipy\nPrepared 52 packages in 1.27s\nInstalled 52 packages in 16ms\n + annotated-types==0.8.0\n + anyio==4.15.1\n + attrs==26.1.0\n + cffi==2.1.1\n + click==8.5.0\n + contourpy==1.4.0\n + cryptography==50.0.2\n + cycler==0.12.1\n + dill==0.4.1\n + entanglix==0.1.0 (from file:///var/tmp/claude-84/clean-work/cpu/home/.local/share/entanglix/0.1.0)\n + fonttools==4.66.1\n + h11==0.16.0\n + httpcore2==2.13.1\n + httpx2==2.13.1\n + idna==3.20\n + jsonschema==4.26.0\n + jsonschema-specifications==2025.9.1\n + kiwisolver==1.5.1\n + matplotlib==3.11.2\n + mcp==2.3.0\n + mcp-types==2.3.0\n + mpmath==1.3.0\n + multiprocess==0.70.19\n + numpy==2.5.3\n + opentelemetry-api==1.45.0\n + packaging==26.3\n + pathos==0.3.5\n + pillow==12.3.0\n + pox==0.3.7\n + ppft==1.7.8\n + pycparser==3.0\n + pydantic==2.13.5\n + pydantic-core==2.46.5\n + pyjwt==2.15.1\n + pyparsing==3.3.3\n + python-dateutil==2.9.0.post0\n + python-multipart==0.0.32\n + qutip==5.3.1\n + referencing==0.37.0\n + rpds-py==2026.9.1\n + scipy==1.18.1\n + scqubits==4.3.1\n + six==1.17.0\n + sse-starlette==3.5.0\n + starlette==1.7.0\n + sympy==1.14.0\n + tomli-w==1.2.0\n + tqdm==4.70.1\n + truststore==0.10.4\n + typing-extensions==4.16.0\n + typing-inspection==0.4.4\n + uvicorn==0.54.0\nUsing CPython 3.13.12\nCreating virtual environment at: .local/share/entanglix/0.1.0/.venv-runner\nResolved 112 packages in 0.76ms\nDownloading pygments (1.2MiB)\nDownloading jedi (4.7MiB)\nDownloading jaxlib (85.8MiB)\nDownloading jax (2.6MiB)\n Downloaded pygments\n Downloaded jax\n Downloaded jedi\n Downloaded jaxlib\nPrepared 28 packages in 1.21s\nInstalled 57 packages in 49ms\n + annotated-types==0.8.0\n + asttokens==3.0.2\n + cmap==0.7.2\n + contourpy==1.4.0\n + cycler==0.12.1\n + diffrax==0.7.2\n + dill==0.4.1\n + dynamiqs==0.3.6\n + entanglix==0.1.0 (from file:///var/tmp/claude-84/clean-work/cpu/home/.local/share/entanglix/0.1.0)\n + equinox==0.13.8\n + executing==2.2.1\n + fonttools==4.66.1\n + ipython==9.17.1\n + ipython-pygments-lexers==1.1.1\n + jax==0.6.2\n + jaxlib==0.6.2\n + jaxtyping==0.3.11\n + jedi==0.20.0\n + kiwisolver==1.5.1\n + lineax==0.1.0\n + matplotlib==3.11.2\n + matplotlib-inline==0.2.2\n + ml-dtypes==0.6.0\n + mpmath==1.3.0\n + multiprocess==0.70.19\n + numpy==2.5.3\n + opt-einsum==3.4.0\n + optimistix==0.1.0\n + packaging==26.3\n + parso==0.8.7\n + pathos==0.3.5\n + pexpect==4.9.0\n + pillow==12.3.0\n + pox==0.3.7\n + ppft==1.7.8\n + prompt-toolkit==3.0.53\n + psutil==7.2.2\n + ptyprocess==0.7.0\n + pure-eval==0.2.4\n + pydantic==2.13.5\n + pydantic-core==2.46.5\n + pygments==2.21.0\n + pyparsing==3.3.3\n + python-dateutil==2.9.0.post0\n + qutip==5.3.1\n + scipy==1.18.1\n + scqubits==4.3.1\n + six==1.17.0\n + stack-data==0.6.3\n + sympy==1.14.0\n + tomli-w==1.2.0\n + tqdm==4.70.1\n + traitlets==5.16.1\n + typing-extensions==4.16.0\n + typing-inspection==0.4.4\n + wadler-lindig==0.1.7\n + wcwidth==0.9.1\n"
+    },
+    {
+      "step": "installer reports no driver and the Piccolo command",
+      "passed": true,
+      "output": "Cloning Entanglix 0.1.0\nDownloading uv 0.12.0\nCreating the Entanglix environment\nEntanglix 0.1.0 is installed in /var/tmp/claude-84/clean-work/cpu/home/.local/share/entanglix/0.1.0\nCommand: /var/tmp/claude-84/clean-work/cpu/home/.local/bin/entanglix\n/var/tmp/claude-84/clean-work/cpu/home/.local/bin is not on PATH; add this line to your shell profile: export PATH=\"/var/tmp/claude-84/clean-work/cpu/home/.local/bin:$PATH\"\nNo NVIDIA driver found; CPU engines and GRAPE control are installed\nAdd the Piccolo solver (its own Julia) with: /var/tmp/claude-84/clean-work/cpu/home/.local/bin/entanglix components add piccolo\nSet up a project: /var/tmp/claude-84/clean-work/cpu/home/.local/bin/entanglix setup-project DIR --runtime claude|codex|other\n"
+    },
+    {
+      "step": "components: base only",
+      "passed": true,
+      "status": {
+        "version": "0.1.0",
+        "path": "/var/tmp/claude-84/clean-work/cpu/home/.local/share/entanglix/0.1.0",
+        "components": [
+          "base"
+        ],
+        "runner_extras": [
+          "differentiable"
+        ],
+        "gpus": [],
+        "can_add": {
+          "gpu": "needs an NVIDIA driver (none found)",
+          "piccolo": "entanglix components add piccolo (Julia 1.13.0)"
+        }
+      }
+    },
+    {
+      "step": "components add gpu refused without a driver",
+      "passed": true,
+      "stderr": "entanglix: the GPU component needs an NVIDIA driver, and nvidia-smi found none\n"
+    },
+    {
+      "step": "setup-project claude",
+      "passed": true,
+      "output": "Set up /var/tmp/claude-84/clean-work/cpu/home/project-claude for claude on Entanglix 0.1.0 (device cpu, agent command privilege none).\nStart a fresh research session in this directory. A session already open here has not loaded these files and can still see CUDA: close it first.\ncd /var/tmp/claude-84/clean-work/cpu/home/project-claude && CUDA_VISIBLE_DEVICES=\"\" claude\nThese files configure the runtime; refusing or asking before the decision commands is claimed only for configurations a retained test covers.\n",
+      "stderr": ""
+    },
+    {
+      "step": "setup-project codex",
+      "passed": true,
+      "output": "Set up /var/tmp/claude-84/clean-work/cpu/home/project-codex for codex on Entanglix 0.1.0 (device cpu, agent command privilege none).\nStart a fresh research session in this directory. A session already open here has not loaded these files and can still see CUDA: close it first.\ncd /var/tmp/claude-84/clean-work/cpu/home/project-codex && CUDA_VISIBLE_DEVICES=\"\" codex\nThese files configure the runtime; refusing or asking before the decision commands is claimed only for configurations a retained test covers.\n",
+      "stderr": ""
+    },
+    {
+      "step": "setup-project other",
+      "passed": true,
+      "output": "Set up /var/tmp/claude-84/clean-work/cpu/home/project-other for other on Entanglix 0.1.0 (device cpu, agent command privilege none).\nStart a fresh research session in this directory. A session already open here has not loaded these files and can still see CUDA: close it first.\nOther runtime: start it in /var/tmp/claude-84/clean-work/cpu/home/project-other with CUDA_VISIBLE_DEVICES=\"\", supply AGENTS.md as its instructions, and add this MCP server entry: {\"command\": \"/var/tmp/claude-84/clean-work/cpu/home/.local/share/entanglix/0.1.0/.venv/bin/python\", \"args\": [\"-m\", \"entanglix.mcp\", \"--runs-root\", \"/var/tmp/claude-84/clean-work/cpu/home/project-other/runs\", \"--device\", \"\", \"--max-wait\", \"3600\"]}\nConfigure it to block entanglix investigation-decision, entanglix apply-device-update, entanglix promote, and keep its tool timeout above 3600 seconds.\nThese files configure the runtime; refusing or asking before the decision commands is claimed only for configurations a retained test covers.\n",
+      "stderr": ""
+    },
+    {
+      "step": "claude server starts and lists capabilities",
+      "passed": true,
+      "stderr": "",
+      "solvers": {
+        "grape": {
+          "available": true
+        },
+        "piccolo": {
+          "available": false,
+          "reason": "Piccolo is not added; add it with `entanglix components add piccolo`"
+        }
+      }
+    },
+    {
+      "step": "codex server starts and lists capabilities",
+      "passed": true,
+      "stderr": "",
+      "solvers": {
+        "grape": {
+          "available": true
+        },
+        "piccolo": {
+          "available": false,
+          "reason": "Piccolo is not added; add it with `entanglix components add piccolo`"
+        }
+      }
+    },
+    {
+      "step": "CPU simulation through the installed command",
+      "passed": true,
+      "seconds": 6.2,
+      "engine": "qutip-cpu",
+      "env_python": "3.13.12",
+      "stderr": "",
+      "result": {
+        "status": "completed",
+        "exit_code": 0,
+        "stdout": null,
+        "stderr": null
+      }
+    },
+    {
+      "step": "GRAPE control solve",
+      "passed": true,
+      "seconds": 3.1,
+      "engine": "grape",
+      "env_python": "3.13.12",
+      "stderr": "",
+      "result": {
+        "status": "completed",
+        "exit_code": 0,
+        "stdout": null,
+        "stderr": null
+      }
+    },
+    {
+      "step": "CPU simulation through the project's MCP server (scripted client)",
+      "passed": true,
+      "stderr": "SyntaxWarning: invalid escape sequence '\\p'\n /var/tmp/claude-84/clean-work/cpu/home/.local/share/entanglix/0.1.0/.venv/lib/python3.13/site-packages/scqubits/core/zeropi.py: 284"
+    },
+    {
+      "step": "same installer run again leaves both environments untouched",
+      "passed": true,
+      "seconds": 0.1,
+      "output": "Entanglix 0.1.0 is installed in /var/tmp/claude-84/clean-work/cpu/home/.local/share/entanglix/0.1.0\nCommand: /var/tmp/claude-84/clean-work/cpu/home/.local/bin/entanglix\n/var/tmp/claude-84/clean-work/cpu/home/.local/bin is not on PATH; add this line to your shell profile: export PATH=\"/var/tmp/claude-84/clean-work/cpu/home/.local/bin:$PATH\"\nNo NVIDIA driver found; CPU engines and GRAPE control are installed\nAdd the Piccolo solver (its own Julia) with: /var/tmp/claude-84/clean-work/cpu/home/.local/bin/entanglix components add piccolo\nSet up a project: /var/tmp/claude-84/clean-work/cpu/home/.local/bin/entanglix setup-project DIR --runtime claude|codex|other\n"
+    },
+    {
+      "step": "job with hostile uv, Python and Julia variables",
+      "passed": true,
+      "seconds": 2.6,
+      "engine": "qutip-cpu",
+      "env_python": "3.13.12",
+      "stderr": "",
+      "result": {
+        "status": "completed",
+        "exit_code": 0,
+        "stdout": null,
+        "stderr": null
+      }
+    },
+    {
+      "step": "hostile variables redirected nothing",
+      "passed": true,
+      "python": "3.13.12",
+      "extras": [
+        "differentiable"
+      ]
+    },
+    {
+      "step": "components add refused while a launch holds the environment",
+      "passed": true,
+      "stderr": "entanglix: a launch or job is using the job environment; change components after it ends\n"
+    },
+    {
+      "step": "that launch completes",
+      "passed": true,
+      "stderr": ""
+    },
+    {
+      "step": "remove refused while an idle server uses the installation",
+      "passed": true,
+      "stderr": "entanglix: Entanglix 0.1.0 is in use by an MCP server, a CLI process, a launch or a job; remove it after they end\n"
+    },
+    {
+      "step": "components add piccolo succeeds beside the idle server",
+      "passed": true,
+      "seconds": 162.4,
+      "stderr": "2.6 s  \u2713 PrettyTables\n   2.7 s  \u2713 PNGFiles\n   3.5 s  \u2713 DelaunayTriangulation\n   1.2 s  \u2713 ImageAxes\n   0.5 s  \u2713 SymbolicIndexingInterface \u2192 SymbolicIndexingInterfacePrettyTablesExt\n   1.1 s  \u2713 KernelDensity\n   3.6 s  \u2713 GridLayoutBase\n   1.0 s  \u2713 ArrayLayouts \u2192 ArrayLayoutsSparseArraysExt\n   1.5 s  \u2713 MatrixFactorizations\n   0.9 s  \u2713 ImageMetadata\n   2.5 s  \u2713 MathTeXEngine\n   5.1 s  \u2713 SciMLBase\n   1.8 s  \u2713 DataInterpolations\n  16.8 s  \u2713 JLD2\n  13.2 s  \u2713 TiffImages\n   0.8 s  \u2713 Netpbm\n   0.4 s  \u2713 SciMLBase \u2192 SciMLBaseStaticArraysExt\n   0.4 s  \u2713 SciMLBase \u2192 SciMLBaseChainRulesCoreExt\n   0.5 s  \u2713 SciMLBase \u2192 SciMLBaseForwardDiffExt\n   0.5 s  \u2713 SciMLBase \u2192 SciMLBaseDifferentiationInterfaceExt\n   0.6 s  \u2713 DataInterpolations \u2192 DataInterpolationsChainRulesCoreExt\n   1.7 s  \u2713 LazyArrays\n   0.8 s  \u2713 SciMLBase \u2192 SciMLBaseDistributionsExt\n Downloading artifact: MKL\n   1.3 s  \u2713 GenericSchur\n   0.5 s  \u2713 ImageIO\n   0.9 s  \u2713 SciMLJacobianOperators\n   0.7 s  \u2713 LazyArrays \u2192 LazyArraysStaticArraysExt\n   1.2 s  \u2713 NamedTrajectories\n   1.2 s  \u2713 NamedTrajectories \u2192 InterpolationsExt\n   2.6 s  \u2713 NonlinearSolveBase\n   0.5 s  \u2713 NonlinearSolveBase \u2192 NonlinearSolveBaseChainRulesCoreExt\n   0.6 s  \u2713 NonlinearSolveBase \u2192 NonlinearSolveBaseSparseArraysExt\n   0.8 s  \u2713 BracketingNonlinearSolve\n   0.5 s  \u2713 BracketingNonlinearSolve \u2192 BracketingNonlinearSolveForwardDiffExt\n   0.5 s  \u2713 BracketingNonlinearSolve \u2192 BracketingNonlinearSolveChainRulesCoreExt\n   1.3 s  \u2713 DiffEqBase\n   2.2 s  \u2713 NonlinearSolveBase \u2192 NonlinearSolveBaseForwardDiffExt\n   0.4 s  \u2713 DiffEqBase \u2192 DiffEqBaseChainRulesCoreExt\n   0.5 s  \u2713 DiffEqBase \u2192 DiffEqBaseUnitfulExt\n   0.5 s  \u2713 DiffEqBase \u2192 DiffEqBaseSparseArraysExt\n   1.6 s  \u2713 DiffEqBase \u2192 DiffEqBaseForwardDiffExt\n   1.6 s  \u2713 OrdinaryDiffEqCore\n   0.5 s  \u2713 OrdinaryDiffEqCore \u2192 OrdinaryDiffEqCoreSparseArraysExt\n   9.6 s  \u2713 LinearSolve\n   2.8 s  \u2713 OrdinaryDiffEqTsit5\n   1.2 s  \u2713 LinearSolve \u2192 LinearSolveEnzymeExt\n   1.3 s  \u2713 LinearSolve \u2192 LinearSolveChainRulesCoreExt\n   1.3 s  \u2713 LinearSolve \u2192 LinearSolveForwardDiffExt\n   1.5 s  \u2713 NonlinearSolveBase \u2192 NonlinearSolveBaseLinearSolveExt\n  20.0 s  \u2713 UnicodePlots\n   0.7 s  \u2713 UnicodePlots \u2192 IntervalSetsExt\n   0.7 s  \u2713 UnicodePlots \u2192 UnitfulExt\n   1.0 s  \u2713 UnicodePlots \u2192 FreeTypeExt\n  19.5 s  \u2713 MathOptInterface\n   6.2 s  \u2713 Ipopt \u2192 IpoptMathOptInterfaceExt\n   2.2 s  \u2713 DirectTrajOpt\n  13.6 s  \u2713 ExponentialUtilities\n   1.5 s  \u2713 ExponentialUtilities \u2192 ExponentialUtilitiesStaticArraysExt\n   1.6 s  \u2713 OrdinaryDiffEqLinear\n  58.6 s  \u2713 Makie\n   2.2 s  \u2713 DataInterpolations \u2192 DataInterpolationsMakieExt\n   2.4 s  \u2713 SciMLBase \u2192 SciMLBaseMakieExt\n   2.7 s  \u2713 NamedTrajectories \u2192 PlottingExt\n  38.9 s  \u2713 Piccolo\n   4.2 s  \u2713 Piccolo \u2192 PiccoloMakieExt\n  13.1 s  \u2713 EntanglixPiccolo\n  416 dependencies successfully precompiled in 144 seconds. 42 already precompiled.\n\n  2 dependencies had output during precompilation:\n\u250c MKL_jll\n\u2502  Downloading artifact: IntelOpenMP\n\u2502   Downloading artifact: oneTBB\n\u2514  \n\u250c LinearSolve\n\u2502  Downloading artifact: MKL\n\u2514  \n",
+      "output": "{\n  \"component\": \"piccolo\",\n  \"status\": \"added\"\n}\n"
+    },
+    {
+      "step": "minimal Piccolo solve",
+      "passed": true,
+      "seconds": 7.4,
+      "engine": "piccolo",
+      "env_python": "3.13.12",
+      "stderr": "",
+      "result": {
+        "status": "completed",
+        "exit_code": 0,
+        "stdout": null,
+        "stderr": null
+      }
+    },
+    {
+      "step": "Piccolo used the installation's own Julia",
+      "passed": true,
+      "runtime": {
+        "julia_executable": "/var/tmp/claude-84/clean-work/cpu/home/.local/share/entanglix/0.1.0/.installation/julia-1.13.0/bin/julia",
+        "julia_version": "julia version 1.13.0",
+        "project_sha256": "6510859654c1fc36f04358fdfae0a321a7bab936f01dc99493b3ce089d382eeb",
+        "manifest_sha256": "0547fa6ba883171744975ecabbfdbcf6222b4a24e0c52ab11d1e3295e9faca87"
+      }
+    },
+    {
+      "step": "second version installs beside the first",
+      "passed": true,
+      "seconds": 2.1,
+      "stderr": ".3.0\n + multiprocess==0.70.19\n + numpy==2.5.3\n + opentelemetry-api==1.45.0\n + packaging==26.3\n + pathos==0.3.5\n + pillow==12.3.0\n + pox==0.3.7\n + ppft==1.7.8\n + pycparser==3.0\n + pydantic==2.13.5\n + pydantic-core==2.46.5\n + pyjwt==2.15.1\n + pyparsing==3.3.3\n + python-dateutil==2.9.0.post0\n + python-multipart==0.0.32\n + qutip==5.3.1\n + referencing==0.37.0\n + rpds-py==2026.9.1\n + scipy==1.18.1\n + scqubits==4.3.1\n + six==1.17.0\n + sse-starlette==3.5.0\n + starlette==1.7.0\n + sympy==1.14.0\n + tomli-w==1.2.0\n + tqdm==4.70.1\n + truststore==0.10.4\n + typing-extensions==4.16.0\n + typing-inspection==0.4.4\n + uvicorn==0.54.0\nUsing CPython 3.13.12\nCreating virtual environment at: .local/share/entanglix/0.1.1/.venv-runner\nResolved 112 packages in 0.74ms\nInstalled 57 packages in 43ms\n + annotated-types==0.8.0\n + asttokens==3.0.2\n + cmap==0.7.2\n + contourpy==1.4.0\n + cycler==0.12.1\n + diffrax==0.7.2\n + dill==0.4.1\n + dynamiqs==0.3.6\n + entanglix==0.1.1 (from file:///var/tmp/claude-84/clean-work/cpu/home/.local/share/entanglix/0.1.1)\n + equinox==0.13.8\n + executing==2.2.1\n + fonttools==4.66.1\n + ipython==9.17.1\n + ipython-pygments-lexers==1.1.1\n + jax==0.6.2\n + jaxlib==0.6.2\n + jaxtyping==0.3.11\n + jedi==0.20.0\n + kiwisolver==1.5.1\n + lineax==0.1.0\n + matplotlib==3.11.2\n + matplotlib-inline==0.2.2\n + ml-dtypes==0.6.0\n + mpmath==1.3.0\n + multiprocess==0.70.19\n + numpy==2.5.3\n + opt-einsum==3.4.0\n + optimistix==0.1.0\n + packaging==26.3\n + parso==0.8.7\n + pathos==0.3.5\n + pexpect==4.9.0\n + pillow==12.3.0\n + pox==0.3.7\n + ppft==1.7.8\n + prompt-toolkit==3.0.53\n + psutil==7.2.2\n + ptyprocess==0.7.0\n + pure-eval==0.2.4\n + pydantic==2.13.5\n + pydantic-core==2.46.5\n + pygments==2.21.0\n + pyparsing==3.3.3\n + python-dateutil==2.9.0.post0\n + qutip==5.3.1\n + scipy==1.18.1\n + scqubits==4.3.1\n + six==1.17.0\n + stack-data==0.6.3\n + sympy==1.14.0\n + tomli-w==1.2.0\n + tqdm==4.70.1\n + traitlets==5.16.1\n + typing-extensions==4.16.0\n + typing-inspection==0.4.4\n + wadler-lindig==0.1.7\n + wcwidth==0.9.1\n"
+    },
+    {
+      "step": "older project still runs jobs on its version",
+      "passed": true,
+      "seconds": 2.3,
+      "engine": "qutip-cpu",
+      "env_python": "3.13.12",
+      "stderr": "",
+      "result": {
+        "status": "completed",
+        "exit_code": 0,
+        "stdout": null,
+        "stderr": null
+      }
+    },
+    {
+      "step": "older project's operator commands run its version",
+      "passed": true,
+      "version": "entanglix 0.1.0",
+      "stderr": ""
+    },
+    {
+      "step": "--refresh from inside the project moves it to the newer version",
+      "passed": true,
+      "version": "entanglix 0.1.1",
+      "stderr": ""
+    },
+    {
+      "step": "remove refused during one of its jobs",
+      "passed": true,
+      "stderr": "entanglix: Entanglix 0.1.0 is in use by an MCP server, a CLI process, a launch or a job; remove it after they end\n"
+    },
+    {
+      "step": "remove refused while its server is idle",
+      "passed": true,
+      "stderr": "entanglix: Entanglix 0.1.0 is in use by an MCP server, a CLI process, a launch or a job; remove it after they end\n"
+    },
+    {
+      "step": "remove succeeds once nothing uses the version",
+      "passed": true,
+      "output": "{\n  \"removed\": \"0.1.0\",\n  \"note\": \"its packages stay in uv's cache until the cache is pruned (uv cache prune)\"\n}\n"
+    },
+    {
+      "step": "a project on the removed version is refused with the refresh command",
+      "passed": true,
+      "stderr": "entanglix: /var/tmp/claude-84/clean-work/cpu/home/project-pinned uses Entanglix 0.1.0, which is not installed; run: entanglix setup-project /var/tmp/claude-84/clean-work/cpu/home/project-pinned --refresh\n"
+    },
+    {
+      "step": "that refresh, run from inside the project, succeeds",
+      "passed": true,
+      "stderr": ""
+    },
+    {
+      "step": "base install with a driver",
+      "passed": true,
+      "seconds": 5.1,
+      "output": "Cloning Entanglix 0.1.0\nDownloading uv 0.12.0\nCreating the Entanglix environment\nEntanglix 0.1.0 is installed in /var/tmp/claude-84/clean-work/gpu/home/.local/share/entanglix/0.1.0\nCommand: /var/tmp/claude-84/clean-work/gpu/home/.local/bin/entanglix\n/var/tmp/claude-84/clean-work/gpu/home/.local/bin is not on PATH; add this line to your shell profile: export PATH=\"/var/tmp/claude-84/clean-work/gpu/home/.local/bin:$PATH\"\nNVIDIA GPU found (NVIDIA GeForce RTX 5090); add GPU engines with: /var/tmp/claude-84/clean-work/gpu/home/.local/bin/entanglix components add gpu (several GB)\nAdd the Piccolo solver (its own Julia) with: /var/tmp/claude-84/clean-work/gpu/home/.local/bin/entanglix components add piccolo\nSet up a project: /var/tmp/claude-84/clean-work/gpu/home/.local/bin/entanglix setup-project DIR --runtime claude|codex|other\n",
+      "stderr": "=2.46.5\n + pyjwt==2.15.1\n + pyparsing==3.3.3\n + python-dateutil==2.9.0.post0\n + python-multipart==0.0.32\n + qutip==5.3.1\n + referencing==0.37.0\n + rpds-py==2026.9.1\n + scipy==1.18.1\n + scqubits==4.3.1\n + six==1.17.0\n + sse-starlette==3.5.0\n + starlette==1.7.0\n + sympy==1.14.0\n + tomli-w==1.2.0\n + tqdm==4.70.1\n + truststore==0.10.4\n + typing-extensions==4.16.0\n + typing-inspection==0.4.4\n + uvicorn==0.54.0\nUsing CPython 3.13.12\nCreating virtual environment at: .local/share/entanglix/0.1.0/.venv-runner\nResolved 112 packages in 0.78ms\nDownloading jedi (4.7MiB)\nDownloading pygments (1.2MiB)\nDownloading jaxlib (85.8MiB)\nDownloading jax (2.6MiB)\n Downloaded pygments\n Downloaded jax\n Downloaded jedi\n Downloaded jaxlib\nPrepared 28 packages in 1.67s\nInstalled 57 packages in 43ms\n + annotated-types==0.8.0\n + asttokens==3.0.2\n + cmap==0.7.2\n + contourpy==1.4.0\n + cycler==0.12.1\n + diffrax==0.7.2\n + dill==0.4.1\n + dynamiqs==0.3.6\n + entanglix==0.1.0 (from file:///var/tmp/claude-84/clean-work/gpu/home/.local/share/entanglix/0.1.0)\n + equinox==0.13.8\n + executing==2.2.1\n + fonttools==4.66.1\n + ipython==9.17.1\n + ipython-pygments-lexers==1.1.1\n + jax==0.6.2\n + jaxlib==0.6.2\n + jaxtyping==0.3.11\n + jedi==0.20.0\n + kiwisolver==1.5.1\n + lineax==0.1.0\n + matplotlib==3.11.2\n + matplotlib-inline==0.2.2\n + ml-dtypes==0.6.0\n + mpmath==1.3.0\n + multiprocess==0.70.19\n + numpy==2.5.3\n + opt-einsum==3.4.0\n + optimistix==0.1.0\n + packaging==26.3\n + parso==0.8.7\n + pathos==0.3.5\n + pexpect==4.9.0\n + pillow==12.3.0\n + pox==0.3.7\n + ppft==1.7.8\n + prompt-toolkit==3.0.53\n + psutil==7.2.2\n + ptyprocess==0.7.0\n + pure-eval==0.2.4\n + pydantic==2.13.5\n + pydantic-core==2.46.5\n + pygments==2.21.0\n + pyparsing==3.3.3\n + python-dateutil==2.9.0.post0\n + qutip==5.3.1\n + scipy==1.18.1\n + scqubits==4.3.1\n + six==1.17.0\n + stack-data==0.6.3\n + sympy==1.14.0\n + tomli-w==1.2.0\n + tqdm==4.70.1\n + traitlets==5.16.1\n + typing-extensions==4.16.0\n + typing-inspection==0.4.4\n + wadler-lindig==0.1.7\n + wcwidth==0.9.1\n"
+    },
+    {
+      "step": "components add gpu, with the GPU environment check",
+      "passed": true,
+      "seconds": 37.7,
+      "report": {
+        "component": "gpu",
+        "status": "added",
+        "gpu_check": [
+          {
+            "device": "GPU-f2a6e8aa-b32b-ae8e-6dc6-03612dd6b829",
+            "status": "passed"
+          }
+        ]
+      },
+      "stderr": "Resolved 112 packages in 0.67ms\nDownloading nvidia-cuda-nvcc-cu12 (38.7MiB)\nDownloading nvidia-nvjitlink-cu12 (37.9MiB)\nDownloading custabilizer-cu12 (7.8MiB)\nDownloading cutensornet-cu12 (3.5MiB)\nDownloading nvidia-cuda-runtime-cu12 (3.3MiB)\nDownloading nvmath-python (5.1MiB)\nDownloading nvidia-nvshmem-cu12 (267.8MiB)\nDownloading nvidia-nccl-cu12 (335.2MiB)\nDownloading nvidia-cublas-cu12 (554.3MiB)\nDownloading nvidia-cufft-cu12 (191.6MiB)\nDownloading nvidia-cuda-nvrtc-cu12 (85.4MiB)\nDownloading cupy-cuda12x (129.4MiB)\nDownloading cuda-bindings (7.1MiB)\nDownloading cutensor-cu12 (292.4MiB)\nDownloading nvidia-cuda-cupti-cu12 (10.3MiB)\nDownloading cupauliprop-cu12 (41.4MiB)\nDownloading nvidia-cuda-cccl-cu12 (3.0MiB)\nDownloading nvidia-cudnn-cu12 (734.8MiB)\nDownloading nvidia-cusolver-cu12 (322.5MiB)\nDownloading nvidia-cusparse-cu12 (349.5MiB)\nDownloading cudensitymat-cu12 (53.8MiB)\nDownloading cuda-core (6.3MiB)\nDownloading jax-cuda12-pjrt (119.5MiB)\nDownloading custatevec-cu12 (69.8MiB)\nDownloading cuquantum-python-cu12 (10.0MiB)\nDownloading jax-cuda12-plugin (15.1MiB)\n Downloaded nvidia-cuda-cccl-cu12\n Downloaded nvidia-cuda-runtime-cu12\n Downloaded cutensornet-cu12\n Downloaded nvmath-python\n Downloaded cuda-core\n Downloaded cuda-bindings\n Downloaded custabilizer-cu12\n Downloaded nvidia-cuda-cupti-cu12\n Downloaded cuquantum-python-cu12\n Downloaded jax-cuda12-plugin\n Downloaded nvidia-nvjitlink-cu12\n Downloaded nvidia-cuda-nvcc-cu12\n Downloaded cupauliprop-cu12\n Downloaded cudensitymat-cu12\n Downloaded custatevec-cu12\n Downloaded nvidia-cuda-nvrtc-cu12\n Downloaded jax-cuda12-pjrt\n Downloaded cupy-cuda12x\n Downloaded nvidia-cufft-cu12\n Downloaded nvidia-nvshmem-cu12\n Downloaded cutensor-cu12\n Downloaded nvidia-cusolver-cu12\n Downloaded nvidia-nccl-cu12\n Downloaded nvidia-cusparse-cu12\n Downloaded nvidia-cublas-cu12\n Downloaded nvidia-cudnn-cu12\nPrepared 28 packages in 36.27s\nInstalled 28 packages in 28ms\n + cuda-bindings==12.9.9\n + cuda-core==1.2.1\n + cuda-pathfinder==1.8.2\n + cudensitymat-cu12==0.7.0\n + cupauliprop-cu12==0.5.0\n + cupy-cuda12x==14.2.0\n + cuquantum-python-cu12==26.9.0\n + custabilizer-cu12==0.5.0\n + custatevec-cu12==1.15.0\n + cutensor-cu12==2.8.1\n + cutensornet-cu12==2.14.0\n + jax-cuda12-pjrt==0.6.2\n + jax-cuda12-plugin==0.6.2\n + nvidia-cublas-cu12==12.9.2.10\n + nvidia-cuda-cccl-cu12==12.9.27\n + nvidia-cuda-cupti-cu12==12.9.79\n + nvidia-cuda-nvcc-cu12==12.9.86\n + nvidia-cuda-nvrtc-cu12==12.9.86\n + nvidia-cuda-runtime-cu12==12.9.79\n + nvidia-cudnn-cu12==9.26.0.51\n + nvidia-cufft-cu12==11.4.1.4\n + nvidia-cusolver-cu12==11.7.5.82\n + nvidia-cusparse-cu12==12.5.10.65\n + nvidia-nccl-cu12==2.32.3\n + nvidia-nvjitlink-cu12==12.9.86\n + nvidia-nvshmem-cu12==3.8.0\n + nvmath-python==1.0.0\n + qutip-cuquantum==0.3.1\n"
+    },
+    {
+      "step": "setup-project picks the single GPU",
+      "passed": true,
+      "output": "Set up /var/tmp/claude-84/clean-work/gpu/home/project for claude on Entanglix 0.1.0 (device GPU-f2a6e8aa-b32b-ae8e-6dc6-03612dd6b829, agent command privilege none).\nStart a fresh research session in this directory. A session already open here has not loaded these files and can still see CUDA: close it first.\ncd /var/tmp/claude-84/clean-work/gpu/home/project && CUDA_VISIBLE_DEVICES=\"\" claude\nThese files configure the runtime; refusing or asking before the decision commands is claimed only for configurations a retained test covers.\n"
+    },
+    {
+      "step": "CUDA job on cuDensityMat",
+      "passed": true,
+      "seconds": 28.7,
+      "engine": "cudensitymat",
+      "env_python": "3.13.12",
+      "stderr": "",
+      "result": {
+        "status": "completed",
+        "exit_code": 0,
+        "stdout": null,
+        "stderr": null
+      }
+    },
+    {
+      "step": "CUDA job on dynamiqs on CUDA",
+      "passed": true,
+      "seconds": 11.7,
+      "engine": "dynamiqs",
+      "env_python": "3.13.12",
+      "stderr": "",
+      "result": {
+        "status": "completed",
+        "exit_code": 0,
+        "stdout": null,
+        "stderr": null
+      }
+    }
+  ],
+  "fixture": {
+    "source": "worktree files (tracked and untracked, not ignored)",
+    "revisions": {
+      "0.1.0": "af913339d411b169499f688f234fc6af74d18779",
+      "0.1.1": "000d3ceef836acc5b8885d715f76e6bc1b2b5330"
+    }
+  },
+  "disk": {
+    "du_kib_cache_then_first_then_second": [
+      "842708\t/var/tmp/claude-84/clean-work/cpu/home/.cache/uv",
+      "3696120\t/var/tmp/claude-84/clean-work/cpu/home/.local/share/entanglix/0.1.0",
+      "185248\t/var/tmp/claude-84/clean-work/cpu/home/.local/share/entanglix/0.1.1"
+    ]
+  },
+  "wall_seconds": 367,
+  "limit": "no clean-OS test: this workstation has no Docker or Podman"
+}

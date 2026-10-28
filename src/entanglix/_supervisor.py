@@ -5,6 +5,7 @@ import signal
 import sys
 from pathlib import Path
 
+from entanglix.installation import hold_use_lock
 from entanglix.launches import _arguments, _operation, current_launch, read_launch
 from entanglix.runner import _load_record, failure_message, publish_toml
 
@@ -17,6 +18,7 @@ def main():
     signal.signal(signal.SIGHUP, signal.default_int_handler)
     token = current_launch.set(path)
     try:
+        hold_use_lock()
         request = _load_record(path / "request.toml")
         _operation(request["operation"])(**_arguments(request["arguments"]))
     except (Exception, KeyboardInterrupt) as exc:

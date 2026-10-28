@@ -885,6 +885,7 @@ def _execute_job(
     gpu: GpuLease | None = None,
     job_input: str = "script.py",
     validate_result: Callable[[Path], dict] | None = None,
+    environment_lock: int | None = None,
 ) -> dict:
     """Supervise the local job and its process group while retaining allocation ownership."""
     from entanglix.investigations import CancelledStart, start_permission
@@ -912,7 +913,12 @@ def _execute_job(
         clock = None
         stopped = None
         try:
-            descriptors = (owner.fileno(),) + ((gpu.fileno(),) if gpu is not None else ())
+            # The job inherits the environment lock, so it outlives a lost runner too.
+            descriptors = (
+                (owner.fileno(),)
+                + ((gpu.fileno(),) if gpu is not None else ())
+                + ((environment_lock,) if environment_lock is not None else ())
+            )
             with start_permission(run) as deadline:
                 child = subprocess.Popen(
                     [*command, "run", str(run / "spec" / job_input), str(owner.fileno())],
@@ -1042,8 +1048,13 @@ def _claim_runner_extras(repository: Path, extras: list[str]) -> None:
 
 def _cpu_job_context(repository: Path, module: str) -> tuple[list[str], dict, list[str]]:
     """Use one configured extras set in the shared runner environment."""
+    from entanglix import installation
+
+    installed = installation.record(repository)
     config = _load_record(repository / "pyproject.toml")
     extras = config.get("tool", {}).get("entanglix", {}).get("runner", {}).get("extras", [])
+    if installed is not None:
+        extras = installation.components(repository)["runner_extras"]
     if "ENTANGLIX_RUNNER_EXTRAS" in os.environ:
         extras = [
             value.strip()
@@ -1052,17 +1063,23 @@ def _cpu_job_context(repository: Path, module: str) -> tuple[list[str], dict, li
         ]
     if not isinstance(extras, list) or any(not isinstance(extra, str) for extra in extras):
         raise ValueError("tool.entanglix.runner.extras must be a list of extra names")
-    uv = shutil.which("uv")
+    uv = installed["uv"] if installed is not None else shutil.which("uv")
     if uv is None:
         raise ValueError("uv is required for locked job execution")
     extras = sorted(set(extras))
     _claim_runner_extras(repository, extras)
     # Locked dependencies are synchronized; distributions the user installs persist.
     command = [uv, "run", "--locked", "--inexact", "--no-env-file", "--project", str(repository)]
+    if installed is not None:
+        command.extend(installation.uv_options(repository))
     for extra in extras:
         command.extend(("--extra", extra))
     command.extend(("python", "-m", module))
-    environment = os.environ.copy()
+    environment = (
+        installation.uv_environment(os.environ, repository)
+        if installed is not None
+        else os.environ.copy()
+    )
     environment.update(
         CUDA_VISIBLE_DEVICES="",
         JAX_PLATFORMS="cpu",
@@ -1090,9 +1107,42 @@ def run_script(
     _source_entry_ids: tuple[str, ...] = (),
 ) -> dict:
     """Validate and synchronously execute one CPU script."""
+    from entanglix.installation import environment_lease
+
     repository = (repository or Path(__file__).resolve().parents[2]).resolve()
     if timeout_seconds is not None and (not math.isfinite(timeout_seconds) or timeout_seconds <= 0):
         raise ValueError("timeout_seconds must be finite and positive")
+    # The lease covers resolving the extras set through the job's end.
+    with environment_lease(repository) as lease:
+        return _run_script_leased(
+            system,
+            script,
+            lease,
+            inputs=inputs,
+            runs_root=runs_root,
+            repository=repository,
+            parent_run_ids=parent_run_ids,
+            timeout_seconds=timeout_seconds,
+            investigation_id=investigation_id,
+            base=base,
+            _source_entry_ids=_source_entry_ids,
+        )
+
+
+def _run_script_leased(
+    system: Path,
+    script: Path,
+    lease,
+    *,
+    inputs,
+    runs_root,
+    repository,
+    parent_run_ids,
+    timeout_seconds,
+    investigation_id,
+    base,
+    _source_entry_ids,
+) -> dict:
     command, environment, extras = _cpu_job_context(repository, "entanglix._script_job")
     request = {
         "system": str(system.resolve()),
@@ -1107,6 +1157,7 @@ def run_script(
         text=True,
         capture_output=True,
         env=environment,
+        pass_fds=(lease.fileno(),),
     )
     if check.returncode:
         raise ValueError(process_failure(check, "locked-environment launch validation failed"))
@@ -1143,6 +1194,7 @@ def run_script(
             command,
             environment,
             timeout_seconds=timeout_seconds,
+            environment_lock=lease.fileno(),
         )
 
 
@@ -1268,6 +1320,43 @@ def list_capabilities(repository: Path | None = None) -> dict:
         },
         "plugin_engines": plugins,
         "engine_defaults": engine_defaults(),
+        "solvers": _solver_availability(repository, found),
+        **_installation_summary(repository),
+    }
+
+
+def _solver_availability(repository: Path, found: dict) -> dict:
+    """The open solvers and whether the runner environment can run them."""
+    from entanglix import installation
+
+    try:
+        julia, _ = installation.julia(repository)
+    except ValueError as exc:
+        piccolo = {"available": False, "reason": str(exc)}
+    else:
+        piccolo = {"available": True, "julia": julia}
+    grape = (
+        {"available": True}
+        if "jax" in found
+        else {
+            "available": False,
+            "reason": "needs JAX" + installation.missing_hint("dynamiqs", repository),
+        }
+    )
+    return {"grape": grape, "piccolo": piccolo}
+
+
+def _installation_summary(repository: Path) -> dict:
+    from entanglix import installation
+
+    installed = installation.record(repository)
+    if installed is None:
+        return {}
+    return {
+        "installation": {
+            "version": installed["version"],
+            "components": installation.components(repository)["components"],
+        }
     }
 
 
