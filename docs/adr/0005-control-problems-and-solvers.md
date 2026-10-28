@@ -1,6 +1,6 @@
 # ADR-0005: Control Problems, Solvers, and Control Checks
 
-**Date:** 2026-10-11, revised 2026-10-27
+**Date:** 2026-10-11, revised 2026-10-28
 **Status:** Accepted
 **Purpose:** fix how a control problem is stated and shared between solvers, where the solver is named, how solvers attach, what they report and how they receive a supplied starting pulse, how Piccolo is run, and which checks a control result offers. Field lists, formats, and command names are documented with the implementation.
 
@@ -93,11 +93,12 @@ The harness does only what the user requests.
 - The adapter is an ordinary job. It runs Piccolo's ProblemSpec runner in Julia directly, in the job's own process group.
 - It passes the iteration cap and the tolerance as arguments, so the shared file is unchanged.
 - It writes the neutral pulse inside Julia.
-- The repository holds a pinned Julia project for it. A Piccolo run records the Julia version and the digest of that project's manifest.
-- Julia is optional. The core and the default tests do not need it, and a Piccolo request without it is a configuration error that names what is missing.
+- The repository holds a pinned Julia project for it. A Piccolo run records the Julia version, the Julia executable, and the digest of that project's manifest.
+- Julia is optional. The core and the default tests do not need it. An installation adds Julia as a component: its own Julia, at the version the manifest was resolved for, with its own package depot, outside the user's `PATH` and default Julia. A development checkout uses Julia from `PATH`.
+- Validation and the solve use one executable, resolved once. A Piccolo request without Julia is refused before an attempt exists, naming what is missing and the command that adds it.
 - It declares no starting-pulse capability: Piccolo's ProblemSpec runner takes no initial pulse.
 
-**Rationale:** the runner already writes every record `amico-run` adds, and already stops a job's process group. A wrapper that moves Julia into another group, and needs longer than the runner's grace to stop it, would leave a solve running without a record.
+**Rationale:** the runner already writes every record `amico-run` adds, and already stops a job's process group. A wrapper that moves Julia into another group, and needs longer than the runner's grace to stop it, would leave a solve running without a record. An executable looked up again for the solve could differ from the one validated and recorded. The user's default Julia may be another version than the manifest's, and changing it would change the user's other work.
 
 ### 2.7 Control checks
 
@@ -139,6 +140,8 @@ Measurements: [control probe results](../../tests/probes/m4_control_results.json
 | An unconstrained optimiser with penalty terms for the bounds | The bounds would hold only approximately |
 | Reads that find other runs with the same problem digest | Needs a search over runs; the digest is enough for a comparison the user requests |
 | A Julia project path configured by the user | The Piccolo environment would not be reproducible from the repository |
+| The user's default Julia, or Julia found on `PATH`, in an installation | It may be another version than the manifest's, and validation and the solve could find different executables |
+| Julia installed through a version manager | Adds a tool and changes the user's shell settings |
 | Reading Piccolo's native pulse file in the checks | It holds a Julia object, so the check would depend on the solver |
 | The baseline on the shared differentiable engine | Compilation dominated each job and grew faster than the interval count, and its gradient deviated at a zero-amplitude first interval |
 | The engine's interval loop compiled once, with the baseline still on the engine | Removes most of the compile cost but keeps the engine's gradient deviation |
@@ -149,9 +152,10 @@ Measurements: [control probe results](../../tests/probes/m4_control_results.json
 
 - The contract changes accordingly:
   - §1 describes the control spec and the generated ProblemSpec, names the solver in the control spec and the result, and gives `solve` the problem file, solver options and, for a solver that declares support, an optional starting pulse, returning a termination report in place of a certificate.
-  - §2 records the Julia version and project digest of a Piccolo run.
+  - §2 records the Julia version, executable, and project digest of a Piccolo run.
   - §3 states the control checks as a replay with independently calculated quantities, and a second solve as a separate requested run.
   - §5's `rerun` replays control runs.
 - ADR-0001's mandate table describes the control spec and Piccolo's role in these terms.
 - The first gate problem, with its duration, bounds, and fidelity target, is recorded with its example.
 - Tests cover: one generated file for every solver; the export convention against an independent replay; a solver name the registry lacks, with and without a fallback; a field outside a solver's support refused by name; a pulse from each open solver with an active derivative bound, the bound recomputed from the neutral pulse; ignored guidance fields listed; the baseline's gradient against finite differences at every interval, zero-amplitude ones included; the iteration cap and tolerance reaching Piccolo as arguments; a stop ending a Piccolo solve with a terminal record; the duration held within tolerance; each control check passing and failing on a constructed pulse, including an accurately reported pulse below its target; a check requested outside the subset reported as inapplicable; and `control` admitted, refused, counted, and rerun inside an investigation.
+- Conformance must cover validation and the solve using one recorded executable, and a request without Julia refused with the command that adds it.

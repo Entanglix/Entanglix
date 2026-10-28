@@ -355,6 +355,20 @@ The [M4 guide](m4-guide.md) records the implementation approach; [ADR-0005](adr/
 
 ---
 
+## Installation and Project Setup
+
+### [ ] Installation and project setup
+
+**Decisions:** [ADR-0001 §3.5](adr/0001-mandate.md#35-installation), [ADR-0003 §2.2, §2.5](adr/0003-runs-verification-and-dispatch.md#22-execution-environment-and-process-ownership), [ADR-0004 §2.8](adr/0004-investigations-and-agent-sessions.md#28-agent-sessions), [ADR-0005 §2.6](adr/0005-control-problems-and-solvers.md#26-the-piccolo-adapter), [contract §2](../HARNESS_CONTRACT.md#2-execution-and-artifacts).
+
+- [ ] Installation: a bootstrap script pinned to a release tag; versioned installations with their own uv and Python, sharing one uv cache; an ignored installation directory; the completion record and an untouched same-version reinstall; the launcher's choice of installation; `remove` with the use lock
+- [ ] Components: the base set, and GPU and Piccolo on request; the recorded extras set resolved at each launch; the environment lock from before the read until the job ends, exclusive component changes, and the incomplete mark; the controlled uv and Julia environments; refusals naming the component; solver availability in capabilities
+- [ ] Project setup: the setup command for Claude Code, Codex, and other runtimes; conflicts and refresh; the project's installation for operator commands; the fresh-session instruction
+- [ ] README for people, and the operational references updated
+- [ ] **Done:** clean installs on the workstation, isolated from developer paths and variables, run a tiny real job for the base set, GPU, and Piccolo; a repeat installation, a component change during a launch, an older project after a newer version, and removal behave as decided
+
+---
+
 ## Upgrade Path (no boxes until a milestone claims them)
 
 cuDensityMat usage study (open-system usage review, CPU/GPU crossover and peak memory, member-by-member batch-versus-serial agreement), a prerequisite for automatic performance-based dispatch and advertised batching · Multi-GPU cuDensityMat · cuTensorNet engine for lattice-scale systems · multistart and continuation for control · longer scheduled unattended campaigns after bounded workflows demonstrate reliability · hardware-in-the-loop behind the same run contract.

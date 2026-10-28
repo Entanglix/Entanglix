@@ -1,8 +1,8 @@
 # ADR-0004: Investigations, User Decisions, and Agent Sessions
 
-**Date:** 2026-10-06, revised 2026-10-27
+**Date:** 2026-10-06, revised 2026-10-28
 **Status:** Accepted
-**Purpose:** fix how an investigation is recorded, who may change its terms, how its jobs are admitted and stopped, how progress is assessed and work resumed, how the first agent-assisted investigation is evaluated, whose runtime drives the harness, and how an agent session is instructed, restricted, and audited. Field lists, formats, and command names are documented with the implementation.
+**Purpose:** fix how an investigation is recorded, who may change its terms, how its jobs are admitted and stopped, how progress is assessed and work resumed, how the first agent-assisted investigation is evaluated, whose runtime drives the harness, and how a research workspace is set up and an agent session instructed, restricted, and audited. Field lists, formats, and command names are documented with the implementation.
 
 ---
 
@@ -123,8 +123,14 @@ Measurements: [readout threshold probe](../../tests/probes/m3_readout_results.js
 **Guidance**
 - Research conduct is one maintained text, which the harness ships as a file. The user supplies it in the session's initial context: through a workspace instruction file where the runtime reads one, otherwise through the runtime's manual context mechanism. The MCP server sends the same text as its instructions, as an additional channel.
 - Task procedures are skills: plain documents that declare `name`, `description`, and `version`. The conduct text names each procedure and its file, so a procedure stays usable as plain text in a runtime without skill loading.
-- The harness generates no workspace file and does not detect what a runtime loaded. Delivery is claimed only from what a runtime exposes of its context, such as the prompt it shows or its transcript. Following a procedure shows behaviour; it does not show which channel supplied the instruction.
-- A research workspace is a directory outside the repository, so repository development instructions are not loaded there. The user sets it up by documented steps; there is no setup command.
+- The harness generates no guidance text and does not detect what a runtime loaded. Delivery is claimed only from what a runtime exposes of its context, such as the prompt it shows or its transcript. Following a procedure shows behaviour; it does not show which channel supplied the instruction.
+- A research workspace is a project directory outside the installation, so repository development instructions are not loaded there. A setup command prepares it from fixed templates for the runtimes the user names:
+  - It copies the shipped conduct verbatim under the runtime's instruction filename, the skills, and the operational references.
+  - For Claude Code and Codex it writes the MCP entry and the command settings. For another runtime it writes no runtime configuration and prints the entry and the commands to restrict.
+  - It refuses, writing nothing, when a file it would write exists and is not its own, and it never merges into user configuration.
+  - It records the installation and the digest of each file it wrote. A refresh rewrites them and moves the project to the newest installation only when none was edited.
+  - It ends with the instruction to start a fresh session with `CUDA_VISIBLE_DEVICES=""` and to close any session already open there. Files written into a running session's directory do not configure that session, and setup starts no runtime.
+- Operator commands run in a project use the installation the project records, the one its server uses.
 
 **User decisions**
 - The operator command is the only decision path. The user runs it in their own terminal, or lets the agent run the exact command after approving it in the runtime's prompt for that command; a standing shell permission or a mode that skips prompts is not that approval. The decision record names the operator CLI and the OS user either way.
@@ -138,10 +144,10 @@ Measurements: [readout threshold probe](../../tests/probes/m3_readout_results.js
 - The read operations report attempts and unresolved launches. The conduct tells an agent to read them at the start of a session and after a launch call that returned no response, and not to launch again while that launch is pending. There is no retry service.
 
 **Permissions**
-- An agent may request a job on either device through a supported protocol. Within an investigation the device is part of a base the user approved, and admission checks the base by digest, so a job request cannot change it. Which physical GPU the runner uses, and its runner extras, are operator configuration.
+- An agent may request a job on either device through a supported protocol. Within an investigation the device is part of a base the user approved, and admission checks the base by digest, so a job request cannot change it. Which physical GPU the runner uses is operator configuration, and its runner extras follow the installation's components.
 - The user starts the runtime with `CUDA_VISIBLE_DEVICES=""`, and the server entry names the device for runner-launched jobs. This is CUDA visibility: ordinary CUDA code in the session finds no device. It is not an operating-system boundary.
-- Where the runtime can restrict commands, the documented settings refuse the human-action commands. A user who prefers to approve each command sets the runtime to ask before running them. A setting's behaviour is claimed for a runtime and a command form only where a test shows it. Setup documents the invocation forms the setting covers, and conformance tests exercise those forms. In a runtime without such a setting the conduct text carries the rule, and no refusal or approval is claimed.
-- The server entry sets the runs root, the device, the runner extras, and the state directory when the user's shell sets one, because a runtime may not pass its own environment to the server. The server and the operator commands use the same runs root, and every runner instance uses the same GPU lock location.
+- Where the runtime can restrict commands, setup configures it to refuse the human-action commands by default. A user who wants the agent to run one on request has setup configure the runtime to ask before each one. A setting's behaviour is claimed for a runtime and a command form only where a test shows it. Setup documents the invocation forms the setting covers, and conformance tests exercise those forms. In a runtime without such a setting, or one setup does not configure, the conduct text carries the rule, and no refusal or approval is claimed.
+- The server entry sets the runs root, the device, and the state directory when the user's shell sets one, because a runtime may not pass its own environment to the server. It names runner extras only where the user overrides the installation's set. The server and the operator commands use the same runs root and installation, and every runner instance uses the same GPU lock location.
 - The server's tools act only on attempts, launches, and investigations inside the configured runs root, and refuse a path that resolves outside it. Authored inputs, such as a system, protocol, or script file, may live elsewhere.
 
 **Session audit**
@@ -151,6 +157,8 @@ Measurements: [readout threshold probe](../../tests/probes/m3_readout_results.js
 
 **Rationale:**
 - Runtimes differ in whether they read a workspace file, when they show server instructions, which environment they pass to a server, whether they cancel a call they abandon, whether they ask for approval of a tool, and whether they can restrict commands. Each decision states what the harness does and what holds in a runtime without the feature.
+- By hand, every project repeated the same file copies and a hand-written server entry. Setup copies files and fills fixed templates, so one maintained conduct text stays the only guidance. Refusing to overwrite or merge keeps the user's files theirs, and a refresh that skipped edited files would leave a project partly on two versions. A runtime reads its workspace and environment when it starts, so setup can only tell the user to start a fresh session. Templates cover Claude Code and Codex, and enforcement claims remain limited to the configurations tested; another runtime receives the files and the entry to add by hand.
+- A project's operator commands and its server run the same installation, so a decision is recorded by the code that serves the session.
 - Approving a research-tool call approves an operation whose effect is not a decision, and runtimes can approve a server's tools in bulk. The operator command is itself the decision, and the runtime's prompt for it shows the user the exact command before it runs.
 - Refusal stays the documented setting: a session that nobody attends cannot answer a prompt, and a runtime mode that skips prompts may run a command set to ask without approval. A user who attends and prefers to approve changes one setting.
 - An instruction is not enforcement (contract §8), so a rule carried by instructions alone is not counted as a refusal. The server cannot check an operator's statement of the runtime's setting, so the session audit records none; an evaluation records its runtime settings with its transcripts.
@@ -188,7 +196,7 @@ Measurements: [agent-session probe](../../tests/probes/m3_agent_session_results.
 | A model backend, an API key, or a list of supported runtimes | The runtime is the user's own |
 | A pinned runtime or a live agent session in automated tests | Automated tests do not require a logged-in runtime, and the harness does not own the runtime |
 | A job queue, scheduler, grant service, or workflow engine | ADR-0001 and contract §7 reuse process and runtime facilities |
-| A generated workspace instruction file, or detection of what a runtime loaded | A shipped file the user supplies is enough, and a server cannot observe a model's context |
+| Generated guidance text, or detection of what a runtime loaded | One maintained conduct text, copied verbatim, is enough, and a server cannot observe a model's context |
 | An in-session decision tool | The operator command is the single decision path, and the runtime's prompt for that command already lets the user approve it in session |
 | A research tool that runs a human-action command after the runtime's approval | Runtimes can approve a server's tools in bulk; a command prompt names the exact command |
 | A runtime's approval of a research-tool call treated as a user decision | Approval permits a call; only the operator command records a decision |
@@ -204,7 +212,12 @@ Measurements: [agent-session probe](../../tests/probes/m3_agent_session_results.
 | An operator-declared command setting in the session audit | The server cannot check it; an evaluation records its runtime settings with its transcripts |
 | A retry service or idempotency key for launches | Audit and run records already distinguish a pending, admitted, or refused launch |
 | Counting a launch refused for a busy device | It did no work, and retries would use up an allowance |
-| A setup command for the research workspace | The setup is a few documented steps that differ by runtime |
+| Workspace setup by documented steps only | Every project repeated the same copies and a hand-written server entry |
+| Setup merging into existing runtime configuration | It would edit files the user owns, and a merge could change settings it does not understand |
+| Setup detecting the runtime | A guess could write the wrong instruction file; the user names the runtime |
+| Configuration templates for runtimes without a tested session | A setting's effect is claimed only where a test shows it |
+| A launcher that starts the agent runtime | The runtime is the user's own |
+| A refresh that skips edited files | Leaves a project partly on two versions |
 | An agent framework or orchestration library in the harness | The harness calls no model; the agent loop is the runtime's |
 
 ## 4. Consequences
@@ -219,4 +232,5 @@ Measurements: [agent-session probe](../../tests/probes/m3_agent_session_results.
 - The readout example records the first investigation: its question, scope, claim rule, measured brackets, costs, and stated limits.
 - Tests cover a draft that cannot start or approve itself, a proposed revision taking effect only on a decision, concurrent events, the admission rule of each operation, unknown limit names, concurrent launches against one limit, uncertain usage, the absolute deadline, an approved revision leaving admitted attempts under their dispatch revision, a run admitted but not yet computing after a stop, after a stop followed by a resume, and past the deadline, checkpoint gating that counts failed and aborted attempts, review gating with named release, and a new session continuing from records. They also cover each refusal of a launch on a busy device creating no attempt and no usage, the device lock released when the check, admission, or manifest creation fails, and a launch recovered as pending, admitted, or refused after its connection or response is lost.
 - §2.8 records the agent-session decisions and settles ADR-0003's open point on whether a research agent may declare a device.
+- The setup command replaces the manual workspace steps in the MCP reference, which keeps them for other runtimes. Conformance must cover the files written for each runtime, the refusal on a file that is not setup's own, a refresh refused on an edited file and run from a project whose installation is older or removed, operator commands using the project's installation, and the fresh-session instruction.
 - Control and calibration add their operations to the permitted operations when those protocols are built. Co-design links device and control runs under one investigation.
