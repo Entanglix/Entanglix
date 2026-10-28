@@ -1,0 +1,23 @@
+format_version = 1
+id = "two_level_reference"
+
+[units]
+energy = "GHz"
+time = "ns"
+
+[model]
+kind = "operators"
+dimensions = [2]
+basis = "ground_excited"
+array_file = "operators.npz"
+hamiltonian = "H0"
+operators = { x = "sigma_x", lower = "lowering" }
+
+[[drives]]
+id = "x_drive"
+factors = ["x"]
+
+[[dissipators]]
+id = "relaxation"
+factors = ["lower"]
+rate = { value = 0.01, unit = "1/ns" }

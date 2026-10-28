@@ -1,0 +1,571 @@
+{
+  "via": "mcp",
+  "investigation": "/home/paimon/Projects/Entanglix/research_runs/m5-codesign-mcp/_investigations/i20261020T055641507739Z-b4d44330",
+  "screen": {
+    "run_id": "r20261020T060258997711Z-96b3f379",
+    "points": [
+      {
+        "parameters.Csh": 10.0,
+        "f01_ghz": 9.763244745976351,
+        "anharmonicity_ghz": -1.44029359307741
+      },
+      {
+        "parameters.Csh": 20.0,
+        "f01_ghz": 8.135463176192689,
+        "anharmonicity_ghz": -0.8353603392829267
+      },
+      {
+        "parameters.Csh": 30.0,
+        "f01_ghz": 7.1271183401999645,
+        "anharmonicity_ghz": -0.5923595569650075
+      },
+      {
+        "parameters.Csh": 45.0,
+        "f01_ghz": 6.142719030958504,
+        "anharmonicity_ghz": -0.41334269064171814
+      },
+      {
+        "parameters.Csh": 60.0,
+        "f01_ghz": 5.482065688845005,
+        "anharmonicity_ghz": -0.31721417601837487
+      },
+      {
+        "parameters.Csh": 75.0,
+        "f01_ghz": 4.998984728052605,
+        "anharmonicity_ghz": -0.2571499597197153
+      },
+      {
+        "parameters.Csh": 90.0,
+        "f01_ghz": 4.625733995842136,
+        "anharmonicity_ghz": -0.21607936360295632
+      }
+    ]
+  },
+  "candidates": [
+    {
+      "Csh_fF": 10.0,
+      "pulses": [
+        {
+          "seed": 7,
+          "run_id": "r20261020T060301616213Z-737453f2",
+          "status": "completed",
+          "termination": {
+            "converged": true,
+            "iterations": 7,
+            "message": "Optimization terminated successfully",
+            "objective_evaluations": 12,
+            "status": 0
+          },
+          "solver_reported_fidelity": 0.9999998485722426,
+          "check_run_id": "r20261020T060303833650Z-fb90bcba",
+          "check_status": "completed",
+          "outcomes": {
+            "replay": "pass",
+            "constraints": "pass",
+            "uncertainty": null,
+            "uncertainty_refinement": null
+          },
+          "replayed_fidelity": 0.9999998485722426,
+          "leakage": 1.4895213917842653e-07,
+          "worst_fidelity": 0.9176312745403085,
+          "worst_sample": {
+            "model.offset_charges.1": 0.5,
+            "parameters.EJ": 14.985
+          },
+          "nominal_fidelity": 0.9999998485722426,
+          "refined_worst_fidelity": 0.9176312745417169,
+          "refinement_minimum_change": 1.4084289290394736e-12,
+          "largest_sample_change": 1.0651479698253752e-11,
+          "frequency_ghz": {
+            "junction_with_shunt": 9.763244745976351
+          }
+        },
+        {
+          "seed": 19,
+          "run_id": "r20261020T060306638870Z-cdbcbd2b",
+          "status": "completed",
+          "termination": {
+            "converged": true,
+            "iterations": 8,
+            "message": "Optimization terminated successfully",
+            "objective_evaluations": 14,
+            "status": 0
+          },
+          "solver_reported_fidelity": 0.9999999313583381,
+          "check_run_id": "r20261020T060308710470Z-1150eb38",
+          "check_status": "completed",
+          "outcomes": {
+            "replay": "pass",
+            "constraints": "pass",
+            "uncertainty": null,
+            "uncertainty_refinement": null
+          },
+          "replayed_fidelity": 0.9999999313583366,
+          "leakage": 6.700554988636753e-08,
+          "worst_fidelity": 0.9224929223172041,
+          "worst_sample": {
+            "model.offset_charges.1": 0.5,
+            "parameters.EJ": 14.985
+          },
+          "nominal_fidelity": 0.9999999313583366,
+          "refined_worst_fidelity": 0.9224929223192718,
+          "refinement_minimum_change": 2.0676793610618915e-12,
+          "largest_sample_change": 4.50239845406486e-12,
+          "frequency_ghz": {
+            "junction_with_shunt": 9.763244745976351
+          }
+        },
+        {
+          "seed": 43,
+          "run_id": "r20261020T060311559401Z-1232bd43",
+          "status": "completed",
+          "termination": {
+            "converged": true,
+            "iterations": 14,
+            "message": "Optimization terminated successfully",
+            "objective_evaluations": 20,
+            "status": 0
+          },
+          "solver_reported_fidelity": 0.9999998500788201,
+          "check_run_id": "r20261020T060313617517Z-465f2248",
+          "check_status": "completed",
+          "outcomes": {
+            "replay": "pass",
+            "constraints": "pass",
+            "uncertainty": null,
+            "uncertainty_refinement": null
+          },
+          "replayed_fidelity": 0.9999998500788205,
+          "leakage": 1.4992105090705365e-07,
+          "worst_fidelity": 0.9223758466460631,
+          "worst_sample": {
+            "model.offset_charges.1": 0.5,
+            "parameters.EJ": 14.985
+          },
+          "nominal_fidelity": 0.9999998500788205,
+          "refined_worst_fidelity": 0.9223758466440198,
+          "refinement_minimum_change": -2.043254454520138e-12,
+          "largest_sample_change": 8.464229317439731e-12,
+          "frequency_ghz": {
+            "junction_with_shunt": 9.763244745976351
+          }
+        }
+      ],
+      "score": 0.9224929223172041,
+      "selected_refined_worst_fidelity": 0.9224929223192718,
+      "selected_seed": 19,
+      "selected_run_id": "r20261020T060306638870Z-cdbcbd2b",
+      "spread": 0.004861647776895683,
+      "largest_refinement_change": 1.0651479698253752e-11,
+      "unconverged_seeds": []
+    },
+    {
+      "Csh_fF": 30.0,
+      "pulses": [
+        {
+          "seed": 7,
+          "run_id": "r20261020T060316555101Z-1bfd6c0c",
+          "status": "completed",
+          "termination": {
+            "converged": true,
+            "iterations": 15,
+            "message": "Optimization terminated successfully",
+            "objective_evaluations": 25,
+            "status": 0
+          },
+          "solver_reported_fidelity": 0.9999999867755123,
+          "check_run_id": "r20261020T060318692471Z-2e2a8675",
+          "check_status": "completed",
+          "outcomes": {
+            "replay": "pass",
+            "constraints": "pass",
+            "uncertainty": null,
+            "uncertainty_refinement": null
+          },
+          "replayed_fidelity": 0.9999999867755133,
+          "leakage": 1.3066967730068768e-08,
+          "worst_fidelity": 0.9998645960508866,
+          "worst_sample": {
+            "model.offset_charges.1": 0.5,
+            "parameters.EJ": 15.015
+          },
+          "nominal_fidelity": 0.9999999867755133,
+          "refined_worst_fidelity": 0.9998645959970026,
+          "refinement_minimum_change": -5.38840083663672e-11,
+          "largest_sample_change": 5.38840083663672e-11,
+          "frequency_ghz": {
+            "junction_with_shunt": 7.1271183401999645
+          }
+        },
+        {
+          "seed": 19,
+          "run_id": "r20261020T060321566966Z-491f2de1",
+          "status": "completed",
+          "termination": {
+            "converged": true,
+            "iterations": 18,
+            "message": "Optimization terminated successfully",
+            "objective_evaluations": 27,
+            "status": 0
+          },
+          "solver_reported_fidelity": 0.9999999955888688,
+          "check_run_id": "r20261020T060323931403Z-c6adbd59",
+          "check_status": "completed",
+          "outcomes": {
+            "replay": "pass",
+            "constraints": "pass",
+            "uncertainty": null,
+            "uncertainty_refinement": null
+          },
+          "replayed_fidelity": 0.9999999955888687,
+          "leakage": 4.3517504044743305e-09,
+          "worst_fidelity": 0.9998612252334192,
+          "worst_sample": {
+            "model.offset_charges.1": 0.5,
+            "parameters.EJ": 15.015
+          },
+          "nominal_fidelity": 0.9999999955888687,
+          "refined_worst_fidelity": 0.9998612251933158,
+          "refinement_minimum_change": -4.0103476095509905e-11,
+          "largest_sample_change": 4.0103476095509905e-11,
+          "frequency_ghz": {
+            "junction_with_shunt": 7.1271183401999645
+          }
+        },
+        {
+          "seed": 43,
+          "run_id": "r20261020T060326734125Z-3b3e5272",
+          "status": "completed",
+          "termination": {
+            "converged": true,
+            "iterations": 25,
+            "message": "Optimization terminated successfully",
+            "objective_evaluations": 36,
+            "status": 0
+          },
+          "solver_reported_fidelity": 0.9999999815522692,
+          "check_run_id": "r20261020T060329129145Z-6c3e7f4d",
+          "check_status": "completed",
+          "outcomes": {
+            "replay": "pass",
+            "constraints": "pass",
+            "uncertainty": null,
+            "uncertainty_refinement": null
+          },
+          "replayed_fidelity": 0.9999999815522701,
+          "leakage": 1.820491657422707e-08,
+          "worst_fidelity": 0.9999266524005558,
+          "worst_sample": {
+            "model.offset_charges.1": 0.5,
+            "parameters.EJ": 14.985
+          },
+          "nominal_fidelity": 0.9999999815522701,
+          "refined_worst_fidelity": 0.9999266524365873,
+          "refinement_minimum_change": 3.603151110809222e-11,
+          "largest_sample_change": 6.826209597576849e-10,
+          "frequency_ghz": {
+            "junction_with_shunt": 7.1271183401999645
+          }
+        }
+      ],
+      "score": 0.9999266524005558,
+      "selected_refined_worst_fidelity": 0.9999266524365873,
+      "selected_seed": 43,
+      "selected_run_id": "r20261020T060326734125Z-3b3e5272",
+      "spread": 6.542716713653363e-05,
+      "largest_refinement_change": 6.826209597576849e-10,
+      "unconverged_seeds": []
+    },
+    {
+      "Csh_fF": 60.0,
+      "pulses": [
+        {
+          "seed": 7,
+          "run_id": "r20261020T060332181349Z-c3e6b11b",
+          "status": "completed",
+          "termination": {
+            "converged": true,
+            "iterations": 17,
+            "message": "Optimization terminated successfully",
+            "objective_evaluations": 28,
+            "status": 0
+          },
+          "solver_reported_fidelity": 0.9999999578305785,
+          "check_run_id": "r20261020T060334565738Z-267981b6",
+          "check_status": "completed",
+          "outcomes": {
+            "replay": "pass",
+            "constraints": "pass",
+            "uncertainty": null,
+            "uncertainty_refinement": null
+          },
+          "replayed_fidelity": 0.9999999578305797,
+          "leakage": 4.2168376790385764e-08,
+          "worst_fidelity": 0.9999998358713363,
+          "worst_sample": {
+            "model.offset_charges.1": 0.0,
+            "parameters.EJ": 15.015
+          },
+          "nominal_fidelity": 0.9999999578305797,
+          "refined_worst_fidelity": 0.9999998364147641,
+          "refinement_minimum_change": 5.43427747246028e-10,
+          "largest_sample_change": 9.90506010545289e-10,
+          "frequency_ghz": {
+            "junction_with_shunt": 5.482065688845005
+          }
+        },
+        {
+          "seed": 19,
+          "run_id": "r20261020T060337748070Z-7a2fafa7",
+          "status": "completed",
+          "termination": {
+            "converged": true,
+            "iterations": 18,
+            "message": "Optimization terminated successfully",
+            "objective_evaluations": 29,
+            "status": 0
+          },
+          "solver_reported_fidelity": 0.9999999865523163,
+          "check_run_id": "r20261020T060340105367Z-903483a0",
+          "check_status": "completed",
+          "outcomes": {
+            "replay": "pass",
+            "constraints": "pass",
+            "uncertainty": null,
+            "uncertainty_refinement": null
+          },
+          "replayed_fidelity": 0.9999999865523165,
+          "leakage": 1.3438223089856649e-08,
+          "worst_fidelity": 0.9999998545301333,
+          "worst_sample": {
+            "model.offset_charges.1": 0.5,
+            "parameters.EJ": 14.985
+          },
+          "nominal_fidelity": 0.9999999865523165,
+          "refined_worst_fidelity": 0.9999998545457224,
+          "refinement_minimum_change": 1.5589085577971673e-11,
+          "largest_sample_change": 3.1210067863440827e-10,
+          "frequency_ghz": {
+            "junction_with_shunt": 5.482065688845005
+          }
+        },
+        {
+          "seed": 43,
+          "run_id": "r20261020T060342948288Z-20932e53",
+          "status": "completed",
+          "termination": {
+            "converged": true,
+            "iterations": 18,
+            "message": "Optimization terminated successfully",
+            "objective_evaluations": 28,
+            "status": 0
+          },
+          "solver_reported_fidelity": 0.9999997336471433,
+          "check_run_id": "r20261020T060345315131Z-53b18641",
+          "check_status": "completed",
+          "outcomes": {
+            "replay": "pass",
+            "constraints": "pass",
+            "uncertainty": null,
+            "uncertainty_refinement": null
+          },
+          "replayed_fidelity": 0.9999997336471441,
+          "leakage": 2.6630227012436336e-07,
+          "worst_fidelity": 0.9999995660359365,
+          "worst_sample": {
+            "model.offset_charges.1": 0.0,
+            "parameters.EJ": 15.015
+          },
+          "nominal_fidelity": 0.9999997336471441,
+          "refined_worst_fidelity": 0.9999995772702747,
+          "refinement_minimum_change": 1.1234338126442367e-08,
+          "largest_sample_change": 1.1628598528545808e-08,
+          "frequency_ghz": {
+            "junction_with_shunt": 5.482065688845005
+          }
+        }
+      ],
+      "score": 0.9999998545301333,
+      "selected_refined_worst_fidelity": 0.9999998545457224,
+      "selected_seed": 19,
+      "selected_run_id": "r20261020T060337748070Z-7a2fafa7",
+      "spread": 2.8849419675403e-07,
+      "largest_refinement_change": 1.1628598528545808e-08,
+      "unconverged_seeds": []
+    },
+    {
+      "Csh_fF": 90.0,
+      "pulses": [
+        {
+          "seed": 7,
+          "run_id": "r20261020T060348503866Z-ce137b9e",
+          "status": "completed",
+          "termination": {
+            "converged": true,
+            "iterations": 23,
+            "message": "Optimization terminated successfully",
+            "objective_evaluations": 33,
+            "status": 0
+          },
+          "solver_reported_fidelity": 0.9999997768828256,
+          "check_run_id": "r20261020T060350860329Z-ed0052c7",
+          "check_status": "completed",
+          "outcomes": {
+            "replay": "pass",
+            "constraints": "pass",
+            "uncertainty": null,
+            "uncertainty_refinement": null
+          },
+          "replayed_fidelity": 0.9999997768828282,
+          "leakage": 2.2284838430142173e-07,
+          "worst_fidelity": 0.9999996667285447,
+          "worst_sample": {
+            "model.offset_charges.1": 0.0,
+            "parameters.EJ": 14.985
+          },
+          "nominal_fidelity": 0.9999997768828282,
+          "refined_worst_fidelity": 0.9999997514466785,
+          "refinement_minimum_change": 8.471813384147708e-08,
+          "largest_sample_change": 8.471813384147708e-08,
+          "frequency_ghz": {
+            "junction_with_shunt": 4.625733995842136
+          }
+        },
+        {
+          "seed": 19,
+          "run_id": "r20261020T060353690429Z-cb55419f",
+          "status": "completed",
+          "termination": {
+            "converged": true,
+            "iterations": 34,
+            "message": "Optimization terminated successfully",
+            "objective_evaluations": 44,
+            "status": 0
+          },
+          "solver_reported_fidelity": 0.9999999968067514,
+          "check_run_id": "r20261020T060355867690Z-0ffa680d",
+          "check_status": "completed",
+          "outcomes": {
+            "replay": "pass",
+            "constraints": "pass",
+            "uncertainty": null,
+            "uncertainty_refinement": null
+          },
+          "replayed_fidelity": 0.9999999968067502,
+          "leakage": 2.9294285885939075e-09,
+          "worst_fidelity": 0.9999998872248468,
+          "worst_sample": {
+            "model.offset_charges.1": 0.0,
+            "parameters.EJ": 15.015
+          },
+          "nominal_fidelity": 0.9999999968067502,
+          "refined_worst_fidelity": 0.9999998348334794,
+          "refinement_minimum_change": -5.239136735557537e-08,
+          "largest_sample_change": 5.239136735557537e-08,
+          "frequency_ghz": {
+            "junction_with_shunt": 4.625733995842136
+          }
+        },
+        {
+          "seed": 43,
+          "run_id": "r20261020T060358661985Z-e40409db",
+          "status": "completed",
+          "termination": {
+            "converged": true,
+            "iterations": 36,
+            "message": "Optimization terminated successfully",
+            "objective_evaluations": 49,
+            "status": 0
+          },
+          "solver_reported_fidelity": 0.9999998337437345,
+          "check_run_id": "r20261020T060400757236Z-b8892f72",
+          "check_status": "completed",
+          "outcomes": {
+            "replay": "pass",
+            "constraints": "pass",
+            "uncertainty": null,
+            "uncertainty_refinement": null
+          },
+          "replayed_fidelity": 0.9999998337437351,
+          "leakage": 1.6600452557025136e-07,
+          "worst_fidelity": 0.9999997258841233,
+          "worst_sample": {
+            "model.offset_charges.1": 0.0,
+            "parameters.EJ": 15.015
+          },
+          "nominal_fidelity": 0.9999998337437351,
+          "refined_worst_fidelity": 0.9999996050680591,
+          "refinement_minimum_change": -1.208160642640621e-07,
+          "largest_sample_change": 1.2759433054565505e-07,
+          "frequency_ghz": {
+            "junction_with_shunt": 4.625733995842136
+          }
+        }
+      ],
+      "score": 0.9999998872248468,
+      "selected_refined_worst_fidelity": 0.9999998348334794,
+      "selected_seed": 19,
+      "selected_run_id": "r20261020T060353690429Z-cb55419f",
+      "spread": 2.2049630210574378e-07,
+      "largest_refinement_change": 1.2759433054565505e-07,
+      "unconverged_seeds": []
+    }
+  ],
+  "stop_reason": "90 and 60 fF differ by 3.27e-08, within the larger seed spread 2.88e-07; the ranking between them is unresolved",
+  "retained_candidates_fF": [
+    60.0,
+    90.0
+  ],
+  "recommendation": "Retain the evaluated 60 and 90 fF candidates; their ranking is unresolved. Their selected pulses' worst-sample fidelities are 0.9999998545 and 0.9999998872, and 0.9999998545 and 0.9999998348 after refinement, which reverses their order.",
+  "report_event": "00000006",
+  "stopped": {
+    "cancellation_errors": [],
+    "path": "/home/paimon/Projects/Entanglix/research_runs/m5-codesign-mcp/_investigations/i20261020T055641507739Z-b4d44330",
+    "stop": {
+      "event_id": "00000007",
+      "kind": "stop",
+      "note": "",
+      "reason": "evidence_completion",
+      "record_version": 1,
+      "recorded_at": "2026-10-20 06:04:02.630456+00:00",
+      "revision": 1,
+      "runs": []
+    }
+  },
+  "usage": {
+    "committed_job_seconds": 0.0,
+    "evaluated_points": 7,
+    "gpu_seconds": 0.0,
+    "job_seconds": 32.25826293963473,
+    "jobs": 25,
+    "unbounded_jobs": 0,
+    "unsettled_jobs": 0
+  },
+  "runs": [
+    "r20261020T060258997711Z-96b3f379",
+    "r20261020T060301616213Z-737453f2",
+    "r20261020T060303833650Z-fb90bcba",
+    "r20261020T060306638870Z-cdbcbd2b",
+    "r20261020T060308710470Z-1150eb38",
+    "r20261020T060311559401Z-1232bd43",
+    "r20261020T060313617517Z-465f2248",
+    "r20261020T060316555101Z-1bfd6c0c",
+    "r20261020T060318692471Z-2e2a8675",
+    "r20261020T060321566966Z-491f2de1",
+    "r20261020T060323931403Z-c6adbd59",
+    "r20261020T060326734125Z-3b3e5272",
+    "r20261020T060329129145Z-6c3e7f4d",
+    "r20261020T060332181349Z-c3e6b11b",
+    "r20261020T060334565738Z-267981b6",
+    "r20261020T060337748070Z-7a2fafa7",
+    "r20261020T060340105367Z-903483a0",
+    "r20261020T060342948288Z-20932e53",
+    "r20261020T060345315131Z-53b18641",
+    "r20261020T060348503866Z-ce137b9e",
+    "r20261020T060350860329Z-ed0052c7",
+    "r20261020T060353690429Z-cb55419f",
+    "r20261020T060355867690Z-0ffa680d",
+    "r20261020T060358661985Z-e40409db",
+    "r20261020T060400757236Z-b8892f72"
+  ]
+}

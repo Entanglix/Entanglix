@@ -1,0 +1,49 @@
+format_version = 1
+id = "two_mode_circuit"
+
+[units]
+energy = "GHz"
+time = "ns"
+
+[model]
+kind = "circuit"
+nodes = [0, 1, 2]
+ground = 0
+transformation = [[1, 0], [0, 1]]
+offset_charges = { "1" = 0.0, "2" = 0.0 }
+
+[[model.branches]]
+id = "junction_1"
+kind = "JJ"
+nodes = [0, 1]
+josephson_energy = { value = 15.0, unit = "GHz" }
+charging_energy = { value = 2.0, unit = "GHz" }
+
+[[model.branches]]
+id = "shunt_1"
+kind = "C"
+nodes = [0, 1]
+capacitance = { value = 60.0, unit = "fF" }
+
+[[model.branches]]
+id = "junction_2"
+kind = "JJ"
+nodes = [0, 2]
+josephson_energy = { value = 18.0, unit = "GHz" }
+charging_energy = { value = 2.0, unit = "GHz" }
+
+[[model.branches]]
+id = "shunt_2"
+kind = "C"
+nodes = [0, 2]
+capacitance = { value = 70.0, unit = "fF" }
+
+[[model.branches]]
+id = "coupling"
+kind = "C"
+nodes = [1, 2]
+capacitance = { value = 2.0, unit = "fF" }
+
+[truncation]
+cutoffs = { theta1 = 10, theta2 = 10 }
+retained_levels = 6

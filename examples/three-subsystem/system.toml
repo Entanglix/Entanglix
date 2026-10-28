@@ -1,0 +1,41 @@
+format_version = 1
+id = "two_transmons_and_resonator"
+
+[units]
+energy = "GHz"
+time = "ns"
+
+[model]
+kind = "composite"
+
+[[model.subsystems]]
+id = "q1"
+kind = "transmon"
+josephson_energy = { value = 15.0, unit = "GHz" }
+charging_energy = { value = 0.25, unit = "GHz" }
+ng = 0.0
+cutoff = 20
+retained_levels = 3
+
+[[model.subsystems]]
+id = "q2"
+kind = "transmon"
+josephson_energy = { value = 18.0, unit = "GHz" }
+charging_energy = { value = 0.28, unit = "GHz" }
+ng = 0.0
+cutoff = 20
+retained_levels = 4
+
+[[model.subsystems]]
+id = "r"
+kind = "oscillator"
+frequency = { value = 6.2, unit = "GHz" }
+retained_levels = 5
+
+[[model.interactions]]
+coefficient = { value = 0.05, unit = "GHz" }
+factors = ["q1.charge", "r.position"]
+
+[[model.interactions]]
+coefficient = { value = 0.04, unit = "GHz" }
+factors = ["q2.charge", "r.position"]

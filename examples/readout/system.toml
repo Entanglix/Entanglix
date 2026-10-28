@@ -1,0 +1,41 @@
+format_version = 1
+id = "readout"
+
+[units]
+energy = "GHz"
+time = "ns"
+
+[parameters.EJ]
+value = 13.5
+unit = "GHz"
+
+[model]
+kind = "composite"
+
+[[model.subsystems]]
+id = "q"
+kind = "transmon"
+josephson_energy = { parameter = "EJ" }
+charging_energy = { value = 0.25, unit = "GHz" }
+ng = 0.0
+cutoff = 30
+retained_levels = 5
+
+[[model.subsystems]]
+id = "r"
+kind = "oscillator"
+frequency = { value = 7.0, unit = "GHz" }
+retained_levels = 6
+
+[[model.interactions]]
+coefficient = { value = 0.075, unit = "GHz" }
+factors = ["q.charge", "r.position"]
+
+[[drives]]
+id = "readout"
+factors = ["r.position"]
+
+[[dissipators]]
+id = "resonator_loss"
+factors = ["r.annihilation"]
+rate = { value = 0.03, unit = "1/ns" }

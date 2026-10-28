@@ -1,0 +1,15 @@
+format_version = 1
+base = "spectrum.toml"
+
+[[axes]]
+id = "Csh"
+target = "parameters.Csh"
+values = [
+    10.0,
+    20.0,
+    30.0,
+    45.0,
+    60.0,
+    75.0,
+    90.0,
+]

@@ -1,0 +1,36 @@
+format_version = 1
+system = "system.toml"
+kind = "lindblad"
+
+[parameters]
+EJ = 15.0
+
+[needs]
+device = "cuda"
+
+[evolution]
+initial_state = [1, 0]
+times_ns = { start = 0.0, stop = 1600.0, count = 1601 }
+rtol = 1e-10
+atol = 1e-12
+max_steps = 100000
+
+[evolution.observables]
+excited = { kind = "population", subsystem = "q", level = 1 }
+photons = "r.number"
+
+[refinement.q]
+retained_levels_step = 1
+cutoff_steps = { cutoff = 2 }
+
+[refinement.r]
+retained_levels_step = 2
+
+[metrics.excited_population]
+kind = "endpoint_real"
+observable = "excited"
+
+[evolution.frame]
+# Dressed readout midpoint from the EJ = 15 GHz frame study; no drive is present.
+frequencies_ghz = { q = 7.002760675881172, r = 7.002760675881172 }
+rwa = true

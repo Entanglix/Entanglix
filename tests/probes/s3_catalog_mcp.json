@@ -1,0 +1,206 @@
+{
+  "via": "mcp",
+  "runs_root": "/home/paimon/Projects/Entanglix/research_runs/m5-codesign-mcp",
+  "entry": {
+    "entry_id": "e20261025T223016968649Z-e3e40072",
+    "staged_id": "s20261025T223016968649Z-e3e40072",
+    "source": {
+      "investigation_id": "i20261020T055641507739Z-b4d44330",
+      "protocol": "control",
+      "run": "junction_with_shunt/r20261020T060337748070Z-7a2fafa7"
+    },
+    "promoter": {
+      "kind": "operator-cli",
+      "os_user": "paimon"
+    },
+    "promoted_at": "2026-10-25 22:54:43.179975+00:00",
+    "claim": "60 fF device and seed-19 pulse from the transmon co-design comparison: 60 and 90 fF were retained with their ranking unresolved. This candidate is offered for reuse; its standing rests on its requested checks.",
+    "parent_entry_ids": [],
+    "checks": [
+      {
+        "name": "replay",
+        "outcome": "pass",
+        "policy_version": "36d1f1148dba13ce985c794a98818753da483ed10618d2bbbf71cc79f50f0009",
+        "run": "junction_with_shunt/r20261020T060340105367Z-903483a0"
+      },
+      {
+        "name": "constraints",
+        "outcome": "pass",
+        "policy_version": "36d1f1148dba13ce985c794a98818753da483ed10618d2bbbf71cc79f50f0009",
+        "run": "junction_with_shunt/r20261020T060340105367Z-903483a0"
+      },
+      {
+        "name": "uncertainty",
+        "outcome": "descriptive",
+        "policy_version": "36d1f1148dba13ce985c794a98818753da483ed10618d2bbbf71cc79f50f0009",
+        "run": "junction_with_shunt/r20261020T060340105367Z-903483a0"
+      },
+      {
+        "name": "uncertainty_refinement",
+        "outcome": "descriptive",
+        "policy_version": "36d1f1148dba13ce985c794a98818753da483ed10618d2bbbf71cc79f50f0009",
+        "run": "junction_with_shunt/r20261020T060340105367Z-903483a0"
+      }
+    ],
+    "checks_not_run": [
+      "target"
+    ],
+    "unusable_evidence": [],
+    "lineage": {
+      "ancestors": [
+        {
+          "parent_run_ids": [],
+          "protocol": "sweep",
+          "run": "junction_with_shunt/r20261020T060258997711Z-96b3f379",
+          "run_id": "r20261020T060258997711Z-96b3f379",
+          "status": "completed"
+        }
+      ],
+      "source_run": {
+        "parent_run_ids": [
+          "r20261020T060258997711Z-96b3f379"
+        ],
+        "protocol": "control",
+        "run": "junction_with_shunt/r20261020T060337748070Z-7a2fafa7",
+        "run_id": "r20261020T060337748070Z-7a2fafa7",
+        "status": "completed"
+      }
+    },
+    "reuses": {
+      "investigation_bases": [],
+      "runs": [
+        {
+          "protocol": "sweep",
+          "run": "junction_with_shunt/r20261025T230428988173Z-4ca0a752"
+        },
+        {
+          "protocol": "control",
+          "run": "junction_with_shunt/r20261025T230431677099Z-b9eed0f7"
+        }
+      ]
+    }
+  },
+  "device": {
+    "Csh_fF": 60.0,
+    "EJ_ghz": 15.0
+  },
+  "spectrum": [
+    {
+      "EJ_ghz": 14.5,
+      "f01_ghz": 5.3846833556924985
+    },
+    {
+      "EJ_ghz": 15.0,
+      "f01_ghz": 5.482065688845005
+    },
+    {
+      "EJ_ghz": 15.5,
+      "f01_ghz": 5.577826405317468
+    }
+  ],
+  "warm_start": {
+    "starting_pulse": {
+      "sha256": "a420efc7567d8bda5c47fb8c2dd14a059a9621e4878ca7caf0d6361bbe6394f1",
+      "source": {
+        "entry": "e20261025T223016968649Z-e3e40072"
+      }
+    },
+    "termination": {
+      "converged": true,
+      "iterations": 1,
+      "message": "Optimization terminated successfully",
+      "objective_evaluations": 1,
+      "status": 0
+    },
+    "first_objective": 1.3447683762842406e-08,
+    "solver_reported_fidelity": 0.9999999865523163,
+    "checks": [
+      {
+        "name": "replay",
+        "outcome": "pass",
+        "scope": "returned neutral pulse in the declared control model",
+        "residual": 2.220446049250313e-16,
+        "tolerance": 1e-07,
+        "fidelity": 0.9999999865523165,
+        "leakage": 1.3438223089856649e-08
+      },
+      {
+        "name": "constraints",
+        "outcome": "pass",
+        "scope": "returned knots, including terminal amplitudes and differences"
+      },
+      {
+        "name": "uncertainty",
+        "scope": "returned neutral pulse on every declared evaluation sample, with the nominal model reported separately; closed-system evaluations under the rotating-wave approximation",
+        "coverage": "all 9 declared samples; the nominal model is reported separately and is not part of the minimum",
+        "minimum_fidelity": 0.9999998545301333,
+        "minimum_sample": 6
+      },
+      {
+        "name": "uncertainty_refinement",
+        "scope": "returned neutral pulse on every declared evaluation sample, with the nominal model reported separately; closed-system evaluations under the rotating-wave approximation; each sample keeps its resolved drive at the refinement",
+        "coverage": "all 9 declared samples; the nominal model is reported separately and is not part of the minimum",
+        "minimum_fidelity": 0.9999998545457224,
+        "minimum_sample": 6,
+        "largest_sample_change": 3.1210067863440827e-10
+      }
+    ]
+  },
+  "runs": {
+    "sweep": {
+      "run": "junction_with_shunt/r20261025T230428988173Z-4ca0a752",
+      "run_id": "r20261025T230428988173Z-4ca0a752",
+      "parent_run_ids": [
+        "r20261020T060337748070Z-7a2fafa7"
+      ],
+      "source_entry_ids": [
+        "e20261025T223016968649Z-e3e40072"
+      ],
+      "usage": {
+        "gpu_seconds": 0,
+        "uncertain": false,
+        "wall_seconds": 0.8471030341461301
+      }
+    },
+    "warm_start": {
+      "run": "junction_with_shunt/r20261025T230431677099Z-b9eed0f7",
+      "run_id": "r20261025T230431677099Z-b9eed0f7",
+      "parent_run_ids": [
+        "r20261020T060337748070Z-7a2fafa7"
+      ],
+      "source_entry_ids": [
+        "e20261025T223016968649Z-e3e40072"
+      ],
+      "usage": {
+        "gpu_seconds": 0,
+        "uncertain": false,
+        "wall_seconds": 1.1445017769001424
+      }
+    },
+    "control_check": {
+      "run": "junction_with_shunt/r20261025T230433906262Z-da39159f",
+      "run_id": "r20261025T230433906262Z-da39159f",
+      "parent_run_ids": [
+        "r20261025T230431677099Z-b9eed0f7"
+      ],
+      "source_entry_ids": [],
+      "usage": {
+        "gpu_seconds": 0,
+        "uncertain": false,
+        "wall_seconds": 1.2744754049926996
+      }
+    }
+  },
+  "provenance": {
+    "code": {
+      "dirty": true,
+      "patch_sha256": "cd0e675ff0d86625e35610a4161962d366602510a9ff69c352da3a5a99ebecb0",
+      "revision": "902ebb8e637a8f85cc733b6c096b07ef33cf7edf",
+      "untracked_sha256": {
+        "tests/probes/s3_catalog_cli.json": "dce909ee445be1bc30cbf5407ff3a7d78f5e06eab01b68cee0abf310c5f5390c"
+      }
+    },
+    "env_hash": "2699980e55fdcbfd137cf7d5cff9d087203bc1b224ac416527823fe82812e7ca",
+    "policy_version": "efae45abf26599051af3fc463fa9c30ab1bf391adf75817d0d2c9a4043688868"
+  }
+}

@@ -1,0 +1,28 @@
+format_version = 1
+id = "lc_circuit"
+
+[units]
+energy = "GHz"
+time = "ns"
+
+[model]
+kind = "circuit"
+nodes = [0, 1]
+ground = 0
+offset_charges = {}
+
+[[model.branches]]
+id = "capacitor"
+kind = "C"
+nodes = [0, 1]
+capacitance = { value = 80.0, unit = "fF" }
+
+[[model.branches]]
+id = "inductor"
+kind = "L"
+nodes = [0, 1]
+inductance = { value = 12.0, unit = "nH" }
+
+[truncation]
+cutoffs = { theta1 = 30 }
+retained_levels = 6

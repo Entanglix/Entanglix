@@ -1,0 +1,1021 @@
+{
+  "complete": true,
+  "pass": true,
+  "device": "cpu",
+  "records": [
+    {
+      "run_id": "r20261020T021231779654Z-eddeb85a",
+      "path": "/home/paimon/Projects/Entanglix/research_runs/readout/r20261020T021231779654Z-eddeb85a",
+      "parent_run_ids": [],
+      "engine": "qutip-cpu",
+      "device": "cpu",
+      "dimensions": [
+        5,
+        6
+      ],
+      "env_hash": "2699980e55fdcbfd137cf7d5cff9d087203bc1b224ac416527823fe82812e7ca",
+      "environment": {
+        "lock_sha256": "44c4e6aa76860221ea9e45284a072ec29a681c7c2369fe9064140b5d77870575",
+        "python": "3.13.12",
+        "extras": [
+          "cuquantum",
+          "differentiable-cuda12"
+        ],
+        "env_hash": "2699980e55fdcbfd137cf7d5cff9d087203bc1b224ac416527823fe82812e7ca",
+        "platform": {
+          "system": "Linux",
+          "machine": "x86_64",
+          "libc": [
+            "glibc",
+            "2.43"
+          ]
+        },
+        "gpu": {
+          "driver": "unobserved",
+          "cuda": "unobserved",
+          "cuquantum": "unobserved"
+        }
+      },
+      "code": {
+        "revision": "554336e0c2aac53b62a2d912fd001a0b426ce9b8",
+        "dirty": true,
+        "patch_sha256": "2bde1d0894f2f71ad9ecefefd4bd0c98d6333bdbcb2430f4e2ab448d6703b470",
+        "untracked_sha256": {}
+      },
+      "plan_sha256": "b2049bddced5a794a9a5623d76201de908ff734c973a25c068f087c900776429",
+      "metrics": {
+        "excited_population": 0.8882458734127346
+      },
+      "usage": {
+        "wall_seconds": 31.47903979208786,
+        "gpu_seconds": 0,
+        "uncertain": false
+      },
+      "automatic_checks": false,
+      "verification_run_id": "r20261020T021303572064Z-154487ba",
+      "policy_version": "ee3237e19301045bb9e12c86e28d5f78bab0c031ead112dad000fe71b085bcf6",
+      "report": {
+        "kind": "lindblad",
+        "requested_checks": [
+          "integrity",
+          "segments",
+          "diagnostics"
+        ],
+        "refinement_origin": "source spec",
+        "work_seconds": 0.9507600569631904,
+        "limit": "No built-in check measures whole-window error or the accuracy of a rotating-wave approximation.",
+        "checks": [
+          {
+            "name": "integrity",
+            "outcome": "pass",
+            "scope": "every stored state and reported value",
+            "checks": [
+              {
+                "name": "trace",
+                "scope": "every stored state at every output time",
+                "outcome": "pass",
+                "residual": 1.0613732119559262e-13,
+                "tolerance": 1e-08
+              },
+              {
+                "name": "hermiticity",
+                "scope": "every stored state at every output time",
+                "outcome": "pass",
+                "residual": 1.8875935237911737e-15,
+                "tolerance": 1e-08
+              },
+              {
+                "name": "positivity",
+                "scope": "every stored state at every output time",
+                "outcome": "pass",
+                "residual": -3.372344797517687e-13,
+                "tolerance": -1e-08
+              },
+              {
+                "name": "initial_state",
+                "scope": "first stored density matrix in the lab basis; Frobenius norm",
+                "outcome": "pass",
+                "residual": 0.0,
+                "tolerance": 1e-08
+              },
+              {
+                "name": "output_grid",
+                "scope": "declared output grid and stored state count",
+                "outcome": "pass",
+                "residual": 0.0,
+                "tolerance": 0.0
+              },
+              {
+                "name": "observable_consistency",
+                "scope": "every stored value",
+                "outcome": "pass",
+                "residual": 5.684707117064679e-17,
+                "tolerance": 1e-06,
+                "observable": "photons"
+              },
+              {
+                "name": "observable_consistency",
+                "scope": "every stored value",
+                "outcome": "pass",
+                "residual": 1.2085687304975894e-16,
+                "tolerance": 1e-06,
+                "observable": "excited"
+              },
+              {
+                "name": "metric_consistency",
+                "scope": "reported endpoint formula",
+                "outcome": "pass",
+                "residual": 0.0,
+                "tolerance": 1e-06,
+                "metric": "excited_population"
+              },
+              {
+                "name": "metric_names",
+                "scope": "trusted metric definitions",
+                "outcome": "pass",
+                "residual": 0.0,
+                "tolerance": 0.0
+              }
+            ]
+          },
+          {
+            "name": "segments",
+            "outcome": "pass",
+            "scope": "local convergence comparison in the source frame; inherits accumulated error",
+            "segments": [
+              {
+                "start_ns": 0.0,
+                "end_ns": 2.0,
+                "engine": "qutip-cpu",
+                "dimensions": [
+                  6,
+                  8
+                ],
+                "rtol": 1e-11,
+                "atol": 1e-13,
+                "max_steps": 100000,
+                "checks": [
+                  {
+                    "name": "trace",
+                    "scope": "every stored state at every output time",
+                    "outcome": "pass",
+                    "residual": 1.110223026522293e-15,
+                    "tolerance": 1e-08
+                  },
+                  {
+                    "name": "hermiticity",
+                    "scope": "every stored state at every output time",
+                    "outcome": "pass",
+                    "residual": 5.3461199011577e-17,
+                    "tolerance": 1e-08
+                  },
+                  {
+                    "name": "positivity",
+                    "scope": "every stored state at every output time",
+                    "outcome": "pass",
+                    "residual": -2.8319464127459363e-14,
+                    "tolerance": -1e-08
+                  },
+                  {
+                    "name": "observable",
+                    "scope": "local trajectory",
+                    "outcome": "pass",
+                    "residual": 5.216124218665463e-08,
+                    "tolerance": 1e-06,
+                    "observable": "photons"
+                  },
+                  {
+                    "name": "observable",
+                    "scope": "local trajectory",
+                    "outcome": "pass",
+                    "residual": 5.0791237882208407e-08,
+                    "tolerance": 1e-06,
+                    "observable": "excited"
+                  },
+                  {
+                    "name": "metric",
+                    "scope": "local endpoint",
+                    "outcome": "pass",
+                    "residual": 5.0791237882208407e-08,
+                    "tolerance": 1e-06,
+                    "metric": "excited_population"
+                  }
+                ]
+              },
+              {
+                "start_ns": 799.0,
+                "end_ns": 801.0,
+                "engine": "qutip-cpu",
+                "dimensions": [
+                  6,
+                  8
+                ],
+                "rtol": 1e-11,
+                "atol": 1e-13,
+                "max_steps": 100000,
+                "checks": [
+                  {
+                    "name": "trace",
+                    "scope": "every stored state at every output time",
+                    "outcome": "pass",
+                    "residual": 8.704148513919356e-14,
+                    "tolerance": 1e-08
+                  },
+                  {
+                    "name": "hermiticity",
+                    "scope": "every stored state at every output time",
+                    "outcome": "pass",
+                    "residual": 1.0793401542102008e-15,
+                    "tolerance": 1e-08
+                  },
+                  {
+                    "name": "positivity",
+                    "scope": "every stored state at every output time",
+                    "outcome": "pass",
+                    "residual": -2.584005464791484e-16,
+                    "tolerance": -1e-08
+                  },
+                  {
+                    "name": "observable",
+                    "scope": "local trajectory",
+                    "outcome": "pass",
+                    "residual": 3.4192442232607034e-09,
+                    "tolerance": 1e-06,
+                    "observable": "photons"
+                  },
+                  {
+                    "name": "observable",
+                    "scope": "local trajectory",
+                    "outcome": "pass",
+                    "residual": 4.881769433140448e-10,
+                    "tolerance": 1e-06,
+                    "observable": "excited"
+                  },
+                  {
+                    "name": "metric",
+                    "scope": "local endpoint",
+                    "outcome": "pass",
+                    "residual": 4.881769433140448e-10,
+                    "tolerance": 1e-06,
+                    "metric": "excited_population"
+                  }
+                ]
+              },
+              {
+                "start_ns": 1598.0,
+                "end_ns": 1600.0,
+                "engine": "qutip-cpu",
+                "dimensions": [
+                  6,
+                  8
+                ],
+                "rtol": 1e-11,
+                "atol": 1e-13,
+                "max_steps": 100000,
+                "checks": [
+                  {
+                    "name": "trace",
+                    "scope": "every stored state at every output time",
+                    "outcome": "pass",
+                    "residual": 6.594724780547528e-14,
+                    "tolerance": 1e-08
+                  },
+                  {
+                    "name": "hermiticity",
+                    "scope": "every stored state at every output time",
+                    "outcome": "pass",
+                    "residual": 5.561765157446405e-16,
+                    "tolerance": 1e-08
+                  },
+                  {
+                    "name": "positivity",
+                    "scope": "every stored state at every output time",
+                    "outcome": "pass",
+                    "residual": -1.5669822175054051e-18,
+                    "tolerance": -1e-08
+                  },
+                  {
+                    "name": "observable",
+                    "scope": "local trajectory",
+                    "outcome": "pass",
+                    "residual": 5.940759580016358e-09,
+                    "tolerance": 1e-06,
+                    "observable": "photons"
+                  },
+                  {
+                    "name": "observable",
+                    "scope": "local trajectory",
+                    "outcome": "pass",
+                    "residual": 4.799290964641045e-10,
+                    "tolerance": 1e-06,
+                    "observable": "excited"
+                  },
+                  {
+                    "name": "metric",
+                    "scope": "local endpoint",
+                    "outcome": "pass",
+                    "residual": 4.799290964641045e-10,
+                    "tolerance": 1e-06,
+                    "metric": "excited_population"
+                  }
+                ]
+              }
+            ],
+            "coverage": {
+              "covered_fraction": 0.00375,
+              "scope": "local agreement over sampled windows only; no extrapolation",
+              "uncovered_drive_changes": {
+                "count": 0
+              }
+            }
+          },
+          {
+            "name": "diagnostics",
+            "scope": "top-level populations at stored times; ordered static shifts and weights, not dynamics error estimates",
+            "values": {
+              "cutoff_shifts_ghz": [
+                0.0,
+                -1.6946479775015177e-09,
+                -3.657529390466152e-09,
+                -5.648434381555489e-06,
+                -4.491063521072647e-09,
+                -7.224512543757555e-09,
+                -1.7058373842360197e-06,
+                -2.961141851365312e-05,
+                -0.0024010165242227544,
+                -1.2818176742257492e-07,
+                -1.1253934673050026e-08,
+                -3.691515511050625e-06,
+                -1.2303922945716597,
+                -1.8560302978214978,
+                -0.21641461600730594,
+                -1.798379634626352,
+                -0.7398521163579446,
+                -2.386664051023274,
+                -3.085920799109008,
+                -2.0772606682124177,
+                -2.0222768290164197,
+                -2.5362253074447842,
+                -3.124332414248329,
+                -4.228683473088186,
+                -3.353734207439434,
+                -4.613031951636483,
+                -5.193732242082376,
+                -6.756967740965386,
+                -7.79396022460088,
+                -11.267309234600617
+              ],
+              "outside_weights": [
+                4.662992214576889e-11,
+                1.3378420593568308e-10,
+                2.401638887761237e-10,
+                2.8570806875904964e-07,
+                2.1192425592175823e-10,
+                4.326489166928127e-10,
+                1.530989262032989e-07,
+                3.7786570645792494e-06,
+                0.0002199415693875384,
+                3.055008257479841e-08,
+                7.345785091317225e-10,
+                2.846513221799185e-07,
+                0.9972587407308677,
+                7.4208841488454524e-06,
+                0.00317145493961557,
+                9.28161557611773e-08,
+                9.216435548076163e-08,
+                6.583630443923738e-06,
+                0.994317662307546,
+                1.123890606258282e-05,
+                0.006096151138206718,
+                4.486143559745415e-06,
+                0.00029093904572108364,
+                1.9089455721377213e-05,
+                0.9913968455824598,
+                7.364089692318831e-05,
+                0.008994443825295462,
+                0.014087616904445155,
+                0.9864382038106575,
+                0.0001250331461364329
+              ],
+              "top_level_population": [
+                {
+                  "name": "top_level_population",
+                  "subsystem_index": 0,
+                  "scope": "every stored state at every output time",
+                  "population": 3.7237686239897745e-06,
+                  "threshold": 1e-06,
+                  "triggered": true
+                },
+                {
+                  "name": "top_level_population",
+                  "subsystem_index": 1,
+                  "scope": "every stored state at every output time",
+                  "population": 1.1880152284491107e-14,
+                  "threshold": 1e-06,
+                  "triggered": false
+                }
+              ]
+            }
+          }
+        ],
+        "refinement": {
+          "q": {
+            "retained_levels_step": 1,
+            "cutoff_steps": {
+              "cutoff": 2
+            }
+          },
+          "r": {
+            "retained_levels_step": 2,
+            "cutoff_steps": {}
+          }
+        }
+      }
+    },
+    {
+      "run_id": "r20261020T021305861645Z-33e5d93e",
+      "path": "/home/paimon/Projects/Entanglix/research_runs/readout/r20261020T021305861645Z-33e5d93e",
+      "parent_run_ids": [
+        "r20261020T021231779654Z-eddeb85a"
+      ],
+      "engine": "qutip-cpu",
+      "device": "cpu",
+      "dimensions": [
+        5,
+        6
+      ],
+      "env_hash": "2699980e55fdcbfd137cf7d5cff9d087203bc1b224ac416527823fe82812e7ca",
+      "environment": {
+        "lock_sha256": "44c4e6aa76860221ea9e45284a072ec29a681c7c2369fe9064140b5d77870575",
+        "python": "3.13.12",
+        "extras": [
+          "cuquantum",
+          "differentiable-cuda12"
+        ],
+        "env_hash": "2699980e55fdcbfd137cf7d5cff9d087203bc1b224ac416527823fe82812e7ca",
+        "platform": {
+          "system": "Linux",
+          "machine": "x86_64",
+          "libc": [
+            "glibc",
+            "2.43"
+          ]
+        },
+        "gpu": {
+          "driver": "unobserved",
+          "cuda": "unobserved",
+          "cuquantum": "unobserved"
+        }
+      },
+      "code": {
+        "revision": "554336e0c2aac53b62a2d912fd001a0b426ce9b8",
+        "dirty": true,
+        "patch_sha256": "2bde1d0894f2f71ad9ecefefd4bd0c98d6333bdbcb2430f4e2ab448d6703b470",
+        "untracked_sha256": {}
+      },
+      "plan_sha256": "b2049bddced5a794a9a5623d76201de908ff734c973a25c068f087c900776429",
+      "metrics": {
+        "excited_population": 0.8882458734127346
+      },
+      "usage": {
+        "wall_seconds": 30.45971725403797,
+        "gpu_seconds": 0,
+        "uncertain": false
+      },
+      "automatic_checks": false,
+      "verification_run_id": "r20261020T021336496873Z-1d27b9ce",
+      "policy_version": "ee3237e19301045bb9e12c86e28d5f78bab0c031ead112dad000fe71b085bcf6",
+      "report": {
+        "kind": "lindblad",
+        "requested_checks": [
+          "integrity",
+          "segments",
+          "diagnostics"
+        ],
+        "refinement_origin": "source spec",
+        "work_seconds": 0.9179969540564343,
+        "limit": "No built-in check measures whole-window error or the accuracy of a rotating-wave approximation.",
+        "checks": [
+          {
+            "name": "integrity",
+            "outcome": "pass",
+            "scope": "every stored state and reported value",
+            "checks": [
+              {
+                "name": "trace",
+                "scope": "every stored state at every output time",
+                "outcome": "pass",
+                "residual": 1.0613732119559262e-13,
+                "tolerance": 1e-08
+              },
+              {
+                "name": "hermiticity",
+                "scope": "every stored state at every output time",
+                "outcome": "pass",
+                "residual": 1.8875935237911737e-15,
+                "tolerance": 1e-08
+              },
+              {
+                "name": "positivity",
+                "scope": "every stored state at every output time",
+                "outcome": "pass",
+                "residual": -3.372344797517687e-13,
+                "tolerance": -1e-08
+              },
+              {
+                "name": "initial_state",
+                "scope": "first stored density matrix in the lab basis; Frobenius norm",
+                "outcome": "pass",
+                "residual": 0.0,
+                "tolerance": 1e-08
+              },
+              {
+                "name": "output_grid",
+                "scope": "declared output grid and stored state count",
+                "outcome": "pass",
+                "residual": 0.0,
+                "tolerance": 0.0
+              },
+              {
+                "name": "observable_consistency",
+                "scope": "every stored value",
+                "outcome": "pass",
+                "residual": 5.684707117064679e-17,
+                "tolerance": 1e-06,
+                "observable": "photons"
+              },
+              {
+                "name": "observable_consistency",
+                "scope": "every stored value",
+                "outcome": "pass",
+                "residual": 1.2085687304975894e-16,
+                "tolerance": 1e-06,
+                "observable": "excited"
+              },
+              {
+                "name": "metric_consistency",
+                "scope": "reported endpoint formula",
+                "outcome": "pass",
+                "residual": 0.0,
+                "tolerance": 1e-06,
+                "metric": "excited_population"
+              },
+              {
+                "name": "metric_names",
+                "scope": "trusted metric definitions",
+                "outcome": "pass",
+                "residual": 0.0,
+                "tolerance": 0.0
+              }
+            ]
+          },
+          {
+            "name": "segments",
+            "outcome": "pass",
+            "scope": "local convergence comparison in the source frame; inherits accumulated error",
+            "segments": [
+              {
+                "start_ns": 0.0,
+                "end_ns": 2.0,
+                "engine": "qutip-cpu",
+                "dimensions": [
+                  6,
+                  8
+                ],
+                "rtol": 1e-11,
+                "atol": 1e-13,
+                "max_steps": 100000,
+                "checks": [
+                  {
+                    "name": "trace",
+                    "scope": "every stored state at every output time",
+                    "outcome": "pass",
+                    "residual": 1.110223026522293e-15,
+                    "tolerance": 1e-08
+                  },
+                  {
+                    "name": "hermiticity",
+                    "scope": "every stored state at every output time",
+                    "outcome": "pass",
+                    "residual": 5.3461199011577e-17,
+                    "tolerance": 1e-08
+                  },
+                  {
+                    "name": "positivity",
+                    "scope": "every stored state at every output time",
+                    "outcome": "pass",
+                    "residual": -2.8319464127459363e-14,
+                    "tolerance": -1e-08
+                  },
+                  {
+                    "name": "observable",
+                    "scope": "local trajectory",
+                    "outcome": "pass",
+                    "residual": 5.216124218665463e-08,
+                    "tolerance": 1e-06,
+                    "observable": "photons"
+                  },
+                  {
+                    "name": "observable",
+                    "scope": "local trajectory",
+                    "outcome": "pass",
+                    "residual": 5.0791237882208407e-08,
+                    "tolerance": 1e-06,
+                    "observable": "excited"
+                  },
+                  {
+                    "name": "metric",
+                    "scope": "local endpoint",
+                    "outcome": "pass",
+                    "residual": 5.0791237882208407e-08,
+                    "tolerance": 1e-06,
+                    "metric": "excited_population"
+                  }
+                ]
+              },
+              {
+                "start_ns": 799.0,
+                "end_ns": 801.0,
+                "engine": "qutip-cpu",
+                "dimensions": [
+                  6,
+                  8
+                ],
+                "rtol": 1e-11,
+                "atol": 1e-13,
+                "max_steps": 100000,
+                "checks": [
+                  {
+                    "name": "trace",
+                    "scope": "every stored state at every output time",
+                    "outcome": "pass",
+                    "residual": 8.704148513919356e-14,
+                    "tolerance": 1e-08
+                  },
+                  {
+                    "name": "hermiticity",
+                    "scope": "every stored state at every output time",
+                    "outcome": "pass",
+                    "residual": 1.0793401542102008e-15,
+                    "tolerance": 1e-08
+                  },
+                  {
+                    "name": "positivity",
+                    "scope": "every stored state at every output time",
+                    "outcome": "pass",
+                    "residual": -2.584005464791484e-16,
+                    "tolerance": -1e-08
+                  },
+                  {
+                    "name": "observable",
+                    "scope": "local trajectory",
+                    "outcome": "pass",
+                    "residual": 3.4192442232607034e-09,
+                    "tolerance": 1e-06,
+                    "observable": "photons"
+                  },
+                  {
+                    "name": "observable",
+                    "scope": "local trajectory",
+                    "outcome": "pass",
+                    "residual": 4.881769433140448e-10,
+                    "tolerance": 1e-06,
+                    "observable": "excited"
+                  },
+                  {
+                    "name": "metric",
+                    "scope": "local endpoint",
+                    "outcome": "pass",
+                    "residual": 4.881769433140448e-10,
+                    "tolerance": 1e-06,
+                    "metric": "excited_population"
+                  }
+                ]
+              },
+              {
+                "start_ns": 1598.0,
+                "end_ns": 1600.0,
+                "engine": "qutip-cpu",
+                "dimensions": [
+                  6,
+                  8
+                ],
+                "rtol": 1e-11,
+                "atol": 1e-13,
+                "max_steps": 100000,
+                "checks": [
+                  {
+                    "name": "trace",
+                    "scope": "every stored state at every output time",
+                    "outcome": "pass",
+                    "residual": 6.594724780547528e-14,
+                    "tolerance": 1e-08
+                  },
+                  {
+                    "name": "hermiticity",
+                    "scope": "every stored state at every output time",
+                    "outcome": "pass",
+                    "residual": 5.561765157446405e-16,
+                    "tolerance": 1e-08
+                  },
+                  {
+                    "name": "positivity",
+                    "scope": "every stored state at every output time",
+                    "outcome": "pass",
+                    "residual": -1.5669822175054051e-18,
+                    "tolerance": -1e-08
+                  },
+                  {
+                    "name": "observable",
+                    "scope": "local trajectory",
+                    "outcome": "pass",
+                    "residual": 5.940759580016358e-09,
+                    "tolerance": 1e-06,
+                    "observable": "photons"
+                  },
+                  {
+                    "name": "observable",
+                    "scope": "local trajectory",
+                    "outcome": "pass",
+                    "residual": 4.799290964641045e-10,
+                    "tolerance": 1e-06,
+                    "observable": "excited"
+                  },
+                  {
+                    "name": "metric",
+                    "scope": "local endpoint",
+                    "outcome": "pass",
+                    "residual": 4.799290964641045e-10,
+                    "tolerance": 1e-06,
+                    "metric": "excited_population"
+                  }
+                ]
+              }
+            ],
+            "coverage": {
+              "covered_fraction": 0.00375,
+              "scope": "local agreement over sampled windows only; no extrapolation",
+              "uncovered_drive_changes": {
+                "count": 0
+              }
+            }
+          },
+          {
+            "name": "diagnostics",
+            "scope": "top-level populations at stored times; ordered static shifts and weights, not dynamics error estimates",
+            "values": {
+              "cutoff_shifts_ghz": [
+                0.0,
+                -1.6946479775015177e-09,
+                -3.657529390466152e-09,
+                -5.648434381555489e-06,
+                -4.491063521072647e-09,
+                -7.224512543757555e-09,
+                -1.7058373842360197e-06,
+                -2.961141851365312e-05,
+                -0.0024010165242227544,
+                -1.2818176742257492e-07,
+                -1.1253934673050026e-08,
+                -3.691515511050625e-06,
+                -1.2303922945716597,
+                -1.8560302978214978,
+                -0.21641461600730594,
+                -1.798379634626352,
+                -0.7398521163579446,
+                -2.386664051023274,
+                -3.085920799109008,
+                -2.0772606682124177,
+                -2.0222768290164197,
+                -2.5362253074447842,
+                -3.124332414248329,
+                -4.228683473088186,
+                -3.353734207439434,
+                -4.613031951636483,
+                -5.193732242082376,
+                -6.756967740965386,
+                -7.79396022460088,
+                -11.267309234600617
+              ],
+              "outside_weights": [
+                4.662992214576889e-11,
+                1.3378420593568308e-10,
+                2.401638887761237e-10,
+                2.8570806875904964e-07,
+                2.1192425592175823e-10,
+                4.326489166928127e-10,
+                1.530989262032989e-07,
+                3.7786570645792494e-06,
+                0.0002199415693875384,
+                3.055008257479841e-08,
+                7.345785091317225e-10,
+                2.846513221799185e-07,
+                0.9972587407308677,
+                7.4208841488454524e-06,
+                0.00317145493961557,
+                9.28161557611773e-08,
+                9.216435548076163e-08,
+                6.583630443923738e-06,
+                0.994317662307546,
+                1.123890606258282e-05,
+                0.006096151138206718,
+                4.486143559745415e-06,
+                0.00029093904572108364,
+                1.9089455721377213e-05,
+                0.9913968455824598,
+                7.364089692318831e-05,
+                0.008994443825295462,
+                0.014087616904445155,
+                0.9864382038106575,
+                0.0001250331461364329
+              ],
+              "top_level_population": [
+                {
+                  "name": "top_level_population",
+                  "subsystem_index": 0,
+                  "scope": "every stored state at every output time",
+                  "population": 3.7237686239897745e-06,
+                  "threshold": 1e-06,
+                  "triggered": true
+                },
+                {
+                  "name": "top_level_population",
+                  "subsystem_index": 1,
+                  "scope": "every stored state at every output time",
+                  "population": 1.1880152284491107e-14,
+                  "threshold": 1e-06,
+                  "triggered": false
+                }
+              ]
+            }
+          }
+        ],
+        "refinement": {
+          "q": {
+            "retained_levels_step": 1,
+            "cutoff_steps": {
+              "cutoff": 2
+            }
+          },
+          "r": {
+            "retained_levels_step": 2,
+            "cutoff_steps": {}
+          }
+        }
+      }
+    }
+  ],
+  "replay_maximum_residual": 0.0,
+  "replay_atol": 1e-07,
+  "replay_provenance": {
+    "code_matches": true,
+    "environment_matches": true
+  },
+  "more_levels": {
+    "run_id": "r20261020T021338820092Z-492a94ff",
+    "path": "/home/paimon/Projects/Entanglix/research_runs/readout/r20261020T021338820092Z-492a94ff",
+    "parent_run_ids": [],
+    "engine": "qutip-cpu",
+    "device": "cpu",
+    "dimensions": [
+      6,
+      8
+    ],
+    "env_hash": "2699980e55fdcbfd137cf7d5cff9d087203bc1b224ac416527823fe82812e7ca",
+    "environment": {
+      "lock_sha256": "44c4e6aa76860221ea9e45284a072ec29a681c7c2369fe9064140b5d77870575",
+      "python": "3.13.12",
+      "extras": [
+        "cuquantum",
+        "differentiable-cuda12"
+      ],
+      "env_hash": "2699980e55fdcbfd137cf7d5cff9d087203bc1b224ac416527823fe82812e7ca",
+      "platform": {
+        "system": "Linux",
+        "machine": "x86_64",
+        "libc": [
+          "glibc",
+          "2.43"
+        ]
+      },
+      "gpu": {
+        "driver": "unobserved",
+        "cuda": "unobserved",
+        "cuquantum": "unobserved"
+      }
+    },
+    "code": {
+      "revision": "554336e0c2aac53b62a2d912fd001a0b426ce9b8",
+      "dirty": true,
+      "patch_sha256": "2bde1d0894f2f71ad9ecefefd4bd0c98d6333bdbcb2430f4e2ab448d6703b470",
+      "untracked_sha256": {}
+    },
+    "plan_sha256": "4d46f940f3c3238536d51bef8c04f9d91ae44c7e04d01713c428bec9a236e391",
+    "metrics": {
+      "excited_population": 0.8882458376038301
+    },
+    "usage": {
+      "wall_seconds": 119.05933857196942,
+      "gpu_seconds": 0,
+      "uncertain": false
+    },
+    "automatic_checks": false,
+    "verification_run_id": "r20261020T021538124142Z-7d7a46ec",
+    "policy_version": "ee3237e19301045bb9e12c86e28d5f78bab0c031ead112dad000fe71b085bcf6",
+    "report": {
+      "kind": "lindblad",
+      "requested_checks": [
+        "integrity"
+      ],
+      "refinement_origin": "source spec",
+      "work_seconds": 0.4279962560394779,
+      "limit": "No built-in check measures whole-window error or the accuracy of a rotating-wave approximation.",
+      "checks": [
+        {
+          "name": "integrity",
+          "outcome": "pass",
+          "scope": "every stored state and reported value",
+          "checks": [
+            {
+              "name": "trace",
+              "scope": "every stored state at every output time",
+              "outcome": "pass",
+              "residual": 3.597122616737933e-14,
+              "tolerance": 1e-08
+            },
+            {
+              "name": "hermiticity",
+              "scope": "every stored state at every output time",
+              "outcome": "pass",
+              "residual": 9.69242666174547e-15,
+              "tolerance": 1e-08
+            },
+            {
+              "name": "positivity",
+              "scope": "every stored state at every output time",
+              "outcome": "pass",
+              "residual": -9.443348686060086e-13,
+              "tolerance": -1e-08
+            },
+            {
+              "name": "initial_state",
+              "scope": "first stored density matrix in the lab basis; Frobenius norm",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-08
+            },
+            {
+              "name": "output_grid",
+              "scope": "declared output grid and stored state count",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 0.0
+            },
+            {
+              "name": "observable_consistency",
+              "scope": "every stored value",
+              "outcome": "pass",
+              "residual": 5.4954197313970926e-17,
+              "tolerance": 1e-06,
+              "observable": "photons"
+            },
+            {
+              "name": "observable_consistency",
+              "scope": "every stored value",
+              "outcome": "pass",
+              "residual": 1.2862675833297529e-16,
+              "tolerance": 1e-06,
+              "observable": "excited"
+            },
+            {
+              "name": "metric_consistency",
+              "scope": "reported endpoint formula",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 1e-06,
+              "metric": "excited_population"
+            },
+            {
+              "name": "metric_names",
+              "scope": "trusted metric definitions",
+              "outcome": "pass",
+              "residual": 0.0,
+              "tolerance": 0.0
+            }
+          ]
+        }
+      ],
+      "refinement": {
+        "q": {
+          "retained_levels_step": 1,
+          "cutoff_steps": {
+            "cutoff": 2
+          }
+        },
+        "r": {
+          "retained_levels_step": 2,
+          "cutoff_steps": {}
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,6894 @@
+{
+  "probe": "s4_formats",
+  "source": {
+    "revision": "bc05cf6ea44d10c36b036d95076261442015a8ca",
+    "src_dirty": false,
+    "probe_sha256": "91744d4d6dd5620a55c36df89d8092437479b4c7929210a620a6df3aa54b7ec0"
+  },
+  "versions": {
+    "entanglix": "0.1.0",
+    "pydantic": "2.13.5",
+    "jsonschema": "4.26.0",
+    "mcp": "2.3.0",
+    "numpy": "2.5.3"
+  },
+  "python": "3.13.12",
+  "retained": {
+    "roots": 11,
+    "attempts": 427,
+    "files_outside_harness_layout": {
+      "s2-device-mcp.toml": 1,
+      "s2-device-cli.toml": 1,
+      "m3-client-early-stop": 17,
+      "m3-threshold-normal-client": 17,
+      "s3-catalog-mcp-inputs": 3,
+      "m3-agent-session": 32,
+      "m3-threshold-early-stop-client": 17,
+      "m3-baseline-client-early-stop": 17,
+      "m3-baseline-client-normal": 17,
+      "m3-client-normal": 17,
+      "s3-catalog-cli-inputs": 3
+    }
+  },
+  "inventory": {
+    "root: _audit/calls/<id>/outcome.toml": {
+      "files": 97,
+      "roots": 2,
+      "class": "record",
+      "format": "MCP call outcome audit"
+    },
+    "root: _audit/calls/<id>/request.toml": {
+      "files": 97,
+      "roots": 2,
+      "class": "record",
+      "format": "MCP call request audit"
+    },
+    "root: _audit/sessions/<id>.toml": {
+      "files": 6,
+      "roots": 2,
+      "class": "record",
+      "format": "MCP session audit"
+    },
+    "root: _catalog/entries/<id>/device/system.toml": {
+      "files": 2,
+      "roots": 2,
+      "class": "input",
+      "format": "system"
+    },
+    "root: _catalog/entries/<id>/pulse.npz": {
+      "files": 2,
+      "roots": 2,
+      "class": "array",
+      "format": "neutral pulse"
+    },
+    "root: _catalog/entries/<id>/record.toml": {
+      "files": 2,
+      "roots": 2,
+      "class": "record",
+      "format": "catalog entry"
+    },
+    "root: _catalog/staging/<id>/device/system.toml": {
+      "files": 2,
+      "roots": 2,
+      "class": "input",
+      "format": "system"
+    },
+    "root: _catalog/staging/<id>/pulse.npz": {
+      "files": 2,
+      "roots": 2,
+      "class": "array",
+      "format": "neutral pulse"
+    },
+    "root: _catalog/staging/<id>/record.toml": {
+      "files": 2,
+      "roots": 2,
+      "class": "record",
+      "format": "staged candidate"
+    },
+    "root: _investigations/<id>/events/<id>.toml": {
+      "files": 58,
+      "roots": 6,
+      "class": "record",
+      "format": "investigation event"
+    },
+    "root: _investigations/<id>/revisions/<id>.toml": {
+      "files": 8,
+      "roots": 6,
+      "class": "record",
+      "format": "investigation revision"
+    },
+    "root: _launches/<id>/attempt.toml": {
+      "files": 30,
+      "roots": 2,
+      "class": "record",
+      "format": "launch attempt"
+    },
+    "root: _launches/<id>/call.toml": {
+      "files": 30,
+      "roots": 2,
+      "class": "record",
+      "format": "launch call"
+    },
+    "root: _launches/<id>/request.toml": {
+      "files": 30,
+      "roots": 2,
+      "class": "record",
+      "format": "launch request"
+    },
+    "root: _launches/<id>/supervisor.log": {
+      "files": 30,
+      "roots": 2,
+      "class": "internal",
+      "format": "log"
+    },
+    "run: FINISHED": {
+      "files": 426,
+      "roots": 11,
+      "class": "record",
+      "format": "terminal"
+    },
+    "run: artifacts/assignment.toml": {
+      "files": 2,
+      "roots": 2,
+      "class": "record",
+      "format": "calibration assignment"
+    },
+    "run: artifacts/metric-<name>.png": {
+      "files": 31,
+      "roots": 6,
+      "class": "internal",
+      "format": "plot"
+    },
+    "run: artifacts/observables.png": {
+      "files": 175,
+      "roots": 6,
+      "class": "internal",
+      "format": "plot"
+    },
+    "run: artifacts/output.npz": {
+      "files": 210,
+      "roots": 8,
+      "class": "array",
+      "format": "output"
+    },
+    "run: artifacts/piccolo/*": {
+      "files": 13,
+      "roots": 1,
+      "class": "opaque",
+      "format": "solver-native"
+    },
+    "run: artifacts/points/<id>/output.npz": {
+      "files": 251,
+      "roots": 8,
+      "class": "array",
+      "format": "sweep point output"
+    },
+    "run: artifacts/points/<id>/result.toml": {
+      "files": 251,
+      "roots": 8,
+      "class": "record",
+      "format": "sweep point result"
+    },
+    "run: artifacts/pulse.npz": {
+      "files": 39,
+      "roots": 3,
+      "class": "array",
+      "format": "neutral pulse"
+    },
+    "run: artifacts/solver-trace.toml": {
+      "files": 39,
+      "roots": 3,
+      "class": "opaque",
+      "format": "solver trace"
+    },
+    "run: proposals/<id>.applied.toml": {
+      "files": 2,
+      "roots": 2,
+      "class": "record",
+      "format": "proposal application"
+    },
+    "run: proposals/<id>.toml": {
+      "files": 2,
+      "roots": 2,
+      "class": "record",
+      "format": "proposal"
+    },
+    "run: result.toml": {
+      "files": 423,
+      "roots": 11,
+      "class": "record",
+      "format": "result"
+    },
+    "run: run.log": {
+      "files": 427,
+      "roots": 11,
+      "class": "internal",
+      "format": "log"
+    },
+    "run: run.toml": {
+      "files": 427,
+      "roots": 11,
+      "class": "record",
+      "format": "run"
+    },
+    "run: runner/abort.toml": {
+      "files": 2,
+      "roots": 2,
+      "class": "record",
+      "format": "abort request"
+    },
+    "run: runner/reconciled.toml": {
+      "files": 1,
+      "roots": 1,
+      "class": "record",
+      "format": "reconciled"
+    },
+    "run: runner/started.toml": {
+      "files": 427,
+      "roots": 11,
+      "class": "record",
+      "format": "started"
+    },
+    "run: spec/base/control.toml": {
+      "files": 24,
+      "roots": 2,
+      "class": "input",
+      "format": "control"
+    },
+    "run: spec/base/readout-state.npz": {
+      "files": 130,
+      "roots": 4,
+      "class": "array",
+      "format": "initial state"
+    },
+    "run: spec/base/simulate.toml": {
+      "files": 132,
+      "roots": 6,
+      "class": "input",
+      "format": "simulation"
+    },
+    "run: spec/base/sweep.toml": {
+      "files": 8,
+      "roots": 6,
+      "class": "input",
+      "format": "sweep"
+    },
+    "run: spec/base/system.toml": {
+      "files": 156,
+      "roots": 6,
+      "class": "input",
+      "format": "system"
+    },
+    "run: spec/calibrate.toml": {
+      "files": 5,
+      "roots": 2,
+      "class": "input",
+      "format": "calibration"
+    },
+    "run: spec/check-request.toml": {
+      "files": 172,
+      "roots": 11,
+      "class": "input",
+      "format": "check request (harness-written)"
+    },
+    "run: spec/code/*": {
+      "files": 1120,
+      "roots": 11,
+      "class": "internal",
+      "format": "code provenance"
+    },
+    "run: spec/control.toml": {
+      "files": 70,
+      "roots": 3,
+      "class": "input",
+      "format": "control"
+    },
+    "run: spec/holdout/holdout.npz": {
+      "files": 2,
+      "roots": 2,
+      "class": "array",
+      "format": "measurement archive"
+    },
+    "run: spec/holdout/holdout.toml": {
+      "files": 2,
+      "roots": 2,
+      "class": "input",
+      "format": "dataset"
+    },
+    "run: spec/initial-state.npz": {
+      "files": 53,
+      "roots": 1,
+      "class": "array",
+      "format": "initial state"
+    },
+    "run: spec/plan.toml": {
+      "files": 352,
+      "roots": 8,
+      "class": "internal",
+      "format": "execution plan"
+    },
+    "run: spec/points/<id>/plan.toml": {
+      "files": 482,
+      "roots": 8,
+      "class": "internal",
+      "format": "execution plan"
+    },
+    "run: spec/points/<id>/readout-state.npz": {
+      "files": 438,
+      "roots": 6,
+      "class": "array",
+      "format": "initial state"
+    },
+    "run: spec/points/<id>/system.toml": {
+      "files": 482,
+      "roots": 8,
+      "class": "input",
+      "format": "system"
+    },
+    "run: spec/problem.toml": {
+      "files": 70,
+      "roots": 3,
+      "class": "input",
+      "format": "ProblemSpec (amicode schema)"
+    },
+    "run: spec/readout-state.npz": {
+      "files": 287,
+      "roots": 6,
+      "class": "array",
+      "format": "initial state"
+    },
+    "run: spec/simulate.toml": {
+      "files": 243,
+      "roots": 8,
+      "class": "input",
+      "format": "simulation"
+    },
+    "run: spec/starting-pulse.npz": {
+      "files": 2,
+      "roots": 2,
+      "class": "array",
+      "format": "neutral pulse"
+    },
+    "run: spec/sweep-manifest.toml": {
+      "files": 66,
+      "roots": 8,
+      "class": "internal",
+      "format": "sweep manifest"
+    },
+    "run: spec/sweep.toml": {
+      "files": 66,
+      "roots": 8,
+      "class": "input",
+      "format": "sweep"
+    },
+    "run: spec/system.toml": {
+      "files": 427,
+      "roots": 11,
+      "class": "input",
+      "format": "system"
+    },
+    "run: spec/training.npz": {
+      "files": 5,
+      "roots": 2,
+      "class": "array",
+      "format": "measurement archive"
+    },
+    "run: spec/training.toml": {
+      "files": 5,
+      "roots": 2,
+      "class": "input",
+      "format": "dataset"
+    }
+  },
+  "writers": {
+    "record_writers": [
+      {
+        "module": "_supervisor.py",
+        "function": "main",
+        "line": 24,
+        "call": "publish_toml",
+        "names": [
+          "refused.toml"
+        ],
+        "version_key_in_function": false
+      },
+      {
+        "module": "catalog.py",
+        "function": "_publish",
+        "line": 172,
+        "call": "publish_toml",
+        "names": [
+          "record.toml"
+        ],
+        "version_key_in_function": false
+      },
+      {
+        "module": "corrector/verification.py",
+        "function": "execute_verification",
+        "line": 230,
+        "call": "publish_toml",
+        "names": [
+          "result.toml"
+        ],
+        "version_key_in_function": false
+      },
+      {
+        "module": "investigations.py",
+        "function": "_event",
+        "line": 278,
+        "call": "publish_toml",
+        "names": [
+          ".toml",
+          "08d",
+          "events"
+        ],
+        "version_key_in_function": true
+      },
+      {
+        "module": "investigations.py",
+        "function": "create_investigation",
+        "line": 293,
+        "call": "publish_toml",
+        "names": [
+          "revisions/0001.toml"
+        ],
+        "version_key_in_function": true
+      },
+      {
+        "module": "investigations.py",
+        "function": "revise_investigation",
+        "line": 307,
+        "call": "publish_toml",
+        "names": [
+          ".toml",
+          "04d",
+          "revisions"
+        ],
+        "version_key_in_function": true
+      },
+      {
+        "module": "launches.py",
+        "function": "reserve_launch",
+        "line": 77,
+        "call": "publish_toml",
+        "names": [
+          "call.toml"
+        ],
+        "version_key_in_function": true
+      },
+      {
+        "module": "launches.py",
+        "function": "prepare_launch",
+        "line": 136,
+        "call": "publish_toml",
+        "names": [
+          "request.toml"
+        ],
+        "version_key_in_function": true
+      },
+      {
+        "module": "launches.py",
+        "function": "launch_job",
+        "line": 244,
+        "call": "publish_toml",
+        "names": [
+          "refused.toml"
+        ],
+        "version_key_in_function": false
+      },
+      {
+        "module": "mcp.py",
+        "function": "build_server.audit_call",
+        "line": 174,
+        "call": "publish_toml",
+        "names": [],
+        "version_key_in_function": true
+      },
+      {
+        "module": "mcp.py",
+        "function": "build_server.audit_call",
+        "line": 253,
+        "call": "publish_toml",
+        "names": [
+          "request.toml"
+        ],
+        "version_key_in_function": true
+      },
+      {
+        "module": "mcp.py",
+        "function": "build_server.audit_call",
+        "line": 325,
+        "call": "publish_toml",
+        "names": [
+          "outcome.toml"
+        ],
+        "version_key_in_function": true
+      },
+      {
+        "module": "proposals.py",
+        "function": "propose_device_update",
+        "line": 134,
+        "call": "publish_toml",
+        "names": [],
+        "version_key_in_function": true
+      },
+      {
+        "module": "proposals.py",
+        "function": "apply_device_update",
+        "line": 223,
+        "call": "publish_toml",
+        "names": [],
+        "version_key_in_function": true
+      },
+      {
+        "module": "proposals.py",
+        "function": "apply_device_update",
+        "line": 242,
+        "call": "publish_toml",
+        "names": [],
+        "version_key_in_function": true
+      },
+      {
+        "module": "protocols/_calibrate_job.py",
+        "function": "execute",
+        "line": 46,
+        "call": "publish_toml",
+        "names": [],
+        "version_key_in_function": false
+      },
+      {
+        "module": "protocols/_calibrate_job.py",
+        "function": "execute",
+        "line": 48,
+        "call": "publish_toml",
+        "names": [
+          "result.toml"
+        ],
+        "version_key_in_function": false
+      },
+      {
+        "module": "protocols/_control_job.py",
+        "function": "execute",
+        "line": 49,
+        "call": "publish_toml",
+        "names": [],
+        "version_key_in_function": false
+      },
+      {
+        "module": "protocols/_control_job.py",
+        "function": "execute",
+        "line": 53,
+        "call": "publish_toml",
+        "names": [
+          "result.toml"
+        ],
+        "version_key_in_function": false
+      },
+      {
+        "module": "protocols/_plan_job.py",
+        "function": "execute",
+        "line": 87,
+        "call": "publish_toml",
+        "names": [
+          "result.toml"
+        ],
+        "version_key_in_function": false
+      },
+      {
+        "module": "protocols/_sweep_job.py",
+        "function": "execute",
+        "line": 56,
+        "call": "publish_toml",
+        "names": [
+          "result.toml"
+        ],
+        "version_key_in_function": false
+      },
+      {
+        "module": "protocols/_sweep_job.py",
+        "function": "execute",
+        "line": 91,
+        "call": "publish_toml",
+        "names": [
+          "result.toml"
+        ],
+        "version_key_in_function": false
+      },
+      {
+        "module": "runner.py",
+        "function": "_create_run",
+        "line": 447,
+        "call": "publish_toml",
+        "names": [
+          "attempt.toml"
+        ],
+        "version_key_in_function": true
+      },
+      {
+        "module": "runner.py",
+        "function": "_create_run",
+        "line": 458,
+        "call": "publish_toml",
+        "names": [
+          "run.toml"
+        ],
+        "version_key_in_function": true
+      },
+      {
+        "module": "runner.py",
+        "function": "record_start",
+        "line": 501,
+        "call": "publish_toml",
+        "names": [
+          "runner",
+          "started.toml"
+        ],
+        "version_key_in_function": true
+      },
+      {
+        "module": "runner.py",
+        "function": "record_finish",
+        "line": 551,
+        "call": "publish_toml",
+        "names": [
+          "FINISHED"
+        ],
+        "version_key_in_function": true
+      },
+      {
+        "module": "runner.py",
+        "function": "record_reconciliation",
+        "line": 590,
+        "call": "publish_toml",
+        "names": [
+          "reconciled.toml",
+          "runner"
+        ],
+        "version_key_in_function": true
+      },
+      {
+        "module": "runner.py",
+        "function": "bind_run",
+        "line": 696,
+        "call": "publish_toml",
+        "names": [],
+        "version_key_in_function": false
+      },
+      {
+        "module": "runner.py",
+        "function": "bind_process",
+        "line": 705,
+        "call": "publish_toml",
+        "names": [],
+        "version_key_in_function": false
+      },
+      {
+        "module": "runner.py",
+        "function": "abort_run",
+        "line": 807,
+        "call": "publish_toml",
+        "names": [
+          "runner/abort.toml"
+        ],
+        "version_key_in_function": false
+      },
+      {
+        "module": "runner.py",
+        "function": "_claim_runner_extras",
+        "line": 966,
+        "call": "publish_toml",
+        "names": [],
+        "version_key_in_function": false
+      }
+    ],
+    "toml_dumps": [
+      {
+        "module": "calibration.py",
+        "function": "__call__",
+        "line": 98,
+        "call": "tomli_w",
+        "names": [],
+        "version_key_in_function": false
+      },
+      {
+        "module": "corrector/__init__.py",
+        "function": "create_verification_run",
+        "line": 315,
+        "call": "tomli_w",
+        "names": [],
+        "version_key_in_function": false
+      },
+      {
+        "module": "corrector/control.py",
+        "function": "_sampled",
+        "line": 304,
+        "call": "tomli_w",
+        "names": [],
+        "version_key_in_function": false
+      },
+      {
+        "module": "corrector/control.py",
+        "function": "_sampled",
+        "line": 311,
+        "call": "tomli_w",
+        "names": [],
+        "version_key_in_function": false
+      },
+      {
+        "module": "corrector/reference.py",
+        "function": "write_refined_system",
+        "line": 111,
+        "call": "tomli_w",
+        "names": [],
+        "version_key_in_function": false
+      },
+      {
+        "module": "corrector/reference.py",
+        "function": "write_refined_system",
+        "line": 117,
+        "call": "tomli_w",
+        "names": [],
+        "version_key_in_function": false
+      },
+      {
+        "module": "corrector/reference.py",
+        "function": "prepare_refinement",
+        "line": 152,
+        "call": "tomli_w",
+        "names": [],
+        "version_key_in_function": false
+      },
+      {
+        "module": "measurements.py",
+        "function": "split_dataset",
+        "line": 439,
+        "call": "tomli_w",
+        "names": [],
+        "version_key_in_function": false
+      },
+      {
+        "module": "proposals.py",
+        "function": "write_parameters",
+        "line": 28,
+        "call": "tomli_w",
+        "names": [],
+        "version_key_in_function": false
+      },
+      {
+        "module": "protocols/calibrate.py",
+        "function": "compile_calibration",
+        "line": 588,
+        "call": "tomli_w",
+        "names": [],
+        "version_key_in_function": false
+      },
+      {
+        "module": "protocols/control.py",
+        "function": "override_system",
+        "line": 376,
+        "call": "tomli_w",
+        "names": [],
+        "version_key_in_function": false
+      },
+      {
+        "module": "protocols/control.py",
+        "function": "load_control",
+        "line": 624,
+        "call": "tomli_w",
+        "names": [],
+        "version_key_in_function": false
+      },
+      {
+        "module": "protocols/control.py",
+        "function": "compile_control",
+        "line": 733,
+        "call": "tomli_w",
+        "names": [],
+        "version_key_in_function": false
+      },
+      {
+        "module": "protocols/simulate.py",
+        "function": "compile_simulation",
+        "line": 149,
+        "call": "tomli_w",
+        "names": [],
+        "version_key_in_function": true
+      },
+      {
+        "module": "protocols/simulate.py",
+        "function": "compile_simulation",
+        "line": 196,
+        "call": "tomli_w",
+        "names": [],
+        "version_key_in_function": true
+      },
+      {
+        "module": "protocols/simulate.py",
+        "function": "compile_simulation",
+        "line": 218,
+        "call": "tomli_w",
+        "names": [],
+        "version_key_in_function": true
+      },
+      {
+        "module": "protocols/simulate.py",
+        "function": "compile_simulation",
+        "line": 223,
+        "call": "tomli_w",
+        "names": [],
+        "version_key_in_function": true
+      },
+      {
+        "module": "protocols/sweep.py",
+        "function": "compile_sweep",
+        "line": 183,
+        "call": "tomli_w",
+        "names": [],
+        "version_key_in_function": true
+      },
+      {
+        "module": "protocols/sweep.py",
+        "function": "compile_sweep",
+        "line": 198,
+        "call": "tomli_w",
+        "names": [],
+        "version_key_in_function": true
+      },
+      {
+        "module": "protocols/sweep.py",
+        "function": "compile_sweep",
+        "line": 200,
+        "call": "tomli_w",
+        "names": [
+          "base_inputs",
+          "format_version",
+          "inputs",
+          "kind",
+          "points",
+          "shape"
+        ],
+        "version_key_in_function": true
+      },
+      {
+        "module": "protocols/sweep.py",
+        "function": "compile_sweep",
+        "line": 214,
+        "call": "tomli_w",
+        "names": [],
+        "version_key_in_function": true
+      },
+      {
+        "module": "runner.py",
+        "function": "publish_toml",
+        "line": 220,
+        "call": "tomli_w",
+        "names": [],
+        "version_key_in_function": false
+      },
+      {
+        "module": "runner.py",
+        "function": "_create_run",
+        "line": 437,
+        "call": "tomli_w",
+        "names": [],
+        "version_key_in_function": true
+      },
+      {
+        "module": "solvers/piccolo.py",
+        "function": "solve",
+        "line": 48,
+        "call": "tomli_w",
+        "names": [],
+        "version_key_in_function": false
+      }
+    ],
+    "array_sites": {
+      "catalog.py:67 _neutral_pulse np.load": "neutral pulse",
+      "catalog.py:295 register_result np.savez": "neutral pulse",
+      "corrector/reference.py:144 prepare_refinement np.savez": "reference state",
+      "corrector/sweeps.py:50 _point_output np.load": "sweep point output",
+      "corrector/sweeps.py:60 sweep_checks np.load": "sweep output",
+      "corrector/sweeps.py:107 sweep_checks np.load": "sweep output",
+      "corrector/verification.py:47 _output np.load": "simulation output",
+      "corrector/verification.py:180 execute_verification np.load": "simulation output",
+      "measurements.py:266 _load_arrays np.load": "measurement archive",
+      "measurements.py:423 split_dataset np.savez": "measurement archive",
+      "models.py:351 _construct_operators np.load": "explicit-operator archive",
+      "protocols/_control_job.py:42 execute np.savez": "neutral pulse",
+      "protocols/_plan_job.py:52 execute np.savez": "simulation output",
+      "protocols/_sweep_job.py:42 execute np.savez": "sweep output",
+      "protocols/_sweep_job.py:70 execute np.savez": "sweep output",
+      "protocols/control.py:325 _match_start np.savez": "neutral pulse",
+      "protocols/plans.py:129 load_plan np.load": "initial state",
+      "protocols/simulate.py:184 compile_simulation np.savez": "initial state"
+    },
+    "array_sites_unmapped": [],
+    "array_table_unused": []
+  },
+  "variation": {
+    "root: _audit/sessions/<id>.toml": {
+      "instances": 6,
+      "unreadable": [],
+      "versions": {
+        "1": 6
+      },
+      "top_level_key_sets": 1,
+      "optional_top_level": [],
+      "maps_collapsed": [],
+      "int_and_float": [],
+      "mixed_types": {},
+      "datetime_paths": [
+        "timestamp"
+      ],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 28
+    },
+    "root: _audit/calls/<id>/outcome.toml": {
+      "instances": 97,
+      "unreadable": [],
+      "versions": {
+        "1": 97
+      },
+      "top_level_key_sets": 2,
+      "optional_top_level": [
+        "links"
+      ],
+      "maps_collapsed": [],
+      "int_and_float": [],
+      "mixed_types": {},
+      "datetime_paths": [
+        "timestamp"
+      ],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 14
+    },
+    "root: _audit/calls/<id>/request.toml": {
+      "instances": 97,
+      "unreadable": [],
+      "versions": {
+        "1": 97
+      },
+      "top_level_key_sets": 2,
+      "optional_top_level": [
+        "launch_path"
+      ],
+      "maps_collapsed": [],
+      "int_and_float": [],
+      "mixed_types": {},
+      "datetime_paths": [
+        "timestamp"
+      ],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 10
+    },
+    "run: run.toml": {
+      "instances": 427,
+      "unreadable": [],
+      "versions": {
+        "1": 427
+      },
+      "top_level_key_sets": 7,
+      "optional_top_level": [
+        "investigation_base",
+        "investigation_commitment",
+        "investigation_id",
+        "investigation_limits",
+        "investigation_revision",
+        "investigation_values",
+        "launch_id",
+        "source_entry_ids"
+      ],
+      "maps_collapsed": [
+        "code.untracked_sha256",
+        "launch",
+        "launch.*",
+        "spec_sha256"
+      ],
+      "int_and_float": [
+        "launch.*",
+        "launch.*.*"
+      ],
+      "mixed_types": {
+        "launch.*": [
+          "float",
+          "int",
+          "string",
+          "table"
+        ],
+        "launch.*.*": [
+          "array",
+          "bool",
+          "float",
+          "int",
+          "string",
+          "table"
+        ]
+      },
+      "datetime_paths": [
+        "created_at"
+      ],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 80
+    },
+    "run: result.toml": {
+      "instances": 423,
+      "unreadable": [],
+      "versions": {
+        "absent": 423
+      },
+      "top_level_key_sets": 8,
+      "optional_top_level": [
+        "artifacts",
+        "calibration_sha256",
+        "datasets",
+        "device",
+        "diagnostics",
+        "dimensions",
+        "ignored_guidance_fields",
+        "kind",
+        "method",
+        "objective",
+        "outcome",
+        "parameters",
+        "plan_sha256",
+        "policy_version",
+        "problem_sha256",
+        "procedure",
+        "report",
+        "request_file",
+        "shape",
+        "solutions",
+        "solver",
+        "source_artifact_sha256",
+        "source_path",
+        "source_result_sha256",
+        "source_run_id",
+        "starts",
+        "summary",
+        "termination",
+        "timeout_seconds",
+        "tolerances"
+      ],
+      "maps_collapsed": [
+        "artifacts",
+        "report.checks.[]",
+        "report.checks.[].*",
+        "report.checks.[].*.*",
+        "report.checks.[].*.*.[]",
+        "report.checks.[].*.[]",
+        "report.checks.[].*.[].*.[]",
+        "report.checks.[].checks.[]",
+        "report.checks.[].points.[]",
+        "report.checks.[].values",
+        "solutions.[]",
+        "solutions.[].*"
+      ],
+      "int_and_float": [
+        "report.checks.[].*",
+        "report.checks.[].*.*",
+        "report.checks.[].*.*.*",
+        "report.checks.[].*.*.*.[]",
+        "report.checks.[].*.*.[]",
+        "report.checks.[].*.*.[].*",
+        "report.checks.[].*.*.[].*.[]",
+        "report.checks.[].*.[].*",
+        "report.checks.[].*.[].*.[]",
+        "report.checks.[].*.[].*.[].*",
+        "solutions.[].*",
+        "solutions.[].*.*",
+        "solutions.[].*.[]"
+      ],
+      "mixed_types": {
+        "report.checks.[].*.*.[].*": [
+          "array",
+          "bool",
+          "float",
+          "int",
+          "string",
+          "table"
+        ],
+        "report.checks.[].*.*": [
+          "array",
+          "float",
+          "int",
+          "string",
+          "table"
+        ],
+        "report.checks.[].*.*.*.[]": [
+          "array",
+          "float",
+          "int",
+          "string"
+        ],
+        "report.checks.[].*.*.[]": [
+          "float",
+          "int",
+          "string",
+          "table"
+        ],
+        "report.checks.[].*": [
+          "array",
+          "float",
+          "int",
+          "string",
+          "table"
+        ],
+        "report.checks.[].*.*.*": [
+          "array",
+          "bool",
+          "float",
+          "int",
+          "table"
+        ],
+        "report.checks.[].*.*.[].*.[]": [
+          "float",
+          "int",
+          "string"
+        ],
+        "report.checks.[].*.[].*": [
+          "array",
+          "float",
+          "int",
+          "string",
+          "table"
+        ],
+        "solutions.[].*": [
+          "array",
+          "float",
+          "int",
+          "string",
+          "table"
+        ],
+        "solutions.[].*.[]": [
+          "float",
+          "int",
+          "string"
+        ],
+        "report.checks.[].*.[].*.[].*": [
+          "array",
+          "float",
+          "int",
+          "string"
+        ]
+      },
+      "datetime_paths": [],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 236
+    },
+    "run: FINISHED": {
+      "instances": 426,
+      "unreadable": [],
+      "versions": {
+        "1": 426
+      },
+      "top_level_key_sets": 1,
+      "optional_top_level": [],
+      "maps_collapsed": [],
+      "int_and_float": [
+        "usage.gpu_seconds"
+      ],
+      "mixed_types": {},
+      "datetime_paths": [
+        "ended_at"
+      ],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 10
+    },
+    "run: spec/problem.toml": {
+      "instances": 70,
+      "unreadable": [],
+      "versions": {
+        "absent": 70
+      },
+      "top_level_key_sets": 1,
+      "optional_top_level": [],
+      "maps_collapsed": [],
+      "int_and_float": [],
+      "mixed_types": {},
+      "datetime_paths": [],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 40
+    },
+    "run: spec/system.toml": {
+      "instances": 427,
+      "unreadable": [],
+      "versions": {
+        "1": 427
+      },
+      "top_level_key_sets": 3,
+      "optional_top_level": [
+        "dissipators",
+        "drives",
+        "truncation"
+      ],
+      "maps_collapsed": [],
+      "int_and_float": [],
+      "mixed_types": {},
+      "datetime_paths": [],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 99
+    },
+    "run: spec/control.toml": {
+      "instances": 70,
+      "unreadable": [],
+      "versions": {
+        "1": 70
+      },
+      "top_level_key_sets": 3,
+      "optional_top_level": [
+        "evaluation",
+        "parameters",
+        "rabi_bounds",
+        "starting_pulse"
+      ],
+      "maps_collapsed": [],
+      "int_and_float": [],
+      "mixed_types": {},
+      "datetime_paths": [],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 66
+    },
+    "run: spec/check-request.toml": {
+      "instances": 172,
+      "unreadable": [],
+      "versions": {
+        "absent": 172
+      },
+      "top_level_key_sets": 2,
+      "optional_top_level": [
+        "holdout",
+        "solution"
+      ],
+      "maps_collapsed": [],
+      "int_and_float": [],
+      "mixed_types": {},
+      "datetime_paths": [],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 23
+    },
+    "run: runner/started.toml": {
+      "instances": 427,
+      "unreadable": [],
+      "versions": {
+        "1": 427
+      },
+      "top_level_key_sets": 1,
+      "optional_top_level": [],
+      "maps_collapsed": [],
+      "int_and_float": [],
+      "mixed_types": {},
+      "datetime_paths": [
+        "started_at"
+      ],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 5
+    },
+    "run: spec/base/system.toml": {
+      "instances": 156,
+      "unreadable": [],
+      "versions": {
+        "1": 156
+      },
+      "top_level_key_sets": 2,
+      "optional_top_level": [
+        "dissipators",
+        "truncation"
+      ],
+      "maps_collapsed": [],
+      "int_and_float": [],
+      "mixed_types": {},
+      "datetime_paths": [],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 73
+    },
+    "run: spec/base/control.toml": {
+      "instances": 24,
+      "unreadable": [],
+      "versions": {
+        "1": 24
+      },
+      "top_level_key_sets": 1,
+      "optional_top_level": [],
+      "maps_collapsed": [],
+      "int_and_float": [],
+      "mixed_types": {},
+      "datetime_paths": [],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 56
+    },
+    "run: spec/simulate.toml": {
+      "instances": 243,
+      "unreadable": [],
+      "versions": {
+        "1": 243
+      },
+      "top_level_key_sets": 3,
+      "optional_top_level": [
+        "evolution",
+        "levels",
+        "timeout_seconds"
+      ],
+      "maps_collapsed": [],
+      "int_and_float": [],
+      "mixed_types": {},
+      "datetime_paths": [],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 63
+    },
+    "run: spec/sweep.toml": {
+      "instances": 66,
+      "unreadable": [],
+      "versions": {
+        "1": 66
+      },
+      "top_level_key_sets": 3,
+      "optional_top_level": [
+        "evidence_metric",
+        "expectation"
+      ],
+      "maps_collapsed": [],
+      "int_and_float": [],
+      "mixed_types": {},
+      "datetime_paths": [],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 20
+    },
+    "run: artifacts/points/<id>/result.toml": {
+      "instances": 251,
+      "unreadable": [],
+      "versions": {
+        "absent": 251
+      },
+      "top_level_key_sets": 1,
+      "optional_top_level": [],
+      "maps_collapsed": [],
+      "int_and_float": [],
+      "mixed_types": {},
+      "datetime_paths": [],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 51
+    },
+    "run: spec/points/<id>/system.toml": {
+      "instances": 482,
+      "unreadable": [],
+      "versions": {
+        "1": 482
+      },
+      "top_level_key_sets": 2,
+      "optional_top_level": [
+        "dissipators",
+        "truncation"
+      ],
+      "maps_collapsed": [],
+      "int_and_float": [],
+      "mixed_types": {},
+      "datetime_paths": [],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 73
+    },
+    "run: spec/base/simulate.toml": {
+      "instances": 132,
+      "unreadable": [],
+      "versions": {
+        "1": 132
+      },
+      "top_level_key_sets": 2,
+      "optional_top_level": [
+        "evolution",
+        "levels",
+        "metrics",
+        "needs",
+        "refinement",
+        "timeout_seconds"
+      ],
+      "maps_collapsed": [],
+      "int_and_float": [],
+      "mixed_types": {},
+      "datetime_paths": [],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 51
+    },
+    "run: spec/base/sweep.toml": {
+      "instances": 8,
+      "unreadable": [],
+      "versions": {
+        "1": 8
+      },
+      "top_level_key_sets": 2,
+      "optional_top_level": [
+        "evidence_metric",
+        "expectation"
+      ],
+      "maps_collapsed": [],
+      "int_and_float": [],
+      "mixed_types": {},
+      "datetime_paths": [],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 20
+    },
+    "root: _catalog/entries/<id>/record.toml": {
+      "instances": 2,
+      "unreadable": [],
+      "versions": {
+        "1": 2
+      },
+      "top_level_key_sets": 1,
+      "optional_top_level": [],
+      "maps_collapsed": [],
+      "int_and_float": [],
+      "mixed_types": {},
+      "datetime_paths": [
+        "created_at",
+        "promoted_at"
+      ],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 44
+    },
+    "root: _catalog/entries/<id>/device/system.toml": {
+      "instances": 2,
+      "unreadable": [],
+      "versions": {
+        "1": 2
+      },
+      "top_level_key_sets": 1,
+      "optional_top_level": [],
+      "maps_collapsed": [],
+      "int_and_float": [],
+      "mixed_types": {},
+      "datetime_paths": [],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 43
+    },
+    "root: _catalog/staging/<id>/record.toml": {
+      "instances": 2,
+      "unreadable": [],
+      "versions": {
+        "1": 2
+      },
+      "top_level_key_sets": 1,
+      "optional_top_level": [],
+      "maps_collapsed": [],
+      "int_and_float": [],
+      "mixed_types": {},
+      "datetime_paths": [
+        "created_at"
+      ],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 30
+    },
+    "root: _catalog/staging/<id>/device/system.toml": {
+      "instances": 2,
+      "unreadable": [],
+      "versions": {
+        "1": 2
+      },
+      "top_level_key_sets": 1,
+      "optional_top_level": [],
+      "maps_collapsed": [],
+      "int_and_float": [],
+      "mixed_types": {},
+      "datetime_paths": [],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 43
+    },
+    "root: _launches/<id>/call.toml": {
+      "instances": 30,
+      "unreadable": [],
+      "versions": {
+        "1": 30
+      },
+      "top_level_key_sets": 2,
+      "optional_top_level": [
+        "investigation_id"
+      ],
+      "maps_collapsed": [],
+      "int_and_float": [],
+      "mixed_types": {},
+      "datetime_paths": [],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 4
+    },
+    "root: _launches/<id>/attempt.toml": {
+      "instances": 30,
+      "unreadable": [],
+      "versions": {
+        "absent": 30
+      },
+      "top_level_key_sets": 2,
+      "optional_top_level": [
+        "investigation_revision"
+      ],
+      "maps_collapsed": [],
+      "int_and_float": [],
+      "mixed_types": {},
+      "datetime_paths": [],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 2
+    },
+    "root: _launches/<id>/request.toml": {
+      "instances": 30,
+      "unreadable": [],
+      "versions": {
+        "1": 30
+      },
+      "top_level_key_sets": 2,
+      "optional_top_level": [
+        "investigation_id"
+      ],
+      "maps_collapsed": [],
+      "int_and_float": [],
+      "mixed_types": {},
+      "datetime_paths": [
+        "created_at"
+      ],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 20
+    },
+    "root: _investigations/<id>/events/<id>.toml": {
+      "instances": 58,
+      "unreadable": [],
+      "versions": {
+        "1": 58
+      },
+      "top_level_key_sets": 4,
+      "optional_top_level": [
+        "action",
+        "evidence",
+        "finding",
+        "finished_attempts",
+        "note",
+        "reason",
+        "runs",
+        "source",
+        "usage"
+      ],
+      "maps_collapsed": [],
+      "int_and_float": [],
+      "mixed_types": {},
+      "datetime_paths": [
+        "recorded_at"
+      ],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 53
+    },
+    "root: _investigations/<id>/revisions/<id>.toml": {
+      "instances": 8,
+      "unreadable": [],
+      "versions": {
+        "1": 8
+      },
+      "top_level_key_sets": 1,
+      "optional_top_level": [],
+      "maps_collapsed": [],
+      "int_and_float": [
+        "terms.scope.bases.[].variations.[].values.[]"
+      ],
+      "mixed_types": {},
+      "datetime_paths": [
+        "created_at"
+      ],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 56
+    },
+    "run: spec/calibrate.toml": {
+      "instances": 5,
+      "unreadable": [],
+      "versions": {
+        "1": 5
+      },
+      "top_level_key_sets": 1,
+      "optional_top_level": [],
+      "maps_collapsed": [],
+      "int_and_float": [],
+      "mixed_types": {},
+      "datetime_paths": [],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 62
+    },
+    "run: spec/training.toml": {
+      "instances": 5,
+      "unreadable": [],
+      "versions": {
+        "1": 5
+      },
+      "top_level_key_sets": 1,
+      "optional_top_level": [],
+      "maps_collapsed": [],
+      "int_and_float": [],
+      "mixed_types": {},
+      "datetime_paths": [
+        "provenance.measured_at"
+      ],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 25
+    },
+    "run: spec/holdout/holdout.toml": {
+      "instances": 2,
+      "unreadable": [],
+      "versions": {
+        "1": 2
+      },
+      "top_level_key_sets": 1,
+      "optional_top_level": [],
+      "maps_collapsed": [],
+      "int_and_float": [],
+      "mixed_types": {},
+      "datetime_paths": [
+        "provenance.measured_at"
+      ],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 25
+    },
+    "run: artifacts/assignment.toml": {
+      "instances": 2,
+      "unreadable": [],
+      "versions": {
+        "absent": 2
+      },
+      "top_level_key_sets": 1,
+      "optional_top_level": [],
+      "maps_collapsed": [],
+      "int_and_float": [],
+      "mixed_types": {},
+      "datetime_paths": [],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 21
+    },
+    "run: proposals/<id>.applied.toml": {
+      "instances": 2,
+      "unreadable": [],
+      "versions": {
+        "1": 2
+      },
+      "top_level_key_sets": 1,
+      "optional_top_level": [],
+      "maps_collapsed": [],
+      "int_and_float": [],
+      "mixed_types": {},
+      "datetime_paths": [
+        "applied_at"
+      ],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 12
+    },
+    "run: proposals/<id>.toml": {
+      "instances": 2,
+      "unreadable": [],
+      "versions": {
+        "1": 2
+      },
+      "top_level_key_sets": 1,
+      "optional_top_level": [],
+      "maps_collapsed": [],
+      "int_and_float": [],
+      "mixed_types": {},
+      "datetime_paths": [
+        "created_at"
+      ],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 42
+    },
+    "run: runner/reconciled.toml": {
+      "instances": 1,
+      "unreadable": [],
+      "versions": {
+        "1": 1
+      },
+      "top_level_key_sets": 1,
+      "optional_top_level": [],
+      "maps_collapsed": [],
+      "int_and_float": [],
+      "mixed_types": {},
+      "datetime_paths": [
+        "observed_at",
+        "started_at"
+      ],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 9
+    },
+    "run: runner/abort.toml": {
+      "instances": 2,
+      "unreadable": [],
+      "versions": {
+        "absent": 2
+      },
+      "top_level_key_sets": 1,
+      "optional_top_level": [],
+      "maps_collapsed": [],
+      "int_and_float": [],
+      "mixed_types": {},
+      "datetime_paths": [
+        "requested_at"
+      ],
+      "local_datetime_paths": [],
+      "nonfinite_values": 0,
+      "path_count": 1
+    }
+  },
+  "readability": {
+    "attempts": 427,
+    "read_failures": [],
+    "statuses": {
+      "sweep/completed": 35,
+      "verification/completed": 172,
+      "simulate/completed": 175,
+      "simulate/aborted": 1,
+      "control/completed": 39,
+      "control/aborted": 1,
+      "simulate/interrupted": 1,
+      "calibrate/aborted": 1,
+      "calibrate/completed": 2
+    },
+    "variants": {
+      "runs with check history": 172,
+      "abort_request": 2,
+      "check listing refused": 9,
+      "reconciliation": 1
+    },
+    "variants_absent": [
+      "failed",
+      "unknown",
+      "result_error",
+      "partial sweep"
+    ],
+    "check_listing_refusals": {
+      "control: frozen ProblemSpec disagrees with the declared control model": 8,
+      "calibrate: [Errno 2] No such file or directory: '<copy>/s2-calibration-cli/squid_transmon/r20261": 1
+    },
+    "read_run_seconds": {
+      "total": 6.300107008777559,
+      "max": 0.22619480499997735
+    },
+    "list_runs_by_root": {
+      ".": {
+        "completed": 100,
+        "interrupted": 1
+      },
+      "m3-baseline-early-stop": {
+        "completed": 63,
+        "aborted": 1
+      },
+      "m3-baseline-normal": {
+        "completed": 60
+      },
+      "m3-readout": {
+        "completed": 52
+      },
+      "m3-threshold-early-stop": {
+        "completed": 41
+      },
+      "m3-threshold-normal": {
+        "completed": 30
+      },
+      "m4-control": {
+        "completed": 17,
+        "aborted": 1
+      },
+      "m5-codesign-cli": {
+        "completed": 28
+      },
+      "m5-codesign-mcp": {
+        "completed": 28
+      },
+      "s2-calibration-cli": {
+        "aborted": 1,
+        "completed": 2
+      },
+      "s2-calibration-mcp": {
+        "completed": 2
+      }
+    },
+    "ledger_readers": {
+      "investigations": {
+        "read": 8
+      },
+      "catalog": {
+        "read": 4
+      },
+      "launches": {
+        "admitted": 30
+      }
+    },
+    "readers_absent": [
+      "MCP session and call audits (written only)",
+      "proposal records (read only inside apply_device_update)"
+    ]
+  },
+  "input_models": {
+    "system": {
+      "schema_bytes": 8888,
+      "defs": 15,
+      "schema_valid_2020_12": true,
+      "instances": 1069,
+      "matches_committed_schema": true,
+      "agreement": {
+        "schema=True model=True model_json=True": 1069
+      },
+      "disagreements": []
+    },
+    "simulation": {
+      "schema_bytes": 6215,
+      "defs": 10,
+      "schema_valid_2020_12": true,
+      "instances": 375,
+      "agreement": {
+        "schema=True model=True model_json=True": 375
+      },
+      "disagreements": []
+    },
+    "sweep": {
+      "schema_bytes": 1537,
+      "defs": 2,
+      "schema_valid_2020_12": true,
+      "instances": 74,
+      "agreement": {
+        "schema=True model=True model_json=True": 74
+      },
+      "disagreements": []
+    },
+    "control": {
+      "schema_bytes": 7754,
+      "defs": 10,
+      "schema_valid_2020_12": true,
+      "instances": 94,
+      "agreement": {
+        "schema=True model=True model_json=True": 94
+      },
+      "disagreements": []
+    },
+    "calibration": {
+      "schema_bytes": 5804,
+      "defs": 9,
+      "schema_valid_2020_12": true,
+      "instances": 5,
+      "agreement": {
+        "schema=True model=True model_json=True": 5
+      },
+      "disagreements": []
+    },
+    "dataset": {
+      "schema_bytes": 4243,
+      "defs": 9,
+      "schema_valid_2020_12": true,
+      "instances": 7,
+      "agreement": {
+        "schema=True model=True model_json=True": 7,
+        "contains datetimes": 7
+      },
+      "disagreements": []
+    },
+    "investigation": {
+      "schema_bytes": 4109,
+      "defs": 6,
+      "schema_valid_2020_12": true,
+      "instances": 8,
+      "agreement": {
+        "schema=True model=True model_json=True": 8
+      },
+      "disagreements": []
+    }
+  },
+  "int_float_mutations": {
+    "system": {
+      "int_as_float": {
+        "leaves": 10,
+        "schema_accepts": 10,
+        "model_accepts": 1,
+        "accepted_paths": [
+          {
+            "path": "format_version",
+            "written": 1.0,
+            "model_returns": "int"
+          }
+        ]
+      },
+      "integral_float_as_int": {
+        "leaves": 3,
+        "schema_accepts": 3,
+        "model_accepts": 3,
+        "accepted_paths": [
+          {
+            "path": "parameters.EJ.value",
+            "written": 15,
+            "model_returns": "float"
+          },
+          {
+            "path": "parameters.ECJ.value",
+            "written": 2,
+            "model_returns": "float"
+          },
+          {
+            "path": "parameters.Csh.value",
+            "written": 90,
+            "model_returns": "float"
+          }
+        ]
+      }
+    },
+    "simulation": {
+      "int_as_float": {
+        "leaves": 2,
+        "schema_accepts": 2,
+        "model_accepts": 1,
+        "accepted_paths": [
+          {
+            "path": "format_version",
+            "written": 1.0,
+            "model_returns": "int"
+          }
+        ]
+      },
+      "integral_float_as_int": {
+        "leaves": 1,
+        "schema_accepts": 1,
+        "model_accepts": 1,
+        "accepted_paths": [
+          {
+            "path": "parameters.EJ",
+            "written": 15,
+            "model_returns": "float"
+          }
+        ]
+      }
+    },
+    "sweep": {
+      "int_as_float": {
+        "leaves": 1,
+        "schema_accepts": 1,
+        "model_accepts": 1,
+        "accepted_paths": [
+          {
+            "path": "format_version",
+            "written": 1.0,
+            "model_returns": "int"
+          }
+        ]
+      },
+      "integral_float_as_int": {
+        "leaves": 1,
+        "schema_accepts": 1,
+        "model_accepts": 1,
+        "accepted_paths": [
+          {
+            "path": "axes.0.values.1",
+            "written": 15,
+            "model_returns": "float"
+          }
+        ]
+      }
+    },
+    "control": {
+      "int_as_float": {
+        "leaves": 10,
+        "schema_accepts": 10,
+        "model_accepts": 2,
+        "accepted_paths": [
+          {
+            "path": "format_version",
+            "written": 1.0,
+            "model_returns": "int"
+          },
+          {
+            "path": "solver.options.max_iter",
+            "written": 100.0,
+            "model_returns": "float"
+          }
+        ]
+      },
+      "integral_float_as_int": {
+        "leaves": 10,
+        "schema_accepts": 10,
+        "model_accepts": 10,
+        "accepted_paths": [
+          {
+            "path": "parameters.Csh",
+            "written": 90,
+            "model_returns": "float"
+          },
+          {
+            "path": "channels.0.phase_rad",
+            "written": 0,
+            "model_returns": "float"
+          },
+          {
+            "path": "evaluation.samples.0.model.offset_charges.1",
+            "written": 0,
+            "model_returns": "float"
+          },
+          {
+            "path": "evaluation.samples.1.model.offset_charges.1",
+            "written": 0,
+            "model_returns": "float"
+          },
+          {
+            "path": "evaluation.samples.1.parameters.EJ",
+            "written": 15,
+            "model_returns": "float"
+          },
+          {
+            "path": "evaluation.samples.2.model.offset_charges.1",
+            "written": 0,
+            "model_returns": "float"
+          },
+          {
+            "path": "evaluation.samples.4.parameters.EJ",
+            "written": 15,
+            "model_returns": "float"
+          },
+          {
+            "path": "evaluation.samples.7.parameters.EJ",
+            "written": 15,
+            "model_returns": "float"
+          },
+          {
+            "path": "pulse.T",
+            "written": 6,
+            "model_returns": "float"
+          },
+          {
+            "path": "problem.Q",
+            "written": 1000,
+            "model_returns": "float"
+          }
+        ]
+      }
+    },
+    "calibration": {
+      "int_as_float": {
+        "leaves": 10,
+        "schema_accepts": 10,
+        "model_accepts": 1,
+        "accepted_paths": [
+          {
+            "path": "format_version",
+            "written": 1.0,
+            "model_returns": "int"
+          }
+        ]
+      },
+      "integral_float_as_int": {
+        "leaves": 9,
+        "schema_accepts": 9,
+        "model_accepts": 9,
+        "accepted_paths": [
+          {
+            "path": "starts.0.Csh",
+            "written": 72,
+            "model_returns": "float"
+          },
+          {
+            "path": "starts.1.Csh",
+            "written": 68,
+            "model_returns": "float"
+          },
+          {
+            "path": "parameters.EJ1.scale",
+            "written": 1,
+            "model_returns": "float"
+          },
+          {
+            "path": "parameters.EJ2.scale",
+            "written": 1,
+            "model_returns": "float"
+          },
+          {
+            "path": "parameters.Csh.scale",
+            "written": 10,
+            "model_returns": "float"
+          },
+          {
+            "path": "axis_map.period.upper",
+            "written": 2,
+            "model_returns": "float"
+          },
+          {
+            "path": "matching.cutoff",
+            "written": 5,
+            "model_returns": "float"
+          },
+          {
+            "path": "matching.resolution",
+            "written": 2,
+            "model_returns": "float"
+          },
+          {
+            "path": "extraction.threshold",
+            "written": 6,
+            "model_returns": "float"
+          }
+        ]
+      }
+    },
+    "dataset": {
+      "int_as_float": {
+        "leaves": 1,
+        "schema_accepts": 1,
+        "model_accepts": 1,
+        "accepted_paths": [
+          {
+            "path": "format_version",
+            "written": 1.0,
+            "model_returns": "int"
+          }
+        ]
+      },
+      "integral_float_as_int": {
+        "accepted_paths": []
+      }
+    },
+    "investigation": {
+      "int_as_float": {
+        "leaves": 5,
+        "schema_accepts": 5,
+        "model_accepts": 4,
+        "accepted_paths": [
+          {
+            "path": "format_version",
+            "written": 1.0,
+            "model_returns": "int"
+          },
+          {
+            "path": "scope.bases.1.variations.1.values.0",
+            "written": 7.0,
+            "model_returns": "float"
+          },
+          {
+            "path": "scope.bases.1.variations.1.values.1",
+            "written": 19.0,
+            "model_returns": "float"
+          },
+          {
+            "path": "scope.bases.1.variations.1.values.2",
+            "written": 43.0,
+            "model_returns": "float"
+          }
+        ]
+      },
+      "integral_float_as_int": {
+        "leaves": 4,
+        "schema_accepts": 4,
+        "model_accepts": 4,
+        "accepted_paths": [
+          {
+            "path": "scope.bases.0.variations.0.range.0",
+            "written": 10,
+            "model_returns": "float"
+          },
+          {
+            "path": "scope.bases.0.variations.0.range.1",
+            "written": 90,
+            "model_returns": "float"
+          },
+          {
+            "path": "scope.bases.1.variations.0.range.0",
+            "written": 10,
+            "model_returns": "float"
+          },
+          {
+            "path": "scope.bases.1.variations.0.range.1",
+            "written": 90,
+            "model_returns": "float"
+          }
+        ]
+      }
+    }
+  },
+  "drafted_run_record": {
+    "instances": 427,
+    "valid": {
+      "hand valid": 427,
+      "model_schema valid": 427,
+      "model valid": 427
+    },
+    "examples": {},
+    "constraint_cases": {
+      "investigation_id without its companion fields": {
+        "hand": false,
+        "model_schema": false,
+        "model": false
+      },
+      "optional launch_id written as null (JSON only)": {
+        "hand": false,
+        "model_schema": true,
+        "model": true
+      },
+      "launch with an arbitrary key (launch left untyped)": {
+        "hand": true,
+        "model_schema": true,
+        "model": true
+      }
+    },
+    "source_lines": {
+      "hand_schema": 95,
+      "record_model": 78
+    },
+    "model_schema_bytes": 4516,
+    "hand_schema_bytes": 2844,
+    "launch_variants": {
+      "sweep": [
+        {
+          "keys": [
+            "kind",
+            "plan_sha256",
+            "protocol_sha256",
+            "selection",
+            "varied_values"
+          ],
+          "runs": 8
+        },
+        {
+          "keys": [
+            "kind",
+            "plan_sha256",
+            "protocol_sha256",
+            "selection"
+          ],
+          "runs": 27
+        }
+      ],
+      "verification": [
+        {
+          "keys": [
+            "plan_sha256",
+            "policy_version",
+            "request_file",
+            "source_artifact_sha256",
+            "source_path",
+            "source_result_sha256",
+            "source_run_id"
+          ],
+          "runs": 121
+        },
+        {
+          "keys": [
+            "plan_sha256",
+            "policy_version",
+            "request_file",
+            "source_artifact_sha256",
+            "source_path",
+            "source_result_sha256",
+            "source_run_id",
+            "timeout_seconds"
+          ],
+          "runs": 19
+        },
+        {
+          "keys": [
+            "policy_version",
+            "problem_sha256",
+            "request_file",
+            "source_artifact_sha256",
+            "source_path",
+            "source_result_sha256",
+            "source_run_id"
+          ],
+          "runs": 30
+        },
+        {
+          "keys": [
+            "calibration_sha256",
+            "policy_version",
+            "request_file",
+            "source_artifact_sha256",
+            "source_path",
+            "source_result_sha256",
+            "source_run_id"
+          ],
+          "runs": 2
+        }
+      ],
+      "simulate": [
+        {
+          "keys": [
+            "kind",
+            "plan_sha256",
+            "protocol_sha256",
+            "selection",
+            "timeout_seconds",
+            "varied_values"
+          ],
+          "runs": 118
+        },
+        {
+          "keys": [
+            "kind",
+            "plan_sha256",
+            "protocol_sha256",
+            "selection",
+            "timeout_seconds"
+          ],
+          "runs": 32
+        },
+        {
+          "keys": [
+            "kind",
+            "plan_sha256",
+            "protocol_sha256",
+            "selection"
+          ],
+          "runs": 27
+        }
+      ],
+      "control": [
+        {
+          "keys": [
+            "kind",
+            "problem_sha256",
+            "protocol_sha256",
+            "selection"
+          ],
+          "runs": 1
+        },
+        {
+          "keys": [
+            "control_model",
+            "kind",
+            "problem_sha256",
+            "protocol_sha256",
+            "selection"
+          ],
+          "runs": 13
+        },
+        {
+          "keys": [
+            "control_model",
+            "kind",
+            "problem_sha256",
+            "protocol_sha256",
+            "selection",
+            "varied_values"
+          ],
+          "runs": 24
+        },
+        {
+          "keys": [
+            "control_model",
+            "kind",
+            "problem_sha256",
+            "protocol_sha256",
+            "selection",
+            "starting_pulse"
+          ],
+          "runs": 2
+        }
+      ],
+      "calibrate": [
+        {
+          "keys": [
+            "calibration_sha256",
+            "kind",
+            "protocol_sha256",
+            "selection"
+          ],
+          "runs": 3
+        }
+      ]
+    }
+  },
+  "drafted_read_run_reply": {
+    "cli": {
+      "replies": 26,
+      "valid": 0,
+      "errors: date-time format": 26,
+      "structural_examples": []
+    },
+    "mcp_detail": {
+      "replies": 26,
+      "valid": 0,
+      "errors: date-time format": 26,
+      "structural_examples": []
+    },
+    "mcp_compact": {
+      "replies": 26,
+      "valid": 0,
+      "errors: date-time format": 26,
+      "structural_examples": []
+    },
+    "schema_bytes": {
+      "detail": 5200,
+      "compact": 4263
+    }
+  },
+  "arrays": {
+    "examples/*/operators.npz": {
+      "format": "explicit-operator archive",
+      "files": 2,
+      "layouts": {
+        "H0:<f8:2d lowering:<f8:2d number:<i8:2d position:<f8:2d": {
+          "files": 1,
+          "first": "examples/lossy-oscillator/operators.npz",
+          "protocols": {}
+        },
+        "H0:<f8:2d lowering:<i8:2d sigma_x:<i8:2d": {
+          "files": 1,
+          "first": "examples/two-level/operators.npz",
+          "protocols": {}
+        }
+      },
+      "example_shapes": {
+        "H0": [
+          "(2, 2)",
+          "(6, 6)"
+        ],
+        "lowering": [
+          "(2, 2)",
+          "(6, 6)"
+        ],
+        "number": [
+          "(6, 6)"
+        ],
+        "position": [
+          "(6, 6)"
+        ],
+        "sigma_x": [
+          "(2, 2)"
+        ]
+      },
+      "failures": []
+    },
+    "run: spec/base/readout-state.npz": {
+      "format": "initial state",
+      "files": 130,
+      "layouts": {
+        "psi:<c16:1d": {
+          "files": 130,
+          "first": "m3-baseline-early-stop/readout/r20261004T115111838501Z-df7f087c/spec/base/readout-state.npz",
+          "protocols": {
+            "sweep": 6,
+            "verification": 6,
+            "simulate": 118
+          }
+        }
+      },
+      "example_shapes": {
+        "psi": [
+          "(30,)",
+          "(48,)"
+        ]
+      },
+      "failures": []
+    },
+    "run: spec/initial-state.npz": {
+      "format": "initial state",
+      "files": 53,
+      "layouts": {
+        "initial_state:<c16:1d": {
+          "files": 53,
+          "first": "readout/r20261003T184755086080Z-c385168b/spec/initial-state.npz",
+          "protocols": {
+            "simulate": 27,
+            "verification": 26
+          }
+        }
+      },
+      "example_shapes": {
+        "initial_state": [
+          "(30,)",
+          "(48,)"
+        ]
+      },
+      "failures": []
+    },
+    "run: spec/points/<id>/readout-state.npz": {
+      "format": "initial state",
+      "files": 438,
+      "layouts": {
+        "psi:<c16:1d": {
+          "files": 438,
+          "first": "m3-baseline-early-stop/readout/r20261004T115111838501Z-df7f087c/spec/points/000000/readout-state.npz",
+          "protocols": {
+            "sweep": 219,
+            "verification": 219
+          }
+        }
+      },
+      "example_shapes": {
+        "psi": [
+          "(30,)"
+        ]
+      },
+      "failures": []
+    },
+    "run: spec/readout-state.npz": {
+      "format": "initial state",
+      "files": 287,
+      "layouts": {
+        "psi:<c16:1d": {
+          "files": 287,
+          "first": "m3-baseline-early-stop/readout/r20261004T115111838501Z-df7f087c/spec/readout-state.npz",
+          "protocols": {
+            "sweep": 27,
+            "verification": 110,
+            "simulate": 150
+          }
+        }
+      },
+      "example_shapes": {
+        "psi": [
+          "(30,)",
+          "(48,)"
+        ]
+      },
+      "failures": []
+    },
+    "run: spec/holdout/holdout.npz": {
+      "format": "measurement archive",
+      "files": 2,
+      "layouts": {
+        "bias:<f8:1d frequency:<f8:1d signal:<c16:2d": {
+          "files": 2,
+          "first": "s2-calibration-cli/squid_transmon/r20261021T200132465521Z-2556e48a/spec/holdout/holdout.npz",
+          "protocols": {
+            "verification": 2
+          }
+        }
+      },
+      "example_shapes": {
+        "bias": [
+          "(8,)"
+        ],
+        "frequency": [
+          "(3000,)"
+        ],
+        "signal": [
+          "(8, 3000)"
+        ]
+      },
+      "failures": []
+    },
+    "run: spec/training.npz": {
+      "format": "measurement archive",
+      "files": 5,
+      "layouts": {
+        "bias:<f8:1d frequency:<f8:1d signal:<c16:2d": {
+          "files": 5,
+          "first": "s2-calibration-cli/squid_transmon/r20261021T193049755022Z-b7e16b13/spec/training.npz",
+          "protocols": {
+            "calibrate": 3,
+            "verification": 2
+          }
+        }
+      },
+      "example_shapes": {
+        "bias": [
+          "(21,)"
+        ],
+        "frequency": [
+          "(3000,)"
+        ],
+        "signal": [
+          "(21, 3000)"
+        ]
+      },
+      "failures": []
+    },
+    "root: _catalog/entries/<id>/pulse.npz": {
+      "format": "neutral pulse",
+      "files": 2,
+      "layouts": {
+        "amplitudes_ghz:<f8:2d channels:<U1:1d kind:<U10:0d times_ns:<f8:1d": {
+          "files": 2,
+          "first": "m5-codesign-cli/_catalog/entries/e20261025T223011726333Z-41516720/pulse.npz",
+          "protocols": {}
+        }
+      },
+      "example_shapes": {
+        "amplitudes_ghz": [
+          "(2, 21)"
+        ],
+        "channels": [
+          "(2,)"
+        ],
+        "kind": [
+          "()"
+        ],
+        "times_ns": [
+          "(21,)"
+        ]
+      },
+      "failures": []
+    },
+    "root: _catalog/staging/<id>/pulse.npz": {
+      "format": "neutral pulse",
+      "files": 2,
+      "layouts": {
+        "amplitudes_ghz:<f8:2d channels:<U1:1d kind:<U10:0d times_ns:<f8:1d": {
+          "files": 2,
+          "first": "m5-codesign-cli/_catalog/staging/s20261025T223011726333Z-41516720/pulse.npz",
+          "protocols": {}
+        }
+      },
+      "example_shapes": {
+        "amplitudes_ghz": [
+          "(2, 21)"
+        ],
+        "channels": [
+          "(2,)"
+        ],
+        "kind": [
+          "()"
+        ],
+        "times_ns": [
+          "(21,)"
+        ]
+      },
+      "failures": []
+    },
+    "run: artifacts/pulse.npz": {
+      "format": "neutral pulse",
+      "files": 39,
+      "layouts": {
+        "amplitudes_ghz:<f8:2d times_ns:<f8:1d": {
+          "files": 2,
+          "first": "m4-control/junction_with_shunt/r20261011T033131348079Z-a878d194/artifacts/pulse.npz",
+          "protocols": {
+            "control": 2
+          }
+        },
+        "amplitudes_ghz:<f8:2d kind:<U10:0d times_ns:<f8:1d": {
+          "files": 37,
+          "first": "m4-control/junction_with_shunt/r20261011T033401696625Z-050e1810/artifacts/pulse.npz",
+          "protocols": {
+            "control": 37
+          }
+        }
+      },
+      "example_shapes": {
+        "amplitudes_ghz": [
+          "(2, 21)"
+        ],
+        "times_ns": [
+          "(21,)"
+        ],
+        "kind": [
+          "()"
+        ]
+      },
+      "failures": []
+    },
+    "run: spec/starting-pulse.npz": {
+      "format": "neutral pulse",
+      "files": 2,
+      "layouts": {
+        "amplitudes_ghz:<f8:2d channels:<U1:1d kind:<U10:0d times_ns:<f8:1d": {
+          "files": 2,
+          "first": "m5-codesign-cli/junction_with_shunt/r20261025T230406299814Z-78e47f70/spec/starting-pulse.npz",
+          "protocols": {
+            "control": 2
+          }
+        }
+      },
+      "example_shapes": {
+        "amplitudes_ghz": [
+          "(2, 21)"
+        ],
+        "channels": [
+          "(2,)"
+        ],
+        "kind": [
+          "()"
+        ],
+        "times_ns": [
+          "(21,)"
+        ]
+      },
+      "failures": []
+    },
+    "run: artifacts/output.npz": {
+      "format": "output",
+      "files": 210,
+      "layouts": {
+        "coherence:<f8:2d": {
+          "files": 27,
+          "first": "m3-baseline-early-stop/readout/r20261004T115111838501Z-df7f087c/artifacts/output.npz",
+          "protocols": {
+            "sweep": 27
+          }
+        },
+        "observable.coherence:<c16:1d observable.excited:<f8:1d observable.photons:<f8:1d states:<c16:3d times_ns:<f8:1d": {
+          "files": 149,
+          "first": "m3-baseline-early-stop/readout/r20261004T115118182139Z-b4aea1b0/artifacts/output.npz",
+          "protocols": {
+            "simulate": 149
+          }
+        },
+        "(no arrays)": {
+          "files": 4,
+          "first": "m5-codesign-cli/junction_with_shunt/r20261020T060140777074Z-e213c521/artifacts/output.npz",
+          "protocols": {
+            "sweep": 4
+          }
+        },
+        "observable.excited:<c16:1d observable.photons:<c16:1d states:<c16:3d times_ns:<f8:1d": {
+          "files": 9,
+          "first": "readout/r20261003T184755086080Z-c385168b/artifacts/output.npz",
+          "protocols": {
+            "simulate": 9
+          }
+        },
+        "observable.excited:<f8:1d observable.photons:<f8:1d states:<c16:3d times_ns:<f8:1d": {
+          "files": 17,
+          "first": "readout/r20261003T184755398067Z-4bda4a7a/artifacts/output.npz",
+          "protocols": {
+            "simulate": 17
+          }
+        },
+        "chi_ghz:<f8:1d": {
+          "files": 4,
+          "first": "readout/r20261003T185128599314Z-df297ac2/artifacts/output.npz",
+          "protocols": {
+            "sweep": 4
+          }
+        }
+      },
+      "empty_archives": [
+        {
+          "archive": "m5-codesign-cli/junction_with_shunt/r20261020T060140777074Z-e213c521/artifacts/output.npz",
+          "aggregate": true,
+          "points": 7,
+          "points_with_metrics": 0,
+          "points_with_arrays": 7,
+          "point_arrays": [
+            "energies_ghz"
+          ]
+        },
+        {
+          "archive": "m5-codesign-cli/junction_with_shunt/r20261025T230403279775Z-92ee2474/artifacts/output.npz",
+          "aggregate": true,
+          "points": 3,
+          "points_with_metrics": 0,
+          "points_with_arrays": 3,
+          "point_arrays": [
+            "energies_ghz"
+          ]
+        },
+        {
+          "archive": "m5-codesign-mcp/junction_with_shunt/r20261020T060258997711Z-96b3f379/artifacts/output.npz",
+          "aggregate": true,
+          "points": 7,
+          "points_with_metrics": 0,
+          "points_with_arrays": 7,
+          "point_arrays": [
+            "energies_ghz"
+          ]
+        },
+        {
+          "archive": "m5-codesign-mcp/junction_with_shunt/r20261025T230428988173Z-4ca0a752/artifacts/output.npz",
+          "aggregate": true,
+          "points": 3,
+          "points_with_metrics": 0,
+          "points_with_arrays": 3,
+          "point_arrays": [
+            "energies_ghz"
+          ]
+        }
+      ],
+      "example_shapes": {
+        "coherence": [
+          "(1, 3)",
+          "(3, 3)"
+        ],
+        "observable.coherence": [
+          "(101,)"
+        ],
+        "observable.excited": [
+          "(101,)",
+          "(1601,)"
+        ],
+        "observable.photons": [
+          "(101,)",
+          "(1601,)"
+        ],
+        "states": [
+          "(101, 30, 30)",
+          "(101, 48, 48)",
+          "(1601, 30, 30)",
+          "(1601, 48, 48)"
+        ],
+        "times_ns": [
+          "(101,)",
+          "(1601,)"
+        ],
+        "chi_ghz": [
+          "(3,)"
+        ]
+      },
+      "failures": []
+    },
+    "run: artifacts/points/<id>/output.npz": {
+      "format": "sweep point output",
+      "files": 251,
+      "layouts": {
+        "observable.coherence:<c16:1d observable.excited:<f8:1d observable.photons:<f8:1d states:<c16:3d times_ns:<f8:1d": {
+          "files": 219,
+          "first": "m3-baseline-early-stop/readout/r20261004T115111838501Z-df7f087c/artifacts/points/000000/output.npz",
+          "protocols": {
+            "sweep": 219
+          }
+        },
+        "energies_ghz:<f8:1d": {
+          "files": 20,
+          "first": "m5-codesign-cli/junction_with_shunt/r20261020T060140777074Z-e213c521/artifacts/points/000000/output.npz",
+          "protocols": {
+            "sweep": 20
+          }
+        },
+        "dressed.chi_ghz:<f8:1d dressed_indices.chi_ghz:<i8:1d dressed_overlaps.chi_ghz:<f8:1d energies_ghz:<f8:1d": {
+          "files": 12,
+          "first": "readout/r20261003T185128599314Z-df297ac2/artifacts/points/000000/output.npz",
+          "protocols": {
+            "sweep": 12
+          }
+        }
+      },
+      "example_shapes": {
+        "observable.coherence": [
+          "(101,)"
+        ],
+        "observable.excited": [
+          "(101,)"
+        ],
+        "observable.photons": [
+          "(101,)"
+        ],
+        "states": [
+          "(101, 30, 30)"
+        ],
+        "times_ns": [
+          "(101,)"
+        ],
+        "energies_ghz": [
+          "(3,)",
+          "(5,)"
+        ],
+        "dressed.chi_ghz": [
+          "(4,)"
+        ],
+        "dressed_indices.chi_ghz": [
+          "(4,)"
+        ],
+        "dressed_overlaps.chi_ghz": [
+          "(4,)"
+        ]
+      },
+      "failures": []
+    }
+  },
+  "read_run_selection": [
+    "m3-baseline-early-stop/readout/r20261004T115111838501Z-df7f087c",
+    "m3-baseline-early-stop/readout/r20261004T115116528149Z-9c0e6a03",
+    "m3-baseline-early-stop/readout/r20261004T115118182139Z-b4aea1b0",
+    "m3-baseline-early-stop/readout/r20261004T115120173213Z-28ff16e6",
+    "m3-baseline-early-stop/readout/r20261004T115307920258Z-b94a9452",
+    "m3-readout/readout/r20261003T194357630813Z-cffd8ead",
+    "m3-readout/readout/r20261003T194402349988Z-3359258d",
+    "m3-readout/readout/r20261003T194404011197Z-d734d514",
+    "m3-readout/readout/r20261003T194405926012Z-b2572305",
+    "m4-control/junction_with_shunt/r20261011T033131348079Z-a878d194",
+    "m4-control/junction_with_shunt/r20261011T044809459708Z-e10ebfeb",
+    "m4-control/junction_with_shunt/r20261011T134458228287Z-2e465951",
+    "m5-codesign-cli/junction_with_shunt/r20261020T060140777074Z-e213c521",
+    "m5-codesign-cli/junction_with_shunt/r20261020T060144718590Z-0e390823",
+    "m5-codesign-cli/junction_with_shunt/r20261025T230403279775Z-92ee2474",
+    "m5-codesign-cli/junction_with_shunt/r20261025T230406299814Z-78e47f70",
+    "m5-codesign-mcp/junction_with_shunt/r20261020T060258997711Z-96b3f379",
+    "m5-codesign-mcp/junction_with_shunt/r20261020T060301616213Z-737453f2",
+    "m5-codesign-mcp/junction_with_shunt/r20261020T060303833650Z-fb90bcba",
+    "m5-codesign-mcp/junction_with_shunt/r20261025T230428988173Z-4ca0a752",
+    "m5-codesign-mcp/junction_with_shunt/r20261025T230431677099Z-b9eed0f7",
+    "m5-codesign-mcp/junction_with_shunt/r20261025T230433906262Z-da39159f",
+    "readout/r20261020T032853684479Z-3111cc25",
+    "s2-calibration-cli/squid_transmon/r20261021T193049755022Z-b7e16b13",
+    "s2-calibration-cli/squid_transmon/r20261021T194954303736Z-45cecd69",
+    "s2-calibration-mcp/squid_transmon/r20261021T194955459298Z-f6ee3e4e"
+  ],
+  "cli_replies": [
+    {
+      "command": "capabilities",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 1126,
+      "seconds": 0.1,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "engines",
+          "investigation_record_version",
+          "operations",
+          "protocols",
+          "run_record_version",
+          "runner_devices",
+          "version"
+        ]
+      },
+      "space_datetimes": 0,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "versions": {
+        "version": "0.1.0",
+        "run_record_version": 1,
+        "investigation_record_version": 1
+      }
+    },
+    {
+      "command": "list-runs",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 21316,
+      "seconds": 0.22,
+      "top_level": {
+        "type": "array",
+        "items": 101,
+        "item_keys": [
+          "path",
+          "run_id",
+          "status",
+          "system_id"
+        ]
+      },
+      "space_datetimes": 0,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "root": "."
+    },
+    {
+      "command": "list-runs",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 14977,
+      "seconds": 0.11,
+      "top_level": {
+        "type": "array",
+        "items": 64,
+        "item_keys": [
+          "path",
+          "run_id",
+          "status",
+          "system_id"
+        ]
+      },
+      "space_datetimes": 0,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "root": "m3-baseline-early-stop"
+    },
+    {
+      "command": "list-investigations",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 497,
+      "seconds": 0.12,
+      "top_level": {
+        "type": "array",
+        "items": 2,
+        "item_keys": [
+          "active_revision",
+          "investigation_id",
+          "path",
+          "state"
+        ]
+      },
+      "space_datetimes": 0,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "root": "m3-baseline-early-stop"
+    },
+    {
+      "command": "read-investigation",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 61779,
+      "seconds": 0.13,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "active_revision",
+          "attempts",
+          "checkpoint",
+          "events",
+          "investigation_id",
+          "open_reviews",
+          "path",
+          "revisions",
+          "state",
+          "unresolved_launches",
+          "usage"
+        ]
+      },
+      "space_datetimes": 6,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "root": "m3-baseline-early-stop"
+    },
+    {
+      "command": "list-runs",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 13803,
+      "seconds": 0.11,
+      "top_level": {
+        "type": "array",
+        "items": 60,
+        "item_keys": [
+          "path",
+          "run_id",
+          "status",
+          "system_id"
+        ]
+      },
+      "space_datetimes": 0,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "root": "m3-baseline-normal"
+    },
+    {
+      "command": "list-investigations",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 489,
+      "seconds": 0.11,
+      "top_level": {
+        "type": "array",
+        "items": 2,
+        "item_keys": [
+          "active_revision",
+          "investigation_id",
+          "path",
+          "state"
+        ]
+      },
+      "space_datetimes": 0,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "root": "m3-baseline-normal"
+    },
+    {
+      "command": "read-investigation",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 112442,
+      "seconds": 0.14,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "active_revision",
+          "attempts",
+          "checkpoint",
+          "events",
+          "investigation_id",
+          "open_reviews",
+          "path",
+          "revisions",
+          "state",
+          "unresolved_launches",
+          "usage"
+        ]
+      },
+      "space_datetimes": 8,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "root": "m3-baseline-normal"
+    },
+    {
+      "command": "list-runs",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 11547,
+      "seconds": 0.1,
+      "top_level": {
+        "type": "array",
+        "items": 52,
+        "item_keys": [
+          "path",
+          "run_id",
+          "status",
+          "system_id"
+        ]
+      },
+      "space_datetimes": 0,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "root": "m3-readout"
+    },
+    {
+      "command": "list-runs",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 9638,
+      "seconds": 0.09,
+      "top_level": {
+        "type": "array",
+        "items": 41,
+        "item_keys": [
+          "path",
+          "run_id",
+          "status",
+          "system_id"
+        ]
+      },
+      "space_datetimes": 0,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "root": "m3-threshold-early-stop"
+    },
+    {
+      "command": "list-investigations",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 251,
+      "seconds": 0.1,
+      "top_level": {
+        "type": "array",
+        "items": 1,
+        "item_keys": [
+          "active_revision",
+          "investigation_id",
+          "path",
+          "state"
+        ]
+      },
+      "space_datetimes": 0,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "root": "m3-threshold-early-stop"
+    },
+    {
+      "command": "read-investigation",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 186614,
+      "seconds": 0.15,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "active_revision",
+          "attempts",
+          "checkpoint",
+          "events",
+          "investigation_id",
+          "open_reviews",
+          "path",
+          "revisions",
+          "state",
+          "unresolved_launches",
+          "usage"
+        ]
+      },
+      "space_datetimes": 10,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "root": "m3-threshold-early-stop"
+    },
+    {
+      "command": "list-runs",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 6933,
+      "seconds": 0.09,
+      "top_level": {
+        "type": "array",
+        "items": 30,
+        "item_keys": [
+          "path",
+          "run_id",
+          "status",
+          "system_id"
+        ]
+      },
+      "space_datetimes": 0,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "root": "m3-threshold-normal"
+    },
+    {
+      "command": "list-investigations",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 247,
+      "seconds": 0.11,
+      "top_level": {
+        "type": "array",
+        "items": 1,
+        "item_keys": [
+          "active_revision",
+          "investigation_id",
+          "path",
+          "state"
+        ]
+      },
+      "space_datetimes": 0,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "root": "m3-threshold-normal"
+    },
+    {
+      "command": "read-investigation",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 113038,
+      "seconds": 0.13,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "active_revision",
+          "attempts",
+          "checkpoint",
+          "events",
+          "investigation_id",
+          "open_reviews",
+          "path",
+          "revisions",
+          "state",
+          "unresolved_launches",
+          "usage"
+        ]
+      },
+      "space_datetimes": 8,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "root": "m3-threshold-normal"
+    },
+    {
+      "command": "list-runs",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 4429,
+      "seconds": 0.07,
+      "top_level": {
+        "type": "array",
+        "items": 18,
+        "item_keys": [
+          "path",
+          "run_id",
+          "status",
+          "system_id"
+        ]
+      },
+      "space_datetimes": 0,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "root": "m4-control"
+    },
+    {
+      "command": "list-runs",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 7031,
+      "seconds": 0.1,
+      "top_level": {
+        "type": "array",
+        "items": 28,
+        "item_keys": [
+          "path",
+          "run_id",
+          "status",
+          "system_id"
+        ]
+      },
+      "space_datetimes": 0,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "root": "m5-codesign-cli"
+    },
+    {
+      "command": "list-catalog",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 1067,
+      "seconds": 0.06,
+      "top_level": {
+        "type": "array",
+        "items": 2,
+        "item_keys": [
+          "claim",
+          "created_at",
+          "design",
+          "id",
+          "path",
+          "source_run",
+          "status"
+        ]
+      },
+      "space_datetimes": 2,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "root": "m5-codesign-cli"
+    },
+    {
+      "command": "read-entry",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 3733,
+      "seconds": 0.08,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "checks",
+          "checks_not_run",
+          "claim",
+          "created_at",
+          "design",
+          "device",
+          "entry_id",
+          "evidence",
+          "kind",
+          "lineage",
+          "parent_entry_ids",
+          "path",
+          "promoted_at",
+          "promoter",
+          "pulse",
+          "record_version",
+          "reuses",
+          "source",
+          "staged_id",
+          "status",
+          "unusable_evidence"
+        ]
+      },
+      "space_datetimes": 2,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "root": "m5-codesign-cli"
+    },
+    {
+      "command": "read-entry",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 2242,
+      "seconds": 0.07,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "claim",
+          "created_at",
+          "design",
+          "device",
+          "evidence",
+          "kind",
+          "lineage",
+          "parent_entry_ids",
+          "path",
+          "pulse",
+          "record_version",
+          "source",
+          "staged_id",
+          "status"
+        ]
+      },
+      "space_datetimes": 1,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "root": "m5-codesign-cli"
+    },
+    {
+      "command": "list-investigations",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 243,
+      "seconds": 0.11,
+      "top_level": {
+        "type": "array",
+        "items": 1,
+        "item_keys": [
+          "active_revision",
+          "investigation_id",
+          "path",
+          "state"
+        ]
+      },
+      "space_datetimes": 0,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "root": "m5-codesign-cli"
+    },
+    {
+      "command": "read-investigation",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 135672,
+      "seconds": 0.15,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "active_revision",
+          "attempts",
+          "checkpoint",
+          "events",
+          "investigation_id",
+          "open_reviews",
+          "path",
+          "revisions",
+          "state",
+          "unresolved_launches",
+          "usage"
+        ]
+      },
+      "space_datetimes": 8,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "root": "m5-codesign-cli"
+    },
+    {
+      "command": "list-runs",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 7031,
+      "seconds": 0.11,
+      "top_level": {
+        "type": "array",
+        "items": 28,
+        "item_keys": [
+          "path",
+          "run_id",
+          "status",
+          "system_id"
+        ]
+      },
+      "space_datetimes": 0,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "root": "m5-codesign-mcp"
+    },
+    {
+      "command": "list-catalog",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 1067,
+      "seconds": 0.07,
+      "top_level": {
+        "type": "array",
+        "items": 2,
+        "item_keys": [
+          "claim",
+          "created_at",
+          "design",
+          "id",
+          "path",
+          "source_run",
+          "status"
+        ]
+      },
+      "space_datetimes": 2,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "root": "m5-codesign-mcp"
+    },
+    {
+      "command": "read-entry",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 3733,
+      "seconds": 0.07,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "checks",
+          "checks_not_run",
+          "claim",
+          "created_at",
+          "design",
+          "device",
+          "entry_id",
+          "evidence",
+          "kind",
+          "lineage",
+          "parent_entry_ids",
+          "path",
+          "promoted_at",
+          "promoter",
+          "pulse",
+          "record_version",
+          "reuses",
+          "source",
+          "staged_id",
+          "status",
+          "unusable_evidence"
+        ]
+      },
+      "space_datetimes": 2,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "root": "m5-codesign-mcp"
+    },
+    {
+      "command": "read-entry",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 2242,
+      "seconds": 0.07,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "claim",
+          "created_at",
+          "design",
+          "device",
+          "evidence",
+          "kind",
+          "lineage",
+          "parent_entry_ids",
+          "path",
+          "pulse",
+          "record_version",
+          "source",
+          "staged_id",
+          "status"
+        ]
+      },
+      "space_datetimes": 1,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "root": "m5-codesign-mcp"
+    },
+    {
+      "command": "list-investigations",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 243,
+      "seconds": 0.11,
+      "top_level": {
+        "type": "array",
+        "items": 1,
+        "item_keys": [
+          "active_revision",
+          "investigation_id",
+          "path",
+          "state"
+        ]
+      },
+      "space_datetimes": 0,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "root": "m5-codesign-mcp"
+    },
+    {
+      "command": "read-investigation",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 135669,
+      "seconds": 0.16,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "active_revision",
+          "attempts",
+          "checkpoint",
+          "events",
+          "investigation_id",
+          "open_reviews",
+          "path",
+          "revisions",
+          "state",
+          "unresolved_launches",
+          "usage"
+        ]
+      },
+      "space_datetimes": 8,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "root": "m5-codesign-mcp"
+    },
+    {
+      "command": "list-runs",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 733,
+      "seconds": 0.07,
+      "top_level": {
+        "type": "array",
+        "items": 3,
+        "item_keys": [
+          "path",
+          "run_id",
+          "status",
+          "system_id"
+        ]
+      },
+      "space_datetimes": 0,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "root": "s2-calibration-cli"
+    },
+    {
+      "command": "list-runs",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 491,
+      "seconds": 0.07,
+      "top_level": {
+        "type": "array",
+        "items": 2,
+        "item_keys": [
+          "path",
+          "run_id",
+          "status",
+          "system_id"
+        ]
+      },
+      "space_datetimes": 0,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "root": "s2-calibration-mcp"
+    },
+    {
+      "command": "read-run",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 111841,
+      "seconds": 0.74,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "sweep_progress",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "run": "m3-baseline-early-stop/readout/r20261004T115111838501Z-df7f087c"
+    },
+    {
+      "command": "read-run",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 85280,
+      "seconds": 0.08,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status"
+        ]
+      },
+      "space_datetimes": 3,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "run": "m3-baseline-early-stop/readout/r20261004T115116528149Z-9c0e6a03"
+    },
+    {
+      "command": "read-run",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 8540,
+      "seconds": 0.7,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "run": "m3-baseline-early-stop/readout/r20261004T115118182139Z-b4aea1b0"
+    },
+    {
+      "command": "read-run",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 23384,
+      "seconds": 0.7,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "run": "m3-baseline-early-stop/readout/r20261004T115120173213Z-28ff16e6"
+    },
+    {
+      "command": "read-run",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 5927,
+      "seconds": 0.67,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "abort_request",
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 4,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "run": "m3-baseline-early-stop/readout/r20261004T115307920258Z-b94a9452"
+    },
+    {
+      "command": "read-run",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 110704,
+      "seconds": 0.75,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "sweep_progress",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "run": "m3-readout/readout/r20261003T194357630813Z-cffd8ead"
+    },
+    {
+      "command": "read-run",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 84332,
+      "seconds": 0.07,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status"
+        ]
+      },
+      "space_datetimes": 3,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "run": "m3-readout/readout/r20261003T194402349988Z-3359258d"
+    },
+    {
+      "command": "read-run",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 7210,
+      "seconds": 0.68,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "run": "m3-readout/readout/r20261003T194404011197Z-d734d514"
+    },
+    {
+      "command": "read-run",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 22042,
+      "seconds": 0.69,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "run": "m3-readout/readout/r20261003T194405926012Z-b2572305"
+    },
+    {
+      "command": "read-run",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 5094,
+      "seconds": 0.74,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 4,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "run": "m4-control/junction_with_shunt/r20261011T033131348079Z-a878d194"
+    },
+    {
+      "command": "read-run",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 13010,
+      "seconds": 0.74,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "abort_request",
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 4,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "run": "m4-control/junction_with_shunt/r20261011T044809459708Z-e10ebfeb"
+    },
+    {
+      "command": "read-run",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 9851,
+      "seconds": 0.72,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 4,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "run": "m4-control/junction_with_shunt/r20261011T134458228287Z-2e465951"
+    },
+    {
+      "command": "read-run",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 12875,
+      "seconds": 0.8,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "sweep_progress",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "run": "m5-codesign-cli/junction_with_shunt/r20261020T060140777074Z-e213c521"
+    },
+    {
+      "command": "read-run",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 37067,
+      "seconds": 0.75,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 4,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "run": "m5-codesign-cli/junction_with_shunt/r20261020T060144718590Z-0e390823"
+    },
+    {
+      "command": "read-run",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 7658,
+      "seconds": 0.77,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "sweep_progress",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "run": "m5-codesign-cli/junction_with_shunt/r20261025T230403279775Z-92ee2474"
+    },
+    {
+      "command": "read-run",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 36698,
+      "seconds": 0.72,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 4,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "run": "m5-codesign-cli/junction_with_shunt/r20261025T230406299814Z-78e47f70"
+    },
+    {
+      "command": "read-run",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 12928,
+      "seconds": 0.81,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "sweep_progress",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "run": "m5-codesign-mcp/junction_with_shunt/r20261020T060258997711Z-96b3f379"
+    },
+    {
+      "command": "read-run",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 37120,
+      "seconds": 0.75,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 4,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "run": "m5-codesign-mcp/junction_with_shunt/r20261020T060301616213Z-737453f2"
+    },
+    {
+      "command": "read-run",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 33199,
+      "seconds": 0.07,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status"
+        ]
+      },
+      "space_datetimes": 3,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "run": "m5-codesign-mcp/junction_with_shunt/r20261020T060303833650Z-fb90bcba"
+    },
+    {
+      "command": "read-run",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 7830,
+      "seconds": 0.74,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "sweep_progress",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "run": "m5-codesign-mcp/junction_with_shunt/r20261025T230428988173Z-4ca0a752"
+    },
+    {
+      "command": "read-run",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 36869,
+      "seconds": 0.72,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 4,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "run": "m5-codesign-mcp/junction_with_shunt/r20261025T230431677099Z-b9eed0f7"
+    },
+    {
+      "command": "read-run",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 32860,
+      "seconds": 0.07,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status"
+        ]
+      },
+      "space_datetimes": 3,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "run": "m5-codesign-mcp/junction_with_shunt/r20261025T230433906262Z-da39159f"
+    },
+    {
+      "command": "read-run",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 4756,
+      "seconds": 0.7,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "log_tail",
+          "manifest",
+          "path",
+          "reconciliation",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 4,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "run": "readout/r20261020T032853684479Z-3111cc25"
+    },
+    {
+      "command": "read-run",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 3534,
+      "seconds": 0.93,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "run": "s2-calibration-cli/squid_transmon/r20261021T193049755022Z-b7e16b13"
+    },
+    {
+      "command": "read-run",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 29668,
+      "seconds": 0.92,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "run": "s2-calibration-cli/squid_transmon/r20261021T194954303736Z-45cecd69"
+    },
+    {
+      "command": "read-run",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 29721,
+      "seconds": 0.92,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "nonstandard_numbers": 0,
+      "stderr_tail": "",
+      "run": "s2-calibration-mcp/squid_transmon/r20261021T194955459298Z-f6ee3e4e"
+    },
+    {
+      "command": "validate-dataset",
+      "exit_code": 0,
+      "json": true,
+      "bytes": 633,
+      "seconds": 0.15,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "bias_unit",
+          "conversion",
+          "id",
+          "kind",
+          "map",
+          "provenance",
+          "raw_file",
+          "sha256"
+        ]
+      },
+      "space_datetimes": 1,
+      "nonstandard_numbers": 0,
+      "stderr_tail": ""
+    }
+  ],
+  "mcp_replies": [
+    {
+      "tool": "list_capabilities",
+      "root": ".",
+      "arguments": {},
+      "error": false,
+      "bytes": 781,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "engines",
+          "investigation_record_version",
+          "operations",
+          "protocols",
+          "run_record_version",
+          "runner_devices",
+          "version"
+        ]
+      },
+      "space_datetimes": 0,
+      "structured": false
+    },
+    {
+      "tool": "list_runs",
+      "root": ".",
+      "arguments": {},
+      "error": false,
+      "bytes": 5442,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "columns",
+          "next_after",
+          "rows",
+          "total"
+        ]
+      },
+      "space_datetimes": 0,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": ".",
+      "arguments": {
+        "run": "readout/r20261020T032853684479Z-3111cc25"
+      },
+      "error": false,
+      "bytes": 2569,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "log_tail",
+          "manifest",
+          "path",
+          "reconciliation",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 4,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": ".",
+      "arguments": {
+        "run": "readout/r20261020T032853684479Z-3111cc25",
+        "detail": true
+      },
+      "error": false,
+      "bytes": 3420,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "log_tail",
+          "manifest",
+          "path",
+          "reconciliation",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 4,
+      "structured": false
+    },
+    {
+      "tool": "list_capabilities",
+      "root": "m3-baseline-early-stop",
+      "arguments": {},
+      "error": false,
+      "bytes": 781,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "engines",
+          "investigation_record_version",
+          "operations",
+          "protocols",
+          "run_record_version",
+          "runner_devices",
+          "version"
+        ]
+      },
+      "space_datetimes": 0,
+      "structured": false
+    },
+    {
+      "tool": "list_runs",
+      "root": "m3-baseline-early-stop",
+      "arguments": {},
+      "error": false,
+      "bytes": 5439,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "columns",
+          "next_after",
+          "rows",
+          "total"
+        ]
+      },
+      "space_datetimes": 0,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m3-baseline-early-stop",
+      "arguments": {
+        "run": "readout/r20261004T115111838501Z-df7f087c"
+      },
+      "error": false,
+      "bytes": 8891,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "sweep_progress",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m3-baseline-early-stop",
+      "arguments": {
+        "run": "readout/r20261004T115111838501Z-df7f087c",
+        "detail": true
+      },
+      "error": false,
+      "bytes": 61087,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "sweep_progress",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m3-baseline-early-stop",
+      "arguments": {
+        "run": "readout/r20261004T115116528149Z-9c0e6a03"
+      },
+      "error": false,
+      "bytes": 3311,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m3-baseline-early-stop",
+      "arguments": {
+        "run": "readout/r20261004T115116528149Z-9c0e6a03",
+        "detail": true
+      },
+      "error": false,
+      "bytes": 46156,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m3-baseline-early-stop",
+      "arguments": {
+        "run": "readout/r20261004T115118182139Z-b4aea1b0"
+      },
+      "error": false,
+      "bytes": 4525,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m3-baseline-early-stop",
+      "arguments": {
+        "run": "readout/r20261004T115118182139Z-b4aea1b0",
+        "detail": true
+      },
+      "error": false,
+      "bytes": 6070,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m3-baseline-early-stop",
+      "arguments": {
+        "run": "readout/r20261004T115120173213Z-28ff16e6"
+      },
+      "error": false,
+      "bytes": 5400,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m3-baseline-early-stop",
+      "arguments": {
+        "run": "readout/r20261004T115120173213Z-28ff16e6",
+        "detail": true
+      },
+      "error": false,
+      "bytes": 13967,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m3-baseline-early-stop",
+      "arguments": {
+        "run": "readout/r20261004T115307920258Z-b94a9452"
+      },
+      "error": false,
+      "bytes": 2855,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "abort_request",
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 4,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m3-baseline-early-stop",
+      "arguments": {
+        "run": "readout/r20261004T115307920258Z-b94a9452",
+        "detail": true
+      },
+      "error": false,
+      "bytes": 4400,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "abort_request",
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 4,
+      "structured": false
+    },
+    {
+      "tool": "list_investigations",
+      "root": "m3-baseline-early-stop",
+      "arguments": {},
+      "error": false,
+      "bytes": 316,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "result"
+        ]
+      },
+      "space_datetimes": 0,
+      "structured": false
+    },
+    {
+      "tool": "read_investigation",
+      "root": "m3-baseline-early-stop",
+      "arguments": {
+        "investigation": "_investigations/i20261004T115111005424Z-77800656",
+        "view": "status"
+      },
+      "error": false,
+      "bytes": 9778,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "active_revision",
+          "attempt_counts",
+          "attention",
+          "checkpoint",
+          "finding_counts",
+          "investigation_id",
+          "last_stop",
+          "latest_finding",
+          "open_reviews",
+          "path",
+          "revisions",
+          "state",
+          "unresolved_launches",
+          "usage"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_investigation",
+      "root": "m3-baseline-early-stop",
+      "arguments": {
+        "investigation": "_investigations/i20261004T115111005424Z-77800656",
+        "view": "attempts"
+      },
+      "error": false,
+      "bytes": 5631,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "columns",
+          "next_after",
+          "rows",
+          "total"
+        ]
+      },
+      "space_datetimes": 0,
+      "structured": false
+    },
+    {
+      "tool": "read_investigation",
+      "root": "m3-baseline-early-stop",
+      "arguments": {
+        "investigation": "_investigations/i20261004T115111005424Z-77800656",
+        "view": "events"
+      },
+      "error": false,
+      "bytes": 554,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "columns",
+          "next_after",
+          "rows",
+          "total"
+        ]
+      },
+      "space_datetimes": 5,
+      "structured": false
+    },
+    {
+      "tool": "list_capabilities",
+      "root": "m3-baseline-normal",
+      "arguments": {},
+      "error": false,
+      "bytes": 781,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "engines",
+          "investigation_record_version",
+          "operations",
+          "protocols",
+          "run_record_version",
+          "runner_devices",
+          "version"
+        ]
+      },
+      "space_datetimes": 0,
+      "structured": false
+    },
+    {
+      "tool": "list_runs",
+      "root": "m3-baseline-normal",
+      "arguments": {},
+      "error": false,
+      "bytes": 5441,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "columns",
+          "next_after",
+          "rows",
+          "total"
+        ]
+      },
+      "space_datetimes": 0,
+      "structured": false
+    },
+    {
+      "tool": "list_investigations",
+      "root": "m3-baseline-normal",
+      "arguments": {},
+      "error": false,
+      "bytes": 316,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "result"
+        ]
+      },
+      "space_datetimes": 0,
+      "structured": false
+    },
+    {
+      "tool": "read_investigation",
+      "root": "m3-baseline-normal",
+      "arguments": {
+        "investigation": "_investigations/i20261004T114558367234Z-e6aae7a1",
+        "view": "status"
+      },
+      "error": false,
+      "bytes": 11319,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "active_revision",
+          "attempt_counts",
+          "attention",
+          "checkpoint",
+          "finding_counts",
+          "investigation_id",
+          "last_stop",
+          "latest_finding",
+          "open_reviews",
+          "path",
+          "revisions",
+          "state",
+          "unresolved_launches",
+          "usage"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_investigation",
+      "root": "m3-baseline-normal",
+      "arguments": {
+        "investigation": "_investigations/i20261004T114558367234Z-e6aae7a1",
+        "view": "attempts"
+      },
+      "error": false,
+      "bytes": 7098,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "columns",
+          "next_after",
+          "rows",
+          "total"
+        ]
+      },
+      "space_datetimes": 0,
+      "structured": false
+    },
+    {
+      "tool": "read_investigation",
+      "root": "m3-baseline-normal",
+      "arguments": {
+        "investigation": "_investigations/i20261004T114558367234Z-e6aae7a1",
+        "view": "events"
+      },
+      "error": false,
+      "bytes": 751,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "columns",
+          "next_after",
+          "rows",
+          "total"
+        ]
+      },
+      "space_datetimes": 7,
+      "structured": false
+    },
+    {
+      "tool": "list_capabilities",
+      "root": "m3-readout",
+      "arguments": {},
+      "error": false,
+      "bytes": 781,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "engines",
+          "investigation_record_version",
+          "operations",
+          "protocols",
+          "run_record_version",
+          "runner_devices",
+          "version"
+        ]
+      },
+      "space_datetimes": 0,
+      "structured": false
+    },
+    {
+      "tool": "list_runs",
+      "root": "m3-readout",
+      "arguments": {},
+      "error": false,
+      "bytes": 5441,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "columns",
+          "next_after",
+          "rows",
+          "total"
+        ]
+      },
+      "space_datetimes": 0,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m3-readout",
+      "arguments": {
+        "run": "readout/r20261003T194357630813Z-cffd8ead"
+      },
+      "error": false,
+      "bytes": 8578,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "sweep_progress",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m3-readout",
+      "arguments": {
+        "run": "readout/r20261003T194357630813Z-cffd8ead",
+        "detail": true
+      },
+      "error": false,
+      "bytes": 60100,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "sweep_progress",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m3-readout",
+      "arguments": {
+        "run": "readout/r20261003T194402349988Z-3359258d"
+      },
+      "error": false,
+      "bytes": 3072,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m3-readout",
+      "arguments": {
+        "run": "readout/r20261003T194402349988Z-3359258d",
+        "detail": true
+      },
+      "error": false,
+      "bytes": 45328,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m3-readout",
+      "arguments": {
+        "run": "readout/r20261003T194404011197Z-d734d514"
+      },
+      "error": false,
+      "bytes": 3983,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m3-readout",
+      "arguments": {
+        "run": "readout/r20261003T194404011197Z-d734d514",
+        "detail": true
+      },
+      "error": false,
+      "bytes": 4939,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m3-readout",
+      "arguments": {
+        "run": "readout/r20261003T194405926012Z-b2572305"
+      },
+      "error": false,
+      "bytes": 4846,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m3-readout",
+      "arguments": {
+        "run": "readout/r20261003T194405926012Z-b2572305",
+        "detail": true
+      },
+      "error": false,
+      "bytes": 12824,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "list_capabilities",
+      "root": "m3-threshold-early-stop",
+      "arguments": {},
+      "error": false,
+      "bytes": 781,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "engines",
+          "investigation_record_version",
+          "operations",
+          "protocols",
+          "run_record_version",
+          "runner_devices",
+          "version"
+        ]
+      },
+      "space_datetimes": 0,
+      "structured": false
+    },
+    {
+      "tool": "list_runs",
+      "root": "m3-threshold-early-stop",
+      "arguments": {},
+      "error": false,
+      "bytes": 4480,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "columns",
+          "next_after",
+          "rows",
+          "total"
+        ]
+      },
+      "space_datetimes": 0,
+      "structured": false
+    },
+    {
+      "tool": "list_investigations",
+      "root": "m3-threshold-early-stop",
+      "arguments": {},
+      "error": false,
+      "bytes": 164,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "result"
+        ]
+      },
+      "space_datetimes": 0,
+      "structured": false
+    },
+    {
+      "tool": "read_investigation",
+      "root": "m3-threshold-early-stop",
+      "arguments": {
+        "investigation": "_investigations/i20261004T123831245752Z-55bcdc3d",
+        "view": "status"
+      },
+      "error": false,
+      "bytes": 13819,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "active_revision",
+          "attempt_counts",
+          "attention",
+          "checkpoint",
+          "finding_counts",
+          "investigation_id",
+          "last_stop",
+          "latest_finding",
+          "open_reviews",
+          "path",
+          "revisions",
+          "state",
+          "unresolved_launches",
+          "usage"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_investigation",
+      "root": "m3-threshold-early-stop",
+      "arguments": {
+        "investigation": "_investigations/i20261004T123831245752Z-55bcdc3d",
+        "view": "attempts"
+      },
+      "error": false,
+      "bytes": 9668,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "columns",
+          "next_after",
+          "rows",
+          "total"
+        ]
+      },
+      "space_datetimes": 0,
+      "structured": false
+    },
+    {
+      "tool": "read_investigation",
+      "root": "m3-threshold-early-stop",
+      "arguments": {
+        "investigation": "_investigations/i20261004T123831245752Z-55bcdc3d",
+        "view": "events"
+      },
+      "error": false,
+      "bytes": 968,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "columns",
+          "next_after",
+          "rows",
+          "total"
+        ]
+      },
+      "space_datetimes": 9,
+      "structured": false
+    },
+    {
+      "tool": "list_capabilities",
+      "root": "m3-threshold-normal",
+      "arguments": {},
+      "error": false,
+      "bytes": 781,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "engines",
+          "investigation_record_version",
+          "operations",
+          "protocols",
+          "run_record_version",
+          "runner_devices",
+          "version"
+        ]
+      },
+      "space_datetimes": 0,
+      "structured": false
+    },
+    {
+      "tool": "list_runs",
+      "root": "m3-threshold-normal",
+      "arguments": {},
+      "error": false,
+      "bytes": 3303,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "columns",
+          "next_after",
+          "rows",
+          "total"
+        ]
+      },
+      "space_datetimes": 0,
+      "structured": false
+    },
+    {
+      "tool": "list_investigations",
+      "root": "m3-threshold-normal",
+      "arguments": {},
+      "error": false,
+      "bytes": 164,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "result"
+        ]
+      },
+      "space_datetimes": 0,
+      "structured": false
+    },
+    {
+      "tool": "read_investigation",
+      "root": "m3-threshold-normal",
+      "arguments": {
+        "investigation": "_investigations/i20261004T123400445267Z-c44f548c",
+        "view": "status"
+      },
+      "error": false,
+      "bytes": 11365,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "active_revision",
+          "attempt_counts",
+          "attention",
+          "checkpoint",
+          "finding_counts",
+          "investigation_id",
+          "last_stop",
+          "latest_finding",
+          "open_reviews",
+          "path",
+          "revisions",
+          "state",
+          "unresolved_launches",
+          "usage"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_investigation",
+      "root": "m3-threshold-normal",
+      "arguments": {
+        "investigation": "_investigations/i20261004T123400445267Z-c44f548c",
+        "view": "attempts"
+      },
+      "error": false,
+      "bytes": 7098,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "columns",
+          "next_after",
+          "rows",
+          "total"
+        ]
+      },
+      "space_datetimes": 0,
+      "structured": false
+    },
+    {
+      "tool": "read_investigation",
+      "root": "m3-threshold-normal",
+      "arguments": {
+        "investigation": "_investigations/i20261004T123400445267Z-c44f548c",
+        "view": "events"
+      },
+      "error": false,
+      "bytes": 751,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "columns",
+          "next_after",
+          "rows",
+          "total"
+        ]
+      },
+      "space_datetimes": 7,
+      "structured": false
+    },
+    {
+      "tool": "list_capabilities",
+      "root": "m4-control",
+      "arguments": {},
+      "error": false,
+      "bytes": 781,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "engines",
+          "investigation_record_version",
+          "operations",
+          "protocols",
+          "run_record_version",
+          "runner_devices",
+          "version"
+        ]
+      },
+      "space_datetimes": 0,
+      "structured": false
+    },
+    {
+      "tool": "list_runs",
+      "root": "m4-control",
+      "arguments": {},
+      "error": false,
+      "bytes": 2449,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "columns",
+          "next_after",
+          "rows",
+          "total"
+        ]
+      },
+      "space_datetimes": 0,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m4-control",
+      "arguments": {
+        "run": "junction_with_shunt/r20261011T033131348079Z-a878d194"
+      },
+      "error": false,
+      "bytes": 3021,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 4,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m4-control",
+      "arguments": {
+        "run": "junction_with_shunt/r20261011T033131348079Z-a878d194",
+        "detail": true
+      },
+      "error": false,
+      "bytes": 4206,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 4,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m4-control",
+      "arguments": {
+        "run": "junction_with_shunt/r20261011T044809459708Z-e10ebfeb"
+      },
+      "error": false,
+      "bytes": 10155,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "abort_request",
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 4,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m4-control",
+      "arguments": {
+        "run": "junction_with_shunt/r20261011T044809459708Z-e10ebfeb",
+        "detail": true
+      },
+      "error": false,
+      "bytes": 11793,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "abort_request",
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 4,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m4-control",
+      "arguments": {
+        "run": "junction_with_shunt/r20261011T134458228287Z-2e465951"
+      },
+      "error": false,
+      "bytes": 4918,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 4,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m4-control",
+      "arguments": {
+        "run": "junction_with_shunt/r20261011T134458228287Z-2e465951",
+        "detail": true
+      },
+      "error": false,
+      "bytes": 6969,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 4,
+      "structured": false
+    },
+    {
+      "tool": "list_capabilities",
+      "root": "m5-codesign-cli",
+      "arguments": {},
+      "error": false,
+      "bytes": 781,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "engines",
+          "investigation_record_version",
+          "operations",
+          "protocols",
+          "run_record_version",
+          "runner_devices",
+          "version"
+        ]
+      },
+      "space_datetimes": 0,
+      "structured": false
+    },
+    {
+      "tool": "list_runs",
+      "root": "m5-codesign-cli",
+      "arguments": {},
+      "error": false,
+      "bytes": 3761,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "columns",
+          "next_after",
+          "rows",
+          "total"
+        ]
+      },
+      "space_datetimes": 0,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m5-codesign-cli",
+      "arguments": {
+        "run": "junction_with_shunt/r20261020T060140777074Z-e213c521"
+      },
+      "error": false,
+      "bytes": 5137,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "sweep_progress",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m5-codesign-cli",
+      "arguments": {
+        "run": "junction_with_shunt/r20261020T060140777074Z-e213c521",
+        "detail": true
+      },
+      "error": false,
+      "bytes": 9692,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "sweep_progress",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m5-codesign-cli",
+      "arguments": {
+        "run": "junction_with_shunt/r20261020T060144718590Z-0e390823"
+      },
+      "error": false,
+      "bytes": 6277,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 4,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m5-codesign-cli",
+      "arguments": {
+        "run": "junction_with_shunt/r20261020T060144718590Z-0e390823",
+        "detail": true
+      },
+      "error": false,
+      "bytes": 20504,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 4,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m5-codesign-cli",
+      "arguments": {
+        "run": "junction_with_shunt/r20261025T230403279775Z-92ee2474"
+      },
+      "error": false,
+      "bytes": 3417,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "sweep_progress",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m5-codesign-cli",
+      "arguments": {
+        "run": "junction_with_shunt/r20261025T230403279775Z-92ee2474",
+        "detail": true
+      },
+      "error": false,
+      "bytes": 5752,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "sweep_progress",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m5-codesign-cli",
+      "arguments": {
+        "run": "junction_with_shunt/r20261025T230406299814Z-78e47f70"
+      },
+      "error": false,
+      "bytes": 6143,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 4,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m5-codesign-cli",
+      "arguments": {
+        "run": "junction_with_shunt/r20261025T230406299814Z-78e47f70",
+        "detail": true
+      },
+      "error": false,
+      "bytes": 20215,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 4,
+      "structured": false
+    },
+    {
+      "tool": "list_catalog",
+      "root": "m5-codesign-cli",
+      "arguments": {},
+      "error": false,
+      "bytes": 980,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "result"
+        ]
+      },
+      "space_datetimes": 2,
+      "structured": false
+    },
+    {
+      "tool": "list_investigations",
+      "root": "m5-codesign-cli",
+      "arguments": {},
+      "error": false,
+      "bytes": 164,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "result"
+        ]
+      },
+      "space_datetimes": 0,
+      "structured": false
+    },
+    {
+      "tool": "read_entry",
+      "root": "m5-codesign-cli",
+      "arguments": {
+        "identifier": "e20261025T223011726333Z-41516720"
+      },
+      "error": false,
+      "bytes": 3077,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "checks",
+          "checks_not_run",
+          "claim",
+          "created_at",
+          "design",
+          "device",
+          "entry_id",
+          "evidence",
+          "kind",
+          "lineage",
+          "parent_entry_ids",
+          "path",
+          "promoted_at",
+          "promoter",
+          "pulse",
+          "record_version",
+          "reuses",
+          "source",
+          "staged_id",
+          "status",
+          "unusable_evidence"
+        ]
+      },
+      "space_datetimes": 2,
+      "structured": false
+    },
+    {
+      "tool": "read_entry",
+      "root": "m5-codesign-cli",
+      "arguments": {
+        "identifier": "s20261025T223011726333Z-41516720"
+      },
+      "error": false,
+      "bytes": 1896,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "claim",
+          "created_at",
+          "design",
+          "device",
+          "evidence",
+          "kind",
+          "lineage",
+          "parent_entry_ids",
+          "path",
+          "pulse",
+          "record_version",
+          "source",
+          "staged_id",
+          "status"
+        ]
+      },
+      "space_datetimes": 1,
+      "structured": false
+    },
+    {
+      "tool": "read_investigation",
+      "root": "m5-codesign-cli",
+      "arguments": {
+        "investigation": "_investigations/i20261020T055640693143Z-b90b4b4c",
+        "view": "status"
+      },
+      "error": false,
+      "bytes": 19503,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "active_revision",
+          "attempt_counts",
+          "attention",
+          "checkpoint",
+          "finding_counts",
+          "investigation_id",
+          "last_stop",
+          "latest_finding",
+          "open_reviews",
+          "path",
+          "revisions",
+          "state",
+          "unresolved_launches",
+          "usage"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_investigation",
+      "root": "m5-codesign-cli",
+      "arguments": {
+        "investigation": "_investigations/i20261020T055640693143Z-b90b4b4c",
+        "view": "attempts"
+      },
+      "error": false,
+      "bytes": 9451,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "columns",
+          "next_after",
+          "rows",
+          "total"
+        ]
+      },
+      "space_datetimes": 0,
+      "structured": false
+    },
+    {
+      "tool": "read_investigation",
+      "root": "m5-codesign-cli",
+      "arguments": {
+        "investigation": "_investigations/i20261020T055640693143Z-b90b4b4c",
+        "view": "events"
+      },
+      "error": false,
+      "bytes": 743,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "columns",
+          "next_after",
+          "rows",
+          "total"
+        ]
+      },
+      "space_datetimes": 7,
+      "structured": false
+    },
+    {
+      "tool": "list_capabilities",
+      "root": "m5-codesign-mcp",
+      "arguments": {},
+      "error": false,
+      "bytes": 781,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "engines",
+          "investigation_record_version",
+          "operations",
+          "protocols",
+          "run_record_version",
+          "runner_devices",
+          "version"
+        ]
+      },
+      "space_datetimes": 0,
+      "structured": false
+    },
+    {
+      "tool": "list_runs",
+      "root": "m5-codesign-mcp",
+      "arguments": {},
+      "error": false,
+      "bytes": 3761,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "columns",
+          "next_after",
+          "rows",
+          "total"
+        ]
+      },
+      "space_datetimes": 0,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m5-codesign-mcp",
+      "arguments": {
+        "run": "junction_with_shunt/r20261020T060258997711Z-96b3f379"
+      },
+      "error": false,
+      "bytes": 5184,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "sweep_progress",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m5-codesign-mcp",
+      "arguments": {
+        "run": "junction_with_shunt/r20261020T060258997711Z-96b3f379",
+        "detail": true
+      },
+      "error": false,
+      "bytes": 9739,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "sweep_progress",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m5-codesign-mcp",
+      "arguments": {
+        "run": "junction_with_shunt/r20261020T060301616213Z-737453f2"
+      },
+      "error": false,
+      "bytes": 6324,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 4,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m5-codesign-mcp",
+      "arguments": {
+        "run": "junction_with_shunt/r20261020T060301616213Z-737453f2",
+        "detail": true
+      },
+      "error": false,
+      "bytes": 20551,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 4,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m5-codesign-mcp",
+      "arguments": {
+        "run": "junction_with_shunt/r20261020T060303833650Z-fb90bcba"
+      },
+      "error": false,
+      "bytes": 3524,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m5-codesign-mcp",
+      "arguments": {
+        "run": "junction_with_shunt/r20261020T060303833650Z-fb90bcba",
+        "detail": true
+      },
+      "error": false,
+      "bytes": 17759,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m5-codesign-mcp",
+      "arguments": {
+        "run": "junction_with_shunt/r20261025T230428988173Z-4ca0a752"
+      },
+      "error": false,
+      "bytes": 3465,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "sweep_progress",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m5-codesign-mcp",
+      "arguments": {
+        "run": "junction_with_shunt/r20261025T230428988173Z-4ca0a752",
+        "detail": true
+      },
+      "error": false,
+      "bytes": 5901,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "sweep_progress",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m5-codesign-mcp",
+      "arguments": {
+        "run": "junction_with_shunt/r20261025T230431677099Z-b9eed0f7"
+      },
+      "error": false,
+      "bytes": 6190,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 4,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m5-codesign-mcp",
+      "arguments": {
+        "run": "junction_with_shunt/r20261025T230431677099Z-b9eed0f7",
+        "detail": true
+      },
+      "error": false,
+      "bytes": 20363,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 4,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m5-codesign-mcp",
+      "arguments": {
+        "run": "junction_with_shunt/r20261025T230433906262Z-da39159f"
+      },
+      "error": false,
+      "bytes": 3239,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "m5-codesign-mcp",
+      "arguments": {
+        "run": "junction_with_shunt/r20261025T230433906262Z-da39159f",
+        "detail": true
+      },
+      "error": false,
+      "bytes": 17505,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "list_catalog",
+      "root": "m5-codesign-mcp",
+      "arguments": {},
+      "error": false,
+      "bytes": 980,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "result"
+        ]
+      },
+      "space_datetimes": 2,
+      "structured": false
+    },
+    {
+      "tool": "list_investigations",
+      "root": "m5-codesign-mcp",
+      "arguments": {},
+      "error": false,
+      "bytes": 164,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "result"
+        ]
+      },
+      "space_datetimes": 0,
+      "structured": false
+    },
+    {
+      "tool": "read_entry",
+      "root": "m5-codesign-mcp",
+      "arguments": {
+        "identifier": "e20261025T223016968649Z-e3e40072"
+      },
+      "error": false,
+      "bytes": 3077,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "checks",
+          "checks_not_run",
+          "claim",
+          "created_at",
+          "design",
+          "device",
+          "entry_id",
+          "evidence",
+          "kind",
+          "lineage",
+          "parent_entry_ids",
+          "path",
+          "promoted_at",
+          "promoter",
+          "pulse",
+          "record_version",
+          "reuses",
+          "source",
+          "staged_id",
+          "status",
+          "unusable_evidence"
+        ]
+      },
+      "space_datetimes": 2,
+      "structured": false
+    },
+    {
+      "tool": "read_entry",
+      "root": "m5-codesign-mcp",
+      "arguments": {
+        "identifier": "s20261025T223016968649Z-e3e40072"
+      },
+      "error": false,
+      "bytes": 1896,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "claim",
+          "created_at",
+          "design",
+          "device",
+          "evidence",
+          "kind",
+          "lineage",
+          "parent_entry_ids",
+          "path",
+          "pulse",
+          "record_version",
+          "source",
+          "staged_id",
+          "status"
+        ]
+      },
+      "space_datetimes": 1,
+      "structured": false
+    },
+    {
+      "tool": "read_investigation",
+      "root": "m5-codesign-mcp",
+      "arguments": {
+        "investigation": "_investigations/i20261020T055641507739Z-b4d44330",
+        "view": "status"
+      },
+      "error": false,
+      "bytes": 19501,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "active_revision",
+          "attempt_counts",
+          "attention",
+          "checkpoint",
+          "finding_counts",
+          "investigation_id",
+          "last_stop",
+          "latest_finding",
+          "open_reviews",
+          "path",
+          "revisions",
+          "state",
+          "unresolved_launches",
+          "usage"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_investigation",
+      "root": "m5-codesign-mcp",
+      "arguments": {
+        "investigation": "_investigations/i20261020T055641507739Z-b4d44330",
+        "view": "attempts"
+      },
+      "error": false,
+      "bytes": 9451,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "columns",
+          "next_after",
+          "rows",
+          "total"
+        ]
+      },
+      "space_datetimes": 0,
+      "structured": false
+    },
+    {
+      "tool": "read_investigation",
+      "root": "m5-codesign-mcp",
+      "arguments": {
+        "investigation": "_investigations/i20261020T055641507739Z-b4d44330",
+        "view": "events"
+      },
+      "error": false,
+      "bytes": 743,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "columns",
+          "next_after",
+          "rows",
+          "total"
+        ]
+      },
+      "space_datetimes": 7,
+      "structured": false
+    },
+    {
+      "tool": "list_capabilities",
+      "root": "s2-calibration-cli",
+      "arguments": {},
+      "error": false,
+      "bytes": 781,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "engines",
+          "investigation_record_version",
+          "operations",
+          "protocols",
+          "run_record_version",
+          "runner_devices",
+          "version"
+        ]
+      },
+      "space_datetimes": 0,
+      "structured": false
+    },
+    {
+      "tool": "list_runs",
+      "root": "s2-calibration-cli",
+      "arguments": {},
+      "error": false,
+      "bytes": 453,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "columns",
+          "next_after",
+          "rows",
+          "total"
+        ]
+      },
+      "space_datetimes": 0,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "s2-calibration-cli",
+      "arguments": {
+        "run": "squid_transmon/r20261021T193049755022Z-b7e16b13"
+      },
+      "error": false,
+      "bytes": 1386,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "s2-calibration-cli",
+      "arguments": {
+        "run": "squid_transmon/r20261021T193049755022Z-b7e16b13",
+        "detail": true
+      },
+      "error": false,
+      "bytes": 2921,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "s2-calibration-cli",
+      "arguments": {
+        "run": "squid_transmon/r20261021T194954303736Z-45cecd69"
+      },
+      "error": false,
+      "bytes": 6500,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "s2-calibration-cli",
+      "arguments": {
+        "run": "squid_transmon/r20261021T194954303736Z-45cecd69",
+        "detail": true
+      },
+      "error": false,
+      "bytes": 17693,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "list_capabilities",
+      "root": "s2-calibration-mcp",
+      "arguments": {},
+      "error": false,
+      "bytes": 781,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "engines",
+          "investigation_record_version",
+          "operations",
+          "protocols",
+          "run_record_version",
+          "runner_devices",
+          "version"
+        ]
+      },
+      "space_datetimes": 0,
+      "structured": false
+    },
+    {
+      "tool": "list_runs",
+      "root": "s2-calibration-mcp",
+      "arguments": {},
+      "error": false,
+      "bytes": 334,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "columns",
+          "next_after",
+          "rows",
+          "total"
+        ]
+      },
+      "space_datetimes": 0,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "s2-calibration-mcp",
+      "arguments": {
+        "run": "squid_transmon/r20261021T194955459298Z-f6ee3e4e"
+      },
+      "error": false,
+      "bytes": 6547,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    },
+    {
+      "tool": "read_run",
+      "root": "s2-calibration-mcp",
+      "arguments": {
+        "run": "squid_transmon/r20261021T194955459298Z-f6ee3e4e",
+        "detail": true
+      },
+      "error": false,
+      "bytes": 17740,
+      "top_level": {
+        "type": "object",
+        "keys": [
+          "check_listing",
+          "finished",
+          "log_tail",
+          "manifest",
+          "path",
+          "result",
+          "start",
+          "status",
+          "verification"
+        ]
+      },
+      "space_datetimes": 3,
+      "structured": false
+    }
+  ],
+  "mcp_output_schema_payload": {
+    "tool": "read_run",
+    "reply_bytes": 61087,
+    "text_only": {
+      "result_bytes": 65425,
+      "text_bytes": 61087,
+      "structured_bytes": 0,
+      "output_schema": null,
+      "error": false
+    },
+    "sdk_structured": {
+      "result_bytes": 179959,
+      "text_bytes": 111605,
+      "structured_bytes": 61087,
+      "output_schema": {
+        "additionalProperties": true,
+        "title": "sdk_structuredDictOutput",
+        "type": "object"
+      },
+      "error": false
+    },
+    "own_result": {
+      "result_bytes": 61054,
+      "text_bytes": 22,
+      "structured_bytes": 61087,
+      "output_schema": {
+        "additionalProperties": true,
+        "title": "own_resultDictOutput",
+        "type": "object"
+      },
+      "error": false
+    }
+  },
+  "size": {
+    "file_kinds_by_class": {
+      "record": 20,
+      "input": 16,
+      "array": 12,
+      "internal": 8,
+      "opaque": 2
+    },
+    "formats_by_class": {
+      "array": [
+        "initial state",
+        "measurement archive",
+        "neutral pulse",
+        "output",
+        "sweep point output"
+      ],
+      "input": [
+        "ProblemSpec (amicode schema)",
+        "calibration",
+        "check request (harness-written)",
+        "control",
+        "dataset",
+        "simulation",
+        "sweep",
+        "system"
+      ],
+      "internal": [
+        "code provenance",
+        "execution plan",
+        "log",
+        "plot",
+        "sweep manifest"
+      ],
+      "opaque": [
+        "solver trace",
+        "solver-native"
+      ],
+      "record": [
+        "MCP call outcome audit",
+        "MCP call request audit",
+        "MCP session audit",
+        "abort request",
+        "calibration assignment",
+        "catalog entry",
+        "investigation event",
+        "investigation revision",
+        "launch attempt",
+        "launch call",
+        "launch request",
+        "proposal",
+        "proposal application",
+        "reconciled",
+        "result",
+        "run",
+        "staged candidate",
+        "started",
+        "sweep point result",
+        "terminal"
+      ]
+    },
+    "cli_commands": 33,
+    "mcp_tools": {
+      "tools": 27,
+      "bytes": 12029,
+      "with_output_schema": 0
+    },
+    "distinct_reply_shapes": {
+      "cli": {
+        "capabilities": 1,
+        "list-runs": 1,
+        "list-investigations": 1,
+        "read-investigation": 1,
+        "list-catalog": 1,
+        "read-entry": 2,
+        "read-run": 6,
+        "validate-dataset": 1
+      },
+      "mcp": {
+        "list_capabilities": 1,
+        "list_runs": 1,
+        "read_run": 6,
+        "list_investigations": 1,
+        "read_investigation": 2,
+        "list_catalog": 1,
+        "read_entry": 2
+      }
+    }
+  },
+  "seconds": {
+    "copy": 0.45536135183647275,
+    "inventory": 0.32465439406223595,
+    "writers": 0.11356005189009011,
+    "variation": 1.0400793831795454,
+    "readability": 7.0779710919596255,
+    "input_models": 1.0199857570696622,
+    "drafted_run": 0.21627148892730474,
+    "arrays": 1.063819756032899,
+    "cli": 20.28166891890578,
+    "mcp": 4.954859900986776,
+    "total": 36.687948923092335
+  }
+}

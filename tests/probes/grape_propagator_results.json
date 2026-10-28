@@ -1,0 +1,494 @@
+{
+  "measured_at": "2026-10-19T05:47:14.981981+00:00",
+  "source_revision": "dd9b69fd2b92d72082c427cf70528b7ec1a2f3d9",
+  "script_sha256": "cb43b73378c2d13e067580b5cc1da34cc4f246f84efe52dd109ce169812343d3",
+  "source_sha256": {
+    "src/entanglix/solvers/grape.py": "f2daecffff7976f5166c27b35673ca49b4da9eb68b44d5bea39b5c0a93eeb100",
+    "src/entanglix/engines/dynamiqs_jax.py": "1f07e91a92ea9097ab95e4b92265e61718e5a8d80e203e682ca05248361a448c",
+    "src/entanglix/protocols/control.py": "4138eee95e427cca404f2fa22aa2850d17733f76229ced278b6607983277490f",
+    "uv.lock": "44c4e6aa76860221ea9e45284a072ec29a681c7c2369fe9064140b5d77870575"
+  },
+  "previous": {
+    "revision": "dd9b69fd2b92d72082c427cf70528b7ec1a2f3d9",
+    "source": "/home/paimon/Projects/entanglix-research/grape-propagator/previous_grape.py",
+    "sha256": "31e124bd8802ad5e4b27fd5aaa7c898b6df91a31e75d2b547ae085db7f2d4045",
+    "kind": "previous production loss, including the unchanged engine wrapper"
+  },
+  "refresh_note": "Matrix-exponential measurements refreshed after making the real-to-complex amplitude conversion explicit; previous-production measurements retained from the earlier comparison.",
+  "workspace": "/home/paimon/Projects/entanglix-research/grape-propagator",
+  "timing_note": "Serial CPU measurements, one BLAS thread, fresh process per input/loss, no persistent JAX cache. Cold first call is measured as explicit lowering + compilation + synchronized first execution; objective setup is separate. Warm optimization uses the precompiled callable with unchanged backend initialization, SLSQP settings and constraints. Timings exclude process/import startup and parity checks. Compilation is counted once.",
+  "comparison_note": "Numerical parity and solver-reported SLSQP outcomes, not an optimizer quality ranking. First-knot gradients of the previous loss can disagree despite that knot being fixed by the bounds. The composite uses the existing RWA export and omits dissipators; this is a computational example, not a coupled-device accuracy claim.",
+  "cases": [
+    {
+      "name": "transmon-3-20",
+      "control": "/home/paimon/Projects/entanglix-research/grape-propagator/inputs/transmon-3-20/control.toml",
+      "problem": "/home/paimon/Projects/entanglix-research/grape-propagator/inputs/transmon-3-20/problem.toml",
+      "problem_sha256": "716bdda08b61e182e4cea833a69282136bbb558ab36d492c042042a016daa3fa",
+      "source_input_sha256": {
+        "system.toml": "ece3372998ad4f65091418f4ac61b3215e12acbc1ec8d75e5c3f4694a345a776",
+        "control.toml": "142e3c372d437985041fb47e325472b10c61909dbba9f4d26ec4bdc814c4e7b9"
+      },
+      "dimension": 3,
+      "intervals": 20,
+      "options": {
+        "max_iter": 100,
+        "tol": 1e-08
+      },
+      "measurements": {
+        "previous": {
+          "loss": "previous",
+          "versions": {
+            "jax": "0.6.2",
+            "jaxlib": "0.6.2",
+            "dynamiqs": "0.3.6",
+            "scipy": "1.18.1"
+          },
+          "devices": [
+            "cpu"
+          ],
+          "value_dtype": "float64",
+          "gradient_dtype": "float64",
+          "setup_seconds": 0.33610311400843784,
+          "lowering_seconds": 1.8284222559886985,
+          "compile_seconds": 10.781393798999488,
+          "first_execution_seconds": 0.018641326983924955,
+          "cold_first_call_seconds": 12.628457381972112,
+          "warm_call_median_seconds": 0.017319147009402514,
+          "warm_optimization_seconds": 1.1014155060402118,
+          "fidelity": 0.9996150434507506,
+          "termination": {
+            "converged": true,
+            "status": 0,
+            "message": "Optimization terminated successfully",
+            "iterations": 32,
+            "objective_evaluations": 49
+          }
+        },
+        "expm": {
+          "loss": "expm",
+          "versions": {
+            "jax": "0.6.2",
+            "jaxlib": "0.6.2",
+            "dynamiqs": "0.3.6",
+            "scipy": "1.18.1"
+          },
+          "devices": [
+            "cpu"
+          ],
+          "value_dtype": "float64",
+          "gradient_dtype": "float64",
+          "setup_seconds": 0.07611571002053097,
+          "lowering_seconds": 0.16260255296947435,
+          "compile_seconds": 0.12513692199718207,
+          "first_execution_seconds": 0.0007274610106833279,
+          "cold_first_call_seconds": 0.28846693597733974,
+          "warm_call_median_seconds": 0.00043737998930737376,
+          "warm_optimization_seconds": 0.035329381993506104,
+          "fidelity": 0.9996150466866582,
+          "termination": {
+            "converged": true,
+            "status": 0,
+            "message": "Optimization terminated successfully",
+            "iterations": 30,
+            "objective_evaluations": 39
+          }
+        }
+      },
+      "parity": [
+        {
+          "value_absolute_difference": 1.1116330078664305e-11,
+          "free_knot_gradient_maximum_difference": 1.3436962653656792e-10,
+          "first_knot_gradient_maximum_difference": 0.0006728270320034424
+        },
+        {
+          "value_absolute_difference": 5.799805080641818e-12,
+          "free_knot_gradient_maximum_difference": 1.5504497685725482e-10,
+          "first_knot_gradient_maximum_difference": 0.0006884341867198218
+        },
+        {
+          "value_absolute_difference": 1.0257850124872903e-11,
+          "free_knot_gradient_maximum_difference": 2.4637270001903744e-10,
+          "first_knot_gradient_maximum_difference": 0.0010683462946587396
+        }
+      ],
+      "new_loss_slower_in": []
+    },
+    {
+      "name": "transmon-3-40",
+      "control": "/home/paimon/Projects/entanglix-research/grape-propagator/inputs/transmon-3-40/control.toml",
+      "problem": "/home/paimon/Projects/entanglix-research/grape-propagator/inputs/transmon-3-40/problem.toml",
+      "problem_sha256": "3faab077b5ea4749db51172df354a6d9333405d9c42a87d4ed523b1852f31774",
+      "source_input_sha256": {
+        "system.toml": "ece3372998ad4f65091418f4ac61b3215e12acbc1ec8d75e5c3f4694a345a776",
+        "control.toml": "372044e88b591d9277e7f18ea2b704faa813ecdb6986340eaea7233f9404b1c2"
+      },
+      "dimension": 3,
+      "intervals": 40,
+      "options": {
+        "max_iter": 100,
+        "tol": 1e-08
+      },
+      "measurements": {
+        "previous": {
+          "loss": "previous",
+          "versions": {
+            "jax": "0.6.2",
+            "jaxlib": "0.6.2",
+            "dynamiqs": "0.3.6",
+            "scipy": "1.18.1"
+          },
+          "devices": [
+            "cpu"
+          ],
+          "value_dtype": "float64",
+          "gradient_dtype": "float64",
+          "setup_seconds": 0.324152625980787,
+          "lowering_seconds": 1.9404662610031664,
+          "compile_seconds": 30.384679221955594,
+          "first_execution_seconds": 0.024210600997321308,
+          "cold_first_call_seconds": 32.34935608395608,
+          "warm_call_median_seconds": 0.019754659035243094,
+          "warm_optimization_seconds": 1.6219078989815898,
+          "fidelity": 0.9999999995573203,
+          "termination": {
+            "converged": true,
+            "status": 0,
+            "message": "Optimization terminated successfully",
+            "iterations": 50,
+            "objective_evaluations": 59
+          }
+        },
+        "expm": {
+          "loss": "expm",
+          "versions": {
+            "jax": "0.6.2",
+            "jaxlib": "0.6.2",
+            "dynamiqs": "0.3.6",
+            "scipy": "1.18.1"
+          },
+          "devices": [
+            "cpu"
+          ],
+          "value_dtype": "float64",
+          "gradient_dtype": "float64",
+          "setup_seconds": 0.07603059499524534,
+          "lowering_seconds": 0.16579638799885288,
+          "compile_seconds": 0.12791922700125724,
+          "first_execution_seconds": 0.0013219359680078924,
+          "cold_first_call_seconds": 0.295037550968118,
+          "warm_call_median_seconds": 0.0008362149819731712,
+          "warm_optimization_seconds": 0.1674126359866932,
+          "fidelity": 0.9999999995842115,
+          "termination": {
+            "converged": true,
+            "status": 0,
+            "message": "Optimization terminated successfully",
+            "iterations": 50,
+            "objective_evaluations": 59
+          }
+        }
+      },
+      "parity": [
+        {
+          "value_absolute_difference": 4.557465516086268e-12,
+          "free_knot_gradient_maximum_difference": 7.414578673259342e-11,
+          "first_knot_gradient_maximum_difference": 6.426373487244952e-07
+        },
+        {
+          "value_absolute_difference": 4.299893774373231e-12,
+          "free_knot_gradient_maximum_difference": 6.019496012754644e-11,
+          "first_knot_gradient_maximum_difference": 3.062355613536738e-07
+        },
+        {
+          "value_absolute_difference": 6.826650356117625e-12,
+          "free_knot_gradient_maximum_difference": 1.0432199548660037e-10,
+          "first_knot_gradient_maximum_difference": 7.537185624517662e-07
+        }
+      ],
+      "new_loss_slower_in": []
+    },
+    {
+      "name": "transmon-6-20",
+      "control": "/home/paimon/Projects/entanglix-research/grape-propagator/inputs/transmon-6-20/control.toml",
+      "problem": "/home/paimon/Projects/entanglix-research/grape-propagator/inputs/transmon-6-20/problem.toml",
+      "problem_sha256": "ddb2475df12fb54be1fb24699fd5811c71e6064695eb18a6ca216b4f38827aec",
+      "source_input_sha256": {
+        "system.toml": "4cb4150c0945b0bc8ca98ffe0e76311fd75e5a29b0770bd8b446680597b35200",
+        "control.toml": "142e3c372d437985041fb47e325472b10c61909dbba9f4d26ec4bdc814c4e7b9"
+      },
+      "dimension": 6,
+      "intervals": 20,
+      "options": {
+        "max_iter": 100,
+        "tol": 1e-08
+      },
+      "measurements": {
+        "previous": {
+          "loss": "previous",
+          "versions": {
+            "jax": "0.6.2",
+            "jaxlib": "0.6.2",
+            "dynamiqs": "0.3.6",
+            "scipy": "1.18.1"
+          },
+          "devices": [
+            "cpu"
+          ],
+          "value_dtype": "float64",
+          "gradient_dtype": "float64",
+          "setup_seconds": 0.3243131089839153,
+          "lowering_seconds": 1.8563553059939295,
+          "compile_seconds": 11.33044719794998,
+          "first_execution_seconds": 0.06939798500388861,
+          "cold_first_call_seconds": 13.256200488947798,
+          "warm_call_median_seconds": 0.06176166899967939,
+          "warm_optimization_seconds": 4.708126108977012,
+          "fidelity": 0.9984138382682433,
+          "termination": {
+            "converged": true,
+            "status": 0,
+            "message": "Optimization terminated successfully",
+            "iterations": 38,
+            "objective_evaluations": 49
+          }
+        },
+        "expm": {
+          "loss": "expm",
+          "versions": {
+            "jax": "0.6.2",
+            "jaxlib": "0.6.2",
+            "dynamiqs": "0.3.6",
+            "scipy": "1.18.1"
+          },
+          "devices": [
+            "cpu"
+          ],
+          "value_dtype": "float64",
+          "gradient_dtype": "float64",
+          "setup_seconds": 0.0759255739976652,
+          "lowering_seconds": 0.1628477679914795,
+          "compile_seconds": 0.1316403709934093,
+          "first_execution_seconds": 0.0012369150063022971,
+          "cold_first_call_seconds": 0.2957250539911911,
+          "warm_call_median_seconds": 0.0006023260066285729,
+          "warm_optimization_seconds": 0.04729396302718669,
+          "fidelity": 0.9984138411954946,
+          "termination": {
+            "converged": true,
+            "status": 0,
+            "message": "Optimization terminated successfully",
+            "iterations": 39,
+            "objective_evaluations": 50
+          }
+        }
+      },
+      "parity": [
+        {
+          "value_absolute_difference": 1.5798473640415978e-13,
+          "free_knot_gradient_maximum_difference": 2.542566157615056e-11,
+          "first_knot_gradient_maximum_difference": 0.000689192470480382
+        },
+        {
+          "value_absolute_difference": 2.972067036921544e-13,
+          "free_knot_gradient_maximum_difference": 2.356548289839111e-11,
+          "first_knot_gradient_maximum_difference": 0.0006273313643715417
+        },
+        {
+          "value_absolute_difference": 3.5899061501254437e-13,
+          "free_knot_gradient_maximum_difference": 3.403100024002015e-11,
+          "first_knot_gradient_maximum_difference": 0.0009787624035750286
+        }
+      ],
+      "new_loss_slower_in": []
+    },
+    {
+      "name": "transmon-10-20",
+      "control": "/home/paimon/Projects/entanglix-research/grape-propagator/inputs/transmon-10-20/control.toml",
+      "problem": "/home/paimon/Projects/entanglix-research/grape-propagator/inputs/transmon-10-20/problem.toml",
+      "problem_sha256": "2c8c737af983e307afa60a2b3b76c549e270631a99381193c4a6645e6cd18267",
+      "source_input_sha256": {
+        "system.toml": "be8fd9bd1e399c9faa9789975ed32455feb87ad89e24a021c3acbfdb69a53baa",
+        "control.toml": "142e3c372d437985041fb47e325472b10c61909dbba9f4d26ec4bdc814c4e7b9"
+      },
+      "dimension": 10,
+      "intervals": 20,
+      "options": {
+        "max_iter": 100,
+        "tol": 1e-08
+      },
+      "measurements": {
+        "previous": {
+          "loss": "previous",
+          "versions": {
+            "jax": "0.6.2",
+            "jaxlib": "0.6.2",
+            "dynamiqs": "0.3.6",
+            "scipy": "1.18.1"
+          },
+          "devices": [
+            "cpu"
+          ],
+          "value_dtype": "float64",
+          "gradient_dtype": "float64",
+          "setup_seconds": 0.3293202220229432,
+          "lowering_seconds": 1.867009814013727,
+          "compile_seconds": 11.145787924993783,
+          "first_execution_seconds": 0.12483495299238712,
+          "cold_first_call_seconds": 13.137632691999897,
+          "warm_call_median_seconds": 0.11679723695851862,
+          "warm_optimization_seconds": 11.657205312978476,
+          "fidelity": 0.9984138395806019,
+          "termination": {
+            "converged": true,
+            "status": 0,
+            "message": "Optimization terminated successfully",
+            "iterations": 36,
+            "objective_evaluations": 57
+          }
+        },
+        "expm": {
+          "loss": "expm",
+          "versions": {
+            "jax": "0.6.2",
+            "jaxlib": "0.6.2",
+            "dynamiqs": "0.3.6",
+            "scipy": "1.18.1"
+          },
+          "devices": [
+            "cpu"
+          ],
+          "value_dtype": "float64",
+          "gradient_dtype": "float64",
+          "setup_seconds": 0.0761410630075261,
+          "lowering_seconds": 0.1624573700246401,
+          "compile_seconds": 0.1325455170008354,
+          "first_execution_seconds": 0.0018981199827976525,
+          "cold_first_call_seconds": 0.29690100700827315,
+          "warm_call_median_seconds": 0.0012823789729736745,
+          "warm_optimization_seconds": 0.06489472702378407,
+          "fidelity": 0.998413840939538,
+          "termination": {
+            "converged": true,
+            "status": 0,
+            "message": "Optimization terminated successfully",
+            "iterations": 39,
+            "objective_evaluations": 50
+          }
+        }
+      },
+      "parity": [
+        {
+          "value_absolute_difference": 3.5416114485542494e-13,
+          "free_knot_gradient_maximum_difference": 4.224287586396258e-11,
+          "first_knot_gradient_maximum_difference": 0.000689192450648024
+        },
+        {
+          "value_absolute_difference": 5.853095785823825e-13,
+          "free_knot_gradient_maximum_difference": 3.6623704069427276e-11,
+          "first_knot_gradient_maximum_difference": 0.0006273313864816332
+        },
+        {
+          "value_absolute_difference": 6.331601909437268e-13,
+          "free_knot_gradient_maximum_difference": 6.036993127622736e-11,
+          "first_knot_gradient_maximum_difference": 0.0009787624358480462
+        }
+      ],
+      "new_loss_slower_in": []
+    },
+    {
+      "name": "qubit-resonator-30-20",
+      "control": "/home/paimon/Projects/entanglix-research/grape-propagator/inputs/qubit-resonator-30-20/control.toml",
+      "problem": "/home/paimon/Projects/entanglix-research/grape-propagator/inputs/qubit-resonator-30-20/problem.toml",
+      "problem_sha256": "eecdc832f62bc1e48779527d5ee8f2fdd06a7dfd42da3a94dc8af683c5efb9c3",
+      "source_input_sha256": {
+        "system.toml": "5807588800af331c2c39ed720b30f565e45e3db7f51ce8d8bab3c6db777d2ea3",
+        "qubit.toml": "d610d0ee4d2b93da493b2c79cbef9bc8f67908255538a0fc9fb6bc37684ee5b3",
+        "control.toml": "0d5169ea017aaf12f844e4e15c2508d0bf69e0e9365a8a28381f77ef775b15aa"
+      },
+      "dimension": 30,
+      "intervals": 20,
+      "options": {
+        "max_iter": 100,
+        "tol": 1e-08
+      },
+      "measurements": {
+        "previous": {
+          "loss": "previous",
+          "versions": {
+            "jax": "0.6.2",
+            "jaxlib": "0.6.2",
+            "dynamiqs": "0.3.6",
+            "scipy": "1.18.1"
+          },
+          "devices": [
+            "cpu"
+          ],
+          "value_dtype": "float64",
+          "gradient_dtype": "float64",
+          "setup_seconds": 0.3122716970392503,
+          "lowering_seconds": 1.839640096994117,
+          "compile_seconds": 11.221871085988823,
+          "first_execution_seconds": 1.06768922903575,
+          "cold_first_call_seconds": 14.12920041201869,
+          "warm_call_median_seconds": 1.0714807200129144,
+          "warm_optimization_seconds": 96.13708349398803,
+          "fidelity": 0.9984138411885244,
+          "termination": {
+            "converged": true,
+            "status": 0,
+            "message": "Optimization terminated successfully",
+            "iterations": 39,
+            "objective_evaluations": 50
+          }
+        },
+        "expm": {
+          "loss": "expm",
+          "versions": {
+            "jax": "0.6.2",
+            "jaxlib": "0.6.2",
+            "dynamiqs": "0.3.6",
+            "scipy": "1.18.1"
+          },
+          "devices": [
+            "cpu"
+          ],
+          "value_dtype": "float64",
+          "gradient_dtype": "float64",
+          "setup_seconds": 0.07428708800580353,
+          "lowering_seconds": 0.156392022036016,
+          "compile_seconds": 0.18433989002369344,
+          "first_execution_seconds": 0.012597043998539448,
+          "cold_first_call_seconds": 0.3533289560582489,
+          "warm_call_median_seconds": 0.007876367017161101,
+          "warm_optimization_seconds": 0.3244700650102459,
+          "fidelity": 0.9984138411947422,
+          "termination": {
+            "converged": true,
+            "status": 0,
+            "message": "Optimization terminated successfully",
+            "iterations": 39,
+            "objective_evaluations": 50
+          }
+        }
+      },
+      "parity": [
+        {
+          "value_absolute_difference": 6.578071420904053e-13,
+          "free_knot_gradient_maximum_difference": 1.2930312376369102e-10,
+          "first_knot_gradient_maximum_difference": 0.0006891923285330392
+        },
+        {
+          "value_absolute_difference": 1.433297924791077e-12,
+          "free_knot_gradient_maximum_difference": 1.1801792876298123e-10,
+          "first_knot_gradient_maximum_difference": 0.0006273314972087274
+        },
+        {
+          "value_absolute_difference": 8.941181128818698e-13,
+          "free_knot_gradient_maximum_difference": 1.7618062564395132e-10,
+          "first_knot_gradient_maximum_difference": 0.000978762593526472
+        }
+      ],
+      "new_loss_slower_in": []
+    }
+  ]
+}

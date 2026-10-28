@@ -1,0 +1,31 @@
+format_version = 1
+id = "transmon-calibration-training"
+kind = "spectroscopy"
+array_file = "training.npz"
+
+[conditions]
+measurement = "synthetic two-tone"
+
+[conditions.noise_per_quadrature]
+value = 0.02
+unit = "V"
+
+[provenance]
+device = "synthetic squid_transmon"
+measured_at = 2026-10-21 09:00:00+00:00
+
+[provenance.converter]
+name = "examples/transmon-calibration/generate.py"
+version = "1"
+
+[map.signal]
+key = "signal"
+unit = "V"
+
+[map.frequency]
+key = "frequency"
+unit = "GHz"
+
+[map.bias]
+key = "bias"
+unit = "mA"

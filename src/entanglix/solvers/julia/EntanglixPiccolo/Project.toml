@@ -1,0 +1,8 @@
+name = "EntanglixPiccolo"
+uuid = "30f1f32b-2bc0-4f63-a43a-31f8818de558"
+version = "0.1.0"
+
+[deps]
+Piccolo = "c4671d76-df94-11ed-2057-43d4fd632fad"
+PrecompileTools = "aea7be01-6a6a-4083-8856-8a6e6704d82a"
+TOML = "fa267f1f-6049-4f14-aa54-33bafae1ed76"

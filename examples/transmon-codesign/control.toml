@@ -1,0 +1,86 @@
+format_version = 1
+system = "system.toml"
+
+[parameters]
+Csh = 60.0
+
+[frame]
+rwa = true
+
+[frame.transitions]
+junction_with_shunt = [
+    0,
+    1,
+]
+
+[[channels]]
+id = "x"
+drive = "charge_drive"
+phase_rad = 0.0
+follows = "junction_with_shunt"
+
+[[channels]]
+id = "y"
+drive = "charge_drive"
+phase_rad = 1.5707963267948966
+follows = "junction_with_shunt"
+
+[goal]
+kind = "unitary"
+gate = "X"
+subspace = [
+    [
+        1,
+        2,
+    ],
+]
+
+[pulse]
+kind = "zero_order"
+T = 6.0
+init = "random"
+seed = 7
+
+[problem]
+template = "SmoothPulseProblem"
+N = 21
+Q = 1000.0
+R = 0.0001
+free_dt = false
+free_phase = false
+
+[rabi_bounds]
+subsystem = "junction_with_shunt"
+amplitude_ghz = 0.15
+du_ghz_per_ns = 0.33
+ddu_ghz_per_ns2 = 1.1
+
+[solver]
+backend = "grape"
+
+[solver.options]
+max_iter = 100
+tol = 1e-08
+
+[evaluation]
+samples = [
+    { "model.offset_charges.1" = 0.0, "parameters.EJ" = 14.985 },
+    { "model.offset_charges.1" = 0.0, "parameters.EJ" = 15.0 },
+    { "model.offset_charges.1" = 0.0, "parameters.EJ" = 15.015 },
+    { "model.offset_charges.1" = 0.25, "parameters.EJ" = 14.985 },
+    { "model.offset_charges.1" = 0.25, "parameters.EJ" = 15.0 },
+    { "model.offset_charges.1" = 0.25, "parameters.EJ" = 15.015 },
+    { "model.offset_charges.1" = 0.5, "parameters.EJ" = 14.985 },
+    { "model.offset_charges.1" = 0.5, "parameters.EJ" = 15.0 },
+    { "model.offset_charges.1" = 0.5, "parameters.EJ" = 15.015 },
+]
+
+[evaluation.quantities]
+"model.offset_charges.1" = "drifting"
+"parameters.EJ" = "calibrated"
+
+[evaluation.refinement.junction_with_shunt]
+retained_levels_step = 2
+
+[evaluation.refinement.junction_with_shunt.cutoff_steps]
+theta1 = 10

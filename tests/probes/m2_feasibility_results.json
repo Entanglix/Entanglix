@@ -1,0 +1,2087 @@
+{
+  "complete": true,
+  "environment": {
+    "python": "3.13.12",
+    "platform": "Linux-7.0.0-34-generic-x86_64-with-glibc2.43",
+    "packages": {
+      "qutip": "5.3.1",
+      "numpy": "2.5.3",
+      "scqubits": "4.3.1"
+    },
+    "lock_sha256": "db2f214215643bbfc9e85d250ba28386a359f751e1201bfb77984824e90ca867",
+    "probe_sha256": "054ed0a97707c68bb4aa1b2ade2146dfc766e4badb81fc596777f38333c853b3",
+    "fixture_sha256": "82322ccd34f84cef4e39ee59a219e74249d7937af24afe33bad04b790cb34448"
+  },
+  "step_count_definition": "accepted internal vern9 advances; rejected trials and dense-output interpolation excluded",
+  "counter_validation": [
+    {
+      "frame": "lab",
+      "maximum_observable_difference": 0.0
+    },
+    {
+      "frame": "rotating",
+      "maximum_observable_difference": 0.0
+    }
+  ],
+  "initial_allocation_difference": {
+    "coherence": 7.280253268759918e-05,
+    "excited": 1.5608168155711866e-06,
+    "photons": 1.7824038542890719e-06
+  },
+  "runs": [
+    {
+      "kind": "readout",
+      "frame": "rotating",
+      "ej_ghz": 13.5,
+      "amplitude_ghz": 0.003,
+      "dimensions": [
+        3,
+        10
+      ],
+      "cutoff": 30,
+      "duration_ns": 100,
+      "output_spacing_ns": 1.0,
+      "rtol": 1e-10,
+      "atol": 1e-12,
+      "max_steps_per_interval": 100000,
+      "wall_seconds": 0.3965449490060564,
+      "accepted_steps": 2853,
+      "drive_frequency_ghz": 7.002212234243742,
+      "coherence_at_end": 0.9722780586687321,
+      "excited_population_at_end": 0.5078188369571094,
+      "peak_photons": 0.2336318641128778,
+      "top_qubit_population": 0.00028012816962950547,
+      "top_resonator_population": 7.307123136469616e-12,
+      "physicality": {
+        "trace_error": 9.325873899864308e-15,
+        "hermiticity_error": 6.6801943877325544e-15,
+        "minimum_eigenvalue": -1.452785794993639e-13
+      },
+      "spectrum": {
+        "labels": {
+          "0,0": {
+            "index": 0,
+            "weight": 0.9999512720447659
+          },
+          "0,1": {
+            "index": 2,
+            "weight": 0.9982886732117613
+          },
+          "1,0": {
+            "index": 1,
+            "weight": 0.9982898131016927
+          },
+          "1,1": {
+            "index": 4,
+            "weight": 0.994188427432274
+          }
+        },
+        "chi_ghz": -0.0005548381222313381,
+        "drive_frequency_ghz": 7.002212234243742,
+        "qubit_frequency_ghz": 4.93226902091733,
+        "g01_ghz": 0.08326480485180664,
+        "detuning_ghz": -2.06773097908267,
+        "critical_photons": 154.17187014851365,
+        "purcell_rate_per_ns": 4.8647006699570135e-05
+      },
+      "system_sha256": "464fe753c5d2083a10a7f8c16d2b7f89b1fdcb204a112f718d672dceb8b7c083",
+      "label": "initial-production"
+    },
+    {
+      "kind": "readout",
+      "frame": "rotating",
+      "ej_ghz": 13.5,
+      "amplitude_ghz": 0.003,
+      "dimensions": [
+        4,
+        12
+      ],
+      "cutoff": 30,
+      "duration_ns": 100,
+      "output_spacing_ns": 1.0,
+      "rtol": 1e-11,
+      "atol": 9.999999999999999e-14,
+      "max_steps_per_interval": 100000,
+      "wall_seconds": 1.2602882450155448,
+      "accepted_steps": 3450,
+      "drive_frequency_ghz": 7.002212234243742,
+      "coherence_at_end": 0.9723508612014197,
+      "excited_population_at_end": 0.5078201301341024,
+      "peak_photons": 0.23363292467526306,
+      "top_qubit_population": 4.781450616565707e-08,
+      "top_resonator_population": 4.023070044983574e-15,
+      "physicality": {
+        "trace_error": 6.32827128076504e-15,
+        "hermiticity_error": 5.353640314242686e-15,
+        "minimum_eigenvalue": -1.456033045902893e-14
+      },
+      "spectrum": {
+        "labels": {
+          "0,0": {
+            "index": 0,
+            "weight": 0.9999512517581012
+          },
+          "0,1": {
+            "index": 2,
+            "weight": 0.9982884230435295
+          },
+          "1,0": {
+            "index": 1,
+            "weight": 0.998289683353049
+          },
+          "1,1": {
+            "index": 4,
+            "weight": 0.9941906588527318
+          }
+        },
+        "chi_ghz": -0.0005548837704214549,
+        "drive_frequency_ghz": 7.002210639828407,
+        "qubit_frequency_ghz": 4.932269020917353,
+        "g01_ghz": 0.08326480485180664,
+        "detuning_ghz": -2.067730979082647,
+        "critical_photons": 154.17187014851018,
+        "purcell_rate_per_ns": 4.8647006699571226e-05
+      },
+      "system_sha256": "bd540e711fde8679e10a87ae0a9c4d32237324b2d5e40f55ea017c2b0b0e8463",
+      "label": "initial-refined"
+    },
+    {
+      "kind": "readout",
+      "frame": "rotating",
+      "ej_ghz": 12.0,
+      "amplitude_ghz": 0.0,
+      "dimensions": [
+        5,
+        6
+      ],
+      "cutoff": 30,
+      "duration_ns": 100,
+      "output_spacing_ns": 1.0,
+      "rtol": 1e-10,
+      "atol": 1e-12,
+      "max_steps_per_interval": 100000,
+      "wall_seconds": 0.33444827899802476,
+      "accepted_steps": 2974,
+      "drive_frequency_ghz": 7.0017536727417085,
+      "coherence_at_end": 0.9972711950660182,
+      "excited_population_at_end": 0.49727494113768467,
+      "peak_photons": 0.0021790860398395733,
+      "top_qubit_population": 0.0,
+      "top_resonator_population": 0.0,
+      "physicality": {
+        "trace_error": 3.9968028886505635e-15,
+        "hermiticity_error": 0.0,
+        "minimum_eigenvalue": -4.660561907970004e-28
+      },
+      "spectrum": {
+        "labels": {
+          "0,0": {
+            "index": 0,
+            "weight": 0.9999518202306034
+          },
+          "0,1": {
+            "index": 2,
+            "weight": 0.9987436614297223
+          },
+          "1,0": {
+            "index": 1,
+            "weight": 0.9987451662746338
+          },
+          "1,1": {
+            "index": 4,
+            "weight": 0.9957174494957142
+          }
+        },
+        "chi_ghz": -0.0004348751488403302,
+        "drive_frequency_ghz": 7.0017536727417085,
+        "qubit_frequency_ghz": 4.6341082240596805,
+        "g01_ghz": 0.08070608180713695,
+        "detuning_ghz": -2.3658917759403195,
+        "critical_photons": 214.8410327190208,
+        "purcell_rate_per_ns": 3.4909532434657636e-05
+      },
+      "system_sha256": "6d5033a6868f9cd50351a1276dcd0de4fbdc762522256eeabc9bbfb02a734dae",
+      "label": "readout-12.0-0.0-rotating"
+    },
+    {
+      "kind": "readout",
+      "frame": "rotating",
+      "ej_ghz": 12.0,
+      "amplitude_ghz": 0.0,
+      "dimensions": [
+        6,
+        8
+      ],
+      "cutoff": 32,
+      "duration_ns": 100,
+      "output_spacing_ns": 1.0,
+      "rtol": 1e-11,
+      "atol": 9.999999999999999e-14,
+      "max_steps_per_interval": 100000,
+      "wall_seconds": 1.0138643419777509,
+      "accepted_steps": 3600,
+      "drive_frequency_ghz": 7.0017536727417085,
+      "coherence_at_end": 0.9972712142638118,
+      "excited_population_at_end": 0.49727494114030535,
+      "peak_photons": 0.0021790860406371046,
+      "top_qubit_population": 0.0,
+      "top_resonator_population": 0.0,
+      "physicality": {
+        "trace_error": 6.8833827526759706e-15,
+        "hermiticity_error": 0.0,
+        "minimum_eigenvalue": -1.6792265245140325e-16
+      },
+      "spectrum": {
+        "labels": {
+          "0,0": {
+            "index": 0,
+            "weight": 0.9999518201316773
+          },
+          "0,1": {
+            "index": 2,
+            "weight": 0.9987436606426628
+          },
+          "1,0": {
+            "index": 1,
+            "weight": 0.9987451653450305
+          },
+          "1,1": {
+            "index": 4,
+            "weight": 0.9957174465653281
+          }
+        },
+        "chi_ghz": -0.00043487268469899476,
+        "drive_frequency_ghz": 7.001753668080397,
+        "qubit_frequency_ghz": 4.6341082240596805,
+        "g01_ghz": 0.08070608180713693,
+        "detuning_ghz": -2.3658917759403195,
+        "critical_photons": 214.84103271902097,
+        "purcell_rate_per_ns": 3.490953243465762e-05
+      },
+      "system_sha256": "6257550b827c28d466fde96ca37c06436a08fc402432f0e8bbb36f476d05c0b3",
+      "label": "readout-12.0-0.0-rotating-refined"
+    },
+    {
+      "kind": "readout",
+      "frame": "lab",
+      "ej_ghz": 12.0,
+      "amplitude_ghz": 0.0,
+      "dimensions": [
+        5,
+        6
+      ],
+      "cutoff": 30,
+      "duration_ns": 100,
+      "output_spacing_ns": 1.0,
+      "rtol": 1e-10,
+      "atol": 1e-12,
+      "max_steps_per_interval": 100000,
+      "wall_seconds": 2.7622172969859093,
+      "accepted_steps": 18173,
+      "drive_frequency_ghz": 7.0017536727417085,
+      "coherence_at_end": 0.9972165459705986,
+      "excited_population_at_end": 0.4971449687409045,
+      "peak_photons": 0.0024229144197809483,
+      "top_qubit_population": 3.240105914870848e-07,
+      "top_resonator_population": 8.274134877399988e-16,
+      "physicality": {
+        "trace_error": 2.042810365935703e-14,
+        "hermiticity_error": 1.4482405054645292e-14,
+        "minimum_eigenvalue": -3.1981424104070083e-15
+      },
+      "spectrum": {
+        "labels": {
+          "0,0": {
+            "index": 0,
+            "weight": 0.9999518202306034
+          },
+          "0,1": {
+            "index": 2,
+            "weight": 0.9987436614297223
+          },
+          "1,0": {
+            "index": 1,
+            "weight": 0.9987451662746338
+          },
+          "1,1": {
+            "index": 4,
+            "weight": 0.9957174494957142
+          }
+        },
+        "chi_ghz": -0.0004348751488403302,
+        "drive_frequency_ghz": 7.0017536727417085,
+        "qubit_frequency_ghz": 4.6341082240596805,
+        "g01_ghz": 0.08070608180713695,
+        "detuning_ghz": -2.3658917759403195,
+        "critical_photons": 214.8410327190208,
+        "purcell_rate_per_ns": 3.4909532434657636e-05
+      },
+      "system_sha256": "6d5033a6868f9cd50351a1276dcd0de4fbdc762522256eeabc9bbfb02a734dae",
+      "label": "readout-12.0-0.0-lab"
+    },
+    {
+      "kind": "readout",
+      "frame": "lab",
+      "ej_ghz": 12.0,
+      "amplitude_ghz": 0.0,
+      "dimensions": [
+        6,
+        8
+      ],
+      "cutoff": 32,
+      "duration_ns": 100,
+      "output_spacing_ns": 1.0,
+      "rtol": 1e-11,
+      "atol": 9.999999999999999e-14,
+      "max_steps_per_interval": 100000,
+      "wall_seconds": 10.053258333995473,
+      "accepted_steps": 22021,
+      "drive_frequency_ghz": 7.0017536727417085,
+      "coherence_at_end": 0.9972169373115859,
+      "excited_population_at_end": 0.4971453595123561,
+      "peak_photons": 0.0024228357601517956,
+      "top_qubit_population": 1.1864897799065577e-09,
+      "top_resonator_population": 2.9275806805539433e-22,
+      "physicality": {
+        "trace_error": 1.3988810123306981e-14,
+        "hermiticity_error": 1.0348980067739693e-14,
+        "minimum_eigenvalue": -4.336519463153296e-16
+      },
+      "spectrum": {
+        "labels": {
+          "0,0": {
+            "index": 0,
+            "weight": 0.9999518201316773
+          },
+          "0,1": {
+            "index": 2,
+            "weight": 0.9987436606426628
+          },
+          "1,0": {
+            "index": 1,
+            "weight": 0.9987451653450305
+          },
+          "1,1": {
+            "index": 4,
+            "weight": 0.9957174465653281
+          }
+        },
+        "chi_ghz": -0.00043487268469899476,
+        "drive_frequency_ghz": 7.001753668080397,
+        "qubit_frequency_ghz": 4.6341082240596805,
+        "g01_ghz": 0.08070608180713693,
+        "detuning_ghz": -2.3658917759403195,
+        "critical_photons": 214.84103271902097,
+        "purcell_rate_per_ns": 3.490953243465762e-05
+      },
+      "system_sha256": "6257550b827c28d466fde96ca37c06436a08fc402432f0e8bbb36f476d05c0b3",
+      "label": "readout-12.0-0.0-lab-refined"
+    },
+    {
+      "kind": "readout",
+      "frame": "rotating",
+      "ej_ghz": 12.0,
+      "amplitude_ghz": 0.001,
+      "dimensions": [
+        5,
+        6
+      ],
+      "cutoff": 30,
+      "duration_ns": 100,
+      "output_spacing_ns": 1.0,
+      "rtol": 1e-10,
+      "atol": 1e-12,
+      "max_steps_per_interval": 100000,
+      "wall_seconds": 0.44041277101496235,
+      "accepted_steps": 3089,
+      "drive_frequency_ghz": 7.0017536727417085,
+      "coherence_at_end": 0.9964492818013355,
+      "excited_population_at_end": 0.499812400891923,
+      "peak_photons": 0.031186479826847777,
+      "top_qubit_population": 2.1023080132585714e-15,
+      "top_resonator_population": 1.8595185688160204e-10,
+      "physicality": {
+        "trace_error": 2.8865804266728576e-15,
+        "hermiticity_error": 8.918399520853275e-15,
+        "minimum_eigenvalue": -8.64415000335711e-14
+      },
+      "spectrum": {
+        "labels": {
+          "0,0": {
+            "index": 0,
+            "weight": 0.9999518202306034
+          },
+          "0,1": {
+            "index": 2,
+            "weight": 0.9987436614297223
+          },
+          "1,0": {
+            "index": 1,
+            "weight": 0.9987451662746338
+          },
+          "1,1": {
+            "index": 4,
+            "weight": 0.9957174494957142
+          }
+        },
+        "chi_ghz": -0.0004348751488403302,
+        "drive_frequency_ghz": 7.0017536727417085,
+        "qubit_frequency_ghz": 4.6341082240596805,
+        "g01_ghz": 0.08070608180713695,
+        "detuning_ghz": -2.3658917759403195,
+        "critical_photons": 214.8410327190208,
+        "purcell_rate_per_ns": 3.4909532434657636e-05
+      },
+      "system_sha256": "6d5033a6868f9cd50351a1276dcd0de4fbdc762522256eeabc9bbfb02a734dae",
+      "label": "readout-12.0-0.001-rotating"
+    },
+    {
+      "kind": "readout",
+      "frame": "rotating",
+      "ej_ghz": 12.0,
+      "amplitude_ghz": 0.002,
+      "dimensions": [
+        5,
+        6
+      ],
+      "cutoff": 30,
+      "duration_ns": 100,
+      "output_spacing_ns": 1.0,
+      "rtol": 1e-10,
+      "atol": 1e-12,
+      "max_steps_per_interval": 100000,
+      "wall_seconds": 0.43320918100653216,
+      "accepted_steps": 3166,
+      "drive_frequency_ghz": 7.0017536727417085,
+      "coherence_at_end": 0.9933265632107259,
+      "excited_population_at_end": 0.5024709896569465,
+      "peak_photons": 0.11349973156755237,
+      "top_qubit_population": 1.3452878075841358e-13,
+      "top_resonator_population": 1.0785160807669162e-07,
+      "physicality": {
+        "trace_error": 3.3306690906461373e-15,
+        "hermiticity_error": 5.5338982905518206e-15,
+        "minimum_eigenvalue": -1.4310763066300701e-13
+      },
+      "spectrum": {
+        "labels": {
+          "0,0": {
+            "index": 0,
+            "weight": 0.9999518202306034
+          },
+          "0,1": {
+            "index": 2,
+            "weight": 0.9987436614297223
+          },
+          "1,0": {
+            "index": 1,
+            "weight": 0.9987451662746338
+          },
+          "1,1": {
+            "index": 4,
+            "weight": 0.9957174494957142
+          }
+        },
+        "chi_ghz": -0.0004348751488403302,
+        "drive_frequency_ghz": 7.0017536727417085,
+        "qubit_frequency_ghz": 4.6341082240596805,
+        "g01_ghz": 0.08070608180713695,
+        "detuning_ghz": -2.3658917759403195,
+        "critical_photons": 214.8410327190208,
+        "purcell_rate_per_ns": 3.4909532434657636e-05
+      },
+      "system_sha256": "6d5033a6868f9cd50351a1276dcd0de4fbdc762522256eeabc9bbfb02a734dae",
+      "label": "readout-12.0-0.002-rotating"
+    },
+    {
+      "kind": "readout",
+      "frame": "rotating",
+      "ej_ghz": 12.0,
+      "amplitude_ghz": 0.002,
+      "dimensions": [
+        6,
+        8
+      ],
+      "cutoff": 32,
+      "duration_ns": 100,
+      "output_spacing_ns": 1.0,
+      "rtol": 1e-11,
+      "atol": 9.999999999999999e-14,
+      "max_steps_per_interval": 100000,
+      "wall_seconds": 1.426507172989659,
+      "accepted_steps": 3828,
+      "drive_frequency_ghz": 7.0017536727417085,
+      "coherence_at_end": 0.9933265282010936,
+      "excited_population_at_end": 0.5024709906014119,
+      "peak_photons": 0.11349981731475697,
+      "top_qubit_population": 1.8194855151859144e-18,
+      "top_resonator_population": 3.0493755283337477e-11,
+      "physicality": {
+        "trace_error": 2.44249112088476e-15,
+        "hermiticity_error": 4.302127948230402e-15,
+        "minimum_eigenvalue": -1.296238507617391e-14
+      },
+      "spectrum": {
+        "labels": {
+          "0,0": {
+            "index": 0,
+            "weight": 0.9999518201316773
+          },
+          "0,1": {
+            "index": 2,
+            "weight": 0.9987436606426628
+          },
+          "1,0": {
+            "index": 1,
+            "weight": 0.9987451653450305
+          },
+          "1,1": {
+            "index": 4,
+            "weight": 0.9957174465653281
+          }
+        },
+        "chi_ghz": -0.00043487268469899476,
+        "drive_frequency_ghz": 7.001753668080397,
+        "qubit_frequency_ghz": 4.6341082240596805,
+        "g01_ghz": 0.08070608180713693,
+        "detuning_ghz": -2.3658917759403195,
+        "critical_photons": 214.84103271902097,
+        "purcell_rate_per_ns": 3.490953243465762e-05
+      },
+      "system_sha256": "6257550b827c28d466fde96ca37c06436a08fc402432f0e8bbb36f476d05c0b3",
+      "label": "readout-12.0-0.002-rotating-refined"
+    },
+    {
+      "kind": "readout",
+      "frame": "lab",
+      "ej_ghz": 12.0,
+      "amplitude_ghz": 0.002,
+      "dimensions": [
+        5,
+        6
+      ],
+      "cutoff": 30,
+      "duration_ns": 100,
+      "output_spacing_ns": 1.0,
+      "rtol": 1e-10,
+      "atol": 1e-12,
+      "max_steps_per_interval": 100000,
+      "wall_seconds": 6.169666885980405,
+      "accepted_steps": 27366,
+      "drive_frequency_ghz": 7.0017536727417085,
+      "coherence_at_end": 0.9937217967488715,
+      "excited_population_at_end": 0.501911554377338,
+      "peak_photons": 0.11691166763416506,
+      "top_qubit_population": 4.3992387656627717e-07,
+      "top_resonator_population": 1.110026993200265e-07,
+      "physicality": {
+        "trace_error": 1.1990408748349612e-14,
+        "hermiticity_error": 2.2845356025775805e-14,
+        "minimum_eigenvalue": -1.1261405773803728e-12
+      },
+      "spectrum": {
+        "labels": {
+          "0,0": {
+            "index": 0,
+            "weight": 0.9999518202306034
+          },
+          "0,1": {
+            "index": 2,
+            "weight": 0.9987436614297223
+          },
+          "1,0": {
+            "index": 1,
+            "weight": 0.9987451662746338
+          },
+          "1,1": {
+            "index": 4,
+            "weight": 0.9957174494957142
+          }
+        },
+        "chi_ghz": -0.0004348751488403302,
+        "drive_frequency_ghz": 7.0017536727417085,
+        "qubit_frequency_ghz": 4.6341082240596805,
+        "g01_ghz": 0.08070608180713695,
+        "detuning_ghz": -2.3658917759403195,
+        "critical_photons": 214.8410327190208,
+        "purcell_rate_per_ns": 3.4909532434657636e-05
+      },
+      "system_sha256": "6d5033a6868f9cd50351a1276dcd0de4fbdc762522256eeabc9bbfb02a734dae",
+      "label": "readout-12.0-0.002-lab"
+    },
+    {
+      "kind": "readout",
+      "frame": "lab",
+      "ej_ghz": 12.0,
+      "amplitude_ghz": 0.002,
+      "dimensions": [
+        6,
+        8
+      ],
+      "cutoff": 32,
+      "duration_ns": 100,
+      "output_spacing_ns": 1.0,
+      "rtol": 1e-11,
+      "atol": 9.999999999999999e-14,
+      "max_steps_per_interval": 100000,
+      "wall_seconds": 21.080662182997912,
+      "accepted_steps": 33416,
+      "drive_frequency_ghz": 7.0017536727417085,
+      "coherence_at_end": 0.9937221211003392,
+      "excited_population_at_end": 0.5019121442180016,
+      "peak_photons": 0.11691125981695606,
+      "top_qubit_population": 1.5275780782657835e-09,
+      "top_resonator_population": 3.4975818492174437e-11,
+      "physicality": {
+        "trace_error": 2.697841950251311e-14,
+        "hermiticity_error": 1.6046254954264288e-14,
+        "minimum_eigenvalue": -2.5068762343514695e-13
+      },
+      "spectrum": {
+        "labels": {
+          "0,0": {
+            "index": 0,
+            "weight": 0.9999518201316773
+          },
+          "0,1": {
+            "index": 2,
+            "weight": 0.9987436606426628
+          },
+          "1,0": {
+            "index": 1,
+            "weight": 0.9987451653450305
+          },
+          "1,1": {
+            "index": 4,
+            "weight": 0.9957174465653281
+          }
+        },
+        "chi_ghz": -0.00043487268469899476,
+        "drive_frequency_ghz": 7.001753668080397,
+        "qubit_frequency_ghz": 4.6341082240596805,
+        "g01_ghz": 0.08070608180713693,
+        "detuning_ghz": -2.3658917759403195,
+        "critical_photons": 214.84103271902097,
+        "purcell_rate_per_ns": 3.490953243465762e-05
+      },
+      "system_sha256": "6257550b827c28d466fde96ca37c06436a08fc402432f0e8bbb36f476d05c0b3",
+      "label": "readout-12.0-0.002-lab-refined"
+    },
+    {
+      "kind": "readout",
+      "frame": "rotating",
+      "ej_ghz": 13.5,
+      "amplitude_ghz": 0.0,
+      "dimensions": [
+        5,
+        6
+      ],
+      "cutoff": 30,
+      "duration_ns": 100,
+      "output_spacing_ns": 1.0,
+      "rtol": 1e-10,
+      "atol": 1e-12,
+      "max_steps_per_interval": 100000,
+      "wall_seconds": 0.27774994500214234,
+      "accepted_steps": 2608,
+      "drive_frequency_ghz": 7.002206406997239,
+      "coherence_at_end": 0.9956350928868744,
+      "excited_population_at_end": 0.49564463864778463,
+      "peak_photons": 0.002896416370714861,
+      "top_qubit_population": 0.0,
+      "top_resonator_population": 0.0,
+      "physicality": {
+        "trace_error": 1.4210854715202004e-14,
+        "hermiticity_error": 0.0,
+        "minimum_eigenvalue": -6.489822940854349e-28
+      },
+      "spectrum": {
+        "labels": {
+          "0,0": {
+            "index": 0,
+            "weight": 0.9999512516643341
+          },
+          "0,1": {
+            "index": 2,
+            "weight": 0.9982884238903632
+          },
+          "1,0": {
+            "index": 1,
+            "weight": 0.9982895786375111
+          },
+          "1,1": {
+            "index": 4,
+            "weight": 0.994189211735542
+          }
+        },
+        "chi_ghz": -0.0005591160933469119,
+        "drive_frequency_ghz": 7.002206406997239,
+        "qubit_frequency_ghz": 4.932269020917376,
+        "g01_ghz": 0.08326480485180664,
+        "detuning_ghz": -2.067730979082624,
+        "critical_photons": 154.17187014850674,
+        "purcell_rate_per_ns": 4.86470066995723e-05
+      },
+      "system_sha256": "97f30c122d1ae1f495871af08e9e6e99aab8d2577e25783abcdeb1a1291f3418",
+      "label": "readout-13.5-0.0-rotating"
+    },
+    {
+      "kind": "readout",
+      "frame": "rotating",
+      "ej_ghz": 13.5,
+      "amplitude_ghz": 0.001,
+      "dimensions": [
+        5,
+        6
+      ],
+      "cutoff": 30,
+      "duration_ns": 100,
+      "output_spacing_ns": 1.0,
+      "rtol": 1e-10,
+      "atol": 1e-12,
+      "max_steps_per_interval": 100000,
+      "wall_seconds": 0.373110736021772,
+      "accepted_steps": 2718,
+      "drive_frequency_ghz": 7.002206406997239,
+      "coherence_at_end": 0.9916079011592843,
+      "excited_population_at_end": 0.5001610801234831,
+      "peak_photons": 0.03016277574345614,
+      "top_qubit_population": 5.249863056061803e-15,
+      "top_resonator_population": 1.9378480126889742e-10,
+      "physicality": {
+        "trace_error": 3.996802911422863e-15,
+        "hermiticity_error": 6.256248673908975e-15,
+        "minimum_eigenvalue": -1.0878444408933282e-13
+      },
+      "spectrum": {
+        "labels": {
+          "0,0": {
+            "index": 0,
+            "weight": 0.9999512516643341
+          },
+          "0,1": {
+            "index": 2,
+            "weight": 0.9982884238903632
+          },
+          "1,0": {
+            "index": 1,
+            "weight": 0.9982895786375111
+          },
+          "1,1": {
+            "index": 4,
+            "weight": 0.994189211735542
+          }
+        },
+        "chi_ghz": -0.0005591160933469119,
+        "drive_frequency_ghz": 7.002206406997239,
+        "qubit_frequency_ghz": 4.932269020917376,
+        "g01_ghz": 0.08326480485180664,
+        "detuning_ghz": -2.067730979082624,
+        "critical_photons": 154.17187014850674,
+        "purcell_rate_per_ns": 4.86470066995723e-05
+      },
+      "system_sha256": "97f30c122d1ae1f495871af08e9e6e99aab8d2577e25783abcdeb1a1291f3418",
+      "label": "readout-13.5-0.001-rotating"
+    },
+    {
+      "kind": "readout",
+      "frame": "rotating",
+      "ej_ghz": 13.5,
+      "amplitude_ghz": 0.002,
+      "dimensions": [
+        5,
+        6
+      ],
+      "cutoff": 30,
+      "duration_ns": 100,
+      "output_spacing_ns": 1.0,
+      "rtol": 1e-10,
+      "atol": 1e-12,
+      "max_steps_per_interval": 100000,
+      "wall_seconds": 0.38293512497330084,
+      "accepted_steps": 2794,
+      "drive_frequency_ghz": 7.002206406997239,
+      "coherence_at_end": 0.9838385701820731,
+      "excited_population_at_end": 0.5043259886042065,
+      "peak_photons": 0.10786267943816255,
+      "top_qubit_population": 3.3475560679351564e-13,
+      "top_resonator_population": 9.632453514461214e-08,
+      "physicality": {
+        "trace_error": 6.883383801900583e-15,
+        "hermiticity_error": 9.877079245726537e-15,
+        "minimum_eigenvalue": -1.570581490651369e-13
+      },
+      "spectrum": {
+        "labels": {
+          "0,0": {
+            "index": 0,
+            "weight": 0.9999512516643341
+          },
+          "0,1": {
+            "index": 2,
+            "weight": 0.9982884238903632
+          },
+          "1,0": {
+            "index": 1,
+            "weight": 0.9982895786375111
+          },
+          "1,1": {
+            "index": 4,
+            "weight": 0.994189211735542
+          }
+        },
+        "chi_ghz": -0.0005591160933469119,
+        "drive_frequency_ghz": 7.002206406997239,
+        "qubit_frequency_ghz": 4.932269020917376,
+        "g01_ghz": 0.08326480485180664,
+        "detuning_ghz": -2.067730979082624,
+        "critical_photons": 154.17187014850674,
+        "purcell_rate_per_ns": 4.86470066995723e-05
+      },
+      "system_sha256": "97f30c122d1ae1f495871af08e9e6e99aab8d2577e25783abcdeb1a1291f3418",
+      "label": "readout-13.5-0.002-rotating"
+    },
+    {
+      "kind": "readout",
+      "frame": "rotating",
+      "ej_ghz": 13.5,
+      "amplitude_ghz": 0.002,
+      "dimensions": [
+        6,
+        8
+      ],
+      "cutoff": 32,
+      "duration_ns": 100,
+      "output_spacing_ns": 1.0,
+      "rtol": 1e-11,
+      "atol": 9.999999999999999e-14,
+      "max_steps_per_interval": 100000,
+      "wall_seconds": 1.2509766339790076,
+      "accepted_steps": 3375,
+      "drive_frequency_ghz": 7.002206406997239,
+      "coherence_at_end": 0.9838384064416584,
+      "excited_population_at_end": 0.5043259882389729,
+      "peak_photons": 0.10786274336275557,
+      "top_qubit_population": 6.373024504609512e-18,
+      "top_resonator_population": 3.9734125881419225e-11,
+      "physicality": {
+        "trace_error": 5.7731597600416654e-15,
+        "hermiticity_error": 8.635792757781687e-15,
+        "minimum_eigenvalue": -1.2691885641253764e-14
+      },
+      "spectrum": {
+        "labels": {
+          "0,0": {
+            "index": 0,
+            "weight": 0.9999512515938888
+          },
+          "0,1": {
+            "index": 2,
+            "weight": 0.9982884232991633
+          },
+          "1,0": {
+            "index": 1,
+            "weight": 0.9982895778084179
+          },
+          "1,1": {
+            "index": 4,
+            "weight": 0.9941892119708089
+          }
+        },
+        "chi_ghz": -0.000559114580384712,
+        "drive_frequency_ghz": 7.002206403479754,
+        "qubit_frequency_ghz": 4.932269020917376,
+        "g01_ghz": 0.08326480485180664,
+        "detuning_ghz": -2.067730979082624,
+        "critical_photons": 154.17187014850674,
+        "purcell_rate_per_ns": 4.86470066995723e-05
+      },
+      "system_sha256": "3222f410ef1875d26b4dc6f6bb0d7a2bb8c514561cddece7951e763d5de48abb",
+      "label": "readout-13.5-0.002-rotating-refined"
+    },
+    {
+      "kind": "readout",
+      "frame": "lab",
+      "ej_ghz": 13.5,
+      "amplitude_ghz": 0.002,
+      "dimensions": [
+        5,
+        6
+      ],
+      "cutoff": 30,
+      "duration_ns": 100,
+      "output_spacing_ns": 1.0,
+      "rtol": 1e-10,
+      "atol": 1e-12,
+      "max_steps_per_interval": 100000,
+      "wall_seconds": 6.306024424993666,
+      "accepted_steps": 27670,
+      "drive_frequency_ghz": 7.002206406997239,
+      "coherence_at_end": 0.9835430257910738,
+      "excited_population_at_end": 0.5018722447803565,
+      "peak_photons": 0.11091969763078643,
+      "top_qubit_population": 3.636449248855972e-07,
+      "top_resonator_population": 1.1643850576029302e-07,
+      "physicality": {
+        "trace_error": 1.5987211563437427e-14,
+        "hermiticity_error": 1.5920596039241292e-14,
+        "minimum_eigenvalue": -4.1384268320645846e-13
+      },
+      "spectrum": {
+        "labels": {
+          "0,0": {
+            "index": 0,
+            "weight": 0.9999512516643341
+          },
+          "0,1": {
+            "index": 2,
+            "weight": 0.9982884238903632
+          },
+          "1,0": {
+            "index": 1,
+            "weight": 0.9982895786375111
+          },
+          "1,1": {
+            "index": 4,
+            "weight": 0.994189211735542
+          }
+        },
+        "chi_ghz": -0.0005591160933469119,
+        "drive_frequency_ghz": 7.002206406997239,
+        "qubit_frequency_ghz": 4.932269020917376,
+        "g01_ghz": 0.08326480485180664,
+        "detuning_ghz": -2.067730979082624,
+        "critical_photons": 154.17187014850674,
+        "purcell_rate_per_ns": 4.86470066995723e-05
+      },
+      "system_sha256": "97f30c122d1ae1f495871af08e9e6e99aab8d2577e25783abcdeb1a1291f3418",
+      "label": "readout-13.5-0.002-lab"
+    },
+    {
+      "kind": "readout",
+      "frame": "lab",
+      "ej_ghz": 13.5,
+      "amplitude_ghz": 0.002,
+      "dimensions": [
+        6,
+        8
+      ],
+      "cutoff": 32,
+      "duration_ns": 100,
+      "output_spacing_ns": 1.0,
+      "rtol": 1e-11,
+      "atol": 9.999999999999999e-14,
+      "max_steps_per_interval": 100000,
+      "wall_seconds": 20.969926118996227,
+      "accepted_steps": 33810,
+      "drive_frequency_ghz": 7.002206406997239,
+      "coherence_at_end": 0.9835426397670647,
+      "excited_population_at_end": 0.5018724320365747,
+      "peak_photons": 0.11092047855272992,
+      "top_qubit_population": 1.006048159675654e-09,
+      "top_resonator_population": 4.846483146735415e-11,
+      "physicality": {
+        "trace_error": 9.658940361653194e-15,
+        "hermiticity_error": 1.9504047560083663e-14,
+        "minimum_eigenvalue": -1.6981093306207706e-13
+      },
+      "spectrum": {
+        "labels": {
+          "0,0": {
+            "index": 0,
+            "weight": 0.9999512515938888
+          },
+          "0,1": {
+            "index": 2,
+            "weight": 0.9982884232991633
+          },
+          "1,0": {
+            "index": 1,
+            "weight": 0.9982895778084179
+          },
+          "1,1": {
+            "index": 4,
+            "weight": 0.9941892119708089
+          }
+        },
+        "chi_ghz": -0.000559114580384712,
+        "drive_frequency_ghz": 7.002206403479754,
+        "qubit_frequency_ghz": 4.932269020917376,
+        "g01_ghz": 0.08326480485180664,
+        "detuning_ghz": -2.067730979082624,
+        "critical_photons": 154.17187014850674,
+        "purcell_rate_per_ns": 4.86470066995723e-05
+      },
+      "system_sha256": "3222f410ef1875d26b4dc6f6bb0d7a2bb8c514561cddece7951e763d5de48abb",
+      "label": "readout-13.5-0.002-lab-refined"
+    },
+    {
+      "kind": "readout",
+      "frame": "rotating",
+      "ej_ghz": 15.0,
+      "amplitude_ghz": 0.0,
+      "dimensions": [
+        5,
+        6
+      ],
+      "cutoff": 30,
+      "duration_ns": 100,
+      "output_spacing_ns": 1.0,
+      "rtol": 1e-10,
+      "atol": 1e-12,
+      "max_steps_per_interval": 100000,
+      "wall_seconds": 0.25693517198669724,
+      "accepted_steps": 2260,
+      "drive_frequency_ghz": 7.002760675881172,
+      "coherence_at_end": 0.9938897829198705,
+      "excited_population_at_end": 0.4939084667834871,
+      "peak_photons": 0.004091337932163396,
+      "top_qubit_population": 0.0,
+      "top_resonator_population": 0.0,
+      "physicality": {
+        "trace_error": 4.218847493575595e-15,
+        "hermiticity_error": 0.0,
+        "minimum_eigenvalue": -8.322882136305542e-28
+      },
+      "spectrum": {
+        "labels": {
+          "0,0": {
+            "index": 0,
+            "weight": 0.9999508172892988
+          },
+          "0,1": {
+            "index": 2,
+            "weight": 0.9976186888032709
+          },
+          "1,0": {
+            "index": 1,
+            "weight": 0.9976195652383341
+          },
+          "1,1": {
+            "index": 4,
+            "weight": 0.9919852607049149
+          }
+        },
+        "chi_ghz": -0.0007335909874695012,
+        "drive_frequency_ghz": 7.002760675881172,
+        "qubit_frequency_ghz": 5.214163573423991,
+        "g01_ghz": 0.08561340253455883,
+        "detuning_ghz": -1.785836426576009,
+        "critical_photons": 108.77769403293543,
+        "purcell_rate_per_ns": 6.894795910758293e-05
+      },
+      "system_sha256": "119c961bd01db207a979b0c3914162d5f9f8a78a4ae379b13335234e6d87e9bb",
+      "label": "readout-15.0-0.0-rotating"
+    },
+    {
+      "kind": "readout",
+      "frame": "rotating",
+      "ej_ghz": 15.0,
+      "amplitude_ghz": 0.0,
+      "dimensions": [
+        6,
+        8
+      ],
+      "cutoff": 32,
+      "duration_ns": 100,
+      "output_spacing_ns": 1.0,
+      "rtol": 1e-11,
+      "atol": 9.999999999999999e-14,
+      "max_steps_per_interval": 100000,
+      "wall_seconds": 0.8026352659799159,
+      "accepted_steps": 2736,
+      "drive_frequency_ghz": 7.002760675881172,
+      "coherence_at_end": 0.993889796789632,
+      "excited_population_at_end": 0.493908466776975,
+      "peak_photons": 0.004091337932606547,
+      "top_qubit_population": 0.0,
+      "top_resonator_population": 0.0,
+      "physicality": {
+        "trace_error": 5.329070518200751e-15,
+        "hermiticity_error": 0.0,
+        "minimum_eigenvalue": -1.2032842808337626e-16
+      },
+      "spectrum": {
+        "labels": {
+          "0,0": {
+            "index": 0,
+            "weight": 0.9999508172375136
+          },
+          "0,1": {
+            "index": 2,
+            "weight": 0.9976186883157662
+          },
+          "1,0": {
+            "index": 1,
+            "weight": 0.9976195644794666
+          },
+          "1,1": {
+            "index": 4,
+            "weight": 0.991985264754037
+          }
+        },
+        "chi_ghz": -0.0007335905569343382,
+        "drive_frequency_ghz": 7.0027606726542055,
+        "qubit_frequency_ghz": 5.214163573423779,
+        "g01_ghz": 0.08561340253455886,
+        "detuning_ghz": -1.7858364265762212,
+        "critical_photons": 108.77769403296121,
+        "purcell_rate_per_ns": 6.894795910756658e-05
+      },
+      "system_sha256": "e495bf78b418ab96fc8bb85676284a1b4c79bc2b4ea19fe0a8ce91a988d9134e",
+      "label": "readout-15.0-0.0-rotating-refined"
+    },
+    {
+      "kind": "readout",
+      "frame": "lab",
+      "ej_ghz": 15.0,
+      "amplitude_ghz": 0.0,
+      "dimensions": [
+        5,
+        6
+      ],
+      "cutoff": 30,
+      "duration_ns": 100,
+      "output_spacing_ns": 1.0,
+      "rtol": 1e-10,
+      "atol": 1e-12,
+      "max_steps_per_interval": 100000,
+      "wall_seconds": 3.0896474329929333,
+      "accepted_steps": 19589,
+      "drive_frequency_ghz": 7.002760675881172,
+      "coherence_at_end": 0.9941557609380876,
+      "excited_population_at_end": 0.4938087024480223,
+      "peak_photons": 0.004242159902346105,
+      "top_qubit_population": 2.24295857441045e-07,
+      "top_resonator_population": 6.11322597540362e-15,
+      "physicality": {
+        "trace_error": 1.8207657604899644e-14,
+        "hermiticity_error": 2.1668590131693082e-14,
+        "minimum_eigenvalue": -1.0662226414648347e-15
+      },
+      "spectrum": {
+        "labels": {
+          "0,0": {
+            "index": 0,
+            "weight": 0.9999508172892988
+          },
+          "0,1": {
+            "index": 2,
+            "weight": 0.9976186888032709
+          },
+          "1,0": {
+            "index": 1,
+            "weight": 0.9976195652383341
+          },
+          "1,1": {
+            "index": 4,
+            "weight": 0.9919852607049149
+          }
+        },
+        "chi_ghz": -0.0007335909874695012,
+        "drive_frequency_ghz": 7.002760675881172,
+        "qubit_frequency_ghz": 5.214163573423991,
+        "g01_ghz": 0.08561340253455883,
+        "detuning_ghz": -1.785836426576009,
+        "critical_photons": 108.77769403293543,
+        "purcell_rate_per_ns": 6.894795910758293e-05
+      },
+      "system_sha256": "119c961bd01db207a979b0c3914162d5f9f8a78a4ae379b13335234e6d87e9bb",
+      "label": "readout-15.0-0.0-lab"
+    },
+    {
+      "kind": "readout",
+      "frame": "lab",
+      "ej_ghz": 15.0,
+      "amplitude_ghz": 0.0,
+      "dimensions": [
+        6,
+        8
+      ],
+      "cutoff": 32,
+      "duration_ns": 100,
+      "output_spacing_ns": 1.0,
+      "rtol": 1e-11,
+      "atol": 9.999999999999999e-14,
+      "max_steps_per_interval": 100000,
+      "wall_seconds": 10.627866771013942,
+      "accepted_steps": 23715,
+      "drive_frequency_ghz": 7.002760675881172,
+      "coherence_at_end": 0.9941555704817528,
+      "excited_population_at_end": 0.4938085136143178,
+      "peak_photons": 0.004242162394852919,
+      "top_qubit_population": 8.642034532537383e-10,
+      "top_resonator_population": 6.836066871978339e-21,
+      "physicality": {
+        "trace_error": 1.6098233857239875e-14,
+        "hermiticity_error": 1.543690410001298e-14,
+        "minimum_eigenvalue": -4.953373119797452e-16
+      },
+      "spectrum": {
+        "labels": {
+          "0,0": {
+            "index": 0,
+            "weight": 0.9999508172375136
+          },
+          "0,1": {
+            "index": 2,
+            "weight": 0.9976186883157662
+          },
+          "1,0": {
+            "index": 1,
+            "weight": 0.9976195644794666
+          },
+          "1,1": {
+            "index": 4,
+            "weight": 0.991985264754037
+          }
+        },
+        "chi_ghz": -0.0007335905569343382,
+        "drive_frequency_ghz": 7.0027606726542055,
+        "qubit_frequency_ghz": 5.214163573423779,
+        "g01_ghz": 0.08561340253455886,
+        "detuning_ghz": -1.7858364265762212,
+        "critical_photons": 108.77769403296121,
+        "purcell_rate_per_ns": 6.894795910756658e-05
+      },
+      "system_sha256": "e495bf78b418ab96fc8bb85676284a1b4c79bc2b4ea19fe0a8ce91a988d9134e",
+      "label": "readout-15.0-0.0-lab-refined"
+    },
+    {
+      "kind": "readout",
+      "frame": "rotating",
+      "ej_ghz": 15.0,
+      "amplitude_ghz": 0.001,
+      "dimensions": [
+        5,
+        6
+      ],
+      "cutoff": 30,
+      "duration_ns": 100,
+      "output_spacing_ns": 1.0,
+      "rtol": 1e-10,
+      "atol": 1e-12,
+      "max_steps_per_interval": 100000,
+      "wall_seconds": 0.33519109699409455,
+      "accepted_steps": 2373,
+      "drive_frequency_ghz": 7.002760675881172,
+      "coherence_at_end": 0.9884011658641617,
+      "excited_population_at_end": 0.5006051317341823,
+      "peak_photons": 0.032864596165772336,
+      "top_qubit_population": 1.3123023097656605e-14,
+      "top_resonator_population": 2.5959084049949286e-10,
+      "physicality": {
+        "trace_error": 3.99680307909705e-15,
+        "hermiticity_error": 8.064181949316452e-15,
+        "minimum_eigenvalue": -1.3143759134318822e-13
+      },
+      "spectrum": {
+        "labels": {
+          "0,0": {
+            "index": 0,
+            "weight": 0.9999508172892988
+          },
+          "0,1": {
+            "index": 2,
+            "weight": 0.9976186888032709
+          },
+          "1,0": {
+            "index": 1,
+            "weight": 0.9976195652383341
+          },
+          "1,1": {
+            "index": 4,
+            "weight": 0.9919852607049149
+          }
+        },
+        "chi_ghz": -0.0007335909874695012,
+        "drive_frequency_ghz": 7.002760675881172,
+        "qubit_frequency_ghz": 5.214163573423991,
+        "g01_ghz": 0.08561340253455883,
+        "detuning_ghz": -1.785836426576009,
+        "critical_photons": 108.77769403293543,
+        "purcell_rate_per_ns": 6.894795910758293e-05
+      },
+      "system_sha256": "119c961bd01db207a979b0c3914162d5f9f8a78a4ae379b13335234e6d87e9bb",
+      "label": "readout-15.0-0.001-rotating"
+    },
+    {
+      "kind": "readout",
+      "frame": "rotating",
+      "ej_ghz": 15.0,
+      "amplitude_ghz": 0.002,
+      "dimensions": [
+        5,
+        6
+      ],
+      "cutoff": 30,
+      "duration_ns": 100,
+      "output_spacing_ns": 1.0,
+      "rtol": 1e-10,
+      "atol": 1e-12,
+      "max_steps_per_interval": 100000,
+      "wall_seconds": 0.34378105399082415,
+      "accepted_steps": 2450,
+      "drive_frequency_ghz": 7.002760675881172,
+      "coherence_at_end": 0.9766143119146902,
+      "excited_population_at_end": 0.5068524207064717,
+      "peak_photons": 0.11525712952814524,
+      "top_qubit_population": 8.368088350964795e-13,
+      "top_resonator_population": 1.270168235175461e-07,
+      "physicality": {
+        "trace_error": 4.440892264500475e-15,
+        "hermiticity_error": 9.577939907939786e-15,
+        "minimum_eigenvalue": -1.6347117450387778e-13
+      },
+      "spectrum": {
+        "labels": {
+          "0,0": {
+            "index": 0,
+            "weight": 0.9999508172892988
+          },
+          "0,1": {
+            "index": 2,
+            "weight": 0.9976186888032709
+          },
+          "1,0": {
+            "index": 1,
+            "weight": 0.9976195652383341
+          },
+          "1,1": {
+            "index": 4,
+            "weight": 0.9919852607049149
+          }
+        },
+        "chi_ghz": -0.0007335909874695012,
+        "drive_frequency_ghz": 7.002760675881172,
+        "qubit_frequency_ghz": 5.214163573423991,
+        "g01_ghz": 0.08561340253455883,
+        "detuning_ghz": -1.785836426576009,
+        "critical_photons": 108.77769403293543,
+        "purcell_rate_per_ns": 6.894795910758293e-05
+      },
+      "system_sha256": "119c961bd01db207a979b0c3914162d5f9f8a78a4ae379b13335234e6d87e9bb",
+      "label": "readout-15.0-0.002-rotating"
+    },
+    {
+      "kind": "readout",
+      "frame": "rotating",
+      "ej_ghz": 15.0,
+      "amplitude_ghz": 0.002,
+      "dimensions": [
+        6,
+        8
+      ],
+      "cutoff": 32,
+      "duration_ns": 100,
+      "output_spacing_ns": 1.0,
+      "rtol": 1e-11,
+      "atol": 9.999999999999999e-14,
+      "max_steps_per_interval": 100000,
+      "wall_seconds": 1.116707890003454,
+      "accepted_steps": 2955,
+      "drive_frequency_ghz": 7.002760675881172,
+      "coherence_at_end": 0.9766141137027233,
+      "excited_population_at_end": 0.5068524200898384,
+      "peak_photons": 0.11525723843357394,
+      "top_qubit_population": 2.1869924151122917e-17,
+      "top_resonator_population": 4.439098552024698e-11,
+      "physicality": {
+        "trace_error": 1.9984032979686146e-15,
+        "hermiticity_error": 7.512966992587885e-15,
+        "minimum_eigenvalue": -1.6045597057339452e-14
+      },
+      "spectrum": {
+        "labels": {
+          "0,0": {
+            "index": 0,
+            "weight": 0.9999508172375136
+          },
+          "0,1": {
+            "index": 2,
+            "weight": 0.9976186883157662
+          },
+          "1,0": {
+            "index": 1,
+            "weight": 0.9976195644794666
+          },
+          "1,1": {
+            "index": 4,
+            "weight": 0.991985264754037
+          }
+        },
+        "chi_ghz": -0.0007335905569343382,
+        "drive_frequency_ghz": 7.0027606726542055,
+        "qubit_frequency_ghz": 5.214163573423779,
+        "g01_ghz": 0.08561340253455886,
+        "detuning_ghz": -1.7858364265762212,
+        "critical_photons": 108.77769403296121,
+        "purcell_rate_per_ns": 6.894795910756658e-05
+      },
+      "system_sha256": "e495bf78b418ab96fc8bb85676284a1b4c79bc2b4ea19fe0a8ce91a988d9134e",
+      "label": "readout-15.0-0.002-rotating-refined"
+    },
+    {
+      "kind": "readout",
+      "frame": "lab",
+      "ej_ghz": 15.0,
+      "amplitude_ghz": 0.002,
+      "dimensions": [
+        5,
+        6
+      ],
+      "cutoff": 30,
+      "duration_ns": 100,
+      "output_spacing_ns": 1.0,
+      "rtol": 1e-10,
+      "atol": 1e-12,
+      "max_steps_per_interval": 100000,
+      "wall_seconds": 6.344433241989464,
+      "accepted_steps": 27960,
+      "drive_frequency_ghz": 7.002760675881172,
+      "coherence_at_end": 0.9769899076137959,
+      "excited_population_at_end": 0.5032420257360072,
+      "peak_photons": 0.11947432510394877,
+      "top_qubit_population": 2.9818171196045537e-07,
+      "top_resonator_population": 1.2673152670770675e-07,
+      "physicality": {
+        "trace_error": 1.1990408925770833e-14,
+        "hermiticity_error": 2.502415698522467e-14,
+        "minimum_eigenvalue": -2.0630556220302158e-13
+      },
+      "spectrum": {
+        "labels": {
+          "0,0": {
+            "index": 0,
+            "weight": 0.9999508172892988
+          },
+          "0,1": {
+            "index": 2,
+            "weight": 0.9976186888032709
+          },
+          "1,0": {
+            "index": 1,
+            "weight": 0.9976195652383341
+          },
+          "1,1": {
+            "index": 4,
+            "weight": 0.9919852607049149
+          }
+        },
+        "chi_ghz": -0.0007335909874695012,
+        "drive_frequency_ghz": 7.002760675881172,
+        "qubit_frequency_ghz": 5.214163573423991,
+        "g01_ghz": 0.08561340253455883,
+        "detuning_ghz": -1.785836426576009,
+        "critical_photons": 108.77769403293543,
+        "purcell_rate_per_ns": 6.894795910758293e-05
+      },
+      "system_sha256": "119c961bd01db207a979b0c3914162d5f9f8a78a4ae379b13335234e6d87e9bb",
+      "label": "readout-15.0-0.002-lab"
+    },
+    {
+      "kind": "readout",
+      "frame": "lab",
+      "ej_ghz": 15.0,
+      "amplitude_ghz": 0.002,
+      "dimensions": [
+        6,
+        8
+      ],
+      "cutoff": 32,
+      "duration_ns": 100,
+      "output_spacing_ns": 1.0,
+      "rtol": 1e-11,
+      "atol": 9.999999999999999e-14,
+      "max_steps_per_interval": 100000,
+      "wall_seconds": 21.240030907007167,
+      "accepted_steps": 34182,
+      "drive_frequency_ghz": 7.002760675881172,
+      "coherence_at_end": 0.9769895893874907,
+      "excited_population_at_end": 0.5032419366996761,
+      "peak_photons": 0.11947427753560806,
+      "top_qubit_population": 8.677344246498346e-10,
+      "top_resonator_population": 4.992590811162094e-11,
+      "physicality": {
+        "trace_error": 1.3988810141221406e-14,
+        "hermiticity_error": 1.33483695369776e-14,
+        "minimum_eigenvalue": -1.2375856011497677e-13
+      },
+      "spectrum": {
+        "labels": {
+          "0,0": {
+            "index": 0,
+            "weight": 0.9999508172375136
+          },
+          "0,1": {
+            "index": 2,
+            "weight": 0.9976186883157662
+          },
+          "1,0": {
+            "index": 1,
+            "weight": 0.9976195644794666
+          },
+          "1,1": {
+            "index": 4,
+            "weight": 0.991985264754037
+          }
+        },
+        "chi_ghz": -0.0007335905569343382,
+        "drive_frequency_ghz": 7.0027606726542055,
+        "qubit_frequency_ghz": 5.214163573423779,
+        "g01_ghz": 0.08561340253455886,
+        "detuning_ghz": -1.7858364265762212,
+        "critical_photons": 108.77769403296121,
+        "purcell_rate_per_ns": 6.894795910756658e-05
+      },
+      "system_sha256": "e495bf78b418ab96fc8bb85676284a1b4c79bc2b4ea19fe0a8ce91a988d9134e",
+      "label": "readout-15.0-0.002-lab-refined"
+    },
+    {
+      "kind": "purcell",
+      "frame": "rotating",
+      "ej_ghz": 15.0,
+      "amplitude_ghz": 0,
+      "dimensions": [
+        5,
+        6
+      ],
+      "cutoff": 30,
+      "duration_ns": 1600,
+      "output_spacing_ns": 1.0,
+      "rtol": 1e-10,
+      "atol": 1e-12,
+      "max_steps_per_interval": 100000,
+      "wall_seconds": 1.6070940860081464,
+      "accepted_steps": 13559,
+      "drive_frequency_ghz": 7.002760675881172,
+      "coherence_at_end": 0.0,
+      "excited_population_at_end": 0.8921401998527073,
+      "peak_photons": 0.00818267586329596,
+      "top_qubit_population": 0.0,
+      "top_resonator_population": 0.0,
+      "physicality": {
+        "trace_error": 7.216449660063518e-15,
+        "hermiticity_error": 0.0,
+        "minimum_eigenvalue": -1.2300899302533584e-16
+      },
+      "spectrum": {
+        "labels": {
+          "0,0": {
+            "index": 0,
+            "weight": 0.9999508172892988
+          },
+          "0,1": {
+            "index": 2,
+            "weight": 0.9976186888032709
+          },
+          "1,0": {
+            "index": 1,
+            "weight": 0.9976195652383341
+          },
+          "1,1": {
+            "index": 4,
+            "weight": 0.9919852607049149
+          }
+        },
+        "chi_ghz": -0.0007335909874695012,
+        "drive_frequency_ghz": 7.002760675881172,
+        "qubit_frequency_ghz": 5.214163573423991,
+        "g01_ghz": 0.08561340253455883,
+        "detuning_ghz": -1.785836426576009,
+        "critical_photons": 108.77769403293543,
+        "purcell_rate_per_ns": 6.894795910758293e-05
+      },
+      "system_sha256": "119c961bd01db207a979b0c3914162d5f9f8a78a4ae379b13335234e6d87e9bb",
+      "label": "purcell-rotating"
+    },
+    {
+      "kind": "purcell",
+      "frame": "rotating",
+      "ej_ghz": 15.0,
+      "amplitude_ghz": 0,
+      "dimensions": [
+        6,
+        8
+      ],
+      "cutoff": 32,
+      "duration_ns": 1600,
+      "output_spacing_ns": 1.0,
+      "rtol": 1e-11,
+      "atol": 9.999999999999999e-14,
+      "max_steps_per_interval": 100000,
+      "wall_seconds": 4.863267228007317,
+      "accepted_steps": 16042,
+      "drive_frequency_ghz": 7.0027606726542055,
+      "coherence_at_end": 0.0,
+      "excited_population_at_end": 0.8921401998244445,
+      "peak_photons": 0.00818267586504536,
+      "top_qubit_population": 0.0,
+      "top_resonator_population": 0.0,
+      "physicality": {
+        "trace_error": 1.6653345369377348e-14,
+        "hermiticity_error": 0.0,
+        "minimum_eigenvalue": -2.250533627635627e-16
+      },
+      "spectrum": {
+        "labels": {
+          "0,0": {
+            "index": 0,
+            "weight": 0.9999508172375136
+          },
+          "0,1": {
+            "index": 2,
+            "weight": 0.9976186883157662
+          },
+          "1,0": {
+            "index": 1,
+            "weight": 0.9976195644794666
+          },
+          "1,1": {
+            "index": 4,
+            "weight": 0.991985264754037
+          }
+        },
+        "chi_ghz": -0.0007335905569343382,
+        "drive_frequency_ghz": 7.0027606726542055,
+        "qubit_frequency_ghz": 5.214163573423779,
+        "g01_ghz": 0.08561340253455886,
+        "detuning_ghz": -1.7858364265762212,
+        "critical_photons": 108.77769403296121,
+        "purcell_rate_per_ns": 6.894795910756658e-05
+      },
+      "system_sha256": "e495bf78b418ab96fc8bb85676284a1b4c79bc2b4ea19fe0a8ce91a988d9134e",
+      "label": "purcell-rotating-refined"
+    },
+    {
+      "kind": "purcell",
+      "frame": "lab",
+      "ej_ghz": 15.0,
+      "amplitude_ghz": 0,
+      "dimensions": [
+        5,
+        6
+      ],
+      "cutoff": 30,
+      "duration_ns": 1600,
+      "output_spacing_ns": 1.0,
+      "rtol": 1e-10,
+      "atol": 1e-12,
+      "max_steps_per_interval": 100000,
+      "wall_seconds": 28.213981456006877,
+      "accepted_steps": 186377,
+      "drive_frequency_ghz": 7.002760675881172,
+      "coherence_at_end": 0.0,
+      "excited_population_at_end": 0.8882458734127346,
+      "peak_photons": 0.008308546012448072,
+      "top_qubit_population": 3.7237686239897745e-06,
+      "top_resonator_population": 1.1880152284491107e-14,
+      "physicality": {
+        "trace_error": 1.0613732119559262e-13,
+        "hermiticity_error": 1.8875935237911737e-15,
+        "minimum_eigenvalue": -3.372344797517687e-13
+      },
+      "spectrum": {
+        "labels": {
+          "0,0": {
+            "index": 0,
+            "weight": 0.9999508172892988
+          },
+          "0,1": {
+            "index": 2,
+            "weight": 0.9976186888032709
+          },
+          "1,0": {
+            "index": 1,
+            "weight": 0.9976195652383341
+          },
+          "1,1": {
+            "index": 4,
+            "weight": 0.9919852607049149
+          }
+        },
+        "chi_ghz": -0.0007335909874695012,
+        "drive_frequency_ghz": 7.002760675881172,
+        "qubit_frequency_ghz": 5.214163573423991,
+        "g01_ghz": 0.08561340253455883,
+        "detuning_ghz": -1.785836426576009,
+        "critical_photons": 108.77769403293543,
+        "purcell_rate_per_ns": 6.894795910758293e-05
+      },
+      "system_sha256": "119c961bd01db207a979b0c3914162d5f9f8a78a4ae379b13335234e6d87e9bb",
+      "label": "purcell-lab"
+    },
+    {
+      "kind": "purcell",
+      "frame": "lab",
+      "ej_ghz": 15.0,
+      "amplitude_ghz": 0,
+      "dimensions": [
+        6,
+        8
+      ],
+      "cutoff": 32,
+      "duration_ns": 1600,
+      "output_spacing_ns": 1.0,
+      "rtol": 1e-11,
+      "atol": 9.999999999999999e-14,
+      "max_steps_per_interval": 100000,
+      "wall_seconds": 110.26646830802201,
+      "accepted_steps": 254832,
+      "drive_frequency_ghz": 7.0027606726542055,
+      "coherence_at_end": 0.0,
+      "excited_population_at_end": 0.888245837603752,
+      "peak_photons": 0.00830855087799268,
+      "top_qubit_population": 5.033295590046681e-08,
+      "top_resonator_population": 1.3211203041113117e-20,
+      "physicality": {
+        "trace_error": 5.91748876531724e-14,
+        "hermiticity_error": 5.822660885781723e-11,
+        "minimum_eigenvalue": -2.8319066663393106e-14
+      },
+      "spectrum": {
+        "labels": {
+          "0,0": {
+            "index": 0,
+            "weight": 0.9999508172375136
+          },
+          "0,1": {
+            "index": 2,
+            "weight": 0.9976186883157662
+          },
+          "1,0": {
+            "index": 1,
+            "weight": 0.9976195644794666
+          },
+          "1,1": {
+            "index": 4,
+            "weight": 0.991985264754037
+          }
+        },
+        "chi_ghz": -0.0007335905569343382,
+        "drive_frequency_ghz": 7.0027606726542055,
+        "qubit_frequency_ghz": 5.214163573423779,
+        "g01_ghz": 0.08561340253455886,
+        "detuning_ghz": -1.7858364265762212,
+        "critical_photons": 108.77769403296121,
+        "purcell_rate_per_ns": 6.894795910756658e-05
+      },
+      "system_sha256": "e495bf78b418ab96fc8bb85676284a1b4c79bc2b4ea19fe0a8ce91a988d9134e",
+      "label": "purcell-lab-refined"
+    },
+    {
+      "kind": "readout",
+      "frame": "rotating",
+      "ej_ghz": 13.5,
+      "amplitude_ghz": 0.002,
+      "dimensions": [
+        5,
+        6
+      ],
+      "cutoff": 30,
+      "duration_ns": 100,
+      "output_spacing_ns": 1.0,
+      "rtol": 1e-11,
+      "atol": 9.999999999999999e-14,
+      "max_steps_per_interval": 100000,
+      "wall_seconds": 0.49911074599367566,
+      "accepted_steps": 3544,
+      "drive_frequency_ghz": 7.002206406997239,
+      "coherence_at_end": 0.9838385791271101,
+      "excited_population_at_end": 0.5043259886695135,
+      "peak_photons": 0.10786267953264847,
+      "top_qubit_population": 3.347556067597825e-13,
+      "top_resonator_population": 9.632453538422705e-08,
+      "physicality": {
+        "trace_error": 5.995204346864409e-15,
+        "hermiticity_error": 8.438125789551671e-15,
+        "minimum_eigenvalue": -7.613583125775011e-15
+      },
+      "spectrum": {
+        "labels": {
+          "0,0": {
+            "index": 0,
+            "weight": 0.9999512516643341
+          },
+          "0,1": {
+            "index": 2,
+            "weight": 0.9982884238903632
+          },
+          "1,0": {
+            "index": 1,
+            "weight": 0.9982895786375111
+          },
+          "1,1": {
+            "index": 4,
+            "weight": 0.994189211735542
+          }
+        },
+        "chi_ghz": -0.0005591160933469119,
+        "drive_frequency_ghz": 7.002206406997239,
+        "qubit_frequency_ghz": 4.932269020917376,
+        "g01_ghz": 0.08326480485180664,
+        "detuning_ghz": -2.067730979082624,
+        "critical_photons": 154.17187014850674,
+        "purcell_rate_per_ns": 4.86470066995723e-05
+      },
+      "system_sha256": "97f30c122d1ae1f495871af08e9e6e99aab8d2577e25783abcdeb1a1291f3418",
+      "label": "readout-tight"
+    },
+    {
+      "kind": "readout",
+      "frame": "rotating",
+      "ej_ghz": 13.5,
+      "amplitude_ghz": 0.002,
+      "dimensions": [
+        5,
+        6
+      ],
+      "cutoff": 30,
+      "duration_ns": 100,
+      "output_spacing_ns": 0.5,
+      "rtol": 1e-10,
+      "atol": 1e-12,
+      "max_steps_per_interval": 100000,
+      "wall_seconds": 0.40421810900443234,
+      "accepted_steps": 2794,
+      "drive_frequency_ghz": 7.002206406997239,
+      "coherence_at_end": 0.9838385701820731,
+      "excited_population_at_end": 0.5043259886042065,
+      "peak_photons": 0.10786267943816255,
+      "top_qubit_population": 3.3475560679351564e-13,
+      "top_resonator_population": 9.632453514461214e-08,
+      "physicality": {
+        "trace_error": 7.105428358532432e-15,
+        "hermiticity_error": 1.011925250406908e-14,
+        "minimum_eigenvalue": -1.570581490651369e-13
+      },
+      "spectrum": {
+        "labels": {
+          "0,0": {
+            "index": 0,
+            "weight": 0.9999512516643341
+          },
+          "0,1": {
+            "index": 2,
+            "weight": 0.9982884238903632
+          },
+          "1,0": {
+            "index": 1,
+            "weight": 0.9982895786375111
+          },
+          "1,1": {
+            "index": 4,
+            "weight": 0.994189211735542
+          }
+        },
+        "chi_ghz": -0.0005591160933469119,
+        "drive_frequency_ghz": 7.002206406997239,
+        "qubit_frequency_ghz": 4.932269020917376,
+        "g01_ghz": 0.08326480485180664,
+        "detuning_ghz": -2.067730979082624,
+        "critical_photons": 154.17187014850674,
+        "purcell_rate_per_ns": 4.86470066995723e-05
+      },
+      "system_sha256": "97f30c122d1ae1f495871af08e9e6e99aab8d2577e25783abcdeb1a1291f3418",
+      "label": "readout-half-spacing"
+    }
+  ],
+  "comparisons": [
+    {
+      "kind": "readout",
+      "ej_ghz": 12.0,
+      "amplitude_ghz": 0.0,
+      "rotating_refinement": {
+        "coherence": 1.919779357706375e-08,
+        "excited": 5.448752560255343e-12,
+        "photons": 5.451233648506859e-12
+      },
+      "lab_refinement": {
+        "coherence": 7.123774009576422e-07,
+        "excited": 7.070092200578415e-07,
+        "photons": 7.109257439093849e-07
+      },
+      "combined_frame_and_refinement": {
+        "coherence": 0.0006392338496389316,
+        "excited": 0.00016270550661551253,
+        "photons": 0.00024374972031222233
+      },
+      "chi_refinement_ghz": 2.4641413354231645e-09,
+      "standalone_rotating_plus_lab_reference_seconds": 10.387706612993497
+    },
+    {
+      "kind": "readout",
+      "ej_ghz": 12.0,
+      "amplitude_ghz": 0.002,
+      "rotating_refinement": {
+        "coherence": 1.0079979895216695e-07,
+        "excited": 9.65886315373865e-10,
+        "photons": 8.926159801581068e-08
+      },
+      "lab_refinement": {
+        "coherence": 7.632855499872804e-07,
+        "excited": 7.889326869015001e-07,
+        "photons": 8.886039538497092e-07
+      },
+      "combined_frame_and_refinement": {
+        "coherence": 0.0014219001754820493,
+        "excited": 0.0011178466069159954,
+        "photons": 0.00528998766726585
+      },
+      "chi_refinement_ghz": 2.4641413354231645e-09,
+      "standalone_rotating_plus_lab_reference_seconds": 21.513871364004444
+    },
+    {
+      "kind": "readout",
+      "ej_ghz": 13.5,
+      "amplitude_ghz": 0.002,
+      "rotating_refinement": {
+        "coherence": 1.6374041467148714e-07,
+        "excited": 7.002654567322963e-10,
+        "photons": 1.0706852669739586e-07
+      },
+      "lab_refinement": {
+        "coherence": 5.256662228836362e-07,
+        "excited": 5.975333466912147e-07,
+        "photons": 7.809219434856685e-07
+      },
+      "combined_frame_and_refinement": {
+        "coherence": 0.001595912472240335,
+        "excited": 0.0024535565676317983,
+        "photons": 0.005505721535409541
+      },
+      "chi_refinement_ghz": 1.5129621999676601e-09,
+      "standalone_rotating_plus_lab_reference_seconds": 21.352861243969528
+    },
+    {
+      "kind": "readout",
+      "ej_ghz": 15.0,
+      "amplitude_ghz": 0.0,
+      "rotating_refinement": {
+        "coherence": 1.386976145045793e-08,
+        "excited": 7.791933764877967e-12,
+        "photons": 7.789572264126077e-12
+      },
+      "lab_refinement": {
+        "coherence": 4.794903434302e-07,
+        "excited": 4.7316473794634106e-07,
+        "photons": 4.813120286154948e-07
+      },
+      "combined_frame_and_refinement": {
+        "coherence": 0.001033350874530159,
+        "excited": 0.00014823220847148821,
+        "photons": 0.0002657818892918065
+      },
+      "chi_refinement_ghz": 4.3053516307622886e-10,
+      "standalone_rotating_plus_lab_reference_seconds": 10.884801943000639
+    },
+    {
+      "kind": "readout",
+      "ej_ghz": 15.0,
+      "amplitude_ghz": 0.002,
+      "rotating_refinement": {
+        "coherence": 1.982119668397786e-07,
+        "excited": 1.0806587846801108e-09,
+        "photons": 1.2293797102547188e-07
+      },
+      "lab_refinement": {
+        "coherence": 5.264552467298955e-07,
+        "excited": 4.7404826791774823e-07,
+        "photons": 6.976875066705412e-07
+      },
+      "combined_frame_and_refinement": {
+        "coherence": 0.001924544046805421,
+        "excited": 0.0036130469890137684,
+        "photons": 0.005447765454765108
+      },
+      "chi_refinement_ghz": 4.3053516307622886e-10,
+      "standalone_rotating_plus_lab_reference_seconds": 21.58381196099799
+    },
+    {
+      "kind": "purcell",
+      "ej_ghz": 15.0,
+      "duration_ns": 1600,
+      "rotating_refinement": {
+        "coherence": 0.0,
+        "excited": 8.329614775703931e-11,
+        "photons": 8.332954421971794e-11
+      },
+      "lab_refinement": {
+        "coherence": 0.0,
+        "excited": 9.465991722690248e-07,
+        "photons": 9.632409418850255e-07
+      },
+      "combined_frame_and_refinement": {
+        "coherence": 0.0,
+        "excited": 0.003894362248955341,
+        "photons": 0.0003557898708109984
+      }
+    }
+  ],
+  "integration_refinement": {
+    "coherence": 8.945037044405524e-09,
+    "excited": 1.1186862547418741e-10,
+    "photons": 1.1177832270892196e-10
+  },
+  "output_grid_refinement": {
+    "coherence": 0.0,
+    "excited": 0.0,
+    "photons": 0.0
+  },
+  "assessment": {
+    "numerical_observable_atol": 1e-06,
+    "candidate_rwa_trajectory_atol": {
+      "coherence": 0.003,
+      "excited": 0.005,
+      "photons": 0.008
+    },
+    "candidate_rwa_scope": "trajectory diagnostics; endpoint coherence is assessed separately; independent-engine acceptance remains required",
+    "candidate_endpoint_coherence_atol": 0.0005,
+    "maximum_sampled_endpoint_coherence_error": 0.0003955578896133183,
+    "candidate_endpoint_bounds_pass": true,
+    "endpoint_scope": "100 ns readout at five sampled reference points; amplitudes of 0.001 GHz have no lab reference; bounds do not certify resolution of every grid difference",
+    "candidate_endpoint_difference_bound": 0.001,
+    "drive_response": [
+      {
+        "ej_ghz": 12.0,
+        "adjacent_endpoint_decreases": [
+          0.0008219132646827276,
+          0.003122718590609641
+        ],
+        "decrease_over_candidate_difference_bound": [
+          0.8219132646827276,
+          3.122718590609641
+        ],
+        "doubling_amplitude_loss_ratio": 4.799328621147224
+      },
+      {
+        "ej_ghz": 13.5,
+        "adjacent_endpoint_decreases": [
+          0.004027191727590029,
+          0.00776933097721122
+        ],
+        "decrease_over_candidate_difference_bound": [
+          4.027191727590029,
+          7.76933097721122
+        ],
+        "doubling_amplitude_loss_ratio": 2.929218051374122
+      },
+      {
+        "ej_ghz": 15.0,
+        "adjacent_endpoint_decreases": [
+          0.0054886170557088,
+          0.011786853949471543
+        ],
+        "decrease_over_candidate_difference_bound": [
+          5.4886170557088,
+          11.786853949471542
+        ],
+        "doubling_amplitude_loss_ratio": 3.147508895198262
+      }
+    ],
+    "physicality_pass": true,
+    "numerical_refinement_pass": true,
+    "candidate_frame_bounds_pass": true,
+    "coherence_decreases_with_amplitude_at_fixed_ej": true
+  }
+}
