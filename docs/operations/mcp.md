@@ -4,29 +4,28 @@ The optional `entanglix.mcp` module exposes the runner's existing research opera
 
 ## Server process and configuration
 
-Give the server a separate environment so an exact sync for an operator command cannot remove its SDK while it is running. From the checkout:
+An installation's server is its `.venv/bin/python -m entanglix.mcp`, which [project setup](#research-workspace) writes into the runtime's configuration with absolute paths. From a checkout, give the server a separate environment so an exact sync for an operator command cannot remove its SDK while it is running:
 
 ```sh
 UV_PROJECT_ENVIRONMENT="$PWD/.venv-mcp" uv sync --locked --exact --extra mcp
 .venv-mcp/bin/python -m entanglix.mcp \
   --runs-root "$HOME/Projects/entanglix-research/runs" \
-  --device "" \
-  --runner-extras
+  --device ""
 ```
 
 Use the environment's absolute Python path when configuring a client started elsewhere. The command communicates on stdin/stdout; diagnostics go to stderr. Only stdio is provided.
 
-The runs root, device and runner extras are explicit. The other settings are optional:
+The runs root and device are explicit. The other settings are optional:
 
 | Setting | Meaning |
 |---|---|
 | `--runs-root` | Persistent directory for attempts, investigations, catalog, launch records and audit records; use the same directory in operator commands |
 | `--device` | Physical GPU UUID or `nvidia-smi` index for runner-launched CUDA jobs; an empty string supplies no GPU |
-| `--runner-extras` | Space-separated extras for the separate `.venv-runner` job environment; the bare flag selects none |
+| `--runner-extras` | Space-separated extras for the separate `.venv-runner` job environment, overriding the installation's or checkout's set; the bare flag selects none. Without it, each launch resolves the set ([run reference](runs.md#authored-cpu-jobs)) and the connection audit records that |
 | `--state-directory` | Optional shared state directory; defaults to the runner's `XDG_STATE_HOME`, or `~/.local/state` when unset. GPU locks live under its `entanglix/gpu/` directory |
 | `--max-wait` | Longest `read_run` wait in seconds, finite and positive, 30 by default; recorded in the connection audit. Keep the runtime's per-call tool timeout above it |
 
-For CUDA jobs, name the device and pass `--runner-extras cuquantum differentiable-cuda12`. The server explicitly sets the supervisor's device, extras and state directory, even when the client process inherits `CUDA_VISIBLE_DEVICES=""`. Operator commands must use the same runner extras and state directory. When the operator shell uses a custom `XDG_STATE_HOME` that the runtime does not pass to the server, set `--state-directory` to that directory in the server entry. The existing runner environment refuses a different extras set, rather than removing packages underneath jobs. See [protocol dispatch](protocols.md) and [GPU ownership](runs.md#local-gpu-ownership).
+For CUDA jobs, name the device. An installation needs its GPU component (`entanglix components add gpu`); a checkout passes `--runner-extras cuquantum differentiable-cuda12` or sets the same `ENTANGLIX_RUNNER_EXTRAS` for the server and the operator. The server explicitly sets the supervisor's device, state directory and any extras override, even when the client process inherits `CUDA_VISIBLE_DEVICES=""`. Operator commands must use the same runner extras and state directory. When the operator shell uses a custom `XDG_STATE_HOME` that the runtime does not pass to the server, set `--state-directory` to that directory in the server entry. The existing runner environment refuses a different extras set, rather than removing packages underneath jobs. See [protocol dispatch](protocols.md) and [GPU ownership](runs.md#local-gpu-ownership).
 
 Engine defaults come from `ENTANGLIX_ENGINES` in the server's environment, for example `cpu=my-engine`; set it in the client's server entry, such as the `env` table of a Codex entry. `list_capabilities` reports them as `engine_defaults` and lists installed plugin engines ([engine selection](system-spec.md#engine-selection-policy)).
 
@@ -149,9 +148,33 @@ The server reads the versioned [research conduct](../research-agent.md) and skil
 
 ## Research workspace
 
-Use a persistent directory outside the checkout so the session does not load repository development instructions. For one coordinating agent, keep task inputs and a runs root there. For independent repetitions use a fresh session and a separate runs root. A runs root alone does not hide answers in the shipped example or earlier research files: give an evaluation session only its task brief and input copies.
+Use a persistent directory outside the installation or checkout so the session does not load repository development instructions. For one coordinating agent, keep task inputs and a runs root there. For independent repetitions use a fresh session and a separate runs root. A runs root alone does not hide answers in the shipped example or earlier research files: give an evaluation session only its task brief and input copies.
 
-Prepare the server environment above, then place the shipped conduct and procedures in the workspace. These are ordinary file copies, with no generated guidance. Set the checkout path to your local clone:
+With an installed Entanglix, one command prepares the directory:
+
+```sh
+entanglix setup-project DIR --runtime claude,codex
+```
+
+`DIR` is the path of the project directory, new or existing; setup creates it if needed.
+
+- `--runtime` lists `claude`, `codex` and `other`. Setup copies the conduct verbatim as `CLAUDE.md` for Claude Code and `AGENTS.md` for Codex and other runtimes, with `skills/` and the seven references under `reference/operations/`. For Claude Code it writes `.mcp.json` and `.claude/settings.json`; for Codex, `.codex/config.toml`, `.codex/rules/operator.rules` and the `.agents/skills` link. For `other` it writes no runtime configuration and prints the server entry and the commands to block ([other runtimes](#other-stdio-runtimes)).
+- The server entry names the installation's Python, `DIR/runs` as the runs root, the device, `--max-wait 3600`, the runtime's tool timeouts, and `--state-directory` when your shell sets `XDG_STATE_HOME`. It names no runner extras, so each launch uses the installation's components.
+- `--device auto`, the default, computes on a GPU only with the GPU component and exactly one GPU; several GPUs are refused with a list to choose from with `--device UUID`. `--device cpu` supplies none.
+- `--agent-command-privilege none`, the default, configures the runtime to refuse the human-action commands; `on-request` configures it to ask before each one, for interactive sessions only ([human decisions](#human-decisions-and-continuation)).
+- Setup refuses, writing nothing, when a file it would write exists and is not its own, or when a file or symlink stands where it needs a directory; existing directories are used as they are. It then prints the server entry to add by hand, and it never merges into your configuration.
+- `.entanglix/project.toml` records the installation version, the settings and the digest of each file setup wrote. `entanglix setup-project DIR --refresh` rewrites the files from the newest complete installation and moves the project to it, keeping the recorded settings unless you pass new ones, `--runtime` included. It refuses, changing nothing, if a file it wrote was edited; it restores missing files and removes unchanged ones that are no longer shipped. Setup always runs on the newest installation, so a refresh works from inside the project and after its recorded version was removed.
+- Setup ends with the launch instruction for a fresh session, `cd DIR && CUDA_VISIBLE_DEVICES="" claude` (or `codex`). A session already open in `DIR` has not loaded these files and can still see CUDA: close it first.
+
+Inside a project, the bare `entanglix` command runs the installation the project records, the one its server uses, and refuses with the `--refresh` command when that version was removed. A command given the records of a project on another version refuses and names the directory to run it from; authored inputs may come from anywhere.
+
+The seven files under `reference/operations/` provide authoring syntax and lifecycle rules. Skills direct the agent to the relevant reference when needed. Links between these references remain usable; links to checkout examples, tests, and the harness contract are unavailable in this copy. For an evaluation, supply any additional inputs separately without exposing baseline answers.
+
+Add a task brief containing the intended question and agreed terms, and copy the model, protocol, subsystem, and numeric input files beside one another. Within an investigation preserve the approved base bytes. For the [readout investigation](../../examples/readout/README.md#scripted-investigation-baseline), the operator can prepare its base bundle with the documented draft command; the agent receives the declarations and inputs, not the baseline summaries.
+
+### Workspace by hand
+
+From a checkout, or to arrange the files yourself, prepare the server environment above, then place the shipped conduct and procedures in the workspace. These are ordinary file copies, with no generated guidance. Set the checkout path to your local clone:
 
 ```sh
 export ENTANGLIX_CHECKOUT="$HOME/Projects/Entanglix"
@@ -173,13 +196,9 @@ cp "$ENTANGLIX_CHECKOUT/docs/operations/system-spec.md" \
 
 Use a new directory for these initial copies. Refresh them deliberately when upgrading; retain their versions with the session. `skills/` is the plain-text location named by the conduct; `.agents/skills` makes the same files discoverable in Codex. In a runtime that reads another workspace instruction filename, copy the same conduct there instead. If it reads no such file, supply the entire conduct through its initial-context mechanism. Keep the procedures readable at the named paths. Do not copy root development `AGENTS.md` or `CLAUDE.md`, planning documents, baseline answers, or contributor instructions into the research workspace.
 
-The seven files under `reference/operations/` provide authoring syntax and lifecycle rules. Skills direct the agent to the relevant reference when needed. Links between these references remain usable; links to checkout examples, tests, and the harness contract are unavailable in this copy. For an evaluation, supply any additional inputs separately without exposing baseline answers.
-
-Add a task brief containing the intended question and agreed terms, and copy the model, protocol, subsystem, and numeric input files beside one another. Within an investigation preserve the approved base bytes. For the [readout investigation](../../examples/readout/README.md#scripted-investigation-baseline), the operator can prepare its base bundle with the documented draft command; the agent receives the declarations and inputs, not the baseline summaries.
-
 ### Codex example
 
-Create `.codex/config.toml` in that workspace. Replace the placeholders with absolute paths and your GPU UUID. This CUDA example uses the CUDA runner extras; for CPU-only use `--device`, `""`, and the extras matching your runner profile. Every invocation sharing the checkout's `.venv-runner` must use the same extras, including CPU jobs. TOML does not expand these placeholders or shell variables.
+Setup writes `.codex/config.toml` and the rule below for an installation, with the installation's Python and no runner extras. By hand, create `.codex/config.toml` in that workspace. Replace the placeholders with absolute paths and your GPU UUID. This CUDA example from a checkout uses the CUDA runner extras; for CPU-only use `--device`, `""`, and the extras matching your runner profile. Every invocation sharing the checkout's `.venv-runner` must use the same extras, including CPU jobs. TOML does not expand these placeholders or shell variables.
 
 ```toml
 [mcp_servers.entanglix]
@@ -213,13 +232,13 @@ CUDA_VISIBLE_DEVICES="" codex exec --json --skip-git-repo-check \
   -o "$ENTANGLIX_WORKSPACE/last-message.txt" '<task brief>'
 ```
 
-The documented operator invocation form is the bare `entanglix investigation-decision ...`, `entanglix apply-device-update ...` or `entanglix promote ...`, with `entanglix` on `PATH`. Do not suggest `uv run ... entanglix ...`, an absolute executable path, a Python API, or a shell wrapper as a substitute: the supplied rule is not claimed to cover those forms. The refusal is claimed for the three bare commands in the tested non-interactive configuration only ([conformance run](../../tests/probes/m3_guidance_results.json), [live calibration session](../../tests/probes/s2_sessions_results.json)); an interactive session is not covered. Offline rule matching or an agent's verbal refusal is not a passed blocked-command test.
+The documented operator invocation form is the bare `entanglix investigation-decision ...`, `entanglix apply-device-update ...` or `entanglix promote ...`, with `entanglix` on `PATH`; for an installation that is the launcher in `~/.local/bin`, which runs the project's installation. Do not suggest `uv run ... entanglix ...`, an absolute executable path, a Python API, or a shell wrapper as a substitute: the supplied rule is not claimed to cover those forms. The refusal is claimed for the three bare commands in the tested non-interactive configuration only ([conformance run](../../tests/probes/m3_guidance_results.json), [live calibration session](../../tests/probes/s2_sessions_results.json)); an interactive session is not covered. Offline rule matching or an agent's verbal refusal is not a passed blocked-command test.
 
-To approve each human-action command instead of refusing it, set `decision="prompt"` in that rule, in an interactive session only: an unattended session cannot answer the prompt, so keep `forbidden` there. Approve each invocation on its own, never with an option that approves later commands. No retained session tests this setting.
+To approve each human-action command instead of refusing it, set `decision="prompt"` in that rule (setup's `--agent-command-privilege on-request`), in an interactive session only: an unattended session cannot answer the prompt, so keep `forbidden` there. Approve each invocation on its own, never with an option that approves later commands. No retained session tests this setting.
 
 ### Claude Code example
 
-Supply the conduct as workspace `CLAUDE.md` in place of `AGENTS.md`, and retain `skills/` for plain-text reading. Create `.mcp.json` in the workspace with the same absolute Python command and arguments, here for CPU only:
+Setup writes `CLAUDE.md`, `.mcp.json` and `.claude/settings.json` for an installation. By hand, supply the conduct as workspace `CLAUDE.md` in place of `AGENTS.md`, and retain `skills/` for plain-text reading. Create `.mcp.json` in the workspace with the same absolute Python command and arguments, here for CPU only from a checkout whose runner profile holds the CUDA extras:
 
 ```json
 {
@@ -253,7 +272,7 @@ The entry's `timeout` is Claude Code's per-call limit for this server, in millis
 
 In four [retained sessions](../../tests/probes/m3_pickup_cutoff_results.json) the conduct was present before the first reply and no repository development instructions appeared. No command setting has been validated for Claude Code: a session without a shell tool cannot run an operator command, but no retained test covers a session that has one, so there the rule rests on the conduct. Claude Code can reject a large tool reply as over its output limit: use the status and paged table views for research reads, and the report command or retained files for full history.
 
-In an interactive session with a shell tool, a project `.claude/settings.json` sets how Claude Code handles the human-action commands: listed under `deny` they are refused, under `ask` Claude Code asks before each one.
+In an interactive session with a shell tool, a project `.claude/settings.json` sets how Claude Code handles the human-action commands: listed under `deny` they are refused, under `ask` Claude Code asks before each one. Setup lists them under `deny`, or under `ask` with `--agent-command-privilege on-request`.
 
 ```json
 {
@@ -271,11 +290,11 @@ Approve each invocation on its own; a permission mode that skips prompts runs co
 
 ### Other stdio runtimes
 
-Use the same absolute Python command and arguments in your runtime's MCP entry, and supply the conduct under the instruction filename your runtime reads. Start the session with `CUDA_VISIBLE_DEVICES=""` and configure job/write tool approval as needed. Keep the runtime's per-call tool timeout, and any idle timeout, above `--max-wait`. Claim that the runtime refuses or asks before the human-action commands only after a retained live test shows it for the forms you document; until then the rule rests on the conduct. There is no list of supported model backends.
+`setup-project --runtime other` copies the conduct as `AGENTS.md` with the skills and references, and prints the server entry and the commands to block. Use the same absolute Python command and arguments in your runtime's MCP entry, and supply the conduct under the instruction filename your runtime reads. Start the session with `CUDA_VISIBLE_DEVICES=""` and configure job/write tool approval as needed. Keep the runtime's per-call tool timeout, and any idle timeout, above `--max-wait`. Claim that the runtime refuses or asks before the human-action commands only after a retained live test shows it for the forms you document; until then the rule rests on the conduct. There is no list of supported model backends.
 
 ## Human decisions and continuation
 
-The agent may draft an investigation and propose revisions; the operator reviews complete terms, checkpoint, evidence, and any requested limits. The [investigation reference](investigations.md) defines these declarations and commands. Use the same runs root as the server and put the installed bare `entanglix` command on the operator's `PATH` too.
+The agent may draft an investigation and propose revisions; the operator reviews complete terms, checkpoint, evidence, and any requested limits. The [investigation reference](investigations.md) defines these declarations and commands. Use the same runs root as the server, with the bare `entanglix` on your `PATH`. Run the commands from the project directory or below it, so the launcher uses the project's installation, the one its server uses.
 
 ```sh
 entanglix read-investigation "$ENTANGLIX_WORKSPACE/runs/_investigations/<investigation_id>"

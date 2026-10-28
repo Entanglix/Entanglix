@@ -92,12 +92,11 @@ Research agents use the `control` and `rerun` tools of the [MCP server](mcp.md#t
 
 ## Launch and solver selection
 
-For `grape`, install `differentiable` in the runner environment by setting `ENTANGLIX_RUNNER_EXTRAS=differentiable` before its first job, or use the runner extras already configured for your workstation. The runner keeps one extras profile and refuses a different set; see [runner environment](runs.md). The calling CLI does not itself need JAX.
+`grape` needs the `differentiable` runner extra, which an installation's base includes. In a checkout, set `ENTANGLIX_RUNNER_EXTRAS=differentiable` before its first job, or use the runner extras already configured for your workstation; the runner keeps one extras profile and refuses a different set ([runner environment](runs.md#authored-cpu-jobs)). The calling CLI does not itself need JAX. With the `transmon-control` example copied into the project ([commands and examples](runs.md#commands-and-examples)):
 
 ```sh
-export ENTANGLIX_RUNNER_EXTRAS=differentiable
-uv run --locked --exact entanglix control examples/transmon-control/control.toml --dry-run
-uv run --locked --exact entanglix control examples/transmon-control/control.toml --runs-root research_runs
+entanglix control transmon-control/control.toml --dry-run
+entanglix control transmon-control/control.toml --runs-root research_runs
 ```
 
 A control job runs on CPU, with CUDA hidden. `--detach`, `read-run --wait`, timeouts, cancellation and interrupted-attempt reconciliation follow the [run reference](runs.md).
@@ -140,14 +139,24 @@ An investigation run retains original base bytes under `spec/base/`, including t
 
 ## Piccolo
 
-Install Julia 1.13 and instantiate the repository's pinned project once before using `piccolo`:
+An installation adds `piccolo` as a component, about 3.5 GB:
+
+```sh
+entanglix components add piccolo
+entanglix control transmon-control/piccolo.toml --runs-root research_runs
+```
+
+It downloads the official Julia 1.13.0 release, verifies its checksum, and installs it inside the installation with its own package depot, then instantiates and precompiles the pinned project. That Julia is never put on `PATH` or made your default, and an existing Julia is left alone. Without the component, a `piccolo` request is refused before an attempt exists, naming this command.
+
+Checkout only: install Julia 1.13 on `PATH` and instantiate the repository's pinned project once:
 
 ```sh
 julia --startup-file=no --project=src/entanglix/solvers/julia -e 'using Pkg; Pkg.instantiate()'
-uv run --locked --exact entanglix control examples/transmon-control/piccolo.toml --runs-root research_runs
 ```
 
-The project pins Piccolo 2.1.0, with transitive dependencies (including JLD2) in its manifest. No Python extra is needed by this backend. Keep any established runner extras profile unchanged. A missing Julia executable is refused before an attempt exists. The manifest is resolved for Julia 1.13.0; its digest, the project digest and the observed Julia version are recorded under `environment.solver_runtime`. A change between the launch gate and execution is refused.
+A missing Julia executable is refused before an attempt exists.
+
+The project pins Piccolo 2.1.0, with transitive dependencies (including JLD2) in its manifest. No Python extra is needed by this backend. Keep any established runner extras profile unchanged. Launch validation resolves the Julia executable once, and the solve uses that one. The manifest is resolved for Julia 1.13.0; its digest, the project digest, the observed Julia version and the executable's path are recorded under `environment.solver_runtime`. A change between the launch gate and execution is refused.
 
 Only declared `solver.options.max_iter` and `solver.options.tol` are passed as arguments to `Piccolo.Specs.solve_spec`; the shared ProblemSpec is unchanged. Without them, upstream defaults apply: 500 iterations and Ipopt tolerance `1e-8`. Integer `tol` values are transported as floating-point values to Julia. The trace records declared and effective settings. Piccolo's `converged` flag means only that it stopped before its iteration cap; its native runner does not expose Ipopt's termination status. The separately reported fidelity is retained. The native objective is the last iteration's `obj` value from Piccolo's progress output, printed to eight decimal places in scientific notation; it includes regularisation and is not an infidelity.
 
@@ -161,7 +170,7 @@ The Julia entry exports the stored N knot values without shifting or resampling 
 A completed candidate has three relevant checks, five when the run declares an evaluation table, shown at launch and by `read-run`:
 
 ```sh
-uv run --locked --exact entanglix check RUN replay target constraints
+entanglix check RUN replay target constraints
 ```
 
 With no names, `check RUN` only lists them. Named checks create one linked CPU verification attempt and report their individual outcomes. Checks use the frozen system, control spec, generated ProblemSpec and neutral pulse; they verify input and artifact digests and preserve the source binding in the history. No solver installation, JAX or Julia is needed to check a retained candidate.

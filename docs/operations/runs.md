@@ -2,22 +2,36 @@
 
 `entanglix.runner` launches authored CPU scripts with optional timeouts, cancellation, live inspection, recovery, and linked reruns. It freezes inputs and code provenance and publishes records atomically. The [simulation protocol](protocols.md) runs built-in CPU/CUDA computations with linked checks on request. Per-device GPU allocation locks protect scientific dispatch; serial static/dynamic sweeps retain per-point results. Reconciliation checks ownership and recorded process-group liveness itself.
 
+## Commands and examples
+
+Commands in these references are the bare `entanglix` of an installation, run from the project directory, with input files in the project. From a source checkout, developers prefix them with `uv run --locked --exact`; commands that only a checkout uses are labelled.
+
+The examples ship in the installation directory that `entanglix components` reports as `path`, such as `~/.local/share/entanglix/0.1.0/examples/`. Copy an example's whole directory into the project, so its files stay beside one another, and run it there; the example paths below assume that copy:
+
+```sh
+cp -R ~/.local/share/entanglix/0.1.0/examples/two-level ~/.local/share/entanglix/0.1.0/examples/recorded_decay.py .
+```
+
+Copied system, protocol, dataset and job-script files run this way. The examples' driver programs, such as `codesign.py`, `calibration.py`, `reuse.py` and `investigate.py`, are checkout only: they import Entanglix and read the repository layout. An example that builds on another, such as the catalog example, names it in its README.
+
 ## Authored CPU jobs
 
 ```sh
-uv run --locked --exact entanglix run-script examples/recorded_decay.py --system examples/two-level/system.toml
-uv run --locked --exact entanglix capabilities
-uv run --locked --exact entanglix list-runs
-uv run --locked --exact entanglix read-run research_runs/<system_id>/<run_id>
-uv run --locked --exact entanglix abort-run research_runs/<system_id>/<run_id>
-uv run --locked --exact entanglix rerun research_runs/<system_id>/<run_id>
+entanglix run-script recorded_decay.py --system two-level/system.toml
+entanglix capabilities
+entanglix list-runs
+entanglix read-run research_runs/<system_id>/<run_id>
+entanglix abort-run research_runs/<system_id>/<run_id>
+entanglix rerun research_runs/<system_id>/<run_id>
 ```
 
 Commands print JSON. `run-script` waits for the job and returns its exit code. Use `--runs-root PATH` to choose the output root, repeated `--input NAME=PATH` to freeze additional files under `spec/`, and repeated `--parent-run ID` to record lineage. The corresponding Python operations are `run_script(system, script, ...)`, `list_capabilities()`, `list_runs(root)`, and `read_run(path)`. Capabilities inspect package metadata in the runner environment without creating or synchronizing it; before its first installation, no installed engines are reported. Engine names match the adapters, with supported `devices` reported separately; installation does not certify hardware availability. `plugin_engines` lists engines that installed plugins register, with their distribution and version; their devices and capabilities are resolved at admission. `engine_defaults` shows the user's per-device defaults ([engine selection](system-spec.md#engine-selection-policy)).
 
 Before admission, a subprocess in the locked, synchronized runner environment constructs the CPU model, checks script syntax, checks the environment's consistency, and records its identity. Referenced subsystem specs and numeric archives are collected automatically; the standalone script is frozen as `spec/script.py`. Additional Python inputs receive the same syntax check. Relative imports are unsupported for standalone scripts. Changed inputs between validation and freezing fail preparation before computation.
 
-Jobs sharing the checkout use the same extras set, configured once in `pyproject.toml` as `[tool.entanglix.runner]` with `extras = [...]`; the default is empty. The workstation-local `ENTANGLIX_RUNNER_EXTRAS` comma-separated list overrides this setting for all jobs, including CPU checks. Each check and job uses `uv run --locked --inexact` with that set and an absolute `UV_PROJECT_ENVIRONMENT` pointing to the ignored `.venv-runner/` in the checkout. The first launch installs this environment; synchronizing it leaves the development `.venv` and its extras alone. CPU jobs receive `CUDA_VISIBLE_DEVICES=""` and `JAX_PLATFORMS=cpu`. Keep the checkout and configuration stable while jobs run; use a separate checkout when reconstructing an earlier code revision.
+Jobs sharing one installation or checkout use the same extras set. An installation uses the set its components record: `differentiable` for the base, adding `cuquantum` and `differentiable-cuda12` with the GPU component (`entanglix components add gpu`). A checkout uses `[tool.entanglix.runner]` `extras = [...]` in `pyproject.toml`; the default is empty. The workstation-local `ENTANGLIX_RUNNER_EXTRAS` comma-separated list overrides either for all jobs, including CPU checks. Each launch resolves the set, so a server started earlier uses a component added since. Each check and job uses `uv run --locked --inexact` with that set and an absolute `UV_PROJECT_ENVIRONMENT` pointing to the ignored `.venv-runner/`; synchronizing it leaves the server's `.venv` alone. An installation's uv calls use its own uv and pinned Python and ignore uv configuration files; inherited variables that would select another environment, interpreter or cache, or skip synchronization, are removed. CPU jobs receive `CUDA_VISIBLE_DEVICES=""` and `JAX_PLATFORMS=cpu`. Keep the checkout and configuration stable while jobs run; use a separate checkout when reconstructing an earlier code revision.
+
+Each launch holds a shared lock on the job environment from before it resolves the set until its job and any surviving children end. Adding a component takes that lock exclusively without waiting: `components add` is refused while any launch or job runs, and launches are refused while a component is being added. A change that fails leaves the environment marked incomplete; launches are refused, naming the command, until that change is rerun and succeeds. A request for a bundled engine or solver that is not installed is refused before an attempt exists, with the component that adds it.
 
 The ignored `.venv-runner-extras.toml` records the pinned extras as one sorted,
 duplicate-free list, for example `extras = ["cuquantum", "differentiable-cuda12"]`.
@@ -27,9 +41,10 @@ change packages, including while jobs are active. Runtime versions are still
 observed in the job environment, rather than inferred from this profile.
 An existing environment without a profile is rejected: stop its jobs and confirm
 a sync with the intended extras before recording that list, or recreate the
-environment and let its first launch claim the profile. To change profiles, use a
-separate checkout or stop all jobs before removing both the environment and its
-profile.
+environment and let its first launch claim the profile. In an installation,
+`components add gpu` changes the profile itself. In a checkout, to change profiles,
+use a separate checkout or stop all jobs before removing both the environment and
+its profile.
 
 The job runs noninteractively in its own process group, with `artifacts/` as its working directory so ordinary relative outputs land in the job's area. It inherits the owner's descriptor and waits until `runner/started.toml` has been published before executing the frozen script. Output and diagnostics go to `run.log`. `ENTANGLIX_RUN_DIR` names the attempt and `ENTANGLIX_SYSTEM_SPEC` its frozen system spec; additional data is under `<ENTANGLIX_RUN_DIR>/spec/`.
 
@@ -49,7 +64,9 @@ Plugins are Python distributions that register engines under `entanglix.integrat
 uv pip install --python .venv-runner/bin/python PATH_OR_WHEEL
 ```
 
-Entanglix neither installs nor resolves plugins. Each launch synchronizes the locked dependencies and keeps the other installed distributions. Before admission, the runner refuses an environment that `uv pip check` reports as inconsistent, an editable distribution other than the project itself, and a distribution without an install record. A plugin requiring another version of a locked package is undone by the next synchronization, which restores the locked version; the consistency check then refuses launches until the plugin is changed. Every run records the installed distributions ([environment provenance](#environment-and-code-provenance)).
+In an installation, run it from the directory `entanglix components` reports as `path`, with the installation's uv, `.installation/bin/uv`.
+
+Entanglix neither installs nor resolves plugins. Each launch and `components add gpu` synchronize the locked dependencies and keep the other installed distributions. Before admission, the runner refuses an environment that `uv pip check` reports as inconsistent, an editable distribution other than the project itself, and a distribution without an install record. A plugin requiring another version of a locked package is undone by the next synchronization, which restores the locked version; the consistency check then refuses launches until the plugin is changed. Every run records the installed distributions ([environment provenance](#environment-and-code-provenance)).
 
 ## Computation records
 
@@ -79,9 +96,9 @@ memory estimate; an allocation failure is reported as out of memory
 ([execution outcomes](#execution-outcomes)).
 
 ```sh
-uv run --locked --exact entanglix check research_runs/<system_id>/<run_id>
-uv run --locked --exact entanglix check research_runs/<system_id>/<run_id> integrity segments diagnostics --timeout 60
-uv run --locked --exact entanglix read-run research_runs/<system_id>/<run_id>
+entanglix check research_runs/<system_id>/<run_id>
+entanglix check research_runs/<system_id>/<run_id> integrity segments diagnostics --timeout 60
+entanglix read-run research_runs/<system_id>/<run_id>
 ```
 
 With no names, `check` lists relevant checks and computes nothing. Named checks run
@@ -223,8 +240,8 @@ The [harness contract](../../HARNESS_CONTRACT.md) states the execution and verif
 Job commands accept `--detach`: `simulate`, `sweep`, `control`, `calibrate`, `run-script`, `rerun`, and named `check` requests. The command returns the admitted run ID and path; a separate supervisor retains ownership, enforces the job timeout and investigation deadline, and writes the terminal record. Closing the requesting terminal or losing its response does not stop that supervisor. Use `abort-run` to cancel an admitted job. Dry-run previews and check listings remain synchronous and do not accept `--detach`.
 
 ```sh
-uv run --locked --exact entanglix simulate examples/readout/readout.toml --runs-root research_runs --detach
-uv run --locked --exact entanglix read-run research_runs/SYSTEM_ID/RUN_ID --wait 60
+entanglix simulate readout/readout.toml --runs-root research_runs --detach
+entanglix read-run research_runs/SYSTEM_ID/RUN_ID --wait 60
 ```
 
 `read-run --wait SECONDS` returns when the attempt completes, fails, aborts, loses ownership, or the requested wait expires. Seconds must be finite and non-negative; the command line applies no maximum. An expired or interrupted wait leaves the job running. Reads and cancellation can run concurrently; waits poll at intervals of at most 0.25 seconds. Ctrl-C returns exit 130 without a traceback, including while a detached launch awaits admission.

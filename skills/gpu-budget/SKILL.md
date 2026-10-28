@@ -1,7 +1,7 @@
 ---
 name: gpu-budget
 description: Assess measured Entanglix job costs, optional investigation limits, and GPU ownership before continuing or stopping research.
-version: 0.1.1
+version: 0.1.2
 ---
 
 # Resources and GPU use
@@ -25,7 +25,7 @@ return allowance. Confirmed terminal usage replaces the commitment.
 
 Keep CUDA hidden in the agent session. Request GPU computation only through
 runner tools and an approved CUDA base. The operator configures the device and
-runner extras. A busy GPU refuses launch before an attempt exists and consumes
+adds GPU engines to the installation. A busy GPU refuses launch before an attempt exists and consumes
 no allowance. There is no job queue: inspect existing work and wait or hand off,
 rather than repeatedly launching. CPU may be faster for small systems; make a
 performance claim only from measurements for the relevant workload.

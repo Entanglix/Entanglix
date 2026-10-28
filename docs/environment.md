@@ -19,7 +19,7 @@ Initial compatibility was demonstrated on 2026-09-29 with Python 3.13.12 and bot
 | JAX / jaxlib / CUDA plugin / CUDA PJRT | 0.6.2 |
 | NumPy / SciPy | 2.5.3 / 1.18.1 |
 
-The driver API value and loaded runtime identify different components. The initial compatibility probe used a disposable environment with `qutip-cuquantum[cuda12]` and `jax[cuda12]`; its full package snapshot is [m1_gpu.requirements.txt](../tests/probes/m1_gpu.requirements.txt). The project extras `cuquantum`, `differentiable-cuda12`, and CPU-only `differentiable` are now resolved in `uv.lock`. The compatibility tests below use exact syncs, so stray installed packages cannot influence them; runner jobs keep the plugins a user installs ([plugins](operations/runs.md#plugins-in-the-runner-environment)).
+The driver API value and loaded runtime identify different components. The initial compatibility probe used a disposable environment with `qutip-cuquantum[cuda12]` and `jax[cuda12]`; its full package snapshot is [m1_gpu.requirements.txt](../tests/probes/m1_gpu.requirements.txt). The project extras `cuquantum`, `differentiable-cuda12`, and CPU-only `differentiable` are now resolved in `uv.lock`; an installation's base includes `differentiable`, and its GPU component adds the other two. The compatibility tests below use exact syncs, so stray installed packages cannot influence them; runner jobs keep the plugins a user installs ([plugins](operations/runs.md#plugins-in-the-runner-environment)).
 
 Dynamiqs 0.3.6 with JAX 0.11.2 and jaxtyping 0.3.11 failed at import with `TypeError: unsupported operand type(s) for |: 'types.UnionType' and 'str'` in its nested `QArrayLike` definition. JAX 0.6.2 resolved that failure and passed the GPU solve on the same Python version. This tested combination supports retaining Python 3.13.
 
@@ -63,6 +63,10 @@ UV_PROJECT_ENVIRONMENT=/var/tmp/entanglix-gpu-test uv run --locked --exact --ext
 ```
 
 The CPU cases in the same test file exercise missing dependencies, driver/library failures, invisible devices, and environment identity independent of memory availability. The [run reference](operations/runs.md#environment-and-code-provenance) defines the API and recorded fields.
+
+## Installation disk use
+
+Observed on this workstation on 2026-10-28. A job environment with both GPU extras takes 7.0 GB, 4.5 GB of it NVIDIA's CUDA libraries, which JAX and cuQuantum ship as wheels instead of using a system CUDA; this is why GPU engines are a separate component. In the [clean-install run](../tests/probes/clean_install_results.json), uv's shared cache took 0.86 GB, a first version with the Piccolo component 3.7 GB (mostly its Julia and precompiled depot), and a second, base-only version 185 MB more, its unchanged packages hardlinked from the shared cache. Hardlinking needs the cache and the installations on one filesystem; otherwise uv copies.
 
 ## Reproduce GPU compatibility from a source checkout
 

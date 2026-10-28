@@ -7,14 +7,15 @@ an earlier attempt. Inspect the returned path with `read-run`.
 
 The [Purcell example](../../examples/readout/purcell.toml) evolves an excited qubit
 with an empty lossy resonator for 1600 ns. It uses the
-[system conventions](system-spec.md) and [run lifecycle](runs.md).
+[system conventions](system-spec.md) and [run lifecycle](runs.md). With the `readout`
+example copied into the project ([commands and examples](runs.md#commands-and-examples)):
 
 ```sh
-uv run --locked --exact entanglix simulate examples/readout/purcell.toml
-uv run --locked --exact entanglix check research_runs/<system_id>/<run_id>
-uv run --locked --exact entanglix check research_runs/<system_id>/<run_id> integrity segments diagnostics
-uv run --locked --exact entanglix read-run research_runs/<system_id>/<run_id>
-uv run --locked --exact entanglix rerun research_runs/<system_id>/<run_id>
+entanglix simulate readout/purcell.toml
+entanglix check research_runs/<system_id>/<run_id>
+entanglix check research_runs/<system_id>/<run_id> integrity segments diagnostics
+entanglix read-run research_runs/<system_id>/<run_id>
+entanglix rerun research_runs/<system_id>/<run_id>
 ```
 
 ## Specification
@@ -98,18 +99,35 @@ Requested checks have their own `--timeout SECONDS`. Cancellation and recovery u
 
 ## GPU configuration and checks
 
-Set one `ENTANGLIX_RUNNER_EXTRAS` list for every invocation sharing `.venv-runner`.
-It overrides `[tool.entanglix.runner].extras`; an empty value selects no extras.
-CPU dynamiqs needs `differentiable`. On the CUDA workstation, use:
+The bundled CUDA engines come with an installation's GPU component. It needs an NVIDIA
+driver, and the job environment then takes about 7 GB, mostly NVIDIA libraries:
 
 ```sh
-export ENTANGLIX_RUNNER_EXTRAS=cuquantum,differentiable-cuda12
-uv run --locked --exact entanglix simulate examples/readout/purcell-cuda.toml
+entanglix components add gpu
+entanglix simulate readout/purcell-cuda.toml
 ```
 
-CPU jobs and requested checks use the same pinned extras with CUDA hidden. A different
-extras list is rejected before synchronization; the [run reference](runs.md)
-explains the environment profile. Numeric indices in `CUDA_VISIBLE_DEVICES` are
+Adding it runs the GPU environment check on each device it can lock and reports the
+outcome; a device another run owns is reported unchecked, and its first CUDA job
+checks it at launch. Without the component, a request for a bundled CUDA engine is
+refused with this command. CPU dynamiqs comes with the base installation.
+
+A project set up before the component was added keeps its CPU-only device, and a
+plain refresh keeps it too. Move the project in `DIR` to the GPU, then start a fresh session,
+since a running session keeps its server's old device:
+
+```sh
+entanglix setup-project DIR --refresh --device auto
+```
+
+With several GPUs, name one with `--device UUID` instead.
+
+In a checkout, set one `ENTANGLIX_RUNNER_EXTRAS` list for every invocation sharing
+`.venv-runner`, such as `cuquantum,differentiable-cuda12`. It overrides
+`[tool.entanglix.runner].extras`; an empty value selects no extras, and CPU dynamiqs
+needs `differentiable`. CPU jobs and requested checks use the same pinned extras with
+CUDA hidden. A different extras list is rejected before synchronization; the
+[run reference](runs.md) explains the environment profile. Numeric indices in `CUDA_VISIBLE_DEVICES` are
 resolved in `nvidia-smi` order, which may differ from CUDA's order on a multi-GPU
 machine; use a GPU UUID to select a device unambiguously. CUDA jobs see only the
 allocated UUID, and JAX preallocation is disabled before initialization. The gate
@@ -229,10 +247,10 @@ The check uses the corrector's numerical tolerance (`1e-6` for dynamic metrics,
 the expectation may itself be wrong. No expectation is inferred from the model.
 
 ```sh
-uv run --locked --exact entanglix sweep sweep.toml --dry-run
-uv run --locked --exact entanglix sweep sweep.toml
-uv run --locked --exact entanglix check research_runs/<system_id>/<run_id> integrity segments diagnostics declared_expectation
-uv run --locked --exact entanglix rerun research_runs/<system_id>/<run_id>
+entanglix sweep sweep.toml --dry-run
+entanglix sweep sweep.toml
+entanglix check research_runs/<system_id>/<run_id> integrity segments diagnostics declared_expectation
+entanglix rerun research_runs/<system_id>/<run_id>
 ```
 
 Points execute serially using the base's selected engine/device; a sweep rerun keeps

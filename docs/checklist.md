@@ -67,7 +67,7 @@ M3 demonstrates quality for a complete sweep/search workflow. The preferred sequ
 - [x] [`.gitignore`](../.gitignore) covers runs, caches, `.env`, and generated numerical arrays, with exceptions for small reference fixtures
 - [x] [Development checks](development.md#checks): locked installation, lint/format checks, and pytest; [GPU selection policy](../tests/conftest.py) skips unavailable devices and rejects empty/unavailable required-GPU runs
 - [x] Root [AGENTS.md](../AGENTS.md) and [CLAUDE.md](../CLAUDE.md) are one-line development pointers to [development.md](development.md); [research-agent.md](research-agent.md) preserves draft research conduct separately until Block 6b
-- [x] Operational [setup/CLI usage](../README.md#setup-and-cli) and [release notes](../README.md#changes-and-compatibility), independent of planning docs
+- [x] Operational [setup/CLI usage](../README.md#install) and [release notes](../README.md#changes-and-compatibility), independent of planning docs
 - [x] [Installed entry-point and CPU import checks](../tests/test_cli.py), lint/format, and documentation checks pass
 - [x] **Done:** a fresh source copy syncs from the lockfile and runs `pytest` successfully without GPU dependencies or device access
 
@@ -357,14 +357,14 @@ The [M4 guide](m4-guide.md) records the implementation approach; [ADR-0005](adr/
 
 ## Installation and Project Setup
 
-### [ ] Installation and project setup
+### [x] Installation and project setup
 
 **Decisions:** [ADR-0001 §3.5](adr/0001-mandate.md#35-installation), [ADR-0003 §2.2, §2.5](adr/0003-runs-verification-and-dispatch.md#22-execution-environment-and-process-ownership), [ADR-0004 §2.8](adr/0004-investigations-and-agent-sessions.md#28-agent-sessions), [ADR-0005 §2.6](adr/0005-control-problems-and-solvers.md#26-the-piccolo-adapter), [contract §2](../HARNESS_CONTRACT.md#2-execution-and-artifacts).
 
 - [x] Installation: a bootstrap script pinned to a release tag; versioned installations with their own uv and Python, sharing one uv cache; an ignored installation directory; the completion record and an untouched same-version reinstall; the launcher's choice of installation; `remove` with the use lock ([installer](../install.sh), [installation module](../src/entanglix/installation.py), [installation tests](../tests/test_installation.py), [clean installs](../tests/probes/clean_install_results.json))
 - [x] Components: the base set, and GPU and Piccolo on request; the recorded extras set resolved at each launch; the environment lock from before the read until the job ends, exclusive component changes, and the incomplete mark; the controlled uv and Julia environments; refusals naming the component; solver availability in capabilities ([installation tests](../tests/test_installation.py), [launch lock tests](../tests/test_gpu_admission.py), [server configuration test](../tests/test_mcp.py), [clean installs](../tests/probes/clean_install_results.json))
 - [x] Project setup: the setup command for Claude Code, Codex, and other runtimes; conflicts and refresh; the project's installation for operator commands; the fresh-session instruction ([setup module](../src/entanglix/project_setup.py), [setup tests](../tests/test_project_setup.py), [launcher tests](../tests/test_installation.py), [clean installs](../tests/probes/clean_install_results.json))
-- [ ] README for people, and the operational references updated
+- [x] README for people, and the operational references updated ([README](../README.md), [MCP reference](operations/mcp.md#research-workspace), [runs](operations/runs.md#authored-cpu-jobs), [GPU configuration](operations/protocols.md#gpu-configuration-and-checks), [Piccolo](operations/control.md#piccolo), [installation disk use](environment.md#installation-disk-use))
 - [x] **Done:** clean installs on the workstation, isolated from developer paths and variables, run a tiny real job for the base set, GPU, and Piccolo; a repeat installation, a component change during a launch, an older project after a newer version, and removal behave as decided ([clean-install probe](../tests/probes/clean_install.py), [results](../tests/probes/clean_install_results.json))
 
 ---
