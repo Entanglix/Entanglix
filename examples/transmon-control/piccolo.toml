@@ -1,0 +1,56 @@
+format_version = 1
+system = "system.toml"
+
+[frame]
+rwa = true
+
+[frame.frequencies_ghz]
+junction_with_shunt = 5.482065688844835
+
+[[channels]]
+id = "x"
+drive = "charge_drive"
+frequency_ghz = 5.482065688844835
+phase_rad = 0.0
+amplitude_bound_ghz = 0.05405422522311776
+
+[[channels]]
+id = "y"
+drive = "charge_drive"
+frequency_ghz = 5.482065688844835
+phase_rad = 1.5707963267948966
+amplitude_bound_ghz = 0.05405422522311776
+
+[goal]
+kind = "unitary"
+gate = "X"
+subspace = [
+    [
+        1,
+        2,
+    ],
+]
+
+[pulse]
+kind = "zero_order"
+T = 20.0
+init = "random"
+seed = 7
+
+[problem]
+template = "SmoothPulseProblem"
+N = 21
+Q = 1000.0
+R = 0.0001
+du_bound = 0.09009037537186294
+ddu_bound = 0.09009037537186294
+final_fidelity = 0.999
+free_dt = false
+free_phase = false
+
+[solver]
+backend = "piccolo"
+
+[solver.options]
+max_iter = 100
+tol = 1e-08

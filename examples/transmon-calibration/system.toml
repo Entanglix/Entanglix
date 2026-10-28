@@ -1,0 +1,49 @@
+format_version = 1
+id = "squid_transmon"
+
+[units]
+energy = "GHz"
+time = "ns"
+
+# Design values; calibration proposes measured ones. ECJ is fixed by design.
+[parameters]
+EJ1 = { value = 12.4, unit = "GHz", prior = { kind = "uniform", lower = 2.0, upper = 25.0 } }
+EJ2 = { value = 7.7, unit = "GHz", prior = { kind = "uniform", lower = 2.0, upper = 25.0 } }
+Csh = { value = 72.0, unit = "fF", prior = { kind = "uniform", lower = 30.0, upper = 120.0 } }
+ECJ = { value = 4.0, unit = "GHz" }
+phi = { value = 0.0, unit = "Phi0" }
+
+[model]
+kind = "circuit"
+nodes = [0, 1]
+ground = 0
+offset_charges = { "1" = 0.0 }
+
+[[model.branches]]
+id = "J1"
+kind = "JJ"
+nodes = [0, 1]
+josephson_energy = { parameter = "EJ1" }
+charging_energy = { parameter = "ECJ" }
+
+[[model.branches]]
+id = "J2"
+kind = "JJ"
+nodes = [0, 1]
+josephson_energy = { parameter = "EJ2" }
+charging_energy = { parameter = "ECJ" }
+
+[[model.branches]]
+id = "shunt"
+kind = "C"
+nodes = [0, 1]
+capacitance = { parameter = "Csh" }
+
+# The SQUID loop closes through J2; the coil bias reaches phi through the fitted axis map.
+[[model.external_fluxes]]
+branch = "J2"
+value = { parameter = "phi" }
+
+[truncation]
+cutoffs = { theta1 = 30 }
+retained_levels = 6

@@ -1,0 +1,1548 @@
+{
+  "measured_at": "2026-10-18T05:46:49.294203+00:00",
+  "workspace": "/home/paimon/Projects/entanglix-research/compile-probe",
+  "script_sha256": "f8f1a4df4db7afecc2c3c4fda7e2765e2662705a9ea8b98b448709917beea5c7",
+  "source_sha256": {
+    "src/entanglix/solvers/grape.py": "31e124bd8802ad5e4b27fd5aaa7c898b6df91a31e75d2b547ae085db7f2d4045",
+    "src/entanglix/engines/dynamiqs_jax.py": "1f07e91a92ea9097ab95e4b92265e61718e5a8d80e203e682ca05248361a448c",
+    "src/entanglix/solvers/piccolo.py": "17b23334e81c81cf44586b7fc30f7d08ffbd23d9e19c5a2eacf2c8700cc336e1",
+    "src/entanglix/solvers/julia/solve.jl": "f57d3bcbc3ce314787b10bf3b8aac2dc860301f122dde5845b0e78a174c16288",
+    "src/entanglix/solvers/julia/Project.toml": "3a815a3ba7b07b58c3a50c0627d20dce884fa9c00d77c0cbcd7b2e84453fec55",
+    "src/entanglix/solvers/julia/Manifest.toml": "65f2d3b59d3f3dc49d019421b9f81c2a180b071eb4197c949d5e0d09756f508c"
+  },
+  "cases": {
+    "c60": {
+      "source": "/home/paimon/Projects/Entanglix/examples/transmon-control/control.toml",
+      "problem": "/home/paimon/Projects/entanglix-research/compile-probe/inputs/c60/problem.toml",
+      "problem_sha256": "716bdda08b61e182e4cea833a69282136bbb558ab36d492c042042a016daa3fa",
+      "source_input_sha256": {
+        "system.toml": "ece3372998ad4f65091418f4ac61b3215e12acbc1ec8d75e5c3f4694a345a776",
+        "control.toml": "142e3c372d437985041fb47e325472b10c61909dbba9f4d26ec4bdc814c4e7b9"
+      },
+      "options": {
+        "max_iter": 100,
+        "tol": 1e-08
+      }
+    },
+    "c30": {
+      "source": "/home/paimon/Projects/entanglix-research/m5-probe/inputs/c30-rabi_bound-s7/control.toml",
+      "problem": "/home/paimon/Projects/entanglix-research/compile-probe/inputs/c30/problem.toml",
+      "problem_sha256": "bfe1b127940cee362aedb61a07cc4e0ea832dab06ce0d6b7376babf09cd30125",
+      "source_input_sha256": {
+        "system.toml": "da22186c0ad074f53fff7c7ea19158528fc2029446e19915582bcfa2a91d9f12",
+        "control.toml": "196909f60fd0591442978f58d3a66d7fbde7cd5a894e8ba12afdf242d8835dae"
+      },
+      "options": {
+        "max_iter": 100,
+        "tol": 1e-08
+      }
+    }
+  },
+  "thread_and_device_settings": {
+    "JAX_PLATFORMS": "cpu",
+    "CUDA_VISIBLE_DEVICES": "",
+    "OPENBLAS_NUM_THREADS": "1",
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "JULIA_NUM_THREADS": "1"
+  },
+  "cpu": {
+    "logical_count": 32,
+    "affinity": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31
+    ],
+    "model": "Intel(R) Core(TM) i9-14900KF"
+  },
+  "method": "Fresh process for every cold JAX measurement. All execution timers synchronize value and gradient. Persistent caching disabled except in cache experiments. Julia uses one fresh process and two identical solves, with cumulative compilation accounting explicitly enabled. Raw parity samples/gradients remain in workspace measurements; summaries retain residuals. No installations, GPU jobs or agent sessions are requested.",
+  "baseline": {
+    "startup_seconds": 0.03967946796910837,
+    "imports_seconds": 0.7042172359651886,
+    "versions": {
+      "jax": "0.6.2",
+      "dynamiqs": "0.3.6",
+      "scipy": "1.18.1",
+      "entanglix": "0.1.0"
+    },
+    "load_seconds": 0.0003663700190372765,
+    "objective_setup_seconds": 0.11459339701104909,
+    "lower_seconds": 1.872211045003496,
+    "lowered_text_bytes": 868352,
+    "compile_seconds": 10.802574365981854,
+    "first_execution_seconds": 0.022315456008072942,
+    "initial_value": 0.6660988227864229,
+    "gradient_max_abs": 0.3604026562451933,
+    "warm_value_gradient_median_seconds": 0.017307667003478855,
+    "solve": {
+      "warm_optimization_seconds": 1.1028514259960502,
+      "iterations": 32,
+      "objective_evaluations": 49,
+      "converged": true,
+      "message": "Optimization terminated successfully",
+      "fidelity": 0.9996150434507506,
+      "independent_replay": {
+        "fidelity": 0.9996150434821979,
+        "leakage": 2.9700406473653906e-05,
+        "engine": "qutip-cpu",
+        "method": "vern9",
+        "rtol": 1e-11,
+        "atol": 1e-13
+      },
+      "constraints": "pass",
+      "warm_objective_call_median_seconds": 0.021391968009993434
+    },
+    "devices": [
+      "TFRT_CPU_0"
+    ],
+    "process_thread_count": 153,
+    "process_seconds": 15.544147399952635,
+    "exit_code": 0,
+    "log": "/home/paimon/Projects/entanglix-research/compile-probe/measurements/baseline.log"
+  },
+  "scaling": {
+    "5": {
+      "startup_seconds": 0.0319540899945423,
+      "imports_seconds": 0.694651962025091,
+      "versions": {
+        "jax": "0.6.2",
+        "dynamiqs": "0.3.6",
+        "scipy": "1.18.1",
+        "entanglix": "0.1.0"
+      },
+      "load_seconds": 0.0003652669838629663,
+      "objective_setup_seconds": 0.11500322801293805,
+      "lower_seconds": 1.6866286220028996,
+      "lowered_text_bytes": 770395,
+      "compile_seconds": 1.9483179620001465,
+      "first_execution_seconds": 0.014512800029478967,
+      "initial_value": 0.6662150862419958,
+      "gradient_max_abs": 0.5894992242580649,
+      "warm_value_gradient_median_seconds": 0.011756122985389084,
+      "devices": [
+        "TFRT_CPU_0"
+      ],
+      "process_thread_count": 153,
+      "process_seconds": 4.974011147976853,
+      "exit_code": 0,
+      "log": "/home/paimon/Projects/entanglix-research/compile-probe/measurements/scaling-5.log"
+    },
+    "10": {
+      "startup_seconds": 0.03177312499610707,
+      "imports_seconds": 0.6897445690119639,
+      "versions": {
+        "jax": "0.6.2",
+        "dynamiqs": "0.3.6",
+        "scipy": "1.18.1",
+        "entanglix": "0.1.0"
+      },
+      "load_seconds": 0.00036543101305142045,
+      "objective_setup_seconds": 0.10112005798146129,
+      "lower_seconds": 1.7917894380516373,
+      "lowered_text_bytes": 802915,
+      "compile_seconds": 4.287885699013714,
+      "first_execution_seconds": 0.015181284048594534,
+      "initial_value": 0.6671733683751873,
+      "gradient_max_abs": 0.6242261318687423,
+      "warm_value_gradient_median_seconds": 0.01426505297422409,
+      "devices": [
+        "TFRT_CPU_0"
+      ],
+      "process_thread_count": 153,
+      "process_seconds": 7.4313165950006805,
+      "exit_code": 0,
+      "log": "/home/paimon/Projects/entanglix-research/compile-probe/measurements/scaling-10.log"
+    },
+    "20": {
+      "lower_seconds": 1.872211045003496,
+      "compile_seconds": 10.802574365981854,
+      "first_execution_seconds": 0.022315456008072942,
+      "warm_value_gradient_median_seconds": 0.017307667003478855,
+      "lowered_text_bytes": 868352
+    },
+    "40": {
+      "startup_seconds": 0.030551887990441173,
+      "imports_seconds": 0.694193305040244,
+      "versions": {
+        "jax": "0.6.2",
+        "dynamiqs": "0.3.6",
+        "scipy": "1.18.1",
+        "entanglix": "0.1.0"
+      },
+      "load_seconds": 0.0003479369916021824,
+      "objective_setup_seconds": 0.11197355401236564,
+      "lower_seconds": 1.9503261600038968,
+      "lowered_text_bytes": 1000405,
+      "compile_seconds": 29.79224466002779,
+      "first_execution_seconds": 0.02971524395979941,
+      "initial_value": 0.6663388655358062,
+      "gradient_max_abs": 0.07142519885616236,
+      "warm_value_gradient_median_seconds": 0.019852149998769164,
+      "devices": [
+        "TFRT_CPU_0"
+      ],
+      "process_thread_count": 159,
+      "process_seconds": 33.43637896300061,
+      "exit_code": 0,
+      "log": "/home/paimon/Projects/entanglix-research/compile-probe/measurements/scaling-40.log"
+    }
+  },
+  "alternatives": {
+    "scan": {
+      "startup_seconds": 0.04018706100760028,
+      "imports_seconds": 0.7041102300281636,
+      "versions": {
+        "jax": "0.6.2",
+        "dynamiqs": "0.3.6",
+        "scipy": "1.18.1",
+        "entanglix": "0.1.0"
+      },
+      "load_seconds": 0.0003709739539772272,
+      "objective_setup_seconds": 0.1300463000079617,
+      "lower_seconds": 1.3289842669619247,
+      "lowered_text_bytes": 454595,
+      "compile_seconds": 0.643284953024704,
+      "first_execution_seconds": 0.018423461995553225,
+      "initial_value": 0.6660988227864229,
+      "gradient_max_abs": 0.3604026562451933,
+      "warm_value_gradient_median_seconds": 0.01595083699794486,
+      "solve": {
+        "warm_optimization_seconds": 0.7847104630200192,
+        "iterations": 30,
+        "objective_evaluations": 39,
+        "converged": true,
+        "message": "Optimization terminated successfully",
+        "fidelity": 0.999615046658311,
+        "independent_replay": {
+          "fidelity": 0.9996150466897529,
+          "leakage": 2.9768640489424847e-05,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13
+        },
+        "constraints": "pass",
+        "warm_objective_call_median_seconds": 0.01864267699420452
+      },
+      "devices": [
+        "TFRT_CPU_0"
+      ],
+      "process_thread_count": 152,
+      "process_seconds": 4.425558463030029,
+      "exit_code": 0,
+      "log": "/home/paimon/Projects/entanglix-research/compile-probe/measurements/scan.log",
+      "parity": {
+        "value_max_abs_difference": 0.0,
+        "gradient_max_abs_difference": 4.440892098500626e-16,
+        "amplitude_sets": 3,
+        "free_knot_gradient_max_abs_difference": 4.440892098500626e-16,
+        "scope": "All gradients include the fixed zero first and final knots; free-knot comparison excludes those two bound-fixed columns."
+      },
+      "interval_semantics": "New solve per interval, fresh max_steps per interval"
+    },
+    "pwc": {
+      "startup_seconds": 0.031797594972886145,
+      "imports_seconds": 0.7039131910423748,
+      "versions": {
+        "jax": "0.6.2",
+        "dynamiqs": "0.3.6",
+        "scipy": "1.18.1",
+        "entanglix": "0.1.0"
+      },
+      "load_seconds": 0.00036729598650708795,
+      "objective_setup_seconds": 0.13061615295009688,
+      "lower_seconds": 1.19656428496819,
+      "lowered_text_bytes": 453486,
+      "compile_seconds": 0.5407920129946433,
+      "first_execution_seconds": 0.023417402000632137,
+      "initial_value": 0.6660988227903663,
+      "gradient_max_abs": 0.3604026560875615,
+      "warm_value_gradient_median_seconds": 0.022155796003062278,
+      "solve": {
+        "warm_optimization_seconds": 1.4343718599993736,
+        "iterations": 31,
+        "objective_evaluations": 49,
+        "converged": true,
+        "message": "Optimization terminated successfully",
+        "fidelity": 0.9996150464625959,
+        "independent_replay": {
+          "fidelity": 0.9996150464957224,
+          "leakage": 2.9629142330400704e-05,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13
+        },
+        "constraints": "pass",
+        "warm_objective_call_median_seconds": 0.028723219002131373
+      },
+      "devices": [
+        "TFRT_CPU_0"
+      ],
+      "process_thread_count": 150,
+      "process_seconds": 4.8229351220070384,
+      "exit_code": 0,
+      "log": "/home/paimon/Projects/entanglix-research/compile-probe/measurements/pwc.log",
+      "parity": {
+        "value_max_abs_difference": 5.79831738178882e-11,
+        "gradient_max_abs_difference": 1.603302934860551e-09,
+        "amplitude_sets": 3,
+        "free_knot_gradient_max_abs_difference": 1.603302934860551e-09,
+        "scope": "All gradients include the fixed zero first and final knots; free-knot comparison excludes those two bound-fixed columns."
+      },
+      "interval_semantics": "One continuous solve with PWC discontinuities and one whole-window max_steps; controller is not fully reinitialized per interval"
+    },
+    "scan_pure": {
+      "startup_seconds": 0.031491942005231977,
+      "imports_seconds": 0.7082878780202009,
+      "versions": {
+        "jax": "0.6.2",
+        "dynamiqs": "0.3.6",
+        "scipy": "1.18.1",
+        "entanglix": "0.1.0"
+      },
+      "load_seconds": 0.00037435704143717885,
+      "objective_setup_seconds": 0.1279730109963566,
+      "lower_seconds": 1.3010087570291944,
+      "lowered_text_bytes": 442978,
+      "compile_seconds": 0.6334847219986841,
+      "first_execution_seconds": 0.008424678002484143,
+      "initial_value": 0.6660988227864212,
+      "gradient_max_abs": 0.36040265624697365,
+      "warm_value_gradient_median_seconds": 0.007666091027203947,
+      "solve": {
+        "warm_optimization_seconds": 0.4621499400236644,
+        "iterations": 32,
+        "objective_evaluations": 49,
+        "converged": true,
+        "message": "Optimization terminated successfully",
+        "fidelity": 0.9996150434432411,
+        "independent_replay": {
+          "fidelity": 0.9996150434869766,
+          "leakage": 2.9700566160362207e-05,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13
+        },
+        "constraints": "pass",
+        "warm_objective_call_median_seconds": 0.008331077988259494
+      },
+      "devices": [
+        "TFRT_CPU_0"
+      ],
+      "process_thread_count": 151,
+      "process_seconds": 3.9240237119956873,
+      "exit_code": 0,
+      "log": "/home/paimon/Projects/entanglix-research/compile-probe/measurements/scan_pure.log",
+      "parity": {
+        "value_max_abs_difference": 4.5171644202923744e-12,
+        "gradient_max_abs_difference": 1.0376638437392671e-10,
+        "amplitude_sets": 3,
+        "free_knot_gradient_max_abs_difference": 1.0376638437392671e-10,
+        "scope": "All gradients include the fixed zero first and final knots; free-knot comparison excludes those two bound-fixed columns."
+      },
+      "interval_semantics": "New solve per interval, fresh max_steps per interval"
+    },
+    "expm": {
+      "startup_seconds": 0.0388013559859246,
+      "imports_seconds": 0.7062903380137868,
+      "versions": {
+        "jax": "0.6.2",
+        "dynamiqs": "0.3.6",
+        "scipy": "1.18.1",
+        "entanglix": "0.1.0"
+      },
+      "load_seconds": 0.00037021999014541507,
+      "objective_setup_seconds": 0.1280142689938657,
+      "lower_seconds": 0.17197285499423742,
+      "lowered_text_bytes": 120932,
+      "compile_seconds": 0.13469258503755555,
+      "first_execution_seconds": 0.0011650159722194076,
+      "initial_value": 0.6660988227863729,
+      "gradient_max_abs": 0.3604026562507812,
+      "warm_value_gradient_median_seconds": 0.0005570540088228881,
+      "solve": {
+        "warm_optimization_seconds": 0.04003465600544587,
+        "iterations": 30,
+        "objective_evaluations": 39,
+        "converged": true,
+        "message": "Optimization terminated successfully",
+        "fidelity": 0.9996150466866199,
+        "independent_replay": {
+          "fidelity": 0.9996150466862378,
+          "leakage": 2.976859195724657e-05,
+          "engine": "qutip-cpu",
+          "method": "vern9",
+          "rtol": 1e-11,
+          "atol": 1e-13
+        },
+        "constraints": "pass",
+        "warm_objective_call_median_seconds": 0.0004222569987177849
+      },
+      "devices": [
+        "TFRT_CPU_0"
+      ],
+      "process_thread_count": 149,
+      "process_seconds": 1.6673319839756005,
+      "exit_code": 0,
+      "log": "/home/paimon/Projects/entanglix-research/compile-probe/measurements/expm.log",
+      "parity": {
+        "value_max_abs_difference": 1.1116330078664305e-11,
+        "gradient_max_abs_difference": 0.0010683462946586286,
+        "amplitude_sets": 3,
+        "free_knot_gradient_max_abs_difference": 2.463722559298276e-10,
+        "scope": "All gradients include the fixed zero first and final knots; free-knot comparison excludes those two bound-fixed columns.",
+        "reference": "Current loss's autodiff; independent finite differences attribute the first-knot discrepancy to that reference"
+      },
+      "interval_semantics": "Exact-arithmetic constant-Hamiltonian propagator per interval; no adaptive controller or integration step limit, floating-point expm error remains",
+      "extra_variant_beyond_brief": true
+    }
+  },
+  "cache": {
+    "current": [
+      {
+        "startup_seconds": 0.03245140501530841,
+        "imports_seconds": 0.7073860599775799,
+        "versions": {
+          "jax": "0.6.2",
+          "dynamiqs": "0.3.6",
+          "scipy": "1.18.1",
+          "entanglix": "0.1.0"
+        },
+        "load_seconds": 0.0003666250267997384,
+        "objective_setup_seconds": 0.11729850602569059,
+        "first_call_seconds": 12.48917628097115,
+        "initial_value": 0.6660988227864229,
+        "gradient_max_abs": 0.3604026562451933,
+        "warm_value_gradient_median_seconds": 0.01711822598008439,
+        "devices": [
+          "TFRT_CPU_0"
+        ],
+        "process_thread_count": 153,
+        "process_seconds": 13.996025789005216,
+        "exit_code": 0,
+        "log": "/home/paimon/Projects/entanglix-research/compile-probe/measurements/cache-current-0.log",
+        "case": "c60",
+        "seed": 7,
+        "cache_bytes": 5582,
+        "new_entries": [
+          "jit__reduce_max-f729278cffdef7794148d257c713a585864a768008624f5f23cdb4ad6dc9ca9f-cache",
+          "jit_abs-7157115aca2a6e89d18ada203adbb29dd17b992dceb8356cd4ebba18c2627e09-cache",
+          "jit_bitwise_or-90cac0d02a97a883498ee0a3cc55f49b47eca517045d1f89c0c289a2f71524c7-cache",
+          "jit_convert_element_type-c9572af2bee3615a3812c38aa62cac556422bdb732f3ce61bdbb83dc372cbff2-cache"
+        ],
+        "objective_cache_hits": [],
+        "objective_cache_write_refusals": [
+          "Not writing persistent cache entry for 'jit_loss' because it uses host callbacks (e.g. from jax.debug.print or breakpoint)"
+        ]
+      },
+      {
+        "startup_seconds": 0.031096371996682137,
+        "imports_seconds": 0.7054983350099064,
+        "versions": {
+          "jax": "0.6.2",
+          "dynamiqs": "0.3.6",
+          "scipy": "1.18.1",
+          "entanglix": "0.1.0"
+        },
+        "load_seconds": 0.0004144380218349397,
+        "objective_setup_seconds": 0.11876795202260837,
+        "first_call_seconds": 12.502088399021886,
+        "initial_value": 0.66492764127622,
+        "gradient_max_abs": 0.32368009000243214,
+        "warm_value_gradient_median_seconds": 0.017139414965640754,
+        "devices": [
+          "TFRT_CPU_0"
+        ],
+        "process_thread_count": 158,
+        "process_seconds": 13.951658417005092,
+        "exit_code": 0,
+        "log": "/home/paimon/Projects/entanglix-research/compile-probe/measurements/cache-current-1.log",
+        "case": "c60",
+        "seed": 19,
+        "cache_bytes": 5582,
+        "new_entries": [],
+        "objective_cache_hits": [],
+        "objective_cache_write_refusals": [
+          "Not writing persistent cache entry for 'jit_loss' because it uses host callbacks (e.g. from jax.debug.print or breakpoint)"
+        ]
+      },
+      {
+        "startup_seconds": 0.03147090598940849,
+        "imports_seconds": 0.6984616870176978,
+        "versions": {
+          "jax": "0.6.2",
+          "dynamiqs": "0.3.6",
+          "scipy": "1.18.1",
+          "entanglix": "0.1.0"
+        },
+        "load_seconds": 0.0003895810223184526,
+        "objective_setup_seconds": 0.12104794703191146,
+        "first_call_seconds": 12.485424800019246,
+        "initial_value": 0.6650024361771472,
+        "gradient_max_abs": 0.23225811192542062,
+        "warm_value_gradient_median_seconds": 0.02629896701546386,
+        "devices": [
+          "TFRT_CPU_0"
+        ],
+        "process_thread_count": 158,
+        "process_seconds": 14.0890219459543,
+        "exit_code": 0,
+        "log": "/home/paimon/Projects/entanglix-research/compile-probe/measurements/cache-current-2.log",
+        "case": "c30",
+        "seed": 7,
+        "cache_bytes": 5582,
+        "new_entries": [],
+        "objective_cache_hits": [],
+        "objective_cache_write_refusals": [
+          "Not writing persistent cache entry for 'jit_loss' because it uses host callbacks (e.g. from jax.debug.print or breakpoint)"
+        ]
+      }
+    ],
+    "current_arguments": [
+      {
+        "startup_seconds": 0.030367400031536818,
+        "imports_seconds": 0.702815079013817,
+        "versions": {
+          "jax": "0.6.2",
+          "dynamiqs": "0.3.6",
+          "scipy": "1.18.1",
+          "entanglix": "0.1.0"
+        },
+        "load_seconds": 0.00037602701922878623,
+        "objective_setup_seconds": 0.12806536100106314,
+        "first_call_seconds": 12.48405561200343,
+        "initial_value": 0.6660988227864229,
+        "gradient_max_abs": 0.3604026562451933,
+        "warm_value_gradient_median_seconds": 0.017092878988478333,
+        "devices": [
+          "TFRT_CPU_0"
+        ],
+        "process_thread_count": 155,
+        "process_seconds": 13.990911350003444,
+        "exit_code": 0,
+        "log": "/home/paimon/Projects/entanglix-research/compile-probe/measurements/cache-current_arguments-0.log",
+        "case": "c60",
+        "seed": 7,
+        "cache_bytes": 6429,
+        "new_entries": [
+          "jit__reduce_max-9babf191b6040bb25baa867fbf62321fe7a63ff912104cb66388413bd333ddf5-cache",
+          "jit_abs-4761ee1cd78dd6c76de40ec3958439b989b6d3a590f54a48e26e543de0a2bf38-cache",
+          "jit_bitwise_or-b46488a1511e850c4336206c91a2c920d75655ec37f021a946a647bb0ac7915d-cache",
+          "jit_convert_element_type-53b76c95c00e3123468b71a8841254beea3369918251249a3eb9318786f0979d-cache",
+          "jit_convert_element_type-bd931b07221e8fdf87e4c4806a5d00d6501d74b87b7dad83ef237607dce0588a-cache"
+        ],
+        "objective_cache_hits": [],
+        "objective_cache_write_refusals": [
+          "Not writing persistent cache entry for 'jit_loss' because it uses host callbacks (e.g. from jax.debug.print or breakpoint)"
+        ],
+        "parity": {
+          "value_max_abs_difference": 0.0,
+          "gradient_max_abs_difference": 4.440892098500626e-16,
+          "amplitude_sets": 3,
+          "free_knot_gradient_max_abs_difference": 4.440892098500626e-16,
+          "scope": "All gradients include the fixed zero first and final knots; free-knot comparison excludes those two bound-fixed columns."
+        }
+      },
+      {
+        "startup_seconds": 0.031092470977455378,
+        "imports_seconds": 0.700481305946596,
+        "versions": {
+          "jax": "0.6.2",
+          "dynamiqs": "0.3.6",
+          "scipy": "1.18.1",
+          "entanglix": "0.1.0"
+        },
+        "load_seconds": 0.0003709730226546526,
+        "objective_setup_seconds": 0.1271846799645573,
+        "first_call_seconds": 12.453066323010717,
+        "initial_value": 0.66492764127622,
+        "gradient_max_abs": 0.32368009000243214,
+        "warm_value_gradient_median_seconds": 0.01927245204569772,
+        "devices": [
+          "TFRT_CPU_0"
+        ],
+        "process_thread_count": 150,
+        "process_seconds": 13.943583371001296,
+        "exit_code": 0,
+        "log": "/home/paimon/Projects/entanglix-research/compile-probe/measurements/cache-current_arguments-1.log",
+        "case": "c60",
+        "seed": 19,
+        "cache_bytes": 6429,
+        "new_entries": [],
+        "objective_cache_hits": [],
+        "objective_cache_write_refusals": [
+          "Not writing persistent cache entry for 'jit_loss' because it uses host callbacks (e.g. from jax.debug.print or breakpoint)"
+        ]
+      },
+      {
+        "startup_seconds": 0.031216517032589763,
+        "imports_seconds": 0.7115433950093575,
+        "versions": {
+          "jax": "0.6.2",
+          "dynamiqs": "0.3.6",
+          "scipy": "1.18.1",
+          "entanglix": "0.1.0"
+        },
+        "load_seconds": 0.00037187302950769663,
+        "objective_setup_seconds": 0.12740743503673002,
+        "first_call_seconds": 12.452267482993193,
+        "initial_value": 0.6650024361771472,
+        "gradient_max_abs": 0.23225811192542065,
+        "warm_value_gradient_median_seconds": 0.02841445803642273,
+        "devices": [
+          "TFRT_CPU_0"
+        ],
+        "process_thread_count": 153,
+        "process_seconds": 14.098828746005893,
+        "exit_code": 0,
+        "log": "/home/paimon/Projects/entanglix-research/compile-probe/measurements/cache-current_arguments-2.log",
+        "case": "c30",
+        "seed": 7,
+        "cache_bytes": 6429,
+        "new_entries": [],
+        "objective_cache_hits": [],
+        "objective_cache_write_refusals": [
+          "Not writing persistent cache entry for 'jit_loss' because it uses host callbacks (e.g. from jax.debug.print or breakpoint)"
+        ]
+      }
+    ],
+    "scan": [
+      {
+        "startup_seconds": 0.03620363399386406,
+        "imports_seconds": 0.7088517480297014,
+        "versions": {
+          "jax": "0.6.2",
+          "dynamiqs": "0.3.6",
+          "scipy": "1.18.1",
+          "entanglix": "0.1.0"
+        },
+        "load_seconds": 0.0003695939667522907,
+        "objective_setup_seconds": 0.13144024601206183,
+        "first_call_seconds": 1.9930182060343213,
+        "initial_value": 0.6660988227864229,
+        "gradient_max_abs": 0.3604026562451933,
+        "warm_value_gradient_median_seconds": 0.015368100022897124,
+        "devices": [
+          "TFRT_CPU_0"
+        ],
+        "process_thread_count": 157,
+        "process_seconds": 3.321900113951415,
+        "exit_code": 0,
+        "log": "/home/paimon/Projects/entanglix-research/compile-probe/measurements/cache-scan-0.log",
+        "case": "c60",
+        "seed": 7,
+        "cache_bytes": 6398,
+        "new_entries": [
+          "jit__reduce_max-c3a8fa8c4e70ff0c48fc2b3bad4fa3aca716812067c7f8386c402ed498e4b024-cache",
+          "jit_abs-ba7e7e0372050eba7baaeaa9a625b1f87f34ff0fa51c9046562d01ca3ad2fcba-cache",
+          "jit_bitwise_or-52ea346b203e0840fdc0b870f927d9995dc9908e68ae5ba66f3793cf325d5131-cache",
+          "jit_convert_element_type-03dfafe8f699a2fe0a3695817b99b5ff2b5841890fe35b5f7654c471fd3a8fc9-cache",
+          "jit_convert_element_type-09a52a37c26dd799df0d9ac5702177f62a3276ed2729e1c53f8836b185968608-cache"
+        ],
+        "objective_cache_hits": [],
+        "objective_cache_write_refusals": [
+          "Not writing persistent cache entry for 'jit_loss' because it uses host callbacks (e.g. from jax.debug.print or breakpoint)"
+        ]
+      },
+      {
+        "startup_seconds": 0.030545671994332224,
+        "imports_seconds": 0.7062216160120443,
+        "versions": {
+          "jax": "0.6.2",
+          "dynamiqs": "0.3.6",
+          "scipy": "1.18.1",
+          "entanglix": "0.1.0"
+        },
+        "load_seconds": 0.00037905003409832716,
+        "objective_setup_seconds": 0.12394805997610092,
+        "first_call_seconds": 1.9921021259506233,
+        "initial_value": 0.66492764127622,
+        "gradient_max_abs": 0.32368009000243214,
+        "warm_value_gradient_median_seconds": 0.014735042001120746,
+        "devices": [
+          "TFRT_CPU_0"
+        ],
+        "process_thread_count": 156,
+        "process_seconds": 3.273970700975042,
+        "exit_code": 0,
+        "log": "/home/paimon/Projects/entanglix-research/compile-probe/measurements/cache-scan-1.log",
+        "case": "c60",
+        "seed": 19,
+        "cache_bytes": 6398,
+        "new_entries": [],
+        "objective_cache_hits": [],
+        "objective_cache_write_refusals": [
+          "Not writing persistent cache entry for 'jit_loss' because it uses host callbacks (e.g. from jax.debug.print or breakpoint)"
+        ]
+      },
+      {
+        "startup_seconds": 0.03106589399976656,
+        "imports_seconds": 0.7065628580166958,
+        "versions": {
+          "jax": "0.6.2",
+          "dynamiqs": "0.3.6",
+          "scipy": "1.18.1",
+          "entanglix": "0.1.0"
+        },
+        "load_seconds": 0.0003674250328913331,
+        "objective_setup_seconds": 0.1241461019963026,
+        "first_call_seconds": 1.9819322190014645,
+        "initial_value": 0.6650024361771472,
+        "gradient_max_abs": 0.23225811192542065,
+        "warm_value_gradient_median_seconds": 0.02362846804317087,
+        "devices": [
+          "TFRT_CPU_0"
+        ],
+        "process_thread_count": 153,
+        "process_seconds": 3.41994773701299,
+        "exit_code": 0,
+        "log": "/home/paimon/Projects/entanglix-research/compile-probe/measurements/cache-scan-2.log",
+        "case": "c30",
+        "seed": 7,
+        "cache_bytes": 6398,
+        "new_entries": [],
+        "objective_cache_hits": [],
+        "objective_cache_write_refusals": [
+          "Not writing persistent cache entry for 'jit_loss' because it uses host callbacks (e.g. from jax.debug.print or breakpoint)"
+        ]
+      }
+    ],
+    "scan_arguments": [
+      {
+        "startup_seconds": 0.030852783005684614,
+        "imports_seconds": 0.7118514610338025,
+        "versions": {
+          "jax": "0.6.2",
+          "dynamiqs": "0.3.6",
+          "scipy": "1.18.1",
+          "entanglix": "0.1.0"
+        },
+        "load_seconds": 0.0003742480184882879,
+        "objective_setup_seconds": 0.1297244899906218,
+        "first_call_seconds": 2.0054447779548354,
+        "initial_value": 0.6660988227864229,
+        "gradient_max_abs": 0.3604026562451933,
+        "warm_value_gradient_median_seconds": 0.015581289015244693,
+        "devices": [
+          "TFRT_CPU_0"
+        ],
+        "process_thread_count": 152,
+        "process_seconds": 3.319661830959376,
+        "exit_code": 0,
+        "log": "/home/paimon/Projects/entanglix-research/compile-probe/measurements/cache-scan_arguments-0.log",
+        "case": "c60",
+        "seed": 7,
+        "cache_bytes": 6424,
+        "new_entries": [
+          "jit__reduce_max-96c337f025834a703a6a1eeb49d3cfd9ad6592b91aff6b79491daa84756bbb85-cache",
+          "jit_abs-098b4ab3c007a188841c612a4303c89dd7f33b4cd067ec0d2d38565cc9525209-cache",
+          "jit_bitwise_or-fdc4d0eed20f56c3ba2e0414ea34717285944f5f12d63cc2ec6756997679d9a4-cache",
+          "jit_convert_element_type-4ec9f7151295441a7623cd279b618ea550553ed2c811caa2a643803571555ff9-cache",
+          "jit_convert_element_type-57a14b6fa35ad8d64d02b0a4315e1438e16fd7cc09d5302df5507bb7d0ddf7e8-cache"
+        ],
+        "objective_cache_hits": [],
+        "objective_cache_write_refusals": [
+          "Not writing persistent cache entry for 'jit_loss' because it uses host callbacks (e.g. from jax.debug.print or breakpoint)"
+        ],
+        "parity": {
+          "value_max_abs_difference": 0.0,
+          "gradient_max_abs_difference": 4.440892098500626e-16,
+          "amplitude_sets": 3,
+          "free_knot_gradient_max_abs_difference": 4.440892098500626e-16,
+          "scope": "All gradients include the fixed zero first and final knots; free-knot comparison excludes those two bound-fixed columns."
+        }
+      },
+      {
+        "startup_seconds": 0.03104314999654889,
+        "imports_seconds": 0.6987537110107951,
+        "versions": {
+          "jax": "0.6.2",
+          "dynamiqs": "0.3.6",
+          "scipy": "1.18.1",
+          "entanglix": "0.1.0"
+        },
+        "load_seconds": 0.00036712305154651403,
+        "objective_setup_seconds": 0.12421448202803731,
+        "first_call_seconds": 1.9829518310143612,
+        "initial_value": 0.66492764127622,
+        "gradient_max_abs": 0.32368009000243214,
+        "warm_value_gradient_median_seconds": 0.01528392598265782,
+        "devices": [
+          "TFRT_CPU_0"
+        ],
+        "process_thread_count": 161,
+        "process_seconds": 3.270261717028916,
+        "exit_code": 0,
+        "log": "/home/paimon/Projects/entanglix-research/compile-probe/measurements/cache-scan_arguments-1.log",
+        "case": "c60",
+        "seed": 19,
+        "cache_bytes": 6424,
+        "new_entries": [],
+        "objective_cache_hits": [],
+        "objective_cache_write_refusals": [
+          "Not writing persistent cache entry for 'jit_loss' because it uses host callbacks (e.g. from jax.debug.print or breakpoint)"
+        ]
+      },
+      {
+        "startup_seconds": 0.03195832099299878,
+        "imports_seconds": 0.7060363449854776,
+        "versions": {
+          "jax": "0.6.2",
+          "dynamiqs": "0.3.6",
+          "scipy": "1.18.1",
+          "entanglix": "0.1.0"
+        },
+        "load_seconds": 0.00036310701398178935,
+        "objective_setup_seconds": 0.12671511201187968,
+        "first_call_seconds": 1.994939683994744,
+        "initial_value": 0.6650024361771472,
+        "gradient_max_abs": 0.23225811192542065,
+        "warm_value_gradient_median_seconds": 0.024659577989950776,
+        "devices": [
+          "TFRT_CPU_0"
+        ],
+        "process_thread_count": 153,
+        "process_seconds": 3.4195350759546272,
+        "exit_code": 0,
+        "log": "/home/paimon/Projects/entanglix-research/compile-probe/measurements/cache-scan_arguments-2.log",
+        "case": "c30",
+        "seed": 7,
+        "cache_bytes": 6424,
+        "new_entries": [],
+        "objective_cache_hits": [],
+        "objective_cache_write_refusals": [
+          "Not writing persistent cache entry for 'jit_loss' because it uses host callbacks (e.g. from jax.debug.print or breakpoint)"
+        ]
+      }
+    ]
+  },
+  "piccolo": {
+    "exit_code": 0,
+    "process_seconds": 39.45518752600765,
+    "markers": [
+      {
+        "stage": "entry",
+        "received_seconds": 0.08128487598150969
+      },
+      {
+        "stage": "imports",
+        "seconds": "3.698268124",
+        "received_seconds": 3.818869872018695
+      },
+      {
+        "stage": "parse",
+        "seconds": "0.056370225",
+        "received_seconds": 3.881029385025613
+      },
+      {
+        "stage": "runtime",
+        "version": "1.13.0",
+        "package_images": "1",
+        "julia_threads": "1",
+        "blas_threads": "1",
+        "received_seconds": 3.947456707013771
+      },
+      {
+        "stage": "solve_start",
+        "repetition": "1",
+        "received_seconds": 3.9641881299903616
+      },
+      {
+        "stage": "solve_end",
+        "repetition": "1",
+        "seconds": "21.653222837",
+        "compile_seconds": "8.928346687",
+        "recompile_seconds": "0.290428023",
+        "received_seconds": 25.62061044399161
+      },
+      {
+        "stage": "solve_start",
+        "repetition": "2",
+        "received_seconds": 27.049035386997275
+      },
+      {
+        "stage": "solve_end",
+        "repetition": "2",
+        "seconds": "12.329741554",
+        "compile_seconds": "0.0",
+        "recompile_seconds": "0.0",
+        "received_seconds": 39.37877650000155
+      }
+    ],
+    "log": "/home/paimon/Projects/entanglix-research/compile-probe/piccolo.log",
+    "command": [
+      "julia",
+      "--startup-file=no",
+      "--project=/home/paimon/Projects/Entanglix/src/entanglix/solvers/julia",
+      "/home/paimon/Projects/entanglix-research/compile-probe/solve_timed.jl",
+      "/home/paimon/Projects/entanglix-research/compile-probe/inputs/c60/problem.toml",
+      "/home/paimon/Projects/entanglix-research/compile-probe/piccolo",
+      "/home/paimon/Projects/entanglix-research/compile-probe/inputs/options.toml"
+    ],
+    "loaded_package_images": [
+      "/home/paimon/.julia/compiled/v1.13/ADTypes/czFbS_FwiIb.so",
+      "/home/paimon/.julia/compiled/v1.13/ADTypesChainRulesCoreExt/D7ptg_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/ADTypesConstructionBaseExt/205Zk_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/ADTypesEnzymeCoreExt/wlUpE_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/AMD/uxZ7x_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/ASL_jll/8NXjm_dNnmt.so",
+      "/home/paimon/.julia/compiled/v1.13/AbstractDifferentiation/Y4WMq_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/AbstractFFTs/Di3HZ_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/AbstractFFTsChainRulesCoreExt/RcnhZ_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/AbstractFFTsTestExt/CTkRx_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/AbstractTrees/tEX7J_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/Accessors/XelUh_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/Adapt/rUIgN_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/AdaptExt/9ussE_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/AdaptSparseArraysExt/L1BFD_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/AdaptStaticArraysExt/D7Dth_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/AdaptivePredicates/qpOd9_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/AliasTables/C6bK3_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/Animations/KvqO2_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/ArrayInterface/7bROb_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/ArrayInterfaceChainRulesCoreExt/eU3Ie_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/ArrayInterfaceFillArraysExt/Drc3f_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/ArrayInterfaceGPUArraysCoreExt/0nnKk_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/ArrayInterfaceSparseArraysExt/S0KV7_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/ArrayInterfaceStaticArraysCoreExt/sscS5_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/ArrayLayouts/QloHc_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/ArrayLayoutsSparseArraysExt/aNsWK_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/Automa/TrrBM_fJCOX.so",
+      "/home/paimon/.julia/compiled/v1.13/AxisAlgorithms/lW7vi_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/BaseDirs/OQUlC_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/BinaryHeaps/qmb2Q_VZP6M.so",
+      "/home/paimon/.julia/compiled/v1.13/BracketingNonlinearSolve/dghrV_e6poF.so",
+      "/home/paimon/.julia/compiled/v1.13/BracketingNonlinearSolveChainRulesCoreExt/Lr6SU_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/BracketingNonlinearSolveForwardDiffExt/WE2Sm_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/Bzip2_jll/biC9V_dYJnf.so",
+      "/home/paimon/.julia/compiled/v1.13/CEnum/0gyUJ_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/CRlibm/WPcPM_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/CRlibm_jll/zz86t_hgv0x.so",
+      "/home/paimon/.julia/compiled/v1.13/Cairo_jll/ouRHo_bHPjf.so",
+      "/home/paimon/.julia/compiled/v1.13/ChainRulesCore/G6ax7_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/ChainRulesCoreSparseArraysExt/V8oSh_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/ChunkCodecCore/54tFi_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/ChunkCodecLibZlib/dbPpT_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/ChunkCodecLibZstd/j9Tqa_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/CodecBzip2/5pIlR_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/CodecZlib/1TI30_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/ColorBrewer/EZnfy_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/ColorSchemes/EO5fj_5jjkY.so",
+      "/home/paimon/.julia/compiled/v1.13/ColorTypes/db21U_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/ColorVectorSpace/7uC4N_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/Colors/NKjaT_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/CommonSolve/zEcGf_eQFP2.so",
+      "/home/paimon/.julia/compiled/v1.13/CommonSubexpressions/VMTKN_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/Compat/GSFWK_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/CompatLinearAlgebraExt/ljs2z_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/CompositionsBase/KqDTx_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/CompositionsBaseInverseFunctionsExt/bsSCg_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/ComputePipeline/i7iqE_wyGB8.so",
+      "/home/paimon/.julia/compiled/v1.13/ConcreteStructs/KdMNv_Nx4bv.so",
+      "/home/paimon/.julia/compiled/v1.13/ConstructionBase/sBbW6_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/ConstructionBaseIntervalSetsExt/2JETk_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/ConstructionBaseLinearAlgebraExt/lPSIx_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/ConstructionBaseStaticArraysExt/6YWO6_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/ConstructionBaseUnitfulExt/Vc73I_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/Contour/ZECEP_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/CoreMath/Q9mab_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/CoreMath_jll/63GAe_RvGse.so",
+      "/home/paimon/.julia/compiled/v1.13/Crayons/TXPcU_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/DataAPI/3a8mN_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/DataInterpolations/GwjmX_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/DataInterpolationsChainRulesCoreExt/rYoKV_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/DataInterpolationsMakieExt/A2s8i_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/DataStructures/xKiwJ_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/DataValueInterfaces/9Lpkp_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/DelaunayTriangulation/eCNhP_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/DiffEqBase/oaevG_lBBzb.so",
+      "/home/paimon/.julia/compiled/v1.13/DiffEqBaseChainRulesCoreExt/RKWys_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/DiffEqBaseForwardDiffExt/EXn6V_xDC5U.so",
+      "/home/paimon/.julia/compiled/v1.13/DiffEqBaseSparseArraysExt/99soV_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/DiffEqBaseUnitfulExt/TlR9G_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/DiffResults/vlfPe_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/DiffRules/x2ZNk_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/DifferentiationInterface/eUOjg_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/DifferentiationInterfaceChainRulesCoreExt/4tl47_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/DifferentiationInterfaceFiniteDiffExt/8MKeF_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/DifferentiationInterfaceForwardDiffExt/VK3Jz_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/DifferentiationInterfaceGPUArraysCoreExt/jfeuM_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/DifferentiationInterfaceSparseArraysExt/URDta_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/DifferentiationInterfaceStaticArraysExt/k2xQ8_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/DirectTrajOpt/7ZiiS_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/Distributions/xILW0_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/DistributionsChainRulesCoreExt/UMIgR_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/DistributionsTestExt/54n2q_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/DocStringExtensions/KRdZs_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/EarCut_jll/SRVPx_p0cou.so",
+      "/home/paimon/.julia/compiled/v1.13/EnumX/yh1Fz_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/EnzymeCore/wvtg5_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/EnzymeCoreChainRulesCoreExt/NTxYi_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/ExactPredicates/V0G1E_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/Expat_jll/4P57b_w4PfQ.so",
+      "/home/paimon/.julia/compiled/v1.13/ExponentialAction/0WG6U_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/ExponentialUtilities/gINTF_RxYwF.so",
+      "/home/paimon/.julia/compiled/v1.13/ExponentialUtilitiesStaticArraysExt/C2kJB_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/ExprTools/eM8wu_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/FFMPEG_jll/uSD0T_BS5Yu.so",
+      "/home/paimon/.julia/compiled/v1.13/FFTA/V4Q1C_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/FastBroadcast/4ZWkL_mkPkU.so",
+      "/home/paimon/.julia/compiled/v1.13/FastClosures/x4yT8_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/FastPower/kPYHY_l8Y30.so",
+      "/home/paimon/.julia/compiled/v1.13/FastPowerForwardDiffExt/G6c3U_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/FileIO/6iKRU_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/FilePaths/PrU4O_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/FilePathsBase/Efv1v_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/FilePathsBaseMmapExt/FmKus_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/FilePathsBaseTestExt/FHoEW_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/FillArrays/2Dg1l_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/FillArraysPDMatsExt/lY7hA_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/FillArraysSparseArraysExt/v0n6k_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/FillArraysStaticArraysExt/oCU1z_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/FillArraysStatisticsExt/Vlq93_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/FindFirstFunctions/LXnki_1f8ZA.so",
+      "/home/paimon/.julia/compiled/v1.13/FiniteDiff/AIIBE_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/FiniteDiffSparseArraysExt/p3VHC_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/FiniteDiffStaticArraysExt/gDMSw_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/FixedPointNumbers/Ple2W_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/Fontconfig_jll/xsKJT_43aUp.so",
+      "/home/paimon/.julia/compiled/v1.13/Format/MRFzB_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/ForwardDiff/k0ETY_8eUFI.so",
+      "/home/paimon/.julia/compiled/v1.13/ForwardDiffExt/Sqwhn_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/ForwardDiffStaticArraysExt/E06uA_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/FreeType/pISpP_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/FreeType2_jll/AzWNe_oXW05.so",
+      "/home/paimon/.julia/compiled/v1.13/FreeTypeAbstraction/Qde7d_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/FreeTypeExt/aOiTw_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/FriBidi_jll/tf6pT_icNnI.so",
+      "/home/paimon/.julia/compiled/v1.13/FunctionWrappers/wbVUX_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/FunctionWrappersWrappers/e68Y1_muhKA.so",
+      "/home/paimon/.julia/compiled/v1.13/GPUArraysCore/qiYUe_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/Gamma/BKjT1_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/GenericSchur/zqdVT_EGeOQ.so",
+      "/home/paimon/.julia/compiled/v1.13/GeometryBasics/lB452_2zUlt.so",
+      "/home/paimon/.julia/compiled/v1.13/GettextRuntime_jll/WxHrl_AXkaL.so",
+      "/home/paimon/.julia/compiled/v1.13/Glib_jll/S5dsb_SWfsn.so",
+      "/home/paimon/.julia/compiled/v1.13/Graphite2_jll/XMuhG_q3XKn.so",
+      "/home/paimon/.julia/compiled/v1.13/GridLayoutBase/I3oSr_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/HarfBuzz_jll/h60co_h3mk9.so",
+      "/home/paimon/.julia/compiled/v1.13/Hwloc_jll/tooZ5_3Vlzo.so",
+      "/home/paimon/.julia/compiled/v1.13/HypergeometricFunctions/tHlAh_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/ImageBase/kFbbd_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/ImageCore/cqNLm_vdo2z.so",
+      "/home/paimon/.julia/compiled/v1.13/ImageIO/aYC4e_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/IndirectArrays/UR6AD_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/IntegerMathUtils/WLcRF_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/IntelOpenMP_jll/3Hg0P_hMSnJ.so",
+      "/home/paimon/.julia/compiled/v1.13/Interpolations/VpKVx_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/InterpolationsExt/HeZzW_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/InterpolationsForwardDiffExt/fgXqx_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/InterpolationsUnitfulExt/y1qJE_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/IntervalArithmetic/Gjmwo_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/IntervalArithmeticDiffRulesExt/mQgyS_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/IntervalArithmeticForwardDiffExt/uCQTj_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/IntervalArithmeticIntervalSetsExt/mcr7H_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/IntervalArithmeticIrrationalConstantsExt/R6IjM_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/IntervalArithmeticLinearAlgebraExt/tUM1i_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/IntervalArithmeticRecipesBaseExt/J8233_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/IntervalArithmeticSparseArraysExt/4Edhr_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/IntervalSets/2FHuv_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/IntervalSetsExt/CWwYa_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/IntervalSetsExt/RsFeU_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/IntervalSetsExt/UVO3U_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/IntervalSetsRandomExt/FsXXy_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/IntervalSetsRecipesBaseExt/xehF9_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/IntervalSetsStatisticsExt/J1fmS_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/InverseFunctions/PkVmn_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/InverseFunctionsDatesExt/QOkBI_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/InverseFunctionsTestExt/ZgSyW_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/InverseFunctionsUnitfulExt/72K7U_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/Ipopt/yMQMo_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/IpoptMathOptInterfaceExt/wd7i8_h1GWa.so",
+      "/home/paimon/.julia/compiled/v1.13/Ipopt_jll/FgsDH_7XLoy.so",
+      "/home/paimon/.julia/compiled/v1.13/IrrationalConstants/ukdUG_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/Isoband/EhYtk_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/IteratorInterfaceExtensions/N0h8q_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/JLD2/O1EyT_wlWns.so",
+      "/home/paimon/.julia/compiled/v1.13/JLLWrappers/7Zgw7_Tz407.so",
+      "/home/paimon/.julia/compiled/v1.13/JSON/uf6oy_4rGOo.so",
+      "/home/paimon/.julia/compiled/v1.13/JSON3/1p699_Lol6c.so",
+      "/home/paimon/.julia/compiled/v1.13/KernelDensity/4QyGx_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/Krylov/0fcC3_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/LAME_jll/SFEUf_0qamb.so",
+      "/home/paimon/.julia/compiled/v1.13/LHLFactorization/2Lkaf_awLQN.so",
+      "/home/paimon/.julia/compiled/v1.13/LHLFactorizationSparseExt/YcVZO_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/LaTeXStrings/H4HGh_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/LazyArrays/h0pkJ_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/LazyArraysStaticArraysExt/F3sQ6_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/LazyModules/K2iU0_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/Libffi_jll/y4lM8_IT5rF.so",
+      "/home/paimon/.julia/compiled/v1.13/Libiconv_jll/ujTCF_5vUCZ.so",
+      "/home/paimon/.julia/compiled/v1.13/Libmount_jll/04u4y_w6tGM.so",
+      "/home/paimon/.julia/compiled/v1.13/Libuuid_jll/H4xj5_cwilk.so",
+      "/home/paimon/.julia/compiled/v1.13/LinearAlgebraExt/a6ngK_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/LinearSolve/WR6RC_426JR.so",
+      "/home/paimon/.julia/compiled/v1.13/LinearSolveChainRulesCoreExt/aDcZX_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/LinearSolveEnzymeExt/U90Pz_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/LinearSolveForwardDiffExt/TkSoR_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/LogExpFunctions/cmCYR_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/LogExpFunctionsChainRulesCoreExt/etOi5_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/LogExpFunctionsInverseFunctionsExt/iGShH_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/LoggingExtras/9fRHf_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/METIS_jll/lCzTn_Y9hCS.so",
+      "/home/paimon/.julia/compiled/v1.13/MKL_jll/DHEix_QoMoF.so",
+      "/home/paimon/.julia/compiled/v1.13/MUMPS_seq_jll/1pv5V_8J37O.so",
+      "/home/paimon/.julia/compiled/v1.13/MacroTools/38lnR_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/Makie/iZ1Bl_GluIv.so",
+      "/home/paimon/.julia/compiled/v1.13/MappedArrays/xJB11_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/MarchingCubes/47eRj_eUhCC.so",
+      "/home/paimon/.julia/compiled/v1.13/MathOptInterface/tyub8_Mro7l.so",
+      "/home/paimon/.julia/compiled/v1.13/MathTeXEngine/eCCtS_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/MatrixFactorizations/5wecE_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/MaybeInplace/MnrwM_YUNNW.so",
+      "/home/paimon/.julia/compiled/v1.13/MaybeInplaceSparseArraysExt/1nPyL_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/Missings/wLfgT_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/MosaicViews/X3bJX_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/MuladdMacro/myzFY_V9xI4.so",
+      "/home/paimon/.julia/compiled/v1.13/MutableArithmetics/EoEec_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/NaNMath/k9Y1O_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/NaNMathExt/k2Wxz_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/NamedTrajectories/3X2gu_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/NonlinearSolveBase/gSMCH_OiZVD.so",
+      "/home/paimon/.julia/compiled/v1.13/NonlinearSolveBaseChainRulesCoreExt/TEY5x_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/NonlinearSolveBaseForwardDiffExt/HoVN1_IXKLb.so",
+      "/home/paimon/.julia/compiled/v1.13/NonlinearSolveBaseLinearSolveExt/JmuST_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/NonlinearSolveBaseSparseArraysExt/UcGcf_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/Observables/qosmH_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/OffsetArrays/UDEDl_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/OffsetArraysAdaptExt/QLVNt_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/Ogg_jll/gOU2R_VExAp.so",
+      "/home/paimon/.julia/compiled/v1.13/OpenBLAS32_jll/e6VDi_mMxuQ.so",
+      "/home/paimon/.julia/compiled/v1.13/OpenBLASConsistentFPCSR_jll/Cs4XM_wWm4I.so",
+      "/home/paimon/.julia/compiled/v1.13/OpenSpecFun_jll/TDl1L_D3ZWY.so",
+      "/home/paimon/.julia/compiled/v1.13/Opus_jll/vFQVB_fHQ3F.so",
+      "/home/paimon/.julia/compiled/v1.13/OrderedCollections/LtT3J_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/OrdinaryDiffEqCore/SoYJU_R59xm.so",
+      "/home/paimon/.julia/compiled/v1.13/OrdinaryDiffEqCoreSparseArraysExt/nvonB_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/OrdinaryDiffEqLinear/M98fk_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/OrdinaryDiffEqTsit5/41wm2_z6s8O.so",
+      "/home/paimon/.julia/compiled/v1.13/PDMats/wuzEE_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/PNGFiles/yIZEc_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/Packing/LtWKr_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/PaddedViews/SrUyA_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/Parsers/833b9_TpTuH.so",
+      "/home/paimon/.julia/compiled/v1.13/Piccolo/EmqMU_OM7Am.so",
+      "/home/paimon/.julia/compiled/v1.13/PiccoloMakieExt/hud0S_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/Pixman_jll/yWAFT_U5V6K.so",
+      "/home/paimon/.julia/compiled/v1.13/PlotUtils/YveHG_2h1P6.so",
+      "/home/paimon/.julia/compiled/v1.13/PlottingExt/YfXMs_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/PolygonOps/TUelr_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/PreallocationTools/Oxvdk_c8Ell.so",
+      "/home/paimon/.julia/compiled/v1.13/PreallocationToolsEnzymeCoreExt/KN6zs_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/PreallocationToolsForwardDiffExt/Qixso_0lji8.so",
+      "/home/paimon/.julia/compiled/v1.13/PrecompileTools/AQ9Mk_3eOF4.so",
+      "/home/paimon/.julia/compiled/v1.13/Preferences/pWSk8_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/PrettyTables/kRdcL_VXUeg.so",
+      "/home/paimon/.julia/compiled/v1.13/Primes/TX3XQ_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/PrintfExt/EKaWn_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/ProgressMeter/3V8n6_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/PtrArrays/y1ds7_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/PureGebal/D4t8n_VlIHp.so",
+      "/home/paimon/.julia/compiled/v1.13/PureGebalForwardDiffExt/MFTdK_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/PureKLU/ovwQy_V2zwO.so",
+      "/home/paimon/.julia/compiled/v1.13/PureKLUForwardDiffExt/cNGz8_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/QuadGK/hq5Ol_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/Ratios/zQEsd_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/RatiosFixedPointNumbersExt/WyFDr_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/RecipesBase/8e2Mm_CIYdK.so",
+      "/home/paimon/.julia/compiled/v1.13/RecursiveArrayTools/6B7tG_NIj92.so",
+      "/home/paimon/.julia/compiled/v1.13/RecursiveArrayToolsFastBroadcastExt/4vr2c_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/RecursiveArrayToolsForwardDiffExt/jqQmy_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/RecursiveArrayToolsSparseArraysExt/6U8z8_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/RecursiveArrayToolsStatisticsExt/QMSBg_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/RecursiveArrayToolsStructArraysExt/zAc6F_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/RecursiveArrayToolsTablesExt/lrdZD_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/Reexport/bTpYr_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/RelocatableFolders/Yg3O9_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/Requires/IyxeS_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/Rmath/0iTqX_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/Rmath_jll/JC1Xk_yiSbH.so",
+      "/home/paimon/.julia/compiled/v1.13/Roots/o0Xsi_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/RootsChainRulesCoreExt/7iCeh_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/RootsForwardDiffExt/rQpZv_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/RootsUnitfulExt/FnvbD_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/RoundingEmulator/UgCAh_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/RuntimeGeneratedFunctions/OELxO_FCxTj.so",
+      "/home/paimon/.julia/compiled/v1.13/SPRAL_jll/qhKPg_1GdZZ.so",
+      "/home/paimon/.julia/compiled/v1.13/SciMLBase/jigfq_yTFCB.so",
+      "/home/paimon/.julia/compiled/v1.13/SciMLBaseChainRulesCoreExt/GyHL8_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/SciMLBaseDifferentiationInterfaceExt/tA0oS_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/SciMLBaseDistributionsExt/Bf1kp_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/SciMLBaseForwardDiffExt/8FEEH_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/SciMLBaseMakieExt/XYvKa_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/SciMLBaseStaticArraysExt/amu1H_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/SciMLJacobianOperators/2XYid_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/SciMLLogging/yEbND_aVicv.so",
+      "/home/paimon/.julia/compiled/v1.13/SciMLOperators/G7AwB_2mWcI.so",
+      "/home/paimon/.julia/compiled/v1.13/SciMLOperatorsSparseArraysExt/dSlLe_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/SciMLPublic/Cv5x5_yrVe0.so",
+      "/home/paimon/.julia/compiled/v1.13/SciMLStructures/TEBpV_JW0YN.so",
+      "/home/paimon/.julia/compiled/v1.13/ScopedValues/fN9Bp_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/Scratch/ICI1U_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/Setfield/dVM1R_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/ShaderAbstractions/K09Eb_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/SignedDistanceFields/SOik2_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/SortingAlgorithms/6dCmw_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/SparseArraysExt/nRgoS_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/SparseColumnPivotedQR/dcGEz_c0aml.so",
+      "/home/paimon/.julia/compiled/v1.13/SparseColumnPivotedQRAMDExt/kfRnr_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/SpecialFunctions/78gOt_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/SpecialFunctionsChainRulesCoreExt/Xs8UR_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/SpecialFunctionsExt/MgA5y_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/StableRNGs/fu6AW_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/StackViews/VkAPD_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/StaticArrays/yY9vm_oO7S6.so",
+      "/home/paimon/.julia/compiled/v1.13/StaticArraysChainRulesCoreExt/VQZMv_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/StaticArraysCore/Tzw28_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/StaticArraysExt/aUSSE_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/StaticArraysStatisticsExt/pasZK_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/Statistics/ERcPL_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/StatsAPI/Rf3YC_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/StatsBase/EZjIG_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/StatsBaseExt/QzL0k_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/StatsFuns/530lR_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/StatsFunsChainRulesCoreExt/O4k1H_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/StatsFunsInverseFunctionsExt/dLpB4_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/StringManipulation/4nJQd_HDhky.so",
+      "/home/paimon/.julia/compiled/v1.13/StructArrays/jRMFC_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/StructArraysAdaptExt/nhjv9_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/StructArraysExt/wsq1l_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/StructArraysLinearAlgebraExt/Thcyn_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/StructArraysSparseArraysExt/6AdY6_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/StructArraysStaticArraysExt/BhpqW_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/StructTypes/yjnue_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/StructUtils/vyJDy_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/StructUtilsStaticArraysCoreExt/TE0L7_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/StructUtilsTablesExt/mdKbb_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/StyledStringsExt/FYt8S_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/SuiteSparse/X9Gex_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/SymbolicIndexingInterface/nIEWT_Q8TDs.so",
+      "/home/paimon/.julia/compiled/v1.13/SymbolicIndexingInterfacePrettyTablesExt/zgbZB_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/TableTraits/I6SaN_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/Tables/Z804B_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/TensorCore/wqzBb_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/TestExt/DbnGg_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/TestItemRunner/cuG94_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/TestItems/RBZDA_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/TrajectoryIndexingUtils/PiG8p_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/TranscodingStreams/eJQ7D_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/TriplotBase/RitKY_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/TruncatedStacktraces/pIUUk_VM8Fq.so",
+      "/home/paimon/.julia/compiled/v1.13/UnicodeFun/wLwUU_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/UnicodePlots/Ctj9q_EHjjy.so",
+      "/home/paimon/.julia/compiled/v1.13/Unitful/5WYj5_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/UnitfulExt/HqrN7_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/UnitfulExt/qwqkP_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/WoodburyMatrices/LdtKf_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/XML2_jll/xWVg2_QlNcI.so",
+      "/home/paimon/.julia/compiled/v1.13/Xorg_libX11_jll/KzQhU_pdebk.so",
+      "/home/paimon/.julia/compiled/v1.13/Xorg_libXau_jll/S8Fsv_OnUtd.so",
+      "/home/paimon/.julia/compiled/v1.13/Xorg_libXdmcp_jll/o7tTX_z3y4G.so",
+      "/home/paimon/.julia/compiled/v1.13/Xorg_libXext_jll/H6ltV_Fvq1A.so",
+      "/home/paimon/.julia/compiled/v1.13/Xorg_libXfixes_jll/dilDp_SqR1z.so",
+      "/home/paimon/.julia/compiled/v1.13/Xorg_libXrender_jll/izQY6_aZRHW.so",
+      "/home/paimon/.julia/compiled/v1.13/Xorg_libpciaccess_jll/Y7Kz1_gyWUC.so",
+      "/home/paimon/.julia/compiled/v1.13/Xorg_libxcb_jll/n4mZf_ndOcN.so",
+      "/home/paimon/.julia/compiled/v1.13/Xorg_xtrans_jll/xYA3D_7jnDu.so",
+      "/home/paimon/.julia/compiled/v1.13/isoband_jll/ZrTGq_R3GLf.so",
+      "/home/paimon/.julia/compiled/v1.13/libaom_jll/i2i8X_ukHiP.so",
+      "/home/paimon/.julia/compiled/v1.13/libass_jll/JqZi8_9VWz5.so",
+      "/home/paimon/.julia/compiled/v1.13/libdrm_jll/jsaR6_bjgGU.so",
+      "/home/paimon/.julia/compiled/v1.13/libfdk_aac_jll/Ido5Q_RM9dh.so",
+      "/home/paimon/.julia/compiled/v1.13/libpng_jll/paYot_u32qT.so",
+      "/home/paimon/.julia/compiled/v1.13/libva_jll/Sdl4J_vaZoN.so",
+      "/home/paimon/.julia/compiled/v1.13/libvorbis_jll/X4qYa_R26tq.so",
+      "/home/paimon/.julia/compiled/v1.13/oneTBB_jll/S2snd_XhIo5.so",
+      "/home/paimon/.julia/compiled/v1.13/x264_jll/XmaTp_jtyeT.so",
+      "/home/paimon/.julia/compiled/v1.13/x265_jll/5KlGs_1UjEy.so"
+    ],
+    "timing_note": "Iteration times are stdout receipt times; solve_spec includes materialization and output serialization, native wall_seconds times solve! only. Recompile time is a subset of compilation time, not an additional cost.",
+    "solves": [
+      {
+        "repetition": 1,
+        "solve_spec_seconds": 21.653222837,
+        "compilation_seconds": 8.928346687,
+        "recompilation_seconds": 0.290428023,
+        "native_solve_seconds": 18.380165538,
+        "fidelity": 0.9999999921909182,
+        "iterations": 100,
+        "converged": false,
+        "first_iteration_since_solve_start_seconds": 3.160929039004259,
+        "later_iteration_median_seconds": 0.09422168901073746
+      },
+      {
+        "repetition": 2,
+        "solve_spec_seconds": 12.329741554,
+        "compilation_seconds": 0.0,
+        "recompilation_seconds": 0.0,
+        "native_solve_seconds": 12.306070059,
+        "fidelity": 0.9999999921909182,
+        "iterations": 100,
+        "converged": false,
+        "first_iteration_since_solve_start_seconds": 0.1541433539823629,
+        "later_iteration_median_seconds": 0.09663029699004255
+      }
+    ]
+  },
+  "installed_or_downloaded": [],
+  "runtime_session_launched": false,
+  "gpu_job_run": false,
+  "batch_projection": {
+    "grape": {
+      "seconds": {
+        "current": 131.9292788755847,
+        "scan": 32.851059389999136,
+        "pwc": 36.556558154232334,
+        "scan_pure": 29.458757566055283,
+        "expm": 10.992071654938627,
+        "cache_current": 130.09312452957965,
+        "cache_current_arguments": 129.79013023676816,
+        "cache_scan": 32.73960573511431,
+        "cache_scan_arguments": 32.684648847789504
+      }
+    },
+    "scope": "Serial 3 candidates x 3 seeds; all candidates assumed to have the measured c60 shape and optimization cost. Adds one cold setup/compile/first execution plus the measured warm optimization per job. Excludes runner gate, supervision, checks, benchmarks and independent replays. Not a measured nine-job batch.",
+    "piccolo": {
+      "seconds": {
+        "fresh_processes": 244.12901374806881,
+        "one_warm_process": 125.76337840400765
+      }
+    },
+    "comparability": "GRAPE and Piccolo solve times are not comparable performance measurements: they use different optimizers, objectives and stopping rules. GRAPE maps tol to SLSQP ftol and minimizes infidelity; Piccolo passes tol to Ipopt with its weighted objective and regularizers. GRAPE's SLSQP reported success on its ftol test after 32 iterations at F=0.999615; Piccolo hit its 100-iteration cap at F=0.999999992 and did not declare convergence.",
+    "cache_assumptions": "Uses observed cold, repeated-seed and changed-candidate first-call costs, including recompilation when the objective is not serializable. If changed candidates miss: one first candidate, two changed candidates, six repeated seeds; if they hit: one cold plus eight repeated calls. Tracing/setup still occur in each process. Warm Julia is hypothetical process reuse, not a built service."
+  },
+  "answers": {
+    "1": "Current loss lowering 1.872s, compilation 10.803s, first execution 0.0223s and warm value/gradient 0.0173s; warm SLSQP 1.103s for 32 iterations. Retained runner job was 14.5s with a 12.3s first call; the direct measurement excludes runner admission and job supervision. Against SciPy-expm central differences (1e-6 GHz step) at the original three amplitude sets, the current loss's bound-fixed first-knot gradient deviates by 0.00013 to 0.0011, while channel 0 knot 3 agrees within 3.8e-10; the expm variant agrees within 2.9e-10 at these same coordinates. The 0.0011 current/expm gradient difference is the current loss's deviation, not an error in expm; the all-knot and nonzero-first-knot coverage is reported in gradient_validation. Across all 42 coordinates in the tested inputs, the current loss deviates only at the first knot when its amplitude is zero; with a nonzero first-knot amplitude, every coordinate agrees within 2.5e-10; a zero-amplitude interval elsewhere was not tested.",
+    "2": "5 intervals: lower 1.69s, compile 1.95s, warm 0.0118s, IR 770395 bytes; 10 intervals: lower 1.79s, compile 4.29s, warm 0.0143s, IR 802915 bytes; 20 intervals: lower 1.87s, compile 10.80s, warm 0.0173s, IR 868352 bytes; 40 intervals: lower 1.95s, compile 29.79s, warm 0.0199s, IR 1000405 bytes",
+    "3": "scan: compile 0.643s, warm 0.0160s, value difference from current 0, free-knot gradient difference from current 4.4e-16, F=0.9996150467 in 30 iterations; pwc: compile 0.541s, warm 0.0222s, value difference from current 5.8e-11, free-knot gradient difference from current 1.6e-09, F=0.9996150465 in 31 iterations; scan_pure: compile 0.633s, warm 0.0077s, value difference from current 4.5e-12, free-knot gradient difference from current 1e-10, F=0.9996150434 in 32 iterations; expm (extra variant beyond the brief): compile 0.135s, warm 0.0006s, value difference from current 1.1e-11, free-knot gradient difference from current 2.5e-10, F=0.9996150467 in 30 iterations. Against SciPy-expm central differences (1e-6 GHz step) at the original three amplitude sets, the current loss's bound-fixed first-knot gradient deviates by 0.00013 to 0.0011, while channel 0 knot 3 agrees within 3.8e-10; the expm variant agrees within 2.9e-10 at these same coordinates. The 0.0011 current/expm gradient difference is the current loss's deviation, not an error in expm; the all-knot and nonzero-first-knot coverage is reported in gradient_validation. Across all 42 coordinates in the tested inputs, the current loss deviates only at the first knot when its amplitude is zero; with a nonzero first-knot amplitude, every coordinate agrees within 2.5e-10; a zero-amplitude interval elsewhere was not tested.",
+    "4": "current: first calls 12.489s/12.502s/12.485s, objective hits=[False, False, False]; refusal=Not writing persistent cache entry for 'jit_loss' because it uses host callbacks (e.g. from jax.debug.print or breakpoint); current_arguments: first calls 12.484s/12.453s/12.452s, objective hits=[False, False, False]; refusal=Not writing persistent cache entry for 'jit_loss' because it uses host callbacks (e.g. from jax.debug.print or breakpoint); scan: first calls 1.993s/1.992s/1.982s, objective hits=[False, False, False]; refusal=Not writing persistent cache entry for 'jit_loss' because it uses host callbacks (e.g. from jax.debug.print or breakpoint); scan_arguments: first calls 2.005s/1.983s/1.995s, objective hits=[False, False, False]; refusal=Not writing persistent cache entry for 'jit_loss' because it uses host callbacks (e.g. from jax.debug.print or breakpoint)",
+    "5": "GRAPE and Piccolo solve times are not comparable performance measurements: they use different optimizers, objectives and stopping rules. GRAPE maps tol to SLSQP ftol and minimizes infidelity; Piccolo passes tol to Ipopt with its weighted objective and regularizers. GRAPE's SLSQP reported success on its ftol test after 32 iterations at F=0.999615; Piccolo hit its 100-iteration cap at F=0.999999992 and did not declare convergence. Julia repetition 1: solve_spec 21.653s, compile 8.928s, native solve 18.380s, F=0.9999999922, iterations=100, converged=False; Julia repetition 2: solve_spec 12.330s, compile 0.000s, native solve 12.306s, F=0.9999999922, iterations=100, converged=False",
+    "6": "GRAPE-only serial nine-job projections (seconds): current=131.9, scan=32.9, pwc=36.6, scan_pure=29.5, expm=11.0, cache_current=130.1, cache_current_arguments=129.8, cache_scan=32.7, cache_scan_arguments=32.7. Piccolo-only serial nine-job projections (seconds): fresh_processes=244.1, one_warm_process=125.8. GRAPE and Piccolo solve times are not comparable performance measurements: they use different optimizers, objectives and stopping rules. GRAPE maps tol to SLSQP ftol and minimizes infidelity; Piccolo passes tol to Ipopt with its weighted objective and regularizers. GRAPE's SLSQP reported success on its ftol test after 32 iterations at F=0.999615; Piccolo hit its 100-iteration cap at F=0.999999992 and did not declare convergence. Each solver's projection assumes its own measured c60 solve cost for every candidate and measures neither changed-candidate optimization nor concurrent throughput; setup-only cross-solver figures are listed separately in per_job_pre_iteration_overhead."
+  },
+  "timing_measurements": {
+    "measured_at": "2026-10-18T05:46:49.294203+00:00",
+    "script_sha256": "5ed70c139c7e2181bc2635eb5187bbbfc4a83abe1a69380fcd744873b022e70d",
+    "script": "/home/paimon/Projects/entanglix-research/compile-probe/solver_compile.py",
+    "reused_without_new_optimizations": true
+  },
+  "gradient_validation": {
+    "measured_at": "2026-10-18T23:10:55.268246+00:00",
+    "script_sha256": "8b657cbf3b2d4d7f3370cf20298c41f7975f30ee061a1041637811612d5bbee1",
+    "reference": "SciPy matrix-exponential central differences of the leakage-aware infidelity on the full control model",
+    "steps_ghz": [
+      1e-05,
+      1e-06
+    ],
+    "summary_step_ghz": 1e-06,
+    "reporting_threshold": "1e-7 labels coordinates for reporting only; raw estimates at both steps are retained",
+    "scope": "Both channels, all 21 knots, three original bound-feasible amplitude sets and one set with a nonzero first knot outside its fixed-zero bound. Direct loss evaluations only; no optimization.",
+    "variants": {
+      "current": {
+        "raw_measurement": "/home/paimon/Projects/entanglix-research/compile-probe/measurements/gradients-current.json",
+        "samples": [
+          {
+            "sample": "random-0",
+            "outside_bounds": false,
+            "coordinates_checked": 42,
+            "max_abs_error": 0.0006728270107847489,
+            "first_knot_errors": [
+              0.0006728270107847489,
+              0.000127179321897819
+            ],
+            "channel_0_knot_3_error": 1.7716494937758398e-11,
+            "free_knot_max_abs_error": 1.542296290679701e-10,
+            "coordinates_above_1e_minus_7": [
+              {
+                "channel": 0,
+                "knot": 0,
+                "error": 0.0006728270107847489
+              },
+              {
+                "channel": 1,
+                "knot": 0,
+                "error": 0.000127179321897819
+              }
+            ]
+          },
+          {
+            "sample": "random-1",
+            "outside_bounds": false,
+            "coordinates_checked": 42,
+            "max_abs_error": 0.0006884339844452914,
+            "first_knot_errors": [
+              0.0006884339844452914,
+              0.00044157198100369666
+            ],
+            "channel_0_knot_3_error": 3.7919656303841975e-10,
+            "free_knot_max_abs_error": 3.7919656303841975e-10,
+            "coordinates_above_1e_minus_7": [
+              {
+                "channel": 0,
+                "knot": 0,
+                "error": 0.0006884339844452914
+              },
+              {
+                "channel": 1,
+                "knot": 0,
+                "error": 0.00044157198100369666
+              }
+            ]
+          },
+          {
+            "sample": "random-2",
+            "outside_bounds": false,
+            "coordinates_checked": 42,
+            "max_abs_error": 0.001068346473809434,
+            "first_knot_errors": [
+              0.0009501172860042484,
+              0.001068346473809434
+            ],
+            "channel_0_knot_3_error": 1.3249801256165483e-10,
+            "free_knot_max_abs_error": 3.7475200720393786e-10,
+            "coordinates_above_1e_minus_7": [
+              {
+                "channel": 0,
+                "knot": 0,
+                "error": 0.0009501172860042484
+              },
+              {
+                "channel": 1,
+                "knot": 0,
+                "error": 0.001068346473809434
+              }
+            ]
+          },
+          {
+            "sample": "nonzero-first-knot",
+            "outside_bounds": true,
+            "coordinates_checked": 42,
+            "max_abs_error": 2.4785118402093076e-10,
+            "first_knot_errors": [
+              2.4785118402093076e-10,
+              3.666500436594333e-11
+            ],
+            "channel_0_knot_3_error": 8.469336343353007e-11,
+            "free_knot_max_abs_error": 2.0955226442964658e-10,
+            "coordinates_above_1e_minus_7": []
+          }
+        ]
+      },
+      "expm": {
+        "raw_measurement": "/home/paimon/Projects/entanglix-research/compile-probe/measurements/gradients-expm.json",
+        "samples": [
+          {
+            "sample": "random-0",
+            "outside_bounds": false,
+            "coordinates_checked": 42,
+            "max_abs_error": 1.4551881921676113e-10,
+            "first_knot_errors": [
+              2.1219137558148304e-11,
+              6.750186520854129e-11
+            ],
+            "channel_0_knot_3_error": 1.1665268750959967e-10,
+            "free_knot_max_abs_error": 1.4551881921676113e-10,
+            "coordinates_above_1e_minus_7": []
+          },
+          {
+            "sample": "random-1",
+            "outside_bounds": false,
+            "coordinates_checked": 42,
+            "max_abs_error": 2.87780466123877e-10,
+            "first_knot_errors": [
+              2.022717549010622e-10,
+              1.1312173420208183e-10
+            ],
+            "channel_0_knot_3_error": 2.87780466123877e-10,
+            "free_knot_max_abs_error": 2.87780466123877e-10,
+            "coordinates_above_1e_minus_7": []
+          },
+          {
+            "sample": "random-2",
+            "outside_bounds": false,
+            "coordinates_checked": 42,
+            "max_abs_error": 3.322635500069282e-10,
+            "first_knot_errors": [
+              4.96305219144233e-11,
+              1.79150805301731e-10
+            ],
+            "channel_0_knot_3_error": 1.3810952381732022e-11,
+            "free_knot_max_abs_error": 3.322635500069282e-10,
+            "coordinates_above_1e_minus_7": []
+          },
+          {
+            "sample": "nonzero-first-knot",
+            "outside_bounds": true,
+            "coordinates_checked": 42,
+            "max_abs_error": 1.9745605150944812e-10,
+            "first_knot_errors": [
+              6.47524256436327e-11,
+              4.502198613920427e-11
+            ],
+            "channel_0_knot_3_error": 4.6909254258764577e-11,
+            "free_knot_max_abs_error": 1.9745605150944812e-10,
+            "coordinates_above_1e_minus_7": []
+          }
+        ]
+      }
+    }
+  },
+  "source_revision": "8cb94ca6254262414cc9de73d3a82b854c576a74",
+  "rebuilt_at": "2026-10-18T23:19:40.913246+00:00",
+  "provenance_note": "script_sha256 identifies this summary-only rebuild; timing_measurements and gradient_validation retain the original measurement script digests and timestamps. No solves, objective evaluations or gradient comparisons were repeated during this rebuild.",
+  "per_job_pre_iteration_overhead": {
+    "grape_current_seconds": 13.555957337957807,
+    "grape_boundary": "Reconstructed startup/import/load/objective/trace/compile/first-execution subtotal before warm SLSQP; excludes warm-up and parity benchmarks, not a measured first-callback timestamp",
+    "piccolo_seconds": 7.12511716899462,
+    "piccolo_boundary": "Observed process launch to first AMICODE_ITER (iteration zero); includes imports, materialization and compilation before that line, excludes compilation occurring in later iterations",
+    "scope": "Separate setup figures for this fixture, without a cross-solver solve-time ranking. These measured boundaries differ; overhead can change with the problem.",
+    "cold_minus_warm": {
+      "grape_current_seconds": 13.538649670954328,
+      "grape_formula": "pre-iteration subtotal minus warm value-and-gradient median",
+      "piccolo_seconds": 13.287669412990363,
+      "piccolo_formula": "first solve_start marker plus first-solve minus second-solve solve_spec time",
+      "scope": "Cold-minus-warm per-job costs for this fixture, kept separate from solve-time projections; the first-iteration boundaries remain detail."
+    },
+    "piccolo_compilation_note": "Piccolo continues compiling after its first iteration line: 8.93 s compilation in total, with the first iteration appearing 3.16 s after cold solve_start versus 0.15 s warm."
+  }
+}

@@ -1,0 +1,1212 @@
+{
+  "complete": true,
+  "pass": true,
+  "device": "cpu",
+  "records": [
+    {
+      "run_id": "r20261020T022600945877Z-5ba507ba",
+      "path": "/home/paimon/Projects/Entanglix/research_runs/readout/r20261020T022600945877Z-5ba507ba",
+      "parent_run_ids": [],
+      "engine": "qutip-cpu",
+      "device": "cpu",
+      "shape": [
+        3,
+        3
+      ],
+      "metrics": {
+        "coherence": [
+          [
+            0.9972711950660182,
+            0.996449281801343,
+            0.993326563210737
+          ],
+          [
+            0.9956350928868742,
+            0.9916079011592847,
+            0.9838385701820759
+          ],
+          [
+            0.9938897829198705,
+            0.9884011658641786,
+            0.9766143119146952
+          ]
+        ]
+      },
+      "code": {
+        "revision": "554336e0c2aac53b62a2d912fd001a0b426ce9b8",
+        "dirty": true,
+        "patch_sha256": "2bde1d0894f2f71ad9ecefefd4bd0c98d6333bdbcb2430f4e2ab448d6703b470",
+        "untracked_sha256": {}
+      },
+      "env_hash": "2699980e55fdcbfd137cf7d5cff9d087203bc1b224ac416527823fe82812e7ca",
+      "plan_sha256": "d2f92be0c8460a76a3cfbb8727e3235feb6c926d39fa521651d474afb359f7b2",
+      "usage": {
+        "wall_seconds": 4.426103955018334,
+        "gpu_seconds": 0,
+        "uncertain": false
+      },
+      "automatic_checks": false,
+      "verification_run_id": "r20261020T022605724057Z-a105790d",
+      "policy_version": "ee3237e19301045bb9e12c86e28d5f78bab0c031ead112dad000fe71b085bcf6",
+      "report": {
+        "kind": "lindblad",
+        "requested_checks": [
+          "integrity",
+          "segments",
+          "diagnostics",
+          "declared_expectation"
+        ],
+        "work_seconds": 0.7574681279947981,
+        "checks": [
+          {
+            "name": "integrity",
+            "scope": "all retained points",
+            "outcome": "pass",
+            "coverage": {
+              "point_count": 9,
+              "checked_points": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8
+              ],
+              "uncovered_points": [],
+              "uncovered_warning_points": [],
+              "selection_reasons": {}
+            },
+            "residuals": [
+              {
+                "name": "trace",
+                "tolerance": 1e-08,
+                "maximum_residual": 1.4432903385004394e-14
+              },
+              {
+                "name": "hermiticity",
+                "tolerance": 1e-08,
+                "maximum_residual": 1.2613500190717679e-14
+              },
+              {
+                "name": "positivity",
+                "tolerance": -1e-08,
+                "minimum_residual": -1.6350459602051888e-13
+              },
+              {
+                "name": "initial_state",
+                "tolerance": 1e-08,
+                "maximum_residual": 0.0
+              },
+              {
+                "name": "output_grid",
+                "tolerance": 0.0,
+                "maximum_residual": 0.0
+              },
+              {
+                "name": "observable_consistency",
+                "observable": "photons",
+                "tolerance": 1e-06,
+                "maximum_residual": 1.3423666661094604e-16
+              },
+              {
+                "name": "observable_consistency",
+                "observable": "coherence",
+                "tolerance": 1e-06,
+                "maximum_residual": 1.2412670766236366e-16
+              },
+              {
+                "name": "observable_consistency",
+                "observable": "excited",
+                "tolerance": 1e-06,
+                "maximum_residual": 2.343653285703765e-16
+              },
+              {
+                "name": "metric_consistency",
+                "metric": "coherence",
+                "tolerance": 1e-06,
+                "maximum_residual": 0.0
+              },
+              {
+                "name": "metric_names",
+                "tolerance": 0.0,
+                "maximum_residual": 0.0
+              },
+              {
+                "name": "grid_metric_consistency",
+                "metric": "coherence",
+                "tolerance": 1e-06,
+                "maximum_residual": 0.0
+              }
+            ]
+          },
+          {
+            "name": "segments",
+            "scope": "selected points only; no convergence claim at unsampled points",
+            "outcome": "pass",
+            "coverage": {
+              "point_count": 9,
+              "checked_points": [
+                0,
+                2,
+                6,
+                7,
+                8
+              ],
+              "uncovered_points": [
+                1,
+                3,
+                4,
+                5
+              ],
+              "uncovered_warning_points": [],
+              "selection_reasons": {
+                "0": [
+                  "corner",
+                  "metric_maximum"
+                ],
+                "2": [
+                  "corner"
+                ],
+                "6": [
+                  "corner"
+                ],
+                "8": [
+                  "corner",
+                  "metric_minimum"
+                ],
+                "7": [
+                  "steepest_change"
+                ]
+              }
+            },
+            "residuals": [
+              {
+                "name": "trace",
+                "tolerance": 1e-08,
+                "maximum_residual": 5.773282523687136e-15
+              },
+              {
+                "name": "hermiticity",
+                "tolerance": 1e-08,
+                "maximum_residual": 1.229980919870783e-14
+              },
+              {
+                "name": "positivity",
+                "tolerance": -1e-08,
+                "minimum_residual": -1.5996338473244228e-14
+              },
+              {
+                "name": "observable",
+                "observable": "photons",
+                "tolerance": 1e-06,
+                "maximum_residual": 1.723653206275877e-09
+              },
+              {
+                "name": "observable",
+                "observable": "coherence",
+                "tolerance": 1e-06,
+                "maximum_residual": 1.0508613738059827e-08
+              },
+              {
+                "name": "observable",
+                "observable": "excited",
+                "tolerance": 1e-06,
+                "maximum_residual": 5.748647113890115e-10
+              },
+              {
+                "name": "metric",
+                "metric": "coherence",
+                "tolerance": 1e-06,
+                "maximum_residual": 2.089124562232314e-08
+              }
+            ],
+            "local_coverage": [
+              {
+                "point": 0,
+                "covered_fraction": 0.06,
+                "scope": "local agreement over sampled windows only; no extrapolation",
+                "uncovered_drive_changes": {
+                  "count": 0
+                },
+                "windows": [
+                  {
+                    "start_ns": 0.0,
+                    "end_ns": 2.0
+                  },
+                  {
+                    "start_ns": 49.0,
+                    "end_ns": 51.0
+                  },
+                  {
+                    "start_ns": 98.0,
+                    "end_ns": 100.0
+                  }
+                ]
+              },
+              {
+                "point": 2,
+                "covered_fraction": 0.06,
+                "scope": "local agreement over sampled windows only; no extrapolation",
+                "uncovered_drive_changes": {
+                  "count": 0
+                },
+                "windows": [
+                  {
+                    "start_ns": 0.0,
+                    "end_ns": 2.0
+                  },
+                  {
+                    "start_ns": 49.0,
+                    "end_ns": 51.0
+                  },
+                  {
+                    "start_ns": 98.0,
+                    "end_ns": 100.0
+                  }
+                ]
+              },
+              {
+                "point": 6,
+                "covered_fraction": 0.06,
+                "scope": "local agreement over sampled windows only; no extrapolation",
+                "uncovered_drive_changes": {
+                  "count": 0
+                },
+                "windows": [
+                  {
+                    "start_ns": 0.0,
+                    "end_ns": 2.0
+                  },
+                  {
+                    "start_ns": 49.0,
+                    "end_ns": 51.0
+                  },
+                  {
+                    "start_ns": 98.0,
+                    "end_ns": 100.0
+                  }
+                ]
+              },
+              {
+                "point": 8,
+                "covered_fraction": 0.06,
+                "scope": "local agreement over sampled windows only; no extrapolation",
+                "uncovered_drive_changes": {
+                  "count": 0
+                },
+                "windows": [
+                  {
+                    "start_ns": 0.0,
+                    "end_ns": 2.0
+                  },
+                  {
+                    "start_ns": 49.0,
+                    "end_ns": 51.0
+                  },
+                  {
+                    "start_ns": 98.0,
+                    "end_ns": 100.0
+                  }
+                ]
+              },
+              {
+                "point": 7,
+                "covered_fraction": 0.06,
+                "scope": "local agreement over sampled windows only; no extrapolation",
+                "uncovered_drive_changes": {
+                  "count": 0
+                },
+                "windows": [
+                  {
+                    "start_ns": 0.0,
+                    "end_ns": 2.0
+                  },
+                  {
+                    "start_ns": 49.0,
+                    "end_ns": 51.0
+                  },
+                  {
+                    "start_ns": 98.0,
+                    "end_ns": 100.0
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "diagnostics",
+            "scope": "every retained point; quantities are descriptive only",
+            "coverage": {
+              "point_count": 9,
+              "checked_points": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8
+              ],
+              "uncovered_points": [],
+              "uncovered_warning_points": [],
+              "selection_reasons": {}
+            },
+            "residuals": [],
+            "top_level_population": [
+              {
+                "subsystem_index": 0,
+                "maximum_population": 8.368088350963824e-13,
+                "warning_points": 0,
+                "threshold": 1e-06
+              },
+              {
+                "subsystem_index": 1,
+                "maximum_population": 1.2701682351752524e-07,
+                "warning_points": 0,
+                "threshold": 1e-06
+              }
+            ]
+          },
+          {
+            "name": "declared_expectation",
+            "scope": "all grid lines along the declared axis, ordered by its numeric value",
+            "outcome": "pass",
+            "coverage": {
+              "point_count": 9,
+              "checked_points": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8
+              ],
+              "uncovered_points": [],
+              "uncovered_warning_points": [],
+              "selection_reasons": {}
+            },
+            "residuals": [
+              {
+                "name": "declared_monotonicity",
+                "tolerance": 1e-06,
+                "maximum_residual": 0.0
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "run_id": "r20261020T022607929800Z-ced316b7",
+      "path": "/home/paimon/Projects/Entanglix/research_runs/readout/r20261020T022607929800Z-ced316b7",
+      "parent_run_ids": [
+        "r20261020T022600945877Z-5ba507ba"
+      ],
+      "engine": "qutip-cpu",
+      "device": "cpu",
+      "shape": [
+        3,
+        3
+      ],
+      "metrics": {
+        "coherence": [
+          [
+            0.9972711950660182,
+            0.996449281801343,
+            0.993326563210737
+          ],
+          [
+            0.9956350928868742,
+            0.9916079011592847,
+            0.9838385701820759
+          ],
+          [
+            0.9938897829198705,
+            0.9884011658641786,
+            0.9766143119146952
+          ]
+        ]
+      },
+      "code": {
+        "revision": "554336e0c2aac53b62a2d912fd001a0b426ce9b8",
+        "dirty": true,
+        "patch_sha256": "2bde1d0894f2f71ad9ecefefd4bd0c98d6333bdbcb2430f4e2ab448d6703b470",
+        "untracked_sha256": {}
+      },
+      "env_hash": "2699980e55fdcbfd137cf7d5cff9d087203bc1b224ac416527823fe82812e7ca",
+      "plan_sha256": "d2f92be0c8460a76a3cfbb8727e3235feb6c926d39fa521651d474afb359f7b2",
+      "usage": {
+        "wall_seconds": 4.447110573062673,
+        "gpu_seconds": 0,
+        "uncertain": false
+      },
+      "automatic_checks": false,
+      "verification_run_id": "r20261020T022612642195Z-fb7e0510",
+      "policy_version": "ee3237e19301045bb9e12c86e28d5f78bab0c031ead112dad000fe71b085bcf6",
+      "report": {
+        "kind": "lindblad",
+        "requested_checks": [
+          "integrity",
+          "segments",
+          "diagnostics",
+          "declared_expectation"
+        ],
+        "work_seconds": 0.7575053590117022,
+        "checks": [
+          {
+            "name": "integrity",
+            "scope": "all retained points",
+            "outcome": "pass",
+            "coverage": {
+              "point_count": 9,
+              "checked_points": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8
+              ],
+              "uncovered_points": [],
+              "uncovered_warning_points": [],
+              "selection_reasons": {}
+            },
+            "residuals": [
+              {
+                "name": "trace",
+                "tolerance": 1e-08,
+                "maximum_residual": 1.4432903385004394e-14
+              },
+              {
+                "name": "hermiticity",
+                "tolerance": 1e-08,
+                "maximum_residual": 1.2613500190717679e-14
+              },
+              {
+                "name": "positivity",
+                "tolerance": -1e-08,
+                "minimum_residual": -1.6350459602051888e-13
+              },
+              {
+                "name": "initial_state",
+                "tolerance": 1e-08,
+                "maximum_residual": 0.0
+              },
+              {
+                "name": "output_grid",
+                "tolerance": 0.0,
+                "maximum_residual": 0.0
+              },
+              {
+                "name": "observable_consistency",
+                "observable": "photons",
+                "tolerance": 1e-06,
+                "maximum_residual": 1.3423666661094604e-16
+              },
+              {
+                "name": "observable_consistency",
+                "observable": "coherence",
+                "tolerance": 1e-06,
+                "maximum_residual": 1.2412670766236366e-16
+              },
+              {
+                "name": "observable_consistency",
+                "observable": "excited",
+                "tolerance": 1e-06,
+                "maximum_residual": 2.343653285703765e-16
+              },
+              {
+                "name": "metric_consistency",
+                "metric": "coherence",
+                "tolerance": 1e-06,
+                "maximum_residual": 0.0
+              },
+              {
+                "name": "metric_names",
+                "tolerance": 0.0,
+                "maximum_residual": 0.0
+              },
+              {
+                "name": "grid_metric_consistency",
+                "metric": "coherence",
+                "tolerance": 1e-06,
+                "maximum_residual": 0.0
+              }
+            ]
+          },
+          {
+            "name": "segments",
+            "scope": "selected points only; no convergence claim at unsampled points",
+            "outcome": "pass",
+            "coverage": {
+              "point_count": 9,
+              "checked_points": [
+                0,
+                2,
+                6,
+                7,
+                8
+              ],
+              "uncovered_points": [
+                1,
+                3,
+                4,
+                5
+              ],
+              "uncovered_warning_points": [],
+              "selection_reasons": {
+                "0": [
+                  "corner",
+                  "metric_maximum"
+                ],
+                "2": [
+                  "corner"
+                ],
+                "6": [
+                  "corner"
+                ],
+                "8": [
+                  "corner",
+                  "metric_minimum"
+                ],
+                "7": [
+                  "steepest_change"
+                ]
+              }
+            },
+            "residuals": [
+              {
+                "name": "trace",
+                "tolerance": 1e-08,
+                "maximum_residual": 5.773282523687136e-15
+              },
+              {
+                "name": "hermiticity",
+                "tolerance": 1e-08,
+                "maximum_residual": 1.229980919870783e-14
+              },
+              {
+                "name": "positivity",
+                "tolerance": -1e-08,
+                "minimum_residual": -1.5996338473244228e-14
+              },
+              {
+                "name": "observable",
+                "observable": "photons",
+                "tolerance": 1e-06,
+                "maximum_residual": 1.723653206275877e-09
+              },
+              {
+                "name": "observable",
+                "observable": "coherence",
+                "tolerance": 1e-06,
+                "maximum_residual": 1.0508613738059827e-08
+              },
+              {
+                "name": "observable",
+                "observable": "excited",
+                "tolerance": 1e-06,
+                "maximum_residual": 5.748647113890115e-10
+              },
+              {
+                "name": "metric",
+                "metric": "coherence",
+                "tolerance": 1e-06,
+                "maximum_residual": 2.089124562232314e-08
+              }
+            ],
+            "local_coverage": [
+              {
+                "point": 0,
+                "covered_fraction": 0.06,
+                "scope": "local agreement over sampled windows only; no extrapolation",
+                "uncovered_drive_changes": {
+                  "count": 0
+                },
+                "windows": [
+                  {
+                    "start_ns": 0.0,
+                    "end_ns": 2.0
+                  },
+                  {
+                    "start_ns": 49.0,
+                    "end_ns": 51.0
+                  },
+                  {
+                    "start_ns": 98.0,
+                    "end_ns": 100.0
+                  }
+                ]
+              },
+              {
+                "point": 2,
+                "covered_fraction": 0.06,
+                "scope": "local agreement over sampled windows only; no extrapolation",
+                "uncovered_drive_changes": {
+                  "count": 0
+                },
+                "windows": [
+                  {
+                    "start_ns": 0.0,
+                    "end_ns": 2.0
+                  },
+                  {
+                    "start_ns": 49.0,
+                    "end_ns": 51.0
+                  },
+                  {
+                    "start_ns": 98.0,
+                    "end_ns": 100.0
+                  }
+                ]
+              },
+              {
+                "point": 6,
+                "covered_fraction": 0.06,
+                "scope": "local agreement over sampled windows only; no extrapolation",
+                "uncovered_drive_changes": {
+                  "count": 0
+                },
+                "windows": [
+                  {
+                    "start_ns": 0.0,
+                    "end_ns": 2.0
+                  },
+                  {
+                    "start_ns": 49.0,
+                    "end_ns": 51.0
+                  },
+                  {
+                    "start_ns": 98.0,
+                    "end_ns": 100.0
+                  }
+                ]
+              },
+              {
+                "point": 8,
+                "covered_fraction": 0.06,
+                "scope": "local agreement over sampled windows only; no extrapolation",
+                "uncovered_drive_changes": {
+                  "count": 0
+                },
+                "windows": [
+                  {
+                    "start_ns": 0.0,
+                    "end_ns": 2.0
+                  },
+                  {
+                    "start_ns": 49.0,
+                    "end_ns": 51.0
+                  },
+                  {
+                    "start_ns": 98.0,
+                    "end_ns": 100.0
+                  }
+                ]
+              },
+              {
+                "point": 7,
+                "covered_fraction": 0.06,
+                "scope": "local agreement over sampled windows only; no extrapolation",
+                "uncovered_drive_changes": {
+                  "count": 0
+                },
+                "windows": [
+                  {
+                    "start_ns": 0.0,
+                    "end_ns": 2.0
+                  },
+                  {
+                    "start_ns": 49.0,
+                    "end_ns": 51.0
+                  },
+                  {
+                    "start_ns": 98.0,
+                    "end_ns": 100.0
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "diagnostics",
+            "scope": "every retained point; quantities are descriptive only",
+            "coverage": {
+              "point_count": 9,
+              "checked_points": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8
+              ],
+              "uncovered_points": [],
+              "uncovered_warning_points": [],
+              "selection_reasons": {}
+            },
+            "residuals": [],
+            "top_level_population": [
+              {
+                "subsystem_index": 0,
+                "maximum_population": 8.368088350963824e-13,
+                "warning_points": 0,
+                "threshold": 1e-06
+              },
+              {
+                "subsystem_index": 1,
+                "maximum_population": 1.2701682351752524e-07,
+                "warning_points": 0,
+                "threshold": 1e-06
+              }
+            ]
+          },
+          {
+            "name": "declared_expectation",
+            "scope": "all grid lines along the declared axis, ordered by its numeric value",
+            "outcome": "pass",
+            "coverage": {
+              "point_count": 9,
+              "checked_points": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8
+              ],
+              "uncovered_points": [],
+              "uncovered_warning_points": [],
+              "selection_reasons": {}
+            },
+            "residuals": [
+              {
+                "name": "declared_monotonicity",
+                "tolerance": 1e-06,
+                "maximum_residual": 0.0
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "replay_provenance": {
+    "code_matches": true,
+    "environment_matches": true
+  },
+  "replay_maximum_residual": 0.0,
+  "replay_atol": 1e-07,
+  "static_companion": {
+    "run_id": "r20261020T022614832873Z-58e0b8b7",
+    "path": "/home/paimon/Projects/Entanglix/research_runs/readout/r20261020T022614832873Z-58e0b8b7",
+    "parent_run_ids": [],
+    "engine": "qutip-cpu",
+    "device": "cpu",
+    "shape": [
+      3
+    ],
+    "metrics": {
+      "chi_ghz": [
+        -0.00043487514884077427,
+        -0.0005591160933464678,
+        -0.0007335909874699453
+      ]
+    },
+    "code": {
+      "revision": "554336e0c2aac53b62a2d912fd001a0b426ce9b8",
+      "dirty": true,
+      "patch_sha256": "2bde1d0894f2f71ad9ecefefd4bd0c98d6333bdbcb2430f4e2ab448d6703b470",
+      "untracked_sha256": {}
+    },
+    "env_hash": "2699980e55fdcbfd137cf7d5cff9d087203bc1b224ac416527823fe82812e7ca",
+    "plan_sha256": "683980bfa815a2011f97221d1725f553320c724a1ce70c591f496b9cc3865c1c",
+    "usage": {
+      "wall_seconds": 0.7718169200234115,
+      "gpu_seconds": 0,
+      "uncertain": false
+    },
+    "automatic_checks": false,
+    "verification_run_id": "r20261020T022615746828Z-238374cb",
+    "policy_version": "ee3237e19301045bb9e12c86e28d5f78bab0c031ead112dad000fe71b085bcf6",
+    "report": {
+      "kind": "spectrum",
+      "requested_checks": [
+        "spectral_refinement"
+      ],
+      "work_seconds": 0.15798695001285523,
+      "checks": [
+        {
+          "name": "spectral_refinement",
+          "scope": "selected points only; no convergence claim at unsampled points",
+          "outcome": "pass",
+          "coverage": {
+            "point_count": 3,
+            "checked_points": [
+              0,
+              1,
+              2
+            ],
+            "uncovered_points": [],
+            "uncovered_warning_points": [],
+            "selection_reasons": {
+              "0": [
+                "corner",
+                "metric_maximum"
+              ],
+              "2": [
+                "corner",
+                "metric_minimum"
+              ],
+              "1": [
+                "steepest_change"
+              ]
+            }
+          },
+          "residuals": [
+            {
+              "name": "spectral_refinement",
+              "tolerance": 1e-05,
+              "maximum_residual": 7.459237703955068e-06
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "refined_grid": {
+    "run_id": "r20261020T022617264027Z-ebef41e6",
+    "path": "/home/paimon/Projects/Entanglix/research_runs/readout/r20261020T022617264027Z-ebef41e6",
+    "parent_run_ids": [
+      "r20261020T022600945877Z-5ba507ba"
+    ],
+    "engine": "qutip-cpu",
+    "device": "cpu",
+    "shape": [
+      1,
+      3
+    ],
+    "metrics": {
+      "coherence": [
+        [
+          0.9916079011592847,
+          0.9881903623787446,
+          0.9838385701820759
+        ]
+      ]
+    },
+    "code": {
+      "revision": "554336e0c2aac53b62a2d912fd001a0b426ce9b8",
+      "dirty": true,
+      "patch_sha256": "2bde1d0894f2f71ad9ecefefd4bd0c98d6333bdbcb2430f4e2ab448d6703b470",
+      "untracked_sha256": {}
+    },
+    "env_hash": "2699980e55fdcbfd137cf7d5cff9d087203bc1b224ac416527823fe82812e7ca",
+    "plan_sha256": "e1a7d15ce36434bbab29b78c6484c2a0ab5bee9dda13cd16288eb7a4791d5973",
+    "usage": {
+      "wall_seconds": 2.2863707710057497,
+      "gpu_seconds": 0,
+      "uncertain": false
+    },
+    "automatic_checks": false,
+    "verification_run_id": "r20261020T022619872726Z-22ae6f6c",
+    "policy_version": "ee3237e19301045bb9e12c86e28d5f78bab0c031ead112dad000fe71b085bcf6",
+    "report": {
+      "kind": "lindblad",
+      "requested_checks": [
+        "integrity",
+        "segments",
+        "diagnostics",
+        "declared_expectation"
+      ],
+      "work_seconds": 0.5273431999376044,
+      "checks": [
+        {
+          "name": "integrity",
+          "scope": "all retained points",
+          "outcome": "pass",
+          "coverage": {
+            "point_count": 3,
+            "checked_points": [
+              0,
+              1,
+              2
+            ],
+            "uncovered_points": [],
+            "uncovered_warning_points": [],
+            "selection_reasons": {}
+          },
+          "residuals": [
+            {
+              "name": "trace",
+              "tolerance": 1e-08,
+              "maximum_residual": 6.883382794970732e-15
+            },
+            {
+              "name": "hermiticity",
+              "tolerance": 1e-08,
+              "maximum_residual": 1.0140771759932071e-14
+            },
+            {
+              "name": "positivity",
+              "tolerance": -1e-08,
+              "minimum_residual": -1.5705394249148133e-13
+            },
+            {
+              "name": "initial_state",
+              "tolerance": 1e-08,
+              "maximum_residual": 0.0
+            },
+            {
+              "name": "output_grid",
+              "tolerance": 0.0,
+              "maximum_residual": 0.0
+            },
+            {
+              "name": "observable_consistency",
+              "observable": "photons",
+              "tolerance": 1e-06,
+              "maximum_residual": 1.3423666661094604e-16
+            },
+            {
+              "name": "observable_consistency",
+              "observable": "coherence",
+              "tolerance": 1e-06,
+              "maximum_residual": 1.2412670766236366e-16
+            },
+            {
+              "name": "observable_consistency",
+              "observable": "excited",
+              "tolerance": 1e-06,
+              "maximum_residual": 2.242400959991435e-16
+            },
+            {
+              "name": "metric_consistency",
+              "metric": "coherence",
+              "tolerance": 1e-06,
+              "maximum_residual": 0.0
+            },
+            {
+              "name": "metric_names",
+              "tolerance": 0.0,
+              "maximum_residual": 0.0
+            },
+            {
+              "name": "grid_metric_consistency",
+              "metric": "coherence",
+              "tolerance": 1e-06,
+              "maximum_residual": 0.0
+            }
+          ]
+        },
+        {
+          "name": "segments",
+          "scope": "selected points only; no convergence claim at unsampled points",
+          "outcome": "pass",
+          "coverage": {
+            "point_count": 3,
+            "checked_points": [
+              0,
+              1,
+              2
+            ],
+            "uncovered_points": [],
+            "uncovered_warning_points": [],
+            "selection_reasons": {
+              "0": [
+                "corner",
+                "metric_maximum"
+              ],
+              "2": [
+                "corner",
+                "metric_minimum"
+              ],
+              "1": [
+                "steepest_change"
+              ]
+            }
+          },
+          "residuals": [
+            {
+              "name": "trace",
+              "tolerance": 1e-08,
+              "maximum_residual": 7.327478512592647e-15
+            },
+            {
+              "name": "hermiticity",
+              "tolerance": 1e-08,
+              "maximum_residual": 9.560569473972057e-15
+            },
+            {
+              "name": "positivity",
+              "tolerance": -1e-08,
+              "minimum_residual": -1.2692511108957317e-14
+            },
+            {
+              "name": "observable",
+              "observable": "photons",
+              "tolerance": 1e-06,
+              "maximum_residual": 1.3508577312304482e-09
+            },
+            {
+              "name": "observable",
+              "observable": "coherence",
+              "tolerance": 1e-06,
+              "maximum_residual": 8.804791379327497e-09
+            },
+            {
+              "name": "observable",
+              "observable": "excited",
+              "tolerance": 1e-06,
+              "maximum_residual": 8.096889825282005e-11
+            },
+            {
+              "name": "metric",
+              "metric": "coherence",
+              "tolerance": 1e-06,
+              "maximum_residual": 1.508926283921852e-08
+            }
+          ],
+          "local_coverage": [
+            {
+              "point": 0,
+              "covered_fraction": 0.06,
+              "scope": "local agreement over sampled windows only; no extrapolation",
+              "uncovered_drive_changes": {
+                "count": 0
+              },
+              "windows": [
+                {
+                  "start_ns": 0.0,
+                  "end_ns": 2.0
+                },
+                {
+                  "start_ns": 49.0,
+                  "end_ns": 51.0
+                },
+                {
+                  "start_ns": 98.0,
+                  "end_ns": 100.0
+                }
+              ]
+            },
+            {
+              "point": 2,
+              "covered_fraction": 0.06,
+              "scope": "local agreement over sampled windows only; no extrapolation",
+              "uncovered_drive_changes": {
+                "count": 0
+              },
+              "windows": [
+                {
+                  "start_ns": 0.0,
+                  "end_ns": 2.0
+                },
+                {
+                  "start_ns": 49.0,
+                  "end_ns": 51.0
+                },
+                {
+                  "start_ns": 98.0,
+                  "end_ns": 100.0
+                }
+              ]
+            },
+            {
+              "point": 1,
+              "covered_fraction": 0.06,
+              "scope": "local agreement over sampled windows only; no extrapolation",
+              "uncovered_drive_changes": {
+                "count": 0
+              },
+              "windows": [
+                {
+                  "start_ns": 0.0,
+                  "end_ns": 2.0
+                },
+                {
+                  "start_ns": 49.0,
+                  "end_ns": 51.0
+                },
+                {
+                  "start_ns": 98.0,
+                  "end_ns": 100.0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "diagnostics",
+          "scope": "every retained point; quantities are descriptive only",
+          "coverage": {
+            "point_count": 3,
+            "checked_points": [
+              0,
+              1,
+              2
+            ],
+            "uncovered_points": [],
+            "uncovered_warning_points": [],
+            "selection_reasons": {}
+          },
+          "residuals": [],
+          "top_level_population": [
+            {
+              "subsystem_index": 0,
+              "maximum_population": 3.347556067935156e-13,
+              "warning_points": 0,
+              "threshold": 1e-06
+            },
+            {
+              "subsystem_index": 1,
+              "maximum_population": 9.632453514461213e-08,
+              "warning_points": 0,
+              "threshold": 1e-06
+            }
+          ]
+        },
+        {
+          "name": "declared_expectation",
+          "scope": "all grid lines along the declared axis, ordered by its numeric value",
+          "outcome": "pass",
+          "coverage": {
+            "point_count": 3,
+            "checked_points": [
+              0,
+              1,
+              2
+            ],
+            "uncovered_points": [],
+            "uncovered_warning_points": [],
+            "selection_reasons": {}
+          },
+          "residuals": [
+            {
+              "name": "declared_monotonicity",
+              "tolerance": 1e-06,
+              "maximum_residual": 0.0
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,19 @@
+format_version = 1
+system = "system.toml"
+kind = "spectrum"
+levels = 5
+
+[parameters]
+EJ = 13.5
+
+[refinement.q]
+retained_levels_step = 1
+cutoff_steps = { cutoff = 2 }
+
+[refinement.r]
+retained_levels_step = 2
+
+[metrics.chi_ghz]
+kind = "dispersive_shift"
+qubit = "q"
+resonator = "r"

@@ -1,0 +1,32 @@
+format_version = 1
+id = "qubit_resonator"
+
+[units]
+energy = "GHz"
+time = "ns"
+
+[model]
+kind = "composite"
+
+[[model.subsystems]]
+id = "q"
+source = "qubit.toml"
+
+[[model.subsystems]]
+id = "r"
+kind = "oscillator"
+frequency = { value = 6.2, unit = "GHz" }
+retained_levels = 5
+
+[[model.interactions]]
+coefficient = { value = 0.05, unit = "GHz" }
+factors = ["q.charge", "r.position"]
+
+[[drives]]
+id = "charge_drive"
+factors = ["q.charge"]
+
+[[dissipators]]
+id = "resonator_loss"
+factors = ["r.annihilation"]
+rate = { value = 0.01, unit = "1/ns" }

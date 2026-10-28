@@ -1,0 +1,44 @@
+format_version = 1
+system = "system.toml"
+kind = "lindblad"
+
+[parameters]
+EJ = 13.5
+
+[needs]
+device = "cuda"
+
+[evolution]
+array_file = "readout-state.npz"
+initial_state = "psi"
+times_ns = { start = 0.0, stop = 100.0, count = 101 }
+rtol = 1e-10
+atol = 1e-12
+max_steps = 100000
+
+[evolution.observables]
+coherence = { kind = "coherence", subsystem = "q" }
+excited = { kind = "population", subsystem = "q", level = 1 }
+photons = "r.number"
+
+[evolution.drive_amplitudes_ghz]
+readout = 0.0
+
+[evolution.carriers.readout]
+frequency_ghz = 7.002206406997239
+phase_rad = 0.0
+
+[evolution.frame]
+frequencies_ghz = { q = 7.002206406997239, r = 7.002206406997239 }
+rwa = true
+
+[refinement.q]
+retained_levels_step = 1
+cutoff_steps = { cutoff = 2 }
+
+[refinement.r]
+retained_levels_step = 2
+
+[metrics.coherence]
+kind = "endpoint_coherence"
+observable = "coherence"

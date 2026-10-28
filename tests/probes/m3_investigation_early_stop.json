@@ -1,0 +1,1100 @@
+{
+  "case": "early-stop",
+  "brackets": [
+    {
+      "ej_ghz": 13.5,
+      "stage": "normal",
+      "width_ghz": 0.0001249999999999999,
+      "baselines": {
+        "rwa": {
+          "amplitude_ghz": 0.0,
+          "coherence": 0.9956350928868742,
+          "source_run_id": "r20261004T123832058166Z-91ec481c",
+          "point_index": 3
+        },
+        "lab": {
+          "amplitude_ghz": 0.0,
+          "coherence": 0.9953883982962349,
+          "source_run_id": "r20261004T123845974084Z-7de9f449"
+        },
+        "lab_refined": {
+          "amplitude_ghz": 0.0,
+          "coherence": 0.9953883687966544,
+          "source_run_id": "r20261004T123851995391Z-f5c72ce5"
+        }
+      },
+      "endpoints": [
+        {
+          "amplitude_ghz": 0.00175,
+          "coherences": {
+            "rwa": 0.9861309331027577,
+            "lab": 0.9857895899003107,
+            "lab_refined": 0.9857893917891621
+          },
+          "source_runs": {
+            "rwa": "r20261004T123840230037Z-219754fa",
+            "lab": "r20261004T123909515518Z-72c25542",
+            "lab_refined": "r20261004T123917491997Z-6b3fe655"
+          },
+          "additional_loss": {
+            "rwa": 0.009504159784116561,
+            "lab": 0.009598808395924197,
+            "lab_refined": 0.009598977007492238
+          },
+          "observed_lab_refinement_change": 1.6861156804104382e-07
+        },
+        {
+          "amplitude_ghz": 0.001875,
+          "coherences": {
+            "rwa": 0.9850138122627116,
+            "lab": 0.9846935588768568,
+            "lab_refined": 0.9846932870845303
+          },
+          "source_runs": {
+            "rwa": "r20261004T123842134350Z-31deb0e1",
+            "lab": "r20261004T123940915818Z-148c17a8",
+            "lab_refined": "r20261004T123949053538Z-41c0800e"
+          },
+          "additional_loss": {
+            "rwa": 0.010621280624162677,
+            "lab": 0.0106948394193781,
+            "lab_refined": 0.010695081712124077
+          },
+          "observed_lab_refinement_change": 2.4229274597775685e-07
+        }
+      ],
+      "target_margins": [
+        -0.0004010229925077626,
+        0.0006950817121240769
+      ],
+      "confirmed": true
+    },
+    {
+      "ej_ghz": 15.0,
+      "stage": "normal",
+      "width_ghz": 0.0001250000000000001,
+      "baselines": {
+        "rwa": {
+          "amplitude_ghz": 0.0,
+          "coherence": 0.9938897829198705,
+          "source_run_id": "r20261004T123832058166Z-91ec481c",
+          "point_index": 6
+        },
+        "lab": {
+          "amplitude_ghz": 0.0,
+          "coherence": 0.9941557609380876,
+          "source_run_id": "r20261004T124021088349Z-b64478d8"
+        },
+        "lab_refined": {
+          "amplitude_ghz": 0.0,
+          "coherence": 0.9941555704817382,
+          "source_run_id": "r20261004T124027385687Z-c7514bdd"
+        }
+      },
+      "endpoints": [
+        {
+          "amplitude_ghz": 0.001375,
+          "coherences": {
+            "rwa": 0.984718080156232,
+            "lab": 0.9849329916975901,
+            "lab_refined": 0.9849328806225055
+          },
+          "source_runs": {
+            "rwa": "r20261004T124017021263Z-f7767ffb",
+            "lab": "r20261004T124045523020Z-cad10a20",
+            "lab_refined": "r20261004T124053034077Z-6663c4db"
+          },
+          "additional_loss": {
+            "rwa": 0.009171702763638545,
+            "lab": 0.009222769240497475,
+            "lab_refined": 0.009222689859232691
+          },
+          "observed_lab_refinement_change": 7.938126478368446e-08
+        },
+        {
+          "amplitude_ghz": 0.0015,
+          "coherences": {
+            "rwa": 0.9832934516250205,
+            "lab": 0.9835318225733475,
+            "lab_refined": 0.9835317113361379
+          },
+          "source_runs": {
+            "rwa": "r20261004T124013243010Z-ef639d94",
+            "lab": "r20261004T124115240280Z-3ba92978",
+            "lab_refined": "r20261004T124122869878Z-9c6e032d"
+          },
+          "additional_loss": {
+            "rwa": 0.010596331294850048,
+            "lab": 0.010623938364740071,
+            "lab_refined": 0.010623859145600267
+          },
+          "observed_lab_refinement_change": 7.921913980357687e-08
+        }
+      ],
+      "target_margins": [
+        -0.0007773101407673091,
+        0.0006238591456002671
+      ],
+      "confirmed": true
+    },
+    {
+      "ej_ghz": 13.5,
+      "stage": "tighter",
+      "width_ghz": 1.5625000000000014e-05,
+      "baselines": {
+        "rwa": {
+          "amplitude_ghz": 0.0,
+          "coherence": 0.9956350928868742,
+          "source_run_id": "r20261004T123832058166Z-91ec481c",
+          "point_index": 3
+        },
+        "lab": {
+          "amplitude_ghz": 0.0,
+          "coherence": 0.9953883982962349,
+          "source_run_id": "r20261004T123845974084Z-7de9f449"
+        },
+        "lab_refined": {
+          "amplitude_ghz": 0.0,
+          "coherence": 0.9953883687966544,
+          "source_run_id": "r20261004T123851995391Z-f5c72ce5"
+        }
+      },
+      "endpoints": [
+        {
+          "amplitude_ghz": 0.0017968749999999999,
+          "coherences": {
+            "rwa": 0.9857188317818586,
+            "lab": 0.9853849716047819,
+            "lab_refined": 0.9853847495773226
+          },
+          "source_runs": {
+            "rwa": "r20261004T124150219738Z-01fbabb7",
+            "lab": "r20261004T124154170059Z-9d9d5557",
+            "lab_refined": "r20261004T124202189997Z-cef5e6b3"
+          },
+          "additional_loss": {
+            "rwa": 0.009916261105015645,
+            "lab": 0.010003426691453043,
+            "lab_refined": 0.010003619219331794
+          },
+          "observed_lab_refinement_change": 1.9252787875068123e-07
+        },
+        {
+          "amplitude_ghz": 0.0018124999999999999,
+          "coherences": {
+            "rwa": 0.985579645670182,
+            "lab": 0.9852483934657249,
+            "lab_refined": 0.9852481625487365
+          },
+          "source_runs": {
+            "rwa": "r20261004T124146269655Z-ea84fc0f",
+            "lab": "r20261004T124226158056Z-e6754405",
+            "lab_refined": "r20261004T124234135051Z-5e64181c"
+          },
+          "additional_loss": {
+            "rwa": 0.01005544721669227,
+            "lab": 0.01014000483051003,
+            "lab_refined": 0.010140206247917893
+          },
+          "observed_lab_refinement_change": 2.0141740786350226e-07
+        }
+      ],
+      "target_margins": [
+        3.619219331793891e-06,
+        0.00014020624791789317
+      ],
+      "confirmed": false
+    }
+  ],
+  "no_crossing": [
+    {
+      "ej_ghz": 12.0,
+      "samples": [
+        {
+          "amplitude_ghz": 0.0,
+          "coherence": 0.9972711950660182,
+          "source_run_id": "r20261004T123832058166Z-91ec481c",
+          "point_index": 0
+        },
+        {
+          "amplitude_ghz": 0.001,
+          "coherence": 0.996449281801343,
+          "source_run_id": "r20261004T123832058166Z-91ec481c",
+          "point_index": 1
+        },
+        {
+          "amplitude_ghz": 0.002,
+          "coherence": 0.993326563210737,
+          "source_run_id": "r20261004T123832058166Z-91ec481c",
+          "point_index": 2
+        }
+      ],
+      "additional_losses": [
+        0.0,
+        0.0008219132646752891,
+        0.0039446318552812665
+      ],
+      "proposal": "Ask for wider scope; do not extend the range."
+    }
+  ],
+  "unattempted": [
+    {
+      "ej_ghz": 15.0,
+      "stage": "tighter"
+    }
+  ],
+  "limits": [
+    "One crossing assumes decreasing coherence; only sampled amplitudes are checked.",
+    "Bracket width describes the RWA crossing; lab confirmation is separate.",
+    "Coarse/refined differences are convergence evidence, not an error bound.",
+    "No check bounds whole-window or accumulated RWA error."
+  ],
+  "investigation_id": "i20261004T123831245752Z-55bcdc3d",
+  "usage": {
+    "jobs": 41,
+    "evaluated_points": 34,
+    "job_seconds": 242.540054842073,
+    "gpu_seconds": 0.0,
+    "committed_job_seconds": 0.0,
+    "unsettled_jobs": 0,
+    "unbounded_jobs": 0
+  },
+  "elapsed_seconds": 266.685344,
+  "user_decisions_after_start": 0,
+  "outcome": "review_handoff",
+  "question": "Which amplitude adds endpoint-coherence loss 0.01 at 100 ns for each EJ? Establish RWA brackets of width 0.000125 GHz with lab-frame confirmation.",
+  "evidence_requirements": {
+    "requirements": [
+      "Seed integrity, diagnostics and sampled decreasing expectation.",
+      "Final RWA ends: integrity, segments, diagnostics; refined lab runs: integrity.",
+      "Lab confirmation at zero and both ends; target margins exceed observed refinement changes.",
+      "No crossing: propose wider scope; failed confirmation: retain best bracket and hand off.",
+      "After establishing every normal-width result, request RWA brackets of width 1.5625e-05 GHz in ascending EJ order; at the first failed lab confirmation, open a precision review and leave later tighter cases unattempted."
+    ],
+    "checks": {
+      "refined-12": [
+        "integrity"
+      ],
+      "refined-13_5": [
+        "integrity"
+      ],
+      "refined-15": [
+        "integrity"
+      ]
+    }
+  },
+  "provenance": {
+    "env_hash": "293787ba24fdcde06809255e21895ae686c77cae28ac0829c0a6555d53da96f6",
+    "code": {
+      "revision": "0e8f3b7a0a6efd7f074c27cf090f787a5eb8b393",
+      "dirty": true,
+      "patch_sha256": "7dd974ab7147fff5059793022bc773aa85b5d168f24f32f9eb0bedfc90fe635b",
+      "untracked_sha256": {}
+    }
+  },
+  "computation_seconds": 230.7727134731249,
+  "check_seconds": 11.76734136894811,
+  "time_outside_jobs_seconds": 24.14528915792698,
+  "assessments": 4,
+  "checks": [
+    {
+      "run_id": "r20261004T123836665171Z-227e0506",
+      "status": "completed",
+      "job_seconds": 0.8548737859819084,
+      "base": "rwa",
+      "revision": 1,
+      "sources": [
+        "r20261004T123832058166Z-91ec481c"
+      ],
+      "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
+      "checks": [
+        {
+          "name": "integrity",
+          "outcome": "pass",
+          "scope": "all retained points"
+        },
+        {
+          "name": "diagnostics",
+          "scope": "every retained point; quantities are descriptive only"
+        },
+        {
+          "name": "declared_expectation",
+          "outcome": "pass",
+          "scope": "all grid lines along the declared axis, ordered by its numeric value"
+        }
+      ]
+    },
+    {
+      "run_id": "r20261004T123843428071Z-709606a9",
+      "status": "completed",
+      "job_seconds": 0.8518270140048116,
+      "base": "rwa",
+      "revision": 1,
+      "sources": [
+        "r20261004T123840230037Z-219754fa"
+      ],
+      "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
+      "checks": [
+        {
+          "name": "integrity",
+          "outcome": "pass",
+          "scope": "every stored state and reported value"
+        },
+        {
+          "name": "segments",
+          "outcome": "pass",
+          "scope": "local convergence comparison in the source frame; inherits accumulated error"
+        },
+        {
+          "name": "diagnostics",
+          "scope": "top-level populations at stored times; ordered static shifts and weights, not dynamics error estimates"
+        }
+      ]
+    },
+    {
+      "run_id": "r20261004T123844420180Z-de193096",
+      "status": "completed",
+      "job_seconds": 0.822264623013325,
+      "base": "rwa",
+      "revision": 1,
+      "sources": [
+        "r20261004T123842134350Z-31deb0e1"
+      ],
+      "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
+      "checks": [
+        {
+          "name": "integrity",
+          "outcome": "pass",
+          "scope": "every stored state and reported value"
+        },
+        {
+          "name": "segments",
+          "outcome": "pass",
+          "scope": "local convergence comparison in the source frame; inherits accumulated error"
+        },
+        {
+          "name": "diagnostics",
+          "scope": "top-level populations at stored times; ordered static shifts and weights, not dynamics error estimates"
+        }
+      ]
+    },
+    {
+      "run_id": "r20261004T123907876862Z-87f19069",
+      "status": "completed",
+      "job_seconds": 0.7318398579955101,
+      "base": "refined-13_5",
+      "revision": 1,
+      "sources": [
+        "r20261004T123851995391Z-f5c72ce5"
+      ],
+      "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
+      "checks": [
+        {
+          "name": "integrity",
+          "outcome": "pass",
+          "scope": "every stored state and reported value"
+        }
+      ]
+    },
+    {
+      "run_id": "r20261004T123939424830Z-14a91f49",
+      "status": "completed",
+      "job_seconds": 0.745495488983579,
+      "base": "refined-13_5",
+      "revision": 1,
+      "sources": [
+        "r20261004T123917491997Z-6b3fe655"
+      ],
+      "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
+      "checks": [
+        {
+          "name": "integrity",
+          "outcome": "pass",
+          "scope": "every stored state and reported value"
+        }
+      ]
+    },
+    {
+      "run_id": "r20261004T124011604752Z-4b2233cb",
+      "status": "completed",
+      "job_seconds": 0.7196342290262692,
+      "base": "refined-13_5",
+      "revision": 1,
+      "sources": [
+        "r20261004T123949053538Z-41c0800e"
+      ],
+      "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
+      "checks": [
+        {
+          "name": "integrity",
+          "outcome": "pass",
+          "scope": "every stored state and reported value"
+        }
+      ]
+    },
+    {
+      "run_id": "r20261004T124018291287Z-f7fd5323",
+      "status": "completed",
+      "job_seconds": 0.8501174339908175,
+      "base": "rwa",
+      "revision": 1,
+      "sources": [
+        "r20261004T124017021263Z-f7767ffb"
+      ],
+      "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
+      "checks": [
+        {
+          "name": "integrity",
+          "outcome": "pass",
+          "scope": "every stored state and reported value"
+        },
+        {
+          "name": "segments",
+          "outcome": "pass",
+          "scope": "local convergence comparison in the source frame; inherits accumulated error"
+        },
+        {
+          "name": "diagnostics",
+          "scope": "top-level populations at stored times; ordered static shifts and weights, not dynamics error estimates"
+        }
+      ]
+    },
+    {
+      "run_id": "r20261004T124019488664Z-2b5baf9d",
+      "status": "completed",
+      "job_seconds": 0.8390245690243319,
+      "base": "rwa",
+      "revision": 1,
+      "sources": [
+        "r20261004T124013243010Z-ef639d94"
+      ],
+      "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
+      "checks": [
+        {
+          "name": "integrity",
+          "outcome": "pass",
+          "scope": "every stored state and reported value"
+        },
+        {
+          "name": "segments",
+          "outcome": "pass",
+          "scope": "local convergence comparison in the source frame; inherits accumulated error"
+        },
+        {
+          "name": "diagnostics",
+          "scope": "top-level populations at stored times; ordered static shifts and weights, not dynamics error estimates"
+        }
+      ]
+    },
+    {
+      "run_id": "r20261004T124044017672Z-37092ff7",
+      "status": "completed",
+      "job_seconds": 0.7453324829693884,
+      "base": "refined-15",
+      "revision": 1,
+      "sources": [
+        "r20261004T124027385687Z-c7514bdd"
+      ],
+      "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
+      "checks": [
+        {
+          "name": "integrity",
+          "outcome": "pass",
+          "scope": "every stored state and reported value"
+        }
+      ]
+    },
+    {
+      "run_id": "r20261004T124113760223Z-90bdfb42",
+      "status": "completed",
+      "job_seconds": 0.730901114991866,
+      "base": "refined-15",
+      "revision": 1,
+      "sources": [
+        "r20261004T124053034077Z-6663c4db"
+      ],
+      "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
+      "checks": [
+        {
+          "name": "integrity",
+          "outcome": "pass",
+          "scope": "every stored state and reported value"
+        }
+      ]
+    },
+    {
+      "run_id": "r20261004T124144156922Z-90ebd5f5",
+      "status": "completed",
+      "job_seconds": 0.7209866780322045,
+      "base": "refined-15",
+      "revision": 1,
+      "sources": [
+        "r20261004T124122869878Z-9c6e032d"
+      ],
+      "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
+      "checks": [
+        {
+          "name": "integrity",
+          "outcome": "pass",
+          "scope": "every stored state and reported value"
+        }
+      ]
+    },
+    {
+      "run_id": "r20261004T124151535668Z-7d642b9c",
+      "status": "completed",
+      "job_seconds": 0.8395190939772874,
+      "base": "rwa",
+      "revision": 1,
+      "sources": [
+        "r20261004T124150219738Z-01fbabb7"
+      ],
+      "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
+      "checks": [
+        {
+          "name": "integrity",
+          "outcome": "pass",
+          "scope": "every stored state and reported value"
+        },
+        {
+          "name": "segments",
+          "outcome": "pass",
+          "scope": "local convergence comparison in the source frame; inherits accumulated error"
+        },
+        {
+          "name": "diagnostics",
+          "scope": "top-level populations at stored times; ordered static shifts and weights, not dynamics error estimates"
+        }
+      ]
+    },
+    {
+      "run_id": "r20261004T124152567560Z-e99ccd58",
+      "status": "completed",
+      "job_seconds": 0.8319058720371686,
+      "base": "rwa",
+      "revision": 1,
+      "sources": [
+        "r20261004T124146269655Z-ea84fc0f"
+      ],
+      "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
+      "checks": [
+        {
+          "name": "integrity",
+          "outcome": "pass",
+          "scope": "every stored state and reported value"
+        },
+        {
+          "name": "segments",
+          "outcome": "pass",
+          "scope": "local convergence comparison in the source frame; inherits accumulated error"
+        },
+        {
+          "name": "diagnostics",
+          "scope": "top-level populations at stored times; ordered static shifts and weights, not dynamics error estimates"
+        }
+      ]
+    },
+    {
+      "run_id": "r20261004T124224640300Z-ea2a5a1a",
+      "status": "completed",
+      "job_seconds": 0.7303975749528036,
+      "base": "refined-13_5",
+      "revision": 1,
+      "sources": [
+        "r20261004T124202189997Z-cef5e6b3"
+      ],
+      "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
+      "checks": [
+        {
+          "name": "integrity",
+          "outcome": "pass",
+          "scope": "every stored state and reported value"
+        }
+      ]
+    },
+    {
+      "run_id": "r20261004T124257141510Z-0bac5eb9",
+      "status": "completed",
+      "job_seconds": 0.7532215499668382,
+      "base": "refined-13_5",
+      "revision": 1,
+      "sources": [
+        "r20261004T124234135051Z-5e64181c"
+      ],
+      "policy_version": "b0e0823e38c7f11e394f9002f887d6d1a6c13530ed20497b05808280431a4260",
+      "checks": [
+        {
+          "name": "integrity",
+          "outcome": "pass",
+          "scope": "every stored state and reported value"
+        }
+      ]
+    }
+  ],
+  "computations": [
+    {
+      "run_id": "r20261004T123832058166Z-91ec481c",
+      "status": "completed",
+      "job_seconds": 4.370793127978686,
+      "base": "rwa",
+      "revision": 1,
+      "protocol": "sweep",
+      "values": {},
+      "metrics": {
+        "coherence": [
+          [
+            0.9972711950660182,
+            0.996449281801343,
+            0.993326563210737
+          ],
+          [
+            0.9956350928868742,
+            0.9916079011592847,
+            0.9838385701820759
+          ],
+          [
+            0.9938897829198705,
+            0.9884011658641786,
+            0.9766143119146952
+          ]
+        ]
+      }
+    },
+    {
+      "run_id": "r20261004T123838291786Z-b4a6df32",
+      "status": "completed",
+      "job_seconds": 1.1875681970268488,
+      "base": "rwa",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.0015,
+        "parameters.EJ": 13.5,
+        "evolution.carriers.readout.frequency_ghz": 7.002206406997239,
+        "evolution.frame.frequencies_ghz.q": 7.002206406997239,
+        "evolution.frame.frequencies_ghz.r": 7.002206406997239
+      },
+      "metrics": {
+        "coherence": 0.9881903623787446
+      }
+    },
+    {
+      "run_id": "r20261004T123840230037Z-219754fa",
+      "status": "completed",
+      "job_seconds": 1.1601550240302458,
+      "base": "rwa",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.00175,
+        "parameters.EJ": 13.5,
+        "evolution.carriers.readout.frequency_ghz": 7.002206406997239,
+        "evolution.frame.frequencies_ghz.q": 7.002206406997239,
+        "evolution.frame.frequencies_ghz.r": 7.002206406997239
+      },
+      "metrics": {
+        "coherence": 0.9861309331027577
+      }
+    },
+    {
+      "run_id": "r20261004T123842134350Z-31deb0e1",
+      "status": "completed",
+      "job_seconds": 1.1674452409497462,
+      "base": "rwa",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.001875,
+        "parameters.EJ": 13.5,
+        "evolution.carriers.readout.frequency_ghz": 7.002206406997239,
+        "evolution.frame.frequencies_ghz.q": 7.002206406997239,
+        "evolution.frame.frequencies_ghz.r": 7.002206406997239
+      },
+      "metrics": {
+        "coherence": 0.9850138122627116
+      }
+    },
+    {
+      "run_id": "r20261004T123845974084Z-7de9f449",
+      "status": "completed",
+      "job_seconds": 5.2733650029986165,
+      "base": "lab",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.0,
+        "parameters.EJ": 13.5,
+        "evolution.carriers.readout.frequency_ghz": 7.002206406997239
+      },
+      "metrics": {
+        "coherence": 0.9953883982962349
+      }
+    },
+    {
+      "run_id": "r20261004T123851995391Z-f5c72ce5",
+      "status": "completed",
+      "job_seconds": 15.690938371990342,
+      "base": "refined-13_5",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.0
+      },
+      "metrics": {
+        "coherence": 0.9953883687966544
+      }
+    },
+    {
+      "run_id": "r20261004T123909515518Z-72c25542",
+      "status": "completed",
+      "job_seconds": 7.16336174798198,
+      "base": "lab",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.00175,
+        "parameters.EJ": 13.5,
+        "evolution.carriers.readout.frequency_ghz": 7.002206406997239
+      },
+      "metrics": {
+        "coherence": 0.9857895899003107
+      }
+    },
+    {
+      "run_id": "r20261004T123917491997Z-6b3fe655",
+      "status": "completed",
+      "job_seconds": 21.721872213995084,
+      "base": "refined-13_5",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.00175
+      },
+      "metrics": {
+        "coherence": 0.9857893917891621
+      }
+    },
+    {
+      "run_id": "r20261004T123940915818Z-148c17a8",
+      "status": "completed",
+      "job_seconds": 7.391478830948472,
+      "base": "lab",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.001875,
+        "parameters.EJ": 13.5,
+        "evolution.carriers.readout.frequency_ghz": 7.002206406997239
+      },
+      "metrics": {
+        "coherence": 0.9846935588768568
+      }
+    },
+    {
+      "run_id": "r20261004T123949053538Z-41c0800e",
+      "status": "completed",
+      "job_seconds": 22.412368626042735,
+      "base": "refined-13_5",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.001875
+      },
+      "metrics": {
+        "coherence": 0.9846932870845303
+      }
+    },
+    {
+      "run_id": "r20261004T124013243010Z-ef639d94",
+      "status": "completed",
+      "job_seconds": 1.1305292639881372,
+      "base": "rwa",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.0015,
+        "parameters.EJ": 15.0,
+        "evolution.carriers.readout.frequency_ghz": 7.002760675881172,
+        "evolution.frame.frequencies_ghz.q": 7.002760675881172,
+        "evolution.frame.frequencies_ghz.r": 7.002760675881172
+      },
+      "metrics": {
+        "coherence": 0.9832934516250205
+      }
+    },
+    {
+      "run_id": "r20261004T124015142267Z-058f1823",
+      "status": "completed",
+      "job_seconds": 1.1095428700209595,
+      "base": "rwa",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.00125,
+        "parameters.EJ": 15.0,
+        "evolution.carriers.readout.frequency_ghz": 7.002760675881172,
+        "evolution.frame.frequencies_ghz.q": 7.002760675881172,
+        "evolution.frame.frequencies_ghz.r": 7.002760675881172
+      },
+      "metrics": {
+        "coherence": 0.9860443044599069
+      }
+    },
+    {
+      "run_id": "r20261004T124017021263Z-f7767ffb",
+      "status": "completed",
+      "job_seconds": 1.115663338045124,
+      "base": "rwa",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.001375,
+        "parameters.EJ": 15.0,
+        "evolution.carriers.readout.frequency_ghz": 7.002760675881172,
+        "evolution.frame.frequencies_ghz.q": 7.002760675881172,
+        "evolution.frame.frequencies_ghz.r": 7.002760675881172
+      },
+      "metrics": {
+        "coherence": 0.984718080156232
+      }
+    },
+    {
+      "run_id": "r20261004T124021088349Z-b64478d8",
+      "status": "completed",
+      "job_seconds": 5.511372319015209,
+      "base": "lab",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.0,
+        "parameters.EJ": 15.0,
+        "evolution.carriers.readout.frequency_ghz": 7.002760675881172
+      },
+      "metrics": {
+        "coherence": 0.9941557609380876
+      }
+    },
+    {
+      "run_id": "r20261004T124027385687Z-c7514bdd",
+      "status": "completed",
+      "job_seconds": 16.4562923249905,
+      "base": "refined-15",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.0
+      },
+      "metrics": {
+        "coherence": 0.9941555704817382
+      }
+    },
+    {
+      "run_id": "r20261004T124045523020Z-cad10a20",
+      "status": "completed",
+      "job_seconds": 6.770947895012796,
+      "base": "lab",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.001375,
+        "parameters.EJ": 15.0,
+        "evolution.carriers.readout.frequency_ghz": 7.002760675881172
+      },
+      "metrics": {
+        "coherence": 0.9849329916975901
+      }
+    },
+    {
+      "run_id": "r20261004T124053034077Z-6663c4db",
+      "status": "completed",
+      "job_seconds": 20.57719745702343,
+      "base": "refined-15",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.001375
+      },
+      "metrics": {
+        "coherence": 0.9849328806225055
+      }
+    },
+    {
+      "run_id": "r20261004T124115240280Z-3ba92978",
+      "status": "completed",
+      "job_seconds": 6.856751230021473,
+      "base": "lab",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.0015,
+        "parameters.EJ": 15.0,
+        "evolution.carriers.readout.frequency_ghz": 7.002760675881172
+      },
+      "metrics": {
+        "coherence": 0.9835318225733475
+      }
+    },
+    {
+      "run_id": "r20261004T124122869878Z-9c6e032d",
+      "status": "completed",
+      "job_seconds": 21.137052378966473,
+      "base": "refined-15",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.0015
+      },
+      "metrics": {
+        "coherence": 0.9835317113361379
+      }
+    },
+    {
+      "run_id": "r20261004T124146269655Z-ea84fc0f",
+      "status": "completed",
+      "job_seconds": 1.178211366001051,
+      "base": "rwa",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.0018124999999999999,
+        "parameters.EJ": 13.5,
+        "evolution.carriers.readout.frequency_ghz": 7.002206406997239,
+        "evolution.frame.frequencies_ghz.q": 7.002206406997239,
+        "evolution.frame.frequencies_ghz.r": 7.002206406997239
+      },
+      "metrics": {
+        "coherence": 0.985579645670182
+      }
+    },
+    {
+      "run_id": "r20261004T124148232647Z-0c3d7bbb",
+      "status": "completed",
+      "job_seconds": 1.1826025340124033,
+      "base": "rwa",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.0017812499999999998,
+        "parameters.EJ": 13.5,
+        "evolution.carriers.readout.frequency_ghz": 7.002206406997239,
+        "evolution.frame.frequencies_ghz.q": 7.002206406997239,
+        "evolution.frame.frequencies_ghz.r": 7.002206406997239
+      },
+      "metrics": {
+        "coherence": 0.9858571085389876
+      }
+    },
+    {
+      "run_id": "r20261004T124150219738Z-01fbabb7",
+      "status": "completed",
+      "job_seconds": 1.1547129890532233,
+      "base": "rwa",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.0017968749999999999,
+        "parameters.EJ": 13.5,
+        "evolution.carriers.readout.frequency_ghz": 7.002206406997239,
+        "evolution.frame.frequencies_ghz.q": 7.002206406997239,
+        "evolution.frame.frequencies_ghz.r": 7.002206406997239
+      },
+      "metrics": {
+        "coherence": 0.9857188317818586
+      }
+    },
+    {
+      "run_id": "r20261004T124154170059Z-9d9d5557",
+      "status": "completed",
+      "job_seconds": 7.229446141049266,
+      "base": "lab",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.0017968749999999999,
+        "parameters.EJ": 13.5,
+        "evolution.carriers.readout.frequency_ghz": 7.002206406997239
+      },
+      "metrics": {
+        "coherence": 0.9853849716047819
+      }
+    },
+    {
+      "run_id": "r20261004T124202189997Z-cef5e6b3",
+      "status": "completed",
+      "job_seconds": 22.28874818002805,
+      "base": "refined-13_5",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.0017968749999999999
+      },
+      "metrics": {
+        "coherence": 0.9853847495773226
+      }
+    },
+    {
+      "run_id": "r20261004T124226158056Z-e6754405",
+      "status": "completed",
+      "job_seconds": 7.191017351986375,
+      "base": "lab",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.0018124999999999999,
+        "parameters.EJ": 13.5,
+        "evolution.carriers.readout.frequency_ghz": 7.002206406997239
+      },
+      "metrics": {
+        "coherence": 0.9852483934657249
+      }
+    },
+    {
+      "run_id": "r20261004T124234135051Z-5e64181c",
+      "status": "completed",
+      "job_seconds": 22.343279449967667,
+      "base": "refined-13_5",
+      "revision": 1,
+      "protocol": "simulate",
+      "values": {
+        "evolution.drive_amplitudes_ghz.readout": 0.0018124999999999999
+      },
+      "metrics": {
+        "coherence": 0.9852481625487365
+      }
+    }
+  ],
+  "client_sha256": "aebe6d9d9452397be83792692b42cc77803bd565ab8b2da8b20417727f4824ad",
+  "driver_sha256": "fe52a14c19ec047ce019ced812700170957b3131f84f26180c4869dbe58a3a54",
+  "source_sha256": {
+    "src/entanglix/__init__.py": "d77804ece126364195813d429a120f0a8ddd7b98a83d3c9993c4eef566476fc8",
+    "src/entanglix/__main__.py": "59d02666708d36aa051f55b0cae80c3afc6069bdaa07beac86785363d27e66bb",
+    "src/entanglix/_script_job.py": "1fb14eda7b64873ea95309f5643402eacb5208c21fd1bcc1f6d4b4f5a8de38a4",
+    "src/entanglix/cli.py": "11158e383234bd5bbb1854ea708707b3402e159c9fc875e29a3b5f4ec080d04c",
+    "src/entanglix/corrector/__init__.py": "e42f075942ec92252272e278a07ab589cf3b725432c3afaf00bdc3ec07289ced",
+    "src/entanglix/corrector/_job.py": "03ede891278ae5696d67d87b0067da5336d64947f7dd3a47276a3bd207624ba9",
+    "src/entanglix/corrector/checks.py": "e9d1cccfa6a952824843b80a77e701bc0298e23ceb8813d6a4bdf11061a3d5cc",
+    "src/entanglix/corrector/dynamics.py": "f39007cf9ccf9bf833f8fc12d7205104b6ce904139e90d89208cf5567e52e3f6",
+    "src/entanglix/corrector/metrics.py": "ee25e25c6762f18e849013643f5be97c83a4fe3b512980a1fda8ee494df71393",
+    "src/entanglix/corrector/reference.py": "b744e3e9f20f0db0daee87ea81050917c2bb845bf3845464455a86515510a8cb",
+    "src/entanglix/corrector/sweeps.py": "9ba0b7501c7ae1b71916ea26649cb9b232cb72c2dc0ae4276337d7c4069f3d2d",
+    "src/entanglix/corrector/verification.py": "76f02a9fe5013b464ade044c8e860bf6adcb646183da4db203e6f612f4a956b8",
+    "src/entanglix/engines/__init__.py": "384d79114ef6ed775dd8b26aafdec353ba4c9e8f1e1cbc2682b5adb7904e90bf",
+    "src/entanglix/engines/cudensitymat.py": "ff8f2ae493e6e8d53cf9af27dae335044cdc0efd3c4e19885d87678b82995597",
+    "src/entanglix/engines/dynamiqs_jax.py": "1f07e91a92ea9097ab95e4b92265e61718e5a8d80e203e682ca05248361a448c",
+    "src/entanglix/engines/frames.py": "048228cf3d6577628676aa6c03ed62c03b715d27a6f5414f4b3b21a19d757ade",
+    "src/entanglix/engines/qutip_cpu.py": "9949ac309a7246edf2c3710d7a8497e76aa45a7d778c97bc33f356e186f849ee",
+    "src/entanglix/engines/selection.py": "a022d68c8e7920d2e4e655675fe233f585273315f827dbc28fd8fa4439fdf6b3",
+    "src/entanglix/evolution.py": "6999daea4956e205109c251eeb6a1cdcae6a5bbee437aad0d6b3ca27e38d9611",
+    "src/entanglix/imports.py": "0dc3784cd6f5d462be1bf71b594790ec02c2cba481accd411d13c77f53b2eaef",
+    "src/entanglix/investigations.py": "b335b9eb952adc16323b45e84e77808d5f236e7d3e1da00d78389de70cf0bb23",
+    "src/entanglix/models.py": "c67adcf1a53521ac742e63bb74051cf649a1a613dc55853a025710220b3a9b57",
+    "src/entanglix/protocols/__init__.py": "953c69547412c1537f2d0ece6e148b9c484e5efd3acb1a3dec6d7ca5601b0e7c",
+    "src/entanglix/protocols/_plan_job.py": "62450d22f91201cacb7dced98d845cfa1e2f570f7f4ccab61fd918aa51e4ae2e",
+    "src/entanglix/protocols/_simulate_job.py": "4ad4c75650aed3239ea9af8572803c0da20c0d26bd8a107cbb47952a3d44c939",
+    "src/entanglix/protocols/_sweep_job.py": "3dcedcbc7de6c91a30b8d7e988fe8202ca24e14df39a9ee38d301e8dfa69b890",
+    "src/entanglix/protocols/plans.py": "8b40a27342ac776495993999bac1f0e13c81b56c0d4747b853a1022408dd0ca5",
+    "src/entanglix/protocols/simulate.py": "8ea392cd95663d737736c2509286ccda36715f3d145418e0f0ff59b9acad70f5",
+    "src/entanglix/protocols/sweep.py": "68c3dbe38bd300a74ca19cf438ce3df6413dff35f1b0270431361ed2dfac8ce1",
+    "src/entanglix/runner.py": "d613b35d336f70d7e9a266db4fc7c9dd0bb617ed817874f9361595a199be1d46"
+  }
+}

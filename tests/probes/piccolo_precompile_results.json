@@ -1,0 +1,458 @@
+{
+  "measured_at": "2026-10-19T06:34:06.676141+00:00",
+  "source_revision": "399a983954b7909b40f8ff2d4e8434762a859eeb",
+  "source_sha256": {
+    "src/entanglix/solvers/julia/Manifest.toml": "65f2d3b59d3f3dc49d019421b9f81c2a180b071eb4197c949d5e0d09756f508c",
+    "src/entanglix/solvers/julia/Project.toml": "3a815a3ba7b07b58c3a50c0627d20dce884fa9c00d77c0cbcd7b2e84453fec55"
+  },
+  "script_sha256": "3d4f4986b4182a4c0b0c79361d92dd51d951c6486b1fe56f563ce0a20314cac8",
+  "julia": "/home/paimon/.julia/juliaup/julia-1.13.0+0.x64.linux.gnu/bin/julia",
+  "environment": {
+    "JULIA_PKG_OFFLINE": "true",
+    "JULIA_PKG_PRECOMPILE_AUTO": "0",
+    "JULIA_NUM_THREADS": "1",
+    "JULIA_NUM_PRECOMPILE_TASKS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "CUDA_VISIBLE_DEVICES": "",
+    "JULIA_DEPOT_PATH": "/home/paimon/Projects/entanglix-research/piccolo-precompile/depot:/home/paimon/.julia:"
+  },
+  "inputs": {
+    "c60": {
+      "path": "/home/paimon/Projects/entanglix-research/piccolo-precompile/inputs/c60/problem.toml",
+      "sha256": "716bdda08b61e182e4cea833a69282136bbb558ab36d492c042042a016daa3fa"
+    },
+    "c30": {
+      "path": "/home/paimon/Projects/entanglix-research/piccolo-precompile/inputs/c30/problem.toml",
+      "sha256": "bfe1b127940cee362aedb61a07cc4e0ea832dab06ce0d6b7376babf09cd30125"
+    },
+    "c60-40": {
+      "path": "/home/paimon/Projects/entanglix-research/piccolo-precompile/inputs/c60-40/problem.toml",
+      "sha256": "3faab077b5ea4749db51172df354a6d9333405d9c42a87d4ed523b1852f31774"
+    }
+  },
+  "workload": {
+    "intervals": 4,
+    "max_iter": 2,
+    "path": "/home/paimon/Projects/entanglix-research/piccolo-precompile/PiccoloWorkload"
+  },
+  "summary_script_sha256": "16b1be4f507b0018f614746709c1305416c60e42eacdf069147211b1cfdd2a51",
+  "measurement_driver": "/home/paimon/Projects/entanglix-research/piccolo-precompile/measurement-driver.py",
+  "workspace": "/home/paimon/Projects/entanglix-research/piccolo-precompile",
+  "setup": {
+    "command": [
+      "/home/paimon/.julia/juliaup/julia-1.13.0+0.x64.linux.gnu/bin/julia",
+      "--startup-file=no",
+      "--project=/home/paimon/Projects/entanglix-research/piccolo-precompile/project-workload",
+      "-e",
+      "using Pkg; Pkg.develop(path=\"/home/paimon/Projects/entanglix-research/piccolo-precompile/PiccoloWorkload\")"
+    ],
+    "exit_code": 0,
+    "process_seconds": 2.5787890609935857,
+    "events": [],
+    "log": "/home/paimon/Projects/entanglix-research/piccolo-precompile/develop.log",
+    "error": null,
+    "precompile": {
+      "command": [
+        "/home/paimon/.julia/juliaup/julia-1.13.0+0.x64.linux.gnu/bin/julia",
+        "--startup-file=no",
+        "--project=/home/paimon/Projects/entanglix-research/piccolo-precompile/project-workload",
+        "-e",
+        "using Pkg; Pkg.precompile(\"PiccoloWorkload\")"
+      ],
+      "exit_code": 0,
+      "process_seconds": 15.057868375966791,
+      "events": [],
+      "log": "/home/paimon/Projects/entanglix-research/piccolo-precompile/precompile.log",
+      "error": null
+    },
+    "cache_bytes": 23843653
+  },
+  "measurements": [
+    {
+      "command": [
+        "/home/paimon/.julia/juliaup/julia-1.13.0+0.x64.linux.gnu/bin/julia",
+        "--startup-file=no",
+        "--project=/home/paimon/Projects/entanglix-research/piccolo-precompile/project-baseline",
+        "/home/paimon/Projects/entanglix-research/piccolo-precompile/project-baseline/entry.jl",
+        "/home/paimon/Projects/entanglix-research/piccolo-precompile/inputs/c30/problem.toml",
+        "/home/paimon/Projects/entanglix-research/piccolo-precompile/runs/c30-baseline",
+        "/home/paimon/Projects/entanglix-research/piccolo-precompile/options.toml"
+      ],
+      "exit_code": 0,
+      "process_seconds": 44.20435095200082,
+      "log": "/home/paimon/Projects/entanglix-research/piccolo-precompile/c30-baseline.log",
+      "error": null,
+      "case": "c30",
+      "arm": "baseline",
+      "output": "/home/paimon/Projects/entanglix-research/piccolo-precompile/runs/c30-baseline",
+      "runtime": {
+        "stage": "runtime",
+        "julia": "1.13.0",
+        "piccolo": "2.1.0",
+        "julia_threads": "1",
+        "blas_threads": "1",
+        "received_seconds": 3.9692819750052877
+      },
+      "solves": [
+        {
+          "repetition": 1,
+          "solve_seconds": 23.574828302,
+          "compilation_seconds": 8.676385729,
+          "export_seconds": 1.301392034,
+          "export_compilation_seconds": 1.29878673,
+          "first_iteration_seconds": 3.0031641839887016,
+          "later_iteration_median_seconds": 0.11204590700799599,
+          "fidelity": 0.9999999941817463,
+          "iterations": 100,
+          "converged": false
+        },
+        {
+          "repetition": 2,
+          "solve_seconds": 14.99036168,
+          "compilation_seconds": 0.0,
+          "export_seconds": 0.000532209,
+          "export_compilation_seconds": 0.0,
+          "first_iteration_seconds": 0.1599915400147438,
+          "later_iteration_median_seconds": 0.11655690497718751,
+          "fidelity": 0.9999999941817463,
+          "iterations": 100,
+          "converged": false
+        }
+      ],
+      "first_complete_job_seconds": 29.138336681993678,
+      "cold_minus_warm_seconds": 14.14744279299368
+    },
+    {
+      "command": [
+        "/home/paimon/.julia/juliaup/julia-1.13.0+0.x64.linux.gnu/bin/julia",
+        "--startup-file=no",
+        "--project=/home/paimon/Projects/entanglix-research/piccolo-precompile/project-workload",
+        "/home/paimon/Projects/entanglix-research/piccolo-precompile/project-workload/entry.jl",
+        "/home/paimon/Projects/entanglix-research/piccolo-precompile/inputs/c30/problem.toml",
+        "/home/paimon/Projects/entanglix-research/piccolo-precompile/runs/c30-workload",
+        "/home/paimon/Projects/entanglix-research/piccolo-precompile/options.toml"
+      ],
+      "exit_code": 0,
+      "process_seconds": 36.27703711600043,
+      "log": "/home/paimon/Projects/entanglix-research/piccolo-precompile/c30-workload.log",
+      "error": null,
+      "case": "c30",
+      "arm": "workload",
+      "output": "/home/paimon/Projects/entanglix-research/piccolo-precompile/runs/c30-workload",
+      "runtime": {
+        "stage": "runtime",
+        "julia": "1.13.0",
+        "piccolo": "2.1.0",
+        "julia_threads": "1",
+        "blas_threads": "1",
+        "received_seconds": 3.912706352013629
+      },
+      "solves": [
+        {
+          "repetition": 1,
+          "solve_seconds": 16.944711132,
+          "compilation_seconds": 1.481365532,
+          "export_seconds": 0.16019323,
+          "export_compilation_seconds": 0.158068596,
+          "first_iteration_seconds": 0.5279283919953741,
+          "later_iteration_median_seconds": 0.10759028798202053,
+          "fidelity": 0.9999999941817463,
+          "iterations": 100,
+          "converged": false
+        },
+        {
+          "repetition": 2,
+          "solve_seconds": 15.130752735,
+          "compilation_seconds": 0.0,
+          "export_seconds": 0.000648248,
+          "export_compilation_seconds": 0.0,
+          "first_iteration_seconds": 0.044250214006751776,
+          "later_iteration_median_seconds": 0.10725912201451138,
+          "fidelity": 0.9999999941817463,
+          "iterations": 100,
+          "converged": false
+        }
+      ],
+      "first_complete_job_seconds": 21.072404908016324,
+      "cold_minus_warm_seconds": 5.941003925016324
+    },
+    {
+      "command": [
+        "/home/paimon/.julia/juliaup/julia-1.13.0+0.x64.linux.gnu/bin/julia",
+        "--startup-file=no",
+        "--project=/home/paimon/Projects/entanglix-research/piccolo-precompile/project-baseline",
+        "/home/paimon/Projects/entanglix-research/piccolo-precompile/project-baseline/entry.jl",
+        "/home/paimon/Projects/entanglix-research/piccolo-precompile/inputs/c60-40/problem.toml",
+        "/home/paimon/Projects/entanglix-research/piccolo-precompile/runs/c60-40-baseline",
+        "/home/paimon/Projects/entanglix-research/piccolo-precompile/options.toml"
+      ],
+      "exit_code": 0,
+      "process_seconds": 55.12834551098058,
+      "log": "/home/paimon/Projects/entanglix-research/piccolo-precompile/c60-40-baseline.log",
+      "error": null,
+      "case": "c60-40",
+      "arm": "baseline",
+      "output": "/home/paimon/Projects/entanglix-research/piccolo-precompile/runs/c60-40-baseline",
+      "runtime": {
+        "stage": "runtime",
+        "julia": "1.13.0",
+        "piccolo": "2.1.0",
+        "julia_threads": "1",
+        "blas_threads": "1",
+        "received_seconds": 3.933639948023483
+      },
+      "solves": [
+        {
+          "repetition": 1,
+          "solve_seconds": 29.187822072,
+          "compilation_seconds": 8.786861679,
+          "export_seconds": 1.264204137,
+          "export_compilation_seconds": 1.26163445,
+          "first_iteration_seconds": 3.144016150967218,
+          "later_iteration_median_seconds": 0.15916785597801208,
+          "fidelity": 0.999999999642566,
+          "iterations": 100,
+          "converged": false
+        },
+        {
+          "repetition": 2,
+          "solve_seconds": 20.38190216,
+          "compilation_seconds": 0.0,
+          "export_seconds": 0.00051653,
+          "export_compilation_seconds": 0.0,
+          "first_iteration_seconds": 0.21539717499399558,
+          "later_iteration_median_seconds": 0.16243225696962327,
+          "fidelity": 0.999999999642566,
+          "iterations": 100,
+          "converged": false
+        }
+      ],
+      "first_complete_job_seconds": 34.67286900698673,
+      "cold_minus_warm_seconds": 14.29045031698673
+    },
+    {
+      "command": [
+        "/home/paimon/.julia/juliaup/julia-1.13.0+0.x64.linux.gnu/bin/julia",
+        "--startup-file=no",
+        "--project=/home/paimon/Projects/entanglix-research/piccolo-precompile/project-workload",
+        "/home/paimon/Projects/entanglix-research/piccolo-precompile/project-workload/entry.jl",
+        "/home/paimon/Projects/entanglix-research/piccolo-precompile/inputs/c60-40/problem.toml",
+        "/home/paimon/Projects/entanglix-research/piccolo-precompile/runs/c60-40-workload",
+        "/home/paimon/Projects/entanglix-research/piccolo-precompile/options.toml"
+      ],
+      "exit_code": 0,
+      "process_seconds": 47.528030271001626,
+      "log": "/home/paimon/Projects/entanglix-research/piccolo-precompile/c60-40-workload.log",
+      "error": null,
+      "case": "c60-40",
+      "arm": "workload",
+      "output": "/home/paimon/Projects/entanglix-research/piccolo-precompile/runs/c60-40-workload",
+      "runtime": {
+        "stage": "runtime",
+        "julia": "1.13.0",
+        "piccolo": "2.1.0",
+        "julia_threads": "1",
+        "blas_threads": "1",
+        "received_seconds": 3.980294274049811
+      },
+      "solves": [
+        {
+          "repetition": 1,
+          "solve_seconds": 22.500685713,
+          "compilation_seconds": 1.439958598,
+          "export_seconds": 0.144661288,
+          "export_compilation_seconds": 0.142554015,
+          "first_iteration_seconds": 0.6057587950490415,
+          "later_iteration_median_seconds": 0.15700724098132923,
+          "fidelity": 0.999999999642566,
+          "iterations": 100,
+          "converged": false
+        },
+        {
+          "repetition": 2,
+          "solve_seconds": 20.772438763,
+          "compilation_seconds": 0.0,
+          "export_seconds": 0.00065285,
+          "export_compilation_seconds": 0.0,
+          "first_iteration_seconds": 0.08393042301759124,
+          "later_iteration_median_seconds": 0.15617896703770384,
+          "fidelity": 0.999999999642566,
+          "iterations": 100,
+          "converged": false
+        }
+      ],
+      "first_complete_job_seconds": 26.682156527007464,
+      "cold_minus_warm_seconds": 5.909064914007464
+    },
+    {
+      "command": [
+        "/home/paimon/.julia/juliaup/julia-1.13.0+0.x64.linux.gnu/bin/julia",
+        "--startup-file=no",
+        "--project=/home/paimon/Projects/entanglix-research/piccolo-precompile/project-baseline",
+        "/home/paimon/Projects/entanglix-research/piccolo-precompile/project-baseline/entry.jl",
+        "/home/paimon/Projects/entanglix-research/piccolo-precompile/inputs/c60/problem.toml",
+        "/home/paimon/Projects/entanglix-research/piccolo-precompile/runs/c60-baseline",
+        "/home/paimon/Projects/entanglix-research/piccolo-precompile/options.toml"
+      ],
+      "exit_code": 0,
+      "process_seconds": 40.336285530996975,
+      "log": "/home/paimon/Projects/entanglix-research/piccolo-precompile/c60-baseline.log",
+      "error": null,
+      "case": "c60",
+      "arm": "baseline",
+      "output": "/home/paimon/Projects/entanglix-research/piccolo-precompile/runs/c60-baseline",
+      "runtime": {
+        "stage": "runtime",
+        "julia": "1.13.0",
+        "piccolo": "2.1.0",
+        "julia_threads": "1",
+        "blas_threads": "1",
+        "received_seconds": 4.067256503039971
+      },
+      "solves": [
+        {
+          "repetition": 1,
+          "solve_seconds": 21.821634547,
+          "compilation_seconds": 8.952757584,
+          "export_seconds": 1.31763108,
+          "export_compilation_seconds": 1.315062147,
+          "first_iteration_seconds": 3.1513931740191765,
+          "later_iteration_median_seconds": 0.0979896790231578,
+          "fidelity": 0.9999999921909182,
+          "iterations": 100,
+          "converged": false
+        },
+        {
+          "repetition": 2,
+          "solve_seconds": 12.755242306,
+          "compilation_seconds": 0.0,
+          "export_seconds": 0.000560328,
+          "export_compilation_seconds": 0.0,
+          "first_iteration_seconds": 0.032244199013803154,
+          "later_iteration_median_seconds": 0.10365706402808428,
+          "fidelity": 0.9999999921909182,
+          "iterations": 100,
+          "converged": false
+        }
+      ],
+      "first_complete_job_seconds": 27.50416353403125,
+      "cold_minus_warm_seconds": 14.74836090003125
+    },
+    {
+      "command": [
+        "/home/paimon/.julia/juliaup/julia-1.13.0+0.x64.linux.gnu/bin/julia",
+        "--startup-file=no",
+        "--project=/home/paimon/Projects/entanglix-research/piccolo-precompile/project-workload",
+        "/home/paimon/Projects/entanglix-research/piccolo-precompile/project-workload/entry.jl",
+        "/home/paimon/Projects/entanglix-research/piccolo-precompile/inputs/c60/problem.toml",
+        "/home/paimon/Projects/entanglix-research/piccolo-precompile/runs/c60-workload",
+        "/home/paimon/Projects/entanglix-research/piccolo-precompile/options.toml"
+      ],
+      "exit_code": 0,
+      "process_seconds": 32.31453793600667,
+      "log": "/home/paimon/Projects/entanglix-research/piccolo-precompile/c60-workload.log",
+      "error": null,
+      "case": "c60",
+      "arm": "workload",
+      "output": "/home/paimon/Projects/entanglix-research/piccolo-precompile/runs/c60-workload",
+      "runtime": {
+        "stage": "runtime",
+        "julia": "1.13.0",
+        "piccolo": "2.1.0",
+        "julia_threads": "1",
+        "blas_threads": "1",
+        "received_seconds": 3.9607291830470785
+      },
+      "solves": [
+        {
+          "repetition": 1,
+          "solve_seconds": 14.938022699,
+          "compilation_seconds": 1.538462839,
+          "export_seconds": 0.148352299,
+          "export_compilation_seconds": 0.146219083,
+          "first_iteration_seconds": 0.5489267579978332,
+          "later_iteration_median_seconds": 0.08986659796210006,
+          "fidelity": 0.9999999921909182,
+          "iterations": 100,
+          "converged": false
+        },
+        {
+          "repetition": 2,
+          "solve_seconds": 13.143211454,
+          "compilation_seconds": 0.0,
+          "export_seconds": 0.000671657,
+          "export_compilation_seconds": 0.0,
+          "first_iteration_seconds": 0.04225206497358158,
+          "later_iteration_median_seconds": 0.09146290901117027,
+          "fidelity": 0.9999999921909182,
+          "iterations": 100,
+          "converged": false
+        }
+      ],
+      "first_complete_job_seconds": 19.10346151702106,
+      "cold_minus_warm_seconds": 5.959578406021061
+    }
+  ],
+  "comparisons": {
+    "c60": {
+      "fidelity_difference": 0.0,
+      "iterations_identical": true,
+      "converged_identical": true,
+      "first_complete_job_saving_seconds": 8.40070201701019
+    },
+    "c30": {
+      "fidelity_difference": 0.0,
+      "iterations_identical": true,
+      "converged_identical": true,
+      "first_complete_job_saving_seconds": 8.065931773977354
+    },
+    "c60-40": {
+      "fidelity_difference": 0.0,
+      "iterations_identical": true,
+      "converged_identical": true,
+      "first_complete_job_saving_seconds": 7.9907124799792655
+    }
+  },
+  "project_differences": {
+    "Project.toml": "--- pinned/Project.toml\n+++ workload/Project.toml\n@@ -1,6 +1,10 @@\n [deps]\n Piccolo = \"c4671d76-df94-11ed-2057-43d4fd632fad\"\n+PiccoloWorkload = \"c5ea4195-1d32-4dfa-a277-61dc1a1c59bc\"\n TOML = \"fa267f1f-6049-4f14-aa54-33bafae1ed76\"\n+\n+[sources]\n+PiccoloWorkload = {path = \"/home/paimon/Projects/entanglix-research/piccolo-precompile/PiccoloWorkload\"}\n \n [compat]\n Piccolo = \"=2.1.0\"\n",
+    "Manifest.toml": "--- pinned/Manifest.toml\n+++ workload/Manifest.toml\n@@ -2,7 +2,7 @@\n \n julia_version = \"1.13.0\"\n manifest_format = \"2.1\"\n-project_hash = \"d127498b7a1a64b5c6904647f3dbbb075fc95d09\"\n+project_hash = \"7383d5d859f3924e093ebaf5827f394927bc29db\"\n \n [[deps.ADTypes]]\n deps = [\"PrecompileTools\"]\n@@ -1970,6 +1970,12 @@\n     [deps.Piccolo.weakdeps]\n     QuantumToolbox = \"6c2fb7c5-b903-41d2-bc5e-5a7c320b9fab\"\n \n+[[deps.PiccoloWorkload]]\n+deps = [\"Piccolo\", \"PrecompileTools\", \"TOML\"]\n+path = \"/home/paimon/Projects/entanglix-research/piccolo-precompile/PiccoloWorkload\"\n+uuid = \"c5ea4195-1d32-4dfa-a277-61dc1a1c59bc\"\n+version = \"0.1.0\"\n+\n [[deps.Pixman_jll]]\n deps = [\"Artifacts\", \"CompilerSupportLibraries_jll\", \"JLLWrappers\", \"LLVMOpenMP_jll\", \"Libdl\"]\n git-tree-sha1 = \"e4a6721aa89e62e5d4217c0b21bd714263779dda\"\n"
+  },
+  "generated_source_sha256": {
+    "project-baseline/entry.jl": "06f368fad13340d988c1fc3a27195bc4cc5fbceb6d4456f6597b8b4b6dc99509",
+    "project-workload/entry.jl": "44ad892e58cf30102af29dcd8ab09b74eea90c24129d737f91a1938fb714be39",
+    "PiccoloWorkload/Project.toml": "0fe624eb5708a90b95792a6b78f0609616a2636dcf6255ca3fe3aeb7ebc4df8d",
+    "PiccoloWorkload/src/PiccoloWorkload.jl": "5b22108df41ee6a77d22eb33909d6cbc54c5a980cbdf407621c5d90ccc12c9b6",
+    "PiccoloWorkload/src/workload.toml": "98af76a9f75b6aacd615e358e95f01a1e0cd280f2764372b7b7dac2c8c56ebc8"
+  },
+  "installed_depot_changes": {
+    "count": 458,
+    "size_changes": [],
+    "raw_comparison": "/home/paimon/Projects/entanglix-research/piccolo-precompile/depot-comparison.json",
+    "examples": [
+      "compiled/v1.13/ADTypes/czFbS_FwiIb.ji",
+      "compiled/v1.13/ADTypesChainRulesCoreExt/D7ptg_7jnDu.ji",
+      "compiled/v1.13/ADTypesConstructionBaseExt/205Zk_7jnDu.ji"
+    ]
+  },
+  "versions": {
+    "Julia": "1.13.0",
+    "Piccolo": "2.1.0",
+    "PrecompileTools": "1.3.4"
+  },
+  "answers": {
+    "one_off_cost": "The workload precompile process took 15.06 s; only PiccoloWorkload was compiled into the workspace depot, occupying 22.74 MiB. The other 457 packages were reused.",
+    "per_problem": {
+      "c60": "First complete job: baseline 27.50 s, workload 19.10 s; saving 8.40 s. Fidelity difference 0.0e+00; iteration counts and convergence flags match: True.",
+      "c30": "First complete job: baseline 29.14 s, workload 21.07 s; saving 8.07 s. Fidelity difference 0.0e+00; iteration counts and convergence flags match: True.",
+      "c60-40": "First complete job: baseline 34.67 s, workload 26.68 s; saving 7.99 s. Fidelity difference 0.0e+00; iteration counts and convergence flags match: True."
+    },
+    "adoption": "The workload project adds one local package with Piccolo, PrecompileTools and TOML dependencies; production would also load it from solve.jl. Exact project/manifest differences and the generated package stay in the workspace; production files were not edited.",
+    "depot_writes": "The installed depot has 458 files with changed size or modification time; 0 changed size. Cache-file changes are timestamps only: Julia's loader touches loaded .ji files (base/loading.jl:2162). juliaup/juliaup.json was also modified during setup; its cause is not in the records. The run does not establish zero writes to ~/.julia."
+  },
+  "timing_note": "One fresh process per arm/input, with two solves in each. First complete job includes startup, imports, solve and neutral-pulse export. Cold-minus-warm subtracts the second solve and export. Iteration timing uses stdout receipt. Baseline and workload use the same installed dependency versions and cached package images; workload precompilation is a separate one-off cost.",
+  "downloads": [],
+  "runtime_sessions": 0,
+  "gpu_jobs": 0
+}

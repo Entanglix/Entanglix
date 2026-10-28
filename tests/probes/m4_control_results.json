@@ -1,0 +1,1250 @@
+{
+  "complete": true,
+  "workspace": "/home/paimon/Projects/entanglix-research/m4-probe",
+  "cpu_only": true,
+  "python_environment": "/var/tmp/entanglix-m4-probe",
+  "python_packages": {
+    "numpy": "2.5.3",
+    "qutip": "5.3.1",
+    "scqubits": "4.3.1",
+    "jax": "0.6.2",
+    "dynamiqs": "0.3.6"
+  },
+  "source_sha256": {
+    "uv.lock": "50f7e183421379fdf8fdbcf022da85d86e9c37e2f702fa069139867e70612632",
+    "src/entanglix/models.py": "c67adcf1a53521ac742e63bb74051cf649a1a613dc55853a025710220b3a9b57",
+    "src/entanglix/evolution.py": "6999daea4956e205109c251eeb6a1cdcae6a5bbee437aad0d6b3ca27e38d9611",
+    "src/entanglix/engines/frames.py": "048228cf3d6577628676aa6c03ed62c03b715d27a6f5414f4b3b21a19d757ade",
+    "src/entanglix/engines/qutip_cpu.py": "9949ac309a7246edf2c3710d7a8497e76aa45a7d778c97bc33f356e186f849ee",
+    "src/entanglix/engines/dynamiqs_jax.py": "1f07e91a92ea9097ab95e4b92265e61718e5a8d80e203e682ca05248361a448c"
+  },
+  "setup_commands": [
+    {
+      "command": [
+        "pnpm",
+        "--filter",
+        "@amicode/amico-run...",
+        "install",
+        "--frozen-lockfile"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 0.6650904280249961,
+      "log": "/home/paimon/Projects/entanglix-research/m4-probe/logs/078.log"
+    },
+    {
+      "command": [
+        "pnpm",
+        "--filter",
+        "@amicode/amico-run...",
+        "run",
+        "build"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 0.5155458420049399,
+      "log": "/home/paimon/Projects/entanglix-research/m4-probe/logs/079.log"
+    },
+    {
+      "command": [
+        "julia",
+        "--project=/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/extension/julia",
+        "--startup-file=no",
+        "-e",
+        "using Pkg; Pkg.instantiate()"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 1.2654998509970028,
+      "log": "/home/paimon/Projects/entanglix-research/m4-probe/logs/080.log"
+    },
+    {
+      "command": [
+        "julia",
+        "--project=/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/extension/julia",
+        "--startup-file=no",
+        "-e",
+        "using Piccolo; println(\"PICCOLO_READY\")"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 3.8202419739973266,
+      "log": "/home/paimon/Projects/entanglix-research/m4-probe/logs/081.log"
+    }
+  ],
+  "amicode_commit": "cb717f57cb63fa292917188c8ca32f50ddcca539",
+  "versions": {
+    "node": "v22.22.1",
+    "pnpm": "9.15.9",
+    "julia": "julia version 1.13.0"
+  },
+  "julia_project": "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/extension/julia",
+  "manifest_before_sha256": "5d63bde9a3f9c7c8dc87b2ebae00c759a30853db495c2146dbd1ca25b79cf364",
+  "manifest_sha256": "5d63bde9a3f9c7c8dc87b2ebae00c759a30853db495c2146dbd1ca25b79cf364",
+  "julia_manifest_warnings": {
+    "basis": "execution_log",
+    "log": "/home/paimon/Projects/entanglix-research/m4-probe/logs/080.log",
+    "resolved_julia_version": "1.12.5",
+    "text": "\u250c Warning: The active manifest file has dependencies that were resolved with a different julia version (1.12.5). Unexpected behavior may occur.\n\u2514 @ ~/Projects/entanglix-research/m4-probe/amicode/packages/extension/julia/Manifest.toml:0"
+  },
+  "setup_ready": true,
+  "export": {
+    "source": "examples/junction-shunt/system.toml",
+    "source_sha256": "d610d0ee4d2b93da493b2c79cbef9bc8f67908255538a0fc9fb6bc37684ee5b3",
+    "retained_levels": 3,
+    "energies_ghz": [
+      -12.183560513666507,
+      -6.701494824821672,
+      -1.5366433119949878
+    ],
+    "frame_frequency_ghz": 5.482065688844835,
+    "drive_order": [
+      "x",
+      "y"
+    ],
+    "basis": "lowest isolated circuit eigenstates, increasing energy",
+    "dissipators_omitted": [],
+    "approximation": "resonant RWA: keep adjacent charge transitions, remove diagonal and other sectors; subtract f01*n and E0",
+    "units": "T in ns; u in GHz; raw drift and drive matrices multiplied by 2*pi, so i*dU/dt=(H_drift+sum(u*H_drive))*U",
+    "drive_definition": "lowering=adjacent upper diagonal of charge/abs(n01); x=(lowering+adjoint)/2; y=i*(lowering-adjoint)/2",
+    "encoding": "JSON rows, then columns, then [real, imaginary]; H_drives ordered x,y"
+  },
+  "inputs": {
+    "template": {
+      "path": "/home/paimon/Projects/entanglix-research/m4-probe/template.json",
+      "sha256": "ec09d6d8ad7e969c2549089a3342e3e5a5581157e9c7e7898f6ac221a277ddc4",
+      "launched_path": "/home/paimon/Projects/entanglix-research/m4-probe/template.toml",
+      "launched_sha256": "038fe8f929c2b8a44738d07524a9325fd37b675776015fe090d92557e4ac6603"
+    },
+    "raw": {
+      "path": "/home/paimon/Projects/entanglix-research/m4-probe/raw.json",
+      "sha256": "2128ffbb219df116815fc42afd61ddf11fb8fe98fba31214105fb5a8afd1738d",
+      "launched_path": "/home/paimon/Projects/entanglix-research/m4-probe/raw.toml",
+      "launched_sha256": "794e4d7d45a2d0cb97a4e9418463af79703befde0d02b6a9e1d095f1e065fd8c"
+    }
+  },
+  "probe_fidelity_target": 0.999,
+  "target_note": "diagnostic target for this probe; optimisation still targets the declared X gate, with a 100-iteration cap",
+  "solves": [
+    {
+      "kind": "template",
+      "repetition": 0,
+      "command": [
+        "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/amico-run/launcher/amico-run",
+        "--spec",
+        "/home/paimon/Projects/entanglix-research/m4-probe/template-0-solvespec.json",
+        "--project",
+        "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/extension/julia",
+        "--runs-root",
+        "/home/paimon/Projects/entanglix-research/m4-probe/runs/template-0"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 21.055099267017795,
+      "log": "/home/paimon/Projects/entanglix-research/m4-probe/logs/084.log",
+      "run": "/home/paimon/Projects/entanglix-research/m4-probe/runs/template-0/r20261010-225301Z-669c",
+      "files": [
+        "FINISHED",
+        "pulse-343af6b48810.jld2",
+        "result.toml",
+        "run.log",
+        "run.toml",
+        "solvespec.json"
+      ],
+      "run.toml": {
+        "run_id": "r20261010-225301Z-669c",
+        "script_path": "/home/paimon/Projects/entanglix-research/m4-probe/template.toml",
+        "created_at": "2026-10-10T22:53:01.856Z",
+        "julia": {
+          "binary": "julia",
+          "project": "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/extension/julia"
+        }
+      },
+      "result.toml": {
+        "schema_version": "1",
+        "fidelity": 0.9999999962136822,
+        "iterations": 100,
+        "wall_seconds": 13.519646426,
+        "params": {
+          "converged": false
+        }
+      },
+      "FINISHED": {
+        "status": "completed",
+        "exit_code": 0
+      }
+    },
+    {
+      "kind": "template",
+      "repetition": 1,
+      "command": [
+        "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/amico-run/launcher/amico-run",
+        "--spec",
+        "/home/paimon/Projects/entanglix-research/m4-probe/template-1-solvespec.json",
+        "--project",
+        "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/extension/julia",
+        "--runs-root",
+        "/home/paimon/Projects/entanglix-research/m4-probe/runs/template-1"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 21.152564792020712,
+      "log": "/home/paimon/Projects/entanglix-research/m4-probe/logs/085.log",
+      "run": "/home/paimon/Projects/entanglix-research/m4-probe/runs/template-1/r20261010-225322Z-8bc3",
+      "files": [
+        "FINISHED",
+        "pulse-343af6b48810.jld2",
+        "result.toml",
+        "run.log",
+        "run.toml",
+        "solvespec.json"
+      ],
+      "run.toml": {
+        "run_id": "r20261010-225322Z-8bc3",
+        "script_path": "/home/paimon/Projects/entanglix-research/m4-probe/template.toml",
+        "created_at": "2026-10-10T22:53:22.914Z",
+        "julia": {
+          "binary": "julia",
+          "project": "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/extension/julia"
+        }
+      },
+      "result.toml": {
+        "schema_version": "1",
+        "fidelity": 0.9999999962136822,
+        "iterations": 100,
+        "wall_seconds": 13.654155267,
+        "params": {
+          "converged": false
+        }
+      },
+      "FINISHED": {
+        "status": "completed",
+        "exit_code": 0
+      }
+    },
+    {
+      "kind": "raw",
+      "repetition": 0,
+      "command": [
+        "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/amico-run/launcher/amico-run",
+        "--spec",
+        "/home/paimon/Projects/entanglix-research/m4-probe/raw-0-solvespec.json",
+        "--project",
+        "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/extension/julia",
+        "--runs-root",
+        "/home/paimon/Projects/entanglix-research/m4-probe/runs/raw-0"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 21.454357324982993,
+      "log": "/home/paimon/Projects/entanglix-research/m4-probe/logs/087.log",
+      "run": "/home/paimon/Projects/entanglix-research/m4-probe/runs/raw-0/r20261010-225344Z-2b19",
+      "files": [
+        "FINISHED",
+        "pulse-40cd3081c67f.jld2",
+        "result.toml",
+        "run.log",
+        "run.toml",
+        "solvespec.json"
+      ],
+      "run.toml": {
+        "run_id": "r20261010-225344Z-2b19",
+        "script_path": "/home/paimon/Projects/entanglix-research/m4-probe/raw.toml",
+        "created_at": "2026-10-10T22:53:44.189Z",
+        "julia": {
+          "binary": "julia",
+          "project": "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/extension/julia"
+        }
+      },
+      "result.toml": {
+        "schema_version": "1",
+        "fidelity": 0.9999917722596368,
+        "iterations": 100,
+        "wall_seconds": 13.89141277,
+        "params": {
+          "converged": false
+        }
+      },
+      "FINISHED": {
+        "status": "completed",
+        "exit_code": 0
+      }
+    },
+    {
+      "kind": "raw",
+      "repetition": 1,
+      "command": [
+        "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/amico-run/launcher/amico-run",
+        "--spec",
+        "/home/paimon/Projects/entanglix-research/m4-probe/raw-1-solvespec.json",
+        "--project",
+        "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/extension/julia",
+        "--runs-root",
+        "/home/paimon/Projects/entanglix-research/m4-probe/runs/raw-1"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 21.556916450994322,
+      "log": "/home/paimon/Projects/entanglix-research/m4-probe/logs/088.log",
+      "run": "/home/paimon/Projects/entanglix-research/m4-probe/runs/raw-1/r20261010-225405Z-2903",
+      "files": [
+        "FINISHED",
+        "pulse-40cd3081c67f.jld2",
+        "result.toml",
+        "run.log",
+        "run.toml",
+        "solvespec.json"
+      ],
+      "run.toml": {
+        "run_id": "r20261010-225405Z-2903",
+        "script_path": "/home/paimon/Projects/entanglix-research/m4-probe/raw.toml",
+        "created_at": "2026-10-10T22:54:05.639Z",
+        "julia": {
+          "binary": "julia",
+          "project": "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/extension/julia"
+        }
+      },
+      "result.toml": {
+        "schema_version": "1",
+        "fidelity": 0.9999917722596368,
+        "iterations": 100,
+        "wall_seconds": 13.927122785,
+        "params": {
+          "converged": false
+        }
+      },
+      "FINISHED": {
+        "status": "completed",
+        "exit_code": 0
+      }
+    }
+  ],
+  "json_transport": {
+    "command": [
+      "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/amico-run/launcher/amico-run",
+      "--spec",
+      "/home/paimon/Projects/entanglix-research/m4-probe/json-transport-solvespec.json",
+      "--project",
+      "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/extension/julia",
+      "--runs-root",
+      "/home/paimon/Projects/entanglix-research/m4-probe/runs/json-transport"
+    ],
+    "exit_code": 1,
+    "wall_seconds": 5.375461422023363,
+    "log": "/home/paimon/Projects/entanglix-research/m4-probe/logs/083.log",
+    "run": "/home/paimon/Projects/entanglix-research/m4-probe/runs/json-transport/r20261010-225256Z-d3cf",
+    "files": [
+      "FINISHED",
+      "run.log",
+      "run.toml",
+      "solvespec.json"
+    ],
+    "run.toml": {
+      "run_id": "r20261010-225256Z-d3cf",
+      "script_path": "/home/paimon/Projects/entanglix-research/m4-probe/template.json",
+      "created_at": "2026-10-10T22:52:56.486Z",
+      "julia": {
+        "binary": "julia",
+        "project": "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/extension/julia"
+      }
+    },
+    "FINISHED": {
+      "status": "failed",
+      "exit_code": 1
+    },
+    "error": "ERROR: TOML Parser error:\nnone:2:-1 error: invalid bare key character: '{'\n  {\n  ^"
+  },
+  "julia_metadata": {
+    "ipopt_default_tol": 1e-08,
+    "piccolo_source": "/home/paimon/.julia/packages/Piccolo/WgV3c/src",
+    "packages": {
+      "DirectTrajOpt": "0.10.1",
+      "Piccolo": "2.1.0",
+      "Ipopt": "1.15.0",
+      "JLD2": "0.6.6"
+    },
+    "parsed_solver": {
+      "tol": 1e-08,
+      "max_iter": 100,
+      "backend": "ipopt"
+    }
+  },
+  "pulse": {
+    "path": "/home/paimon/Projects/entanglix-research/m4-probe/pulse.json",
+    "sha256": "fc29b8ace918fee6203f489a287665e83c9b9559081de11dc5030921cf6ac42a",
+    "type": "ZeroOrderPulse{DataInterpolations.ConstantInterpolation{Matrix{Float64}, Vector{Float64}, Vector{Union{}}, Float64}}",
+    "times_ns": [
+      0.0,
+      0.998385088833085,
+      1.99677017766617,
+      2.995155266499255,
+      3.99354035533234,
+      4.991925444165425,
+      5.990310532998509,
+      6.988695621831594,
+      7.987080710664679,
+      8.985465799497764,
+      9.98385088833085,
+      10.982235977163935,
+      11.98062106599702,
+      12.979006154830106,
+      13.977391243663192,
+      14.975776332496277,
+      15.974161421329363,
+      16.97254651016245,
+      17.970931598995534,
+      18.96931668782862,
+      19.967701776661706
+    ],
+    "endpoint_values": [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0
+      ]
+    ],
+    "interpolation": "sample interval midpoints from loaded ZeroOrderPulse; final knot not an interval",
+    "declared_duration_ns": 20.0,
+    "actual_duration_ns": 19.967701776661706,
+    "duration_difference_ns": -0.03229822333829446,
+    "declared_grid_rollout": {
+      "F_P": 0.999836813787155,
+      "L": 0.00014305967514616214,
+      "F_avg": 0.9998435226330548,
+      "six_state_average": 0.9998435226353548,
+      "density_propagator_difference": 2.300049040115937e-12,
+      "wall_seconds": 0.029332789010368288,
+      "rtol": 1e-10,
+      "atol": 1e-12
+    }
+  },
+  "duration_bounds": {
+    "input": {
+      "path": "/home/paimon/Projects/entanglix-research/m4-probe/bounded-duration.json",
+      "sha256": "0a8aaacec0f9137180c680f30d751449d7e7e9fbd92b460c7220943a1b2f3349",
+      "launched_path": "/home/paimon/Projects/entanglix-research/m4-probe/bounded-duration.toml",
+      "launched_sha256": "ca197f216f34db2f1f406e6f6f0711a389038c6f7b4b8c4ea51ebc23f30c6a9f"
+    },
+    "validation": {
+      "command": [
+        "node",
+        "--input-type=module",
+        "-e",
+        "import Ajv from \"ajv\"; import {readFileSync} from \"node:fs\"; const a=new Ajv({strict:false,allErrors:true}); const v=a.compile(JSON.parse(readFileSync(process.argv[1],\"utf8\"))); const ok=v(JSON.parse(readFileSync(process.argv[2],\"utf8\"))); console.log(JSON.stringify({ok,errors:v.errors})); process.exit(ok?0:64);",
+        "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/schema/schemas/problemspec.oss.schema.json",
+        "/home/paimon/Projects/entanglix-research/m4-probe/bounded-duration.json"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 0.11410108098061755,
+      "log": "/home/paimon/Projects/entanglix-research/m4-probe/logs/091.log",
+      "validation": {
+        "ok": true,
+        "errors": null
+      }
+    },
+    "launch": {
+      "command": [
+        "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/amico-run/launcher/amico-run",
+        "--spec",
+        "/home/paimon/Projects/entanglix-research/m4-probe/bounded-duration-solvespec.json",
+        "--project",
+        "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/extension/julia",
+        "--runs-root",
+        "/home/paimon/Projects/entanglix-research/m4-probe/runs/bounded-duration"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 25.254412287002197,
+      "log": "/home/paimon/Projects/entanglix-research/m4-probe/logs/092.log",
+      "run": "/home/paimon/Projects/entanglix-research/m4-probe/runs/bounded-duration/r20261010-225438Z-ba7c",
+      "files": [
+        "FINISHED",
+        "pulse-8c2f8d194e1b.jld2",
+        "result.toml",
+        "run.log",
+        "run.toml",
+        "solvespec.json"
+      ],
+      "run.toml": {
+        "run_id": "r20261010-225438Z-ba7c",
+        "script_path": "/home/paimon/Projects/entanglix-research/m4-probe/bounded-duration.toml",
+        "created_at": "2026-10-10T22:54:38.743Z",
+        "julia": {
+          "binary": "julia",
+          "project": "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/extension/julia"
+        }
+      },
+      "result.toml": {
+        "schema_version": "1",
+        "fidelity": 0.9999999990644339,
+        "iterations": 100,
+        "wall_seconds": 17.971465703,
+        "params": {
+          "converged": false
+        }
+      },
+      "FINISHED": {
+        "status": "completed",
+        "exit_code": 0
+      }
+    },
+    "pulse_extraction": {
+      "command": [
+        "julia",
+        "--project=/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/extension/julia",
+        "--startup-file=no",
+        "/home/paimon/Projects/entanglix-research/m4-probe/helper.jl",
+        "pulse",
+        "/home/paimon/Projects/entanglix-research/m4-probe/runs/bounded-duration/r20261010-225438Z-ba7c/pulse-8c2f8d194e1b.jld2"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 6.826061486004619,
+      "log": "/home/paimon/Projects/entanglix-research/m4-probe/logs/093.log"
+    },
+    "requested_timestep_bounds_ns": [
+      0.9999999,
+      1.0000001
+    ],
+    "actual_duration_ns": 19.99999999994224,
+    "duration_difference_ns": -5.7760018989938544e-11,
+    "actual_timestep_range_ns": [
+      0.9999999999971116,
+      0.9999999999971125
+    ],
+    "maximum_timestep_bound_violation_ns": 0.0,
+    "rollout": {
+      "F_P": 0.9999999999567495,
+      "L": 4.1392222982494786e-11,
+      "F_avg": 0.9999999999573689,
+      "six_state_average": 0.9999999999595243,
+      "density_propagator_difference": 2.155386980007279e-12,
+      "wall_seconds": 0.029062200017506257,
+      "rtol": 1e-10,
+      "atol": 1e-12
+    },
+    "declared_grid_rollout": {
+      "F_P": 0.9999999999567555,
+      "L": 4.138611675585935e-11,
+      "F_avg": 0.999999999957375,
+      "six_state_average": 0.9999999999595289,
+      "density_propagator_difference": 2.1539436900752662e-12,
+      "wall_seconds": 0.02803409198531881,
+      "rtol": 1e-10,
+      "atol": 1e-12
+    }
+  },
+  "rollout": {
+    "F_P": 0.9999893744577619,
+    "L": 3.42450996038135e-06,
+    "F_avg": 0.9999917748018544,
+    "six_state_average": 0.9999917748042243,
+    "density_propagator_difference": 2.369882068364859e-12,
+    "wall_seconds": 0.028486003022408113,
+    "rtol": 1e-10,
+    "atol": 1e-12,
+    "piccolo_F_avg": 0.9999917722596368,
+    "reported_difference": 2.542217658607626e-09
+  },
+  "direct": {
+    "command": [
+      "julia",
+      "--project=/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/extension/julia",
+      "--startup-file=no",
+      "/home/paimon/Projects/entanglix-research/m4-probe/helper.jl",
+      "direct",
+      "/home/paimon/Projects/entanglix-research/m4-probe/raw.toml",
+      "/home/paimon/Projects/entanglix-research/m4-probe/direct"
+    ],
+    "exit_code": 0,
+    "wall_seconds": 21.099685522989603,
+    "log": "/home/paimon/Projects/entanglix-research/m4-probe/logs/094.log",
+    "result": {
+      "schema_version": "1",
+      "fidelity": 0.9999917722596368,
+      "iterations": 100,
+      "wall_seconds": 13.729233953,
+      "params": {
+        "converged": false
+      }
+    }
+  },
+  "schema_variants": [
+    {
+      "name": "omitted",
+      "input": {
+        "path": "/home/paimon/Projects/entanglix-research/m4-probe/variant-omitted.json",
+        "sha256": "a1868c5e313a25e124c518312fe579930da9896274829b54857745b1c9277462",
+        "launched_path": "/home/paimon/Projects/entanglix-research/m4-probe/variant-omitted.toml",
+        "launched_sha256": "6a36e5473f97172fb6c300cc593ef8427d2f4e35d5563006db0596cfa4b13f00"
+      },
+      "validation": {
+        "command": [
+          "node",
+          "--input-type=module",
+          "-e",
+          "import Ajv from \"ajv\"; import {readFileSync} from \"node:fs\"; const a=new Ajv({strict:false,allErrors:true}); const v=a.compile(JSON.parse(readFileSync(process.argv[1],\"utf8\"))); const ok=v(JSON.parse(readFileSync(process.argv[2],\"utf8\"))); console.log(JSON.stringify({ok,errors:v.errors})); process.exit(ok?0:64);",
+          "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/schema/schemas/problemspec.oss.schema.json",
+          "/home/paimon/Projects/entanglix-research/m4-probe/variant-omitted.json"
+        ],
+        "exit_code": 0,
+        "wall_seconds": 0.11394238998764195,
+        "log": "/home/paimon/Projects/entanglix-research/m4-probe/logs/095.log",
+        "validation": {
+          "ok": true,
+          "errors": null
+        }
+      },
+      "launch": {
+        "command": [
+          "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/amico-run/launcher/amico-run",
+          "--spec",
+          "/home/paimon/Projects/entanglix-research/m4-probe/variant-omitted-solvespec.json",
+          "--project",
+          "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/extension/julia",
+          "--runs-root",
+          "/home/paimon/Projects/entanglix-research/m4-probe/runs/variant-omitted"
+        ],
+        "exit_code": 0,
+        "wall_seconds": 51.01358285101014,
+        "log": "/home/paimon/Projects/entanglix-research/m4-probe/logs/096.log",
+        "run": "/home/paimon/Projects/entanglix-research/m4-probe/runs/variant-omitted/r20261010-225532Z-d3fd",
+        "files": [
+          "FINISHED",
+          "pulse-412dbbd22109.jld2",
+          "result.toml",
+          "run.log",
+          "run.toml",
+          "solvespec.json"
+        ],
+        "run.toml": {
+          "run_id": "r20261010-225532Z-d3fd",
+          "script_path": "/home/paimon/Projects/entanglix-research/m4-probe/variant-omitted.toml",
+          "created_at": "2026-10-10T22:55:32.123Z",
+          "julia": {
+            "binary": "julia",
+            "project": "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/extension/julia"
+          }
+        },
+        "result.toml": {
+          "schema_version": "1",
+          "fidelity": 0.9999999984104282,
+          "iterations": 335,
+          "wall_seconds": 43.463731996,
+          "params": {
+            "converged": true
+          }
+        },
+        "FINISHED": {
+          "status": "completed",
+          "exit_code": 0
+        }
+      }
+    },
+    {
+      "name": "explicit",
+      "input": {
+        "path": "/home/paimon/Projects/entanglix-research/m4-probe/variant-explicit.json",
+        "sha256": "2128ffbb219df116815fc42afd61ddf11fb8fe98fba31214105fb5a8afd1738d",
+        "launched_path": "/home/paimon/Projects/entanglix-research/m4-probe/variant-explicit.toml",
+        "launched_sha256": "794e4d7d45a2d0cb97a4e9418463af79703befde0d02b6a9e1d095f1e065fd8c"
+      },
+      "validation": {
+        "command": [
+          "node",
+          "--input-type=module",
+          "-e",
+          "import Ajv from \"ajv\"; import {readFileSync} from \"node:fs\"; const a=new Ajv({strict:false,allErrors:true}); const v=a.compile(JSON.parse(readFileSync(process.argv[1],\"utf8\"))); const ok=v(JSON.parse(readFileSync(process.argv[2],\"utf8\"))); console.log(JSON.stringify({ok,errors:v.errors})); process.exit(ok?0:64);",
+          "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/schema/schemas/problemspec.oss.schema.json",
+          "/home/paimon/Projects/entanglix-research/m4-probe/variant-explicit.json"
+        ],
+        "exit_code": 0,
+        "wall_seconds": 0.11408830399159342,
+        "log": "/home/paimon/Projects/entanglix-research/m4-probe/logs/097.log",
+        "validation": {
+          "ok": true,
+          "errors": null
+        }
+      },
+      "launch": {
+        "command": [
+          "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/amico-run/launcher/amico-run",
+          "--spec",
+          "/home/paimon/Projects/entanglix-research/m4-probe/variant-explicit-solvespec.json",
+          "--project",
+          "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/extension/julia",
+          "--runs-root",
+          "/home/paimon/Projects/entanglix-research/m4-probe/runs/variant-explicit"
+        ],
+        "exit_code": 0,
+        "wall_seconds": 21.39929532498354,
+        "log": "/home/paimon/Projects/entanglix-research/m4-probe/logs/098.log",
+        "run": "/home/paimon/Projects/entanglix-research/m4-probe/runs/variant-explicit/r20261010-225623Z-b3d4",
+        "files": [
+          "FINISHED",
+          "pulse-40cd3081c67f.jld2",
+          "result.toml",
+          "run.log",
+          "run.toml",
+          "solvespec.json"
+        ],
+        "run.toml": {
+          "run_id": "r20261010-225623Z-b3d4",
+          "script_path": "/home/paimon/Projects/entanglix-research/m4-probe/variant-explicit.toml",
+          "created_at": "2026-10-10T22:56:23.249Z",
+          "julia": {
+            "binary": "julia",
+            "project": "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/extension/julia"
+          }
+        },
+        "result.toml": {
+          "schema_version": "1",
+          "fidelity": 0.9999917722596368,
+          "iterations": 100,
+          "wall_seconds": 13.818452034,
+          "params": {
+            "converged": false
+          }
+        },
+        "FINISHED": {
+          "status": "completed",
+          "exit_code": 0
+        }
+      }
+    },
+    {
+      "name": "other_backend",
+      "input": {
+        "path": "/home/paimon/Projects/entanglix-research/m4-probe/variant-other_backend.json",
+        "sha256": "b10c18f6f778345c96a3f2bea8e050a3400bba281de0c357cd73c2899d928c29",
+        "launched_path": "/home/paimon/Projects/entanglix-research/m4-probe/variant-other_backend.toml",
+        "launched_sha256": "4b226da06c8aa1a4ce4cb6d1fbece0703a1d836fca634567a2279626e1676cfd"
+      },
+      "validation": {
+        "command": [
+          "node",
+          "--input-type=module",
+          "-e",
+          "import Ajv from \"ajv\"; import {readFileSync} from \"node:fs\"; const a=new Ajv({strict:false,allErrors:true}); const v=a.compile(JSON.parse(readFileSync(process.argv[1],\"utf8\"))); const ok=v(JSON.parse(readFileSync(process.argv[2],\"utf8\"))); console.log(JSON.stringify({ok,errors:v.errors})); process.exit(ok?0:64);",
+          "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/schema/schemas/problemspec.oss.schema.json",
+          "/home/paimon/Projects/entanglix-research/m4-probe/variant-other_backend.json"
+        ],
+        "exit_code": 64,
+        "wall_seconds": 0.11502959299832582,
+        "log": "/home/paimon/Projects/entanglix-research/m4-probe/logs/099.log",
+        "validation": {
+          "ok": false,
+          "errors": [
+            {
+              "instancePath": "/solver/backend",
+              "schemaPath": "#/oneOf/0/properties/solver/properties/backend/enum",
+              "keyword": "enum",
+              "params": {
+                "allowedValues": [
+                  "ipopt"
+                ]
+              },
+              "message": "must be equal to one of the allowed values"
+            },
+            {
+              "instancePath": "",
+              "schemaPath": "#/oneOf/1/required",
+              "keyword": "required",
+              "params": {
+                "missingProperty": "input_pulse"
+              },
+              "message": "must have required property 'input_pulse'"
+            },
+            {
+              "instancePath": "",
+              "schemaPath": "#/oneOf/1/required",
+              "keyword": "required",
+              "params": {
+                "missingProperty": "rollout_kind"
+              },
+              "message": "must have required property 'rollout_kind'"
+            },
+            {
+              "instancePath": "",
+              "schemaPath": "#/oneOf/1/additionalProperties",
+              "keyword": "additionalProperties",
+              "params": {
+                "additionalProperty": "goal"
+              },
+              "message": "must NOT have additional properties"
+            },
+            {
+              "instancePath": "",
+              "schemaPath": "#/oneOf/1/additionalProperties",
+              "keyword": "additionalProperties",
+              "params": {
+                "additionalProperty": "pulse"
+              },
+              "message": "must NOT have additional properties"
+            },
+            {
+              "instancePath": "",
+              "schemaPath": "#/oneOf/1/additionalProperties",
+              "keyword": "additionalProperties",
+              "params": {
+                "additionalProperty": "problem"
+              },
+              "message": "must NOT have additional properties"
+            },
+            {
+              "instancePath": "",
+              "schemaPath": "#/oneOf/1/additionalProperties",
+              "keyword": "additionalProperties",
+              "params": {
+                "additionalProperty": "solver"
+              },
+              "message": "must NOT have additional properties"
+            },
+            {
+              "instancePath": "/kind",
+              "schemaPath": "#/oneOf/1/properties/kind/const",
+              "keyword": "const",
+              "params": {
+                "allowedValue": "rollout"
+              },
+              "message": "must be equal to constant"
+            },
+            {
+              "instancePath": "",
+              "schemaPath": "#/oneOf",
+              "keyword": "oneOf",
+              "params": {
+                "passingSchemas": null
+              },
+              "message": "must match exactly one schema in oneOf"
+            }
+          ]
+        }
+      },
+      "launch": {
+        "command": [
+          "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/amico-run/launcher/amico-run",
+          "--spec",
+          "/home/paimon/Projects/entanglix-research/m4-probe/variant-other_backend-solvespec.json",
+          "--project",
+          "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/extension/julia",
+          "--runs-root",
+          "/home/paimon/Projects/entanglix-research/m4-probe/runs/variant-other_backend"
+        ],
+        "exit_code": 1,
+        "wall_seconds": 5.676223097980255,
+        "log": "/home/paimon/Projects/entanglix-research/m4-probe/logs/100.log",
+        "run": "/home/paimon/Projects/entanglix-research/m4-probe/runs/variant-other_backend/r20261010-225644Z-b9c6",
+        "files": [
+          "FINISHED",
+          "run.log",
+          "run.toml",
+          "solvespec.json"
+        ],
+        "run.toml": {
+          "run_id": "r20261010-225644Z-b9c6",
+          "script_path": "/home/paimon/Projects/entanglix-research/m4-probe/variant-other_backend.toml",
+          "created_at": "2026-10-10T22:56:44.768Z",
+          "julia": {
+            "binary": "julia",
+            "project": "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/extension/julia"
+          }
+        },
+        "FINISHED": {
+          "status": "failed",
+          "exit_code": 1
+        },
+        "error": [
+          {
+            "path": "solver.backend",
+            "msg": "unknown solver backend",
+            "got": "grape"
+          }
+        ]
+      }
+    },
+    {
+      "name": "option",
+      "input": {
+        "path": "/home/paimon/Projects/entanglix-research/m4-probe/variant-option.json",
+        "sha256": "767dd4f814461de232e09a46652810edd4910526faabd9f4e1ee3a806aa9b48a",
+        "launched_path": "/home/paimon/Projects/entanglix-research/m4-probe/variant-option.toml",
+        "launched_sha256": "606f8521b3ae7076a2c3fe6a712cb738d5d02bf79ded2ebcc6082d2e36c94b79"
+      },
+      "validation": {
+        "command": [
+          "node",
+          "--input-type=module",
+          "-e",
+          "import Ajv from \"ajv\"; import {readFileSync} from \"node:fs\"; const a=new Ajv({strict:false,allErrors:true}); const v=a.compile(JSON.parse(readFileSync(process.argv[1],\"utf8\"))); const ok=v(JSON.parse(readFileSync(process.argv[2],\"utf8\"))); console.log(JSON.stringify({ok,errors:v.errors})); process.exit(ok?0:64);",
+          "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/schema/schemas/problemspec.oss.schema.json",
+          "/home/paimon/Projects/entanglix-research/m4-probe/variant-option.json"
+        ],
+        "exit_code": 0,
+        "wall_seconds": 0.11413055000593886,
+        "log": "/home/paimon/Projects/entanglix-research/m4-probe/logs/101.log",
+        "validation": {
+          "ok": true,
+          "errors": null
+        }
+      },
+      "launch": {
+        "command": [
+          "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/amico-run/launcher/amico-run",
+          "--spec",
+          "/home/paimon/Projects/entanglix-research/m4-probe/variant-option-solvespec.json",
+          "--project",
+          "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/extension/julia",
+          "--runs-root",
+          "/home/paimon/Projects/entanglix-research/m4-probe/runs/variant-option"
+        ],
+        "exit_code": 0,
+        "wall_seconds": 21.318504204013152,
+        "log": "/home/paimon/Projects/entanglix-research/m4-probe/logs/102.log",
+        "run": "/home/paimon/Projects/entanglix-research/m4-probe/runs/variant-option/r20261010-225650Z-5669",
+        "files": [
+          "FINISHED",
+          "pulse-a916e8c6016b.jld2",
+          "result.toml",
+          "run.log",
+          "run.toml",
+          "solvespec.json"
+        ],
+        "run.toml": {
+          "run_id": "r20261010-225650Z-5669",
+          "script_path": "/home/paimon/Projects/entanglix-research/m4-probe/variant-option.toml",
+          "created_at": "2026-10-10T22:56:50.565Z",
+          "julia": {
+            "binary": "julia",
+            "project": "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/extension/julia"
+          }
+        },
+        "result.toml": {
+          "schema_version": "1",
+          "fidelity": 0.9999999994687707,
+          "iterations": 100,
+          "wall_seconds": 13.731218033,
+          "params": {
+            "converged": false
+          }
+        },
+        "FINISHED": {
+          "status": "completed",
+          "exit_code": 0
+        }
+      }
+    }
+  ],
+  "omitted_solver_metadata": {
+    "ipopt_default_tol": 1e-08,
+    "piccolo_source": "/home/paimon/.julia/packages/Piccolo/WgV3c/src",
+    "packages": {
+      "DirectTrajOpt": "0.10.1",
+      "Piccolo": "2.1.0",
+      "Ipopt": "1.15.0",
+      "JLD2": "0.6.6"
+    },
+    "parsed_solver": {
+      "tol": "unspecified",
+      "max_iter": 500,
+      "backend": "ipopt"
+    }
+  },
+  "cancellation": [
+    {
+      "signal": "SIGTERM",
+      "signal_point": "Julia executable observed during startup",
+      "runner_exit_code": 130,
+      "elapsed_after_signal_seconds": 5.223780019005062,
+      "runner_process_group": 1751320,
+      "julia_process_group": 1751335,
+      "julia_survived_before_cleanup": false,
+      "log": "/home/paimon/Projects/entanglix-research/m4-probe/cancel-SIGTERM.log",
+      "run": "/home/paimon/Projects/entanglix-research/m4-probe/runs/cancel-SIGTERM/r20261010-225716Z-4985",
+      "FINISHED": {
+        "status": "aborted",
+        "exit_code": 137
+      }
+    },
+    {
+      "signal": "SIGKILL",
+      "signal_point": "Julia executable observed during startup",
+      "runner_exit_code": -9,
+      "elapsed_after_signal_seconds": 0.20119954002439044,
+      "runner_process_group": 1751412,
+      "julia_process_group": 1751426,
+      "julia_survived_before_cleanup": true,
+      "log": "/home/paimon/Projects/entanglix-research/m4-probe/cancel-SIGKILL.log",
+      "run": "/home/paimon/Projects/entanglix-research/m4-probe/runs/cancel-SIGKILL/r20261010-225721Z-f083",
+      "FINISHED": null
+    },
+    {
+      "signal": "SIGTERM",
+      "signal_point": "after first observed solver iteration",
+      "runner_exit_code": 130,
+      "elapsed_after_signal_seconds": 5.274590672983322,
+      "runner_process_group": 1751441,
+      "julia_process_group": 1751451,
+      "julia_survived_before_cleanup": false,
+      "log": "/home/paimon/Projects/entanglix-research/m4-probe/cancel-SIGTERM-iterations.log",
+      "first_observed_iteration": "AMICODE_ITER iter=0 obj=7.97351470e+02 inf_pr=6.038049e-01 inf_du=2.953806e+01",
+      "run": "/home/paimon/Projects/entanglix-research/m4-probe/runs/cancel-SIGTERM-iterations/r20261010-225722Z-4cf7",
+      "FINISHED": {
+        "status": "aborted",
+        "exit_code": 137
+      }
+    }
+  ],
+  "gradient_command": {
+    "command": [
+      "/var/tmp/entanglix-m4-probe/bin/python3",
+      "/home/paimon/Projects/Entanglix/tests/probes/m4_control.py",
+      "--gradient-worker",
+      "/home/paimon/Projects/entanglix-research/m4-probe"
+    ],
+    "exit_code": 0,
+    "wall_seconds": 6.074116595991654,
+    "log": "/home/paimon/Projects/entanglix-research/m4-probe/logs/104.log"
+  },
+  "gradient": {
+    "available": true,
+    "device": "TFRT_CPU_0",
+    "objective": "1-F_avg, six cardinal states",
+    "control_scaling_from_solved_pulse": 0.9,
+    "infidelity": 0.020744293307993877,
+    "value_and_gradient_seconds_including_compilation": 4.128140667016851,
+    "warm_value_and_gradient_seconds": 0.6728125989902765,
+    "warm_gradient_maximum_difference": 0.0,
+    "warm_objective_difference": 0.0,
+    "timing_scope": "same six-state objective and transformed function; warm evaluation of the current implementation, not an optimisation-loop benchmark",
+    "gradient_shape": [
+      2,
+      20
+    ],
+    "gradient_unit": "infidelity/GHz",
+    "finite_differences": [
+      {
+        "channel": "x",
+        "interval": 16,
+        "epsilon_ghz": 1e-05,
+        "autodiff": -0.7923735413966013,
+        "finite_difference": -0.7923735401538233,
+        "absolute_difference": 1.2427779916279746e-09
+      },
+      {
+        "channel": "x",
+        "interval": 16,
+        "epsilon_ghz": 1e-06,
+        "autodiff": -0.7923735413966013,
+        "finite_difference": -0.7923735405590548,
+        "absolute_difference": 8.3754647661749e-10
+      },
+      {
+        "channel": "y",
+        "interval": 8,
+        "epsilon_ghz": 1e-05,
+        "autodiff": 0.3707497343822072,
+        "finite_difference": 0.3707497340132981,
+        "absolute_difference": 3.689091254699406e-10
+      },
+      {
+        "channel": "y",
+        "interval": 8,
+        "epsilon_ghz": 1e-06,
+        "autodiff": 0.3707497343822072,
+        "finite_difference": 0.3707497350236011,
+        "absolute_difference": 6.413938824501031e-10
+      },
+      {
+        "channel": "x",
+        "interval": 4,
+        "epsilon_ghz": 1e-05,
+        "autodiff": -0.7853745357396023,
+        "finite_difference": -0.7853745361108276,
+        "absolute_difference": 3.7122538376621605e-10
+      },
+      {
+        "channel": "x",
+        "interval": 4,
+        "epsilon_ghz": 1e-06,
+        "autodiff": -0.7853745357396023,
+        "finite_difference": -0.7853745316310778,
+        "absolute_difference": 4.108524409573988e-09
+      }
+    ],
+    "maximum_difference": 4.108524409573988e-09
+  },
+  "settings_observations": {
+    "file_max_iter": {
+      "basis": "source_inspection",
+      "text": "solve_spec forwards the parsed iteration cap; the parser defaults it to 500",
+      "sources": [
+        {
+          "path": "/home/paimon/.julia/packages/Piccolo/WgV3c/src/specs/run.jl",
+          "line": 186,
+          "sha256": "640e0de106a9da6f4a4ffa804e52142208d11f99ac254cb214dc7b95e0407dda"
+        },
+        {
+          "path": "/home/paimon/.julia/packages/Piccolo/WgV3c/src/specs/parse.jl",
+          "line": 437,
+          "sha256": "885bd79f873c2691c91f7445a9a28919a5235330ba1cbd43551d94b80e027d24"
+        }
+      ]
+    },
+    "file_tol": {
+      "basis": "source_inspection",
+      "text": "solver.tol is parsed and retained; solve_spec does not forward it to solve!",
+      "sources": [
+        {
+          "path": "/home/paimon/.julia/packages/Piccolo/WgV3c/src/specs/parse.jl",
+          "line": 438,
+          "sha256": "885bd79f873c2691c91f7445a9a28919a5235330ba1cbd43551d94b80e027d24"
+        },
+        {
+          "path": "/home/paimon/.julia/packages/Piccolo/WgV3c/src/specs/run.jl",
+          "line": 188,
+          "sha256": "640e0de106a9da6f4a4ffa804e52142208d11f99ac254cb214dc7b95e0407dda"
+        }
+      ]
+    },
+    "direct_api": {
+      "basis": "source_inspection",
+      "text": "solve_spec accepts max_iter and solver keyword overrides; amico-run's invocation supplies neither",
+      "sources": [
+        {
+          "path": "/home/paimon/.julia/packages/Piccolo/WgV3c/src/specs/run.jl",
+          "line": 103,
+          "sha256": "640e0de106a9da6f4a4ffa804e52142208d11f99ac254cb214dc7b95e0407dda"
+        },
+        {
+          "path": "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/amico-run/src/local_executor.ts",
+          "line": 36,
+          "sha256": "d8da06fdc970b1e21dc2b4e93c6947c4deb2c0afa29058b3f556636b0fc90840"
+        },
+        {
+          "path": "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/amico-run/src/launch.ts",
+          "line": 48,
+          "sha256": "7a0d442b2130d31d26784e153591df27045bebeccc5ce1fc55a213f62b6eea5d"
+        }
+      ]
+    },
+    "default_record": {
+      "basis": "source_inspection",
+      "text": "params.spec retains the canonical spec; effective solver tol is not separately recorded",
+      "sources": [
+        {
+          "path": "/home/paimon/.julia/packages/Piccolo/WgV3c/src/specs/run.jl",
+          "line": 222,
+          "sha256": "640e0de106a9da6f4a4ffa804e52142208d11f99ac254cb214dc7b95e0407dda"
+        }
+      ]
+    },
+    "template": {
+      "basis": "source_inspection",
+      "text": "SmoothPulseProblem has u/du/ddu regularizers and derivative constraints; only free_dt=[lo,hi] forwards timestep bounds, while the template defaults to no bounds",
+      "sources": [
+        {
+          "path": "/home/paimon/.julia/packages/Piccolo/WgV3c/src/specs/materialize.jl",
+          "line": 275,
+          "sha256": "5e1f2a52752473b6974520d568ac12d691519e72c3e8542bcdc68ea07f4718f5"
+        },
+        {
+          "path": "/home/paimon/.julia/packages/Piccolo/WgV3c/src/control/templates/smooth_pulse_problem.jl",
+          "line": 86,
+          "sha256": "6380599a5108bab7f8914f637a600e9baff6b3ff8243feccffb321e46eeb625f"
+        }
+      ]
+    },
+    "converged": {
+      "basis": "source_inspection",
+      "text": "params.converged is the heuristic iterations < max_iter; Ipopt's termination status is not exposed here",
+      "sources": [
+        {
+          "path": "/home/paimon/.julia/packages/Piccolo/WgV3c/src/specs/run.jl",
+          "line": 199,
+          "sha256": "640e0de106a9da6f4a4ffa804e52142208d11f99ac254cb214dc7b95e0407dda"
+        }
+      ]
+    }
+  },
+  "wrapper_additions": {
+    "observed": {
+      "basis": "measurement",
+      "text": "run.toml, FINISHED, index, latest, captured run.log, independent Julia process group and signal forwarding",
+      "evidence": [
+        "solves",
+        "cancellation"
+      ]
+    },
+    "telemetry": {
+      "basis": "source_inspection",
+      "text": "local parsing of AMICODE_ITER and DONE lines into events; this parser performs no network calls",
+      "sources": [
+        {
+          "path": "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/amico-run/src/telemetry.ts",
+          "line": 3,
+          "sha256": "4f860256093f6ccae2b15eec1fd88db556065b2a5fa243f99e58586880cba417"
+        },
+        {
+          "path": "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/amico-run/src/local_executor.ts",
+          "line": 366,
+          "sha256": "d8da06fdc970b1e21dc2b4e93c6947c4deb2c0afa29058b3f556636b0fc90840"
+        }
+      ]
+    },
+    "direct": {
+      "basis": "source_inspection",
+      "text": "Julia solve_spec writes result.toml and the JLD2 pulse, without the wrapper's manifest or FINISHED",
+      "sources": [
+        {
+          "path": "/home/paimon/.julia/packages/Piccolo/WgV3c/src/specs/run.jl",
+          "line": 204,
+          "sha256": "640e0de106a9da6f4a4ffa804e52142208d11f99ac254cb214dc7b95e0407dda"
+        },
+        {
+          "path": "/home/paimon/.julia/packages/Piccolo/WgV3c/src/specs/run.jl",
+          "line": 222,
+          "sha256": "640e0de106a9da6f4a4ffa804e52142208d11f99ac254cb214dc7b95e0407dda"
+        }
+      ]
+    },
+    "entry": {
+      "basis": "source_inspection",
+      "text": "v4 SolveSpec routes its ProblemSpec to Piccolo.Specs.solve_spec",
+      "sources": [
+        {
+          "path": "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/amico-run/src/local_executor.ts",
+          "line": 36,
+          "sha256": "d8da06fdc970b1e21dc2b4e93c6947c4deb2c0afa29058b3f556636b0fc90840"
+        },
+        {
+          "path": "/home/paimon/Projects/entanglix-research/m4-probe/amicode/packages/amico-run/src/launch.ts",
+          "line": 207,
+          "sha256": "7a0d442b2130d31d26784e153591df27045bebeccc5ce1fc55a213f62b6eea5d"
+        }
+      ]
+    }
+  },
+  "cleanup_remaining_children": [],
+  "depot_additions": {
+    "packages": [],
+    "artifacts": [],
+    "compiled": []
+  },
+  "probe_sha256": "cc209b6aa9effa148ad0d32bf9474be7d9c121e86f85e63008d1bfcace1a4279",
+  "network_steps": {
+    "pnpm_install": {
+      "basis": "execution_log",
+      "logs": [
+        "/home/paimon/Projects/entanglix-research/m4-probe/logs/078.log"
+      ],
+      "text": "cache and download evidence is reported by pnpm in the installation log; no inferred download count"
+    },
+    "julia_instantiate": {
+      "basis": "execution_log_and_inventory",
+      "logs": [
+        "/home/paimon/Projects/entanglix-research/m4-probe/logs/080.log"
+      ],
+      "new_packages": [],
+      "new_artifacts": []
+    },
+    "local_clone": {
+      "basis": "executed_command",
+      "commands": [],
+      "text": "filesystem clone when absent; an existing pinned clone is reused"
+    }
+  }
+}

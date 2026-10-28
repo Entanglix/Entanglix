@@ -1,0 +1,21 @@
+format_version = 1
+table_id = "declared-needs-engines-v3"
+
+# Declared needs and implemented capabilities; no performance crossover policy.
+[engines.qutip-cpu]
+device_kind = "cpu"
+open_system = true
+differentiable = false
+batched = false
+
+[engines.cudensitymat]
+device_kind = "cuda"
+open_system = true
+differentiable = false
+batched = false
+
+[engines.dynamiqs]
+device_kind = "cuda"
+open_system = true
+differentiable = true
+batched = false

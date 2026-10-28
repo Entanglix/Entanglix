@@ -1,0 +1,535 @@
+{
+  "summary_builder_sha256": "1c47163b45ab3308a6820b75a2a5d451abfbf65a2fb11c4a32be9104fdb47a28",
+  "sessions": [
+    {
+      "workspace": "/home/paimon/Projects/entanglix-research/m4-control-claude-20261011",
+      "conduct_version": "0.1.7",
+      "control_skill_version": "0.1.0",
+      "session": {
+        "runtime": "Claude Code 2.1.296",
+        "model": "claude-sonnet-5-5",
+        "elapsed_seconds": 67.5943726910009,
+        "model_requests": 10,
+        "input_tokens": 350055,
+        "cached_input_tokens": 300676,
+        "output_tokens": 4640,
+        "windows_used_percent": {
+          "five_hour": {
+            "first": 18,
+            "last": 19
+          },
+          "weekly": {
+            "first": 19,
+            "last": 19
+          }
+        },
+        "conduct_in_initial_context": true,
+        "development_instructions_present": false,
+        "tool_calls": {
+          "list_capabilities": 1,
+          "list_investigations": 1,
+          "read_investigation": 2,
+          "Read": 3,
+          "Glob": 1,
+          "control": 2,
+          "read_run": 4,
+          "check": 2,
+          "record_finding": 1,
+          "Write": 1,
+          "stop_investigation": 1
+        },
+        "failed_calls": [
+          "read_investigation"
+        ],
+        "run_reads_with_detail": 2
+      },
+      "connection_audit": {
+        "entries": 0,
+        "client": null,
+        "command_restriction": null,
+        "call_audits": 14,
+        "calls_name_the_entry": false
+      },
+      "state": "stopped",
+      "stop_reason": "evidence_completion",
+      "usage": {
+        "jobs": 4,
+        "evaluated_points": 0,
+        "job_seconds": 46.63528497200059,
+        "gpu_seconds": 0.0,
+        "committed_job_seconds": 0.0,
+        "unsettled_jobs": 0,
+        "unbounded_jobs": 0
+      },
+      "attempts": [
+        {
+          "run_id": "r20261011T203541664304Z-392e766f",
+          "protocol": "control",
+          "base": "grape",
+          "status": "completed"
+        },
+        {
+          "run_id": "r20261011T203543007183Z-feff2e6d",
+          "protocol": "control",
+          "base": "piccolo",
+          "status": "completed"
+        },
+        {
+          "run_id": "r20261011T203614998180Z-baf02e67",
+          "protocol": "verification",
+          "base": "grape",
+          "status": "completed"
+        },
+        {
+          "run_id": "r20261011T203615861782Z-155b6b2c",
+          "protocol": "verification",
+          "base": "piccolo",
+          "status": "completed"
+        }
+      ],
+      "final_finding": {
+        "kind": "report",
+        "runs_cited": 4,
+        "attempts": 4,
+        "requested_checks_not_run": []
+      },
+      "candidates": [
+        {
+          "base": "grape",
+          "solver": "grape",
+          "converged": true,
+          "solver_reported_fidelity": 0.9996150466582062,
+          "replayed_fidelity": 0.9996150466896573,
+          "leakage": 2.9768638817984083e-05,
+          "checks": {
+            "replay": "pass",
+            "target": "pass",
+            "constraints": "pass"
+          },
+          "run_id": "r20261011T203541664304Z-392e766f",
+          "check_run_id": "r20261011T203614998180Z-baf02e67",
+          "problem_sha256": "716bdda08b61e182e4cea833a69282136bbb558ab36d492c042042a016daa3fa",
+          "check_links_source": true,
+          "agent_claim_equals_record": true
+        },
+        {
+          "base": "piccolo",
+          "solver": "piccolo",
+          "converged": false,
+          "solver_reported_fidelity": 0.9999999921909182,
+          "replayed_fidelity": 0.9999999942451363,
+          "leakage": 5.438482109099141e-09,
+          "checks": {
+            "replay": "pass",
+            "target": "pass",
+            "constraints": "pass"
+          },
+          "run_id": "r20261011T203543007183Z-feff2e6d",
+          "check_run_id": "r20261011T203615861782Z-155b6b2c",
+          "problem_sha256": "716bdda08b61e182e4cea833a69282136bbb558ab36d492c042042a016daa3fa",
+          "check_links_source": true,
+          "agent_claim_equals_record": true
+        }
+      ]
+    },
+    {
+      "workspace": "/home/paimon/Projects/entanglix-research/m4-control-codex-20261011",
+      "conduct_version": "0.1.7",
+      "control_skill_version": "0.1.0",
+      "session": {
+        "runtime": "codex-cli 0.162.1",
+        "model": "gpt-6.1-sol",
+        "effort": "high",
+        "elapsed_seconds": 187.72325885800092,
+        "model_requests": 20,
+        "input_tokens": 1065357,
+        "cached_input_tokens": 994688,
+        "output_tokens": 4810,
+        "windows_used_percent": {
+          "five_hour": {
+            "first": 18.0,
+            "last": 22.0
+          },
+          "weekly": {
+            "first": 20.0,
+            "last": 21.0
+          }
+        },
+        "conduct_in_initial_context": true,
+        "development_instructions_present": false,
+        "tool_calls": {
+          "shell": 7,
+          "list_investigations": 1,
+          "read_investigation": 11,
+          "list_capabilities": 1,
+          "control": 2,
+          "read_run": 6,
+          "check": 2,
+          "record_finding": 1,
+          "stop_investigation": 1
+        },
+        "failed_calls": [],
+        "run_reads_with_detail": 2
+      },
+      "connection_audit": {
+        "entries": 1,
+        "client": {
+          "source": "client-reported",
+          "name": "codex-mcp-client",
+          "version": "0.162.1"
+        },
+        "command_restriction": "runtime-configured",
+        "call_audits": 25,
+        "calls_name_the_entry": true
+      },
+      "state": "stopped",
+      "stop_reason": "evidence_completion",
+      "usage": {
+        "jobs": 4,
+        "evaluated_points": 0,
+        "job_seconds": 42.222857962999115,
+        "gpu_seconds": 0.0,
+        "committed_job_seconds": 0.0,
+        "unsettled_jobs": 0,
+        "unbounded_jobs": 0
+      },
+      "attempts": [
+        {
+          "run_id": "r20261011T203719255166Z-5b7934f3",
+          "protocol": "control",
+          "base": "grape",
+          "status": "completed"
+        },
+        {
+          "run_id": "r20261011T203738464825Z-beddaeb6",
+          "protocol": "verification",
+          "base": "grape",
+          "status": "completed"
+        },
+        {
+          "run_id": "r20261011T203748800318Z-8213637a",
+          "protocol": "control",
+          "base": "piccolo",
+          "status": "completed"
+        },
+        {
+          "run_id": "r20261011T203824473270Z-27cd4c1e",
+          "protocol": "verification",
+          "base": "piccolo",
+          "status": "completed"
+        }
+      ],
+      "final_finding": {
+        "kind": "report",
+        "runs_cited": 4,
+        "attempts": 4,
+        "requested_checks_not_run": []
+      },
+      "candidates": [
+        {
+          "base": "grape",
+          "solver": "grape",
+          "converged": true,
+          "solver_reported_fidelity": 0.9996150466582062,
+          "replayed_fidelity": 0.9996150466896573,
+          "leakage": 2.9768638817984083e-05,
+          "checks": {
+            "replay": "pass",
+            "target": "pass",
+            "constraints": "pass"
+          },
+          "run_id": "r20261011T203719255166Z-5b7934f3",
+          "check_run_id": "r20261011T203738464825Z-beddaeb6",
+          "problem_sha256": "716bdda08b61e182e4cea833a69282136bbb558ab36d492c042042a016daa3fa",
+          "check_links_source": true,
+          "agent_claim_equals_record": true
+        },
+        {
+          "base": "piccolo",
+          "solver": "piccolo",
+          "converged": false,
+          "solver_reported_fidelity": 0.9999999921909182,
+          "replayed_fidelity": 0.9999999942451363,
+          "leakage": 5.438482109099141e-09,
+          "checks": {
+            "replay": "pass",
+            "target": "pass",
+            "constraints": "pass"
+          },
+          "run_id": "r20261011T203748800318Z-8213637a",
+          "check_run_id": "r20261011T203824473270Z-27cd4c1e",
+          "problem_sha256": "716bdda08b61e182e4cea833a69282136bbb558ab36d492c042042a016daa3fa",
+          "check_links_source": true,
+          "agent_claim_equals_record": true
+        }
+      ]
+    },
+    {
+      "workspace": "/home/paimon/Projects/entanglix-research/m4-control-claude-20261011-b",
+      "conduct_version": "0.1.8",
+      "control_skill_version": "0.1.1",
+      "session": {
+        "runtime": "Claude Code 2.1.296",
+        "model": "claude-sonnet-5-5",
+        "elapsed_seconds": 72.41505947800033,
+        "model_requests": 12,
+        "input_tokens": 420330,
+        "cached_input_tokens": 375022,
+        "output_tokens": 5751,
+        "windows_used_percent": {
+          "five_hour": {
+            "first": 27,
+            "last": 29
+          },
+          "weekly": {
+            "first": 20,
+            "last": 20
+          }
+        },
+        "conduct_in_initial_context": true,
+        "development_instructions_present": false,
+        "tool_calls": {
+          "list_capabilities": 1,
+          "list_investigations": 1,
+          "read_investigation": 3,
+          "Read": 5,
+          "Glob": 3,
+          "control": 2,
+          "read_run": 4,
+          "check": 2,
+          "record_finding": 1,
+          "Write": 1,
+          "stop_investigation": 1
+        },
+        "failed_calls": [
+          "read_investigation"
+        ],
+        "run_reads_with_detail": 2
+      },
+      "connection_audit": {
+        "entries": 1,
+        "client": {
+          "source": "client-reported",
+          "name": "claude-code",
+          "version": "2.1.296"
+        },
+        "command_restriction": "instruction-only",
+        "call_audits": 15,
+        "calls_name_the_entry": true
+      },
+      "state": "stopped",
+      "stop_reason": "evidence_completion",
+      "usage": {
+        "jobs": 4,
+        "evaluated_points": 0,
+        "job_seconds": 45.09373197700006,
+        "gpu_seconds": 0.0,
+        "committed_job_seconds": 0.0,
+        "unsettled_jobs": 0,
+        "unbounded_jobs": 0
+      },
+      "attempts": [
+        {
+          "run_id": "r20261011T211633909010Z-af6ccbd4",
+          "protocol": "control",
+          "base": "grape",
+          "status": "completed"
+        },
+        {
+          "run_id": "r20261011T211635316836Z-820f8ee2",
+          "protocol": "control",
+          "base": "piccolo",
+          "status": "completed"
+        },
+        {
+          "run_id": "r20261011T211705903074Z-346a938a",
+          "protocol": "verification",
+          "base": "grape",
+          "status": "completed"
+        },
+        {
+          "run_id": "r20261011T211706719545Z-dadb3943",
+          "protocol": "verification",
+          "base": "piccolo",
+          "status": "completed"
+        }
+      ],
+      "final_finding": {
+        "kind": "report",
+        "runs_cited": 4,
+        "attempts": 4,
+        "requested_checks_not_run": []
+      },
+      "candidates": [
+        {
+          "base": "grape",
+          "solver": "grape",
+          "converged": true,
+          "solver_reported_fidelity": 0.9996150466582062,
+          "replayed_fidelity": 0.9996150466896573,
+          "leakage": 2.9768638817984083e-05,
+          "checks": {
+            "replay": "pass",
+            "target": "pass",
+            "constraints": "pass"
+          },
+          "run_id": "r20261011T211633909010Z-af6ccbd4",
+          "check_run_id": "r20261011T211705903074Z-346a938a",
+          "problem_sha256": "716bdda08b61e182e4cea833a69282136bbb558ab36d492c042042a016daa3fa",
+          "check_links_source": true,
+          "agent_claim_equals_record": true
+        },
+        {
+          "base": "piccolo",
+          "solver": "piccolo",
+          "converged": false,
+          "solver_reported_fidelity": 0.9999999921909182,
+          "replayed_fidelity": 0.9999999942451363,
+          "leakage": 5.438482109099141e-09,
+          "checks": {
+            "replay": "pass",
+            "target": "pass",
+            "constraints": "pass"
+          },
+          "run_id": "r20261011T211635316836Z-820f8ee2",
+          "check_run_id": "r20261011T211706719545Z-dadb3943",
+          "problem_sha256": "716bdda08b61e182e4cea833a69282136bbb558ab36d492c042042a016daa3fa",
+          "check_links_source": true,
+          "agent_claim_equals_record": true
+        }
+      ]
+    },
+    {
+      "workspace": "/home/paimon/Projects/entanglix-research/m4-control-codex-20261011-b",
+      "conduct_version": "0.1.8",
+      "control_skill_version": "0.1.1",
+      "session": {
+        "runtime": "codex-cli 0.162.1",
+        "model": "gpt-6.1-sol",
+        "effort": "high",
+        "elapsed_seconds": 135.4370420890009,
+        "model_requests": 15,
+        "input_tokens": 686127,
+        "cached_input_tokens": 637312,
+        "output_tokens": 3825,
+        "windows_used_percent": {
+          "five_hour": {
+            "first": 26.0,
+            "last": 28.0
+          },
+          "weekly": {
+            "first": 21.0,
+            "last": 22.0
+          }
+        },
+        "conduct_in_initial_context": true,
+        "development_instructions_present": false,
+        "tool_calls": {
+          "shell": 4,
+          "read_investigation": 4,
+          "list_investigations": 1,
+          "list_capabilities": 1,
+          "control": 2,
+          "read_run": 4,
+          "check": 2,
+          "record_finding": 1,
+          "stop_investigation": 1
+        },
+        "failed_calls": [],
+        "run_reads_with_detail": 2
+      },
+      "connection_audit": {
+        "entries": 1,
+        "client": {
+          "source": "client-reported",
+          "name": "codex-mcp-client",
+          "version": "0.162.1"
+        },
+        "command_restriction": "runtime-configured",
+        "call_audits": 16,
+        "calls_name_the_entry": true
+      },
+      "state": "stopped",
+      "stop_reason": "evidence_completion",
+      "usage": {
+        "jobs": 4,
+        "evaluated_points": 0,
+        "job_seconds": 44.433225801001754,
+        "gpu_seconds": 0.0,
+        "committed_job_seconds": 0.0,
+        "unsettled_jobs": 0,
+        "unbounded_jobs": 0
+      },
+      "attempts": [
+        {
+          "run_id": "r20261011T211804171684Z-7e12437c",
+          "protocol": "control",
+          "base": "grape",
+          "status": "completed"
+        },
+        {
+          "run_id": "r20261011T211810719134Z-7410f599",
+          "protocol": "control",
+          "base": "piccolo",
+          "status": "completed"
+        },
+        {
+          "run_id": "r20261011T211841517215Z-6d5b1356",
+          "protocol": "verification",
+          "base": "grape",
+          "status": "completed"
+        },
+        {
+          "run_id": "r20261011T211844768461Z-7bb841a4",
+          "protocol": "verification",
+          "base": "piccolo",
+          "status": "completed"
+        }
+      ],
+      "final_finding": {
+        "kind": "report",
+        "runs_cited": 4,
+        "attempts": 4,
+        "requested_checks_not_run": []
+      },
+      "candidates": [
+        {
+          "base": "grape",
+          "solver": "grape",
+          "converged": true,
+          "solver_reported_fidelity": 0.9996150466582062,
+          "replayed_fidelity": 0.9996150466896573,
+          "leakage": 2.9768638817984083e-05,
+          "checks": {
+            "replay": "pass",
+            "target": "pass",
+            "constraints": "pass"
+          },
+          "run_id": "r20261011T211804171684Z-7e12437c",
+          "check_run_id": "r20261011T211841517215Z-6d5b1356",
+          "problem_sha256": "716bdda08b61e182e4cea833a69282136bbb558ab36d492c042042a016daa3fa",
+          "check_links_source": true,
+          "agent_claim_equals_record": true
+        },
+        {
+          "base": "piccolo",
+          "solver": "piccolo",
+          "converged": false,
+          "solver_reported_fidelity": 0.9999999921909182,
+          "replayed_fidelity": 0.9999999942451363,
+          "leakage": 5.438482109099141e-09,
+          "checks": {
+            "replay": "pass",
+            "target": "pass",
+            "constraints": "pass"
+          },
+          "run_id": "r20261011T211810719134Z-7410f599",
+          "check_run_id": "r20261011T211844768461Z-7bb841a4",
+          "problem_sha256": "716bdda08b61e182e4cea833a69282136bbb558ab36d492c042042a016daa3fa",
+          "check_links_source": true,
+          "agent_claim_equals_record": true
+        }
+      ]
+    }
+  ]
+}

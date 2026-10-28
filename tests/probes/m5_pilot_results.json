@@ -1,0 +1,3192 @@
+{
+  "comparison_quantity": "worst fidelity over the example's declared evaluation samples",
+  "evaluation": {
+    "samples": [
+      {
+        "model.offset_charges.1": 0.0,
+        "parameters.EJ": 14.985
+      },
+      {
+        "model.offset_charges.1": 0.0,
+        "parameters.EJ": 15.0
+      },
+      {
+        "model.offset_charges.1": 0.0,
+        "parameters.EJ": 15.015
+      },
+      {
+        "model.offset_charges.1": 0.25,
+        "parameters.EJ": 14.985
+      },
+      {
+        "model.offset_charges.1": 0.25,
+        "parameters.EJ": 15.0
+      },
+      {
+        "model.offset_charges.1": 0.25,
+        "parameters.EJ": 15.015
+      },
+      {
+        "model.offset_charges.1": 0.5,
+        "parameters.EJ": 14.985
+      },
+      {
+        "model.offset_charges.1": 0.5,
+        "parameters.EJ": 15.0
+      },
+      {
+        "model.offset_charges.1": 0.5,
+        "parameters.EJ": 15.015
+      }
+    ],
+    "quantities": {
+      "model.offset_charges.1": "drifting",
+      "parameters.EJ": "calibrated"
+    },
+    "refinement": {
+      "junction_with_shunt": {
+        "retained_levels_step": 2,
+        "cutoff_steps": {
+          "theta1": 10
+        }
+      }
+    }
+  },
+  "seconds": 79.85929868626408,
+  "summary": [
+    {
+      "levels": 3,
+      "T_ns": 20.0,
+      "rabi_ghz": 0.06,
+      "Csh_fF": 10.0,
+      "best_worst_fidelity": 0.8070146599753292,
+      "best_seed": 7,
+      "best_refined_worst_fidelity": 0.8069565250647251,
+      "seed_spread": 0.37267846104150815,
+      "largest_refinement_change": 0.00023536375525501363,
+      "lowest_nominal_fidelity": 0.9770528991055866
+    },
+    {
+      "levels": 3,
+      "T_ns": 20.0,
+      "rabi_ghz": 0.06,
+      "Csh_fF": 20.0,
+      "best_worst_fidelity": 0.9900802882275482,
+      "best_seed": 43,
+      "best_refined_worst_fidelity": 0.9900834707971634,
+      "seed_spread": 0.031604321897356735,
+      "largest_refinement_change": 0.00032340669731922844,
+      "lowest_nominal_fidelity": 0.9832523851458136
+    },
+    {
+      "levels": 3,
+      "T_ns": 20.0,
+      "rabi_ghz": 0.06,
+      "Csh_fF": 30.0,
+      "best_worst_fidelity": 0.9854799237292785,
+      "best_seed": 7,
+      "best_refined_worst_fidelity": 0.9837910839041268,
+      "seed_spread": 0.000552607224781676,
+      "largest_refinement_change": 0.0019397703289425472,
+      "lowest_nominal_fidelity": 0.9895925849905524
+    },
+    {
+      "levels": 3,
+      "T_ns": 20.0,
+      "rabi_ghz": 0.06,
+      "Csh_fF": 45.0,
+      "best_worst_fidelity": 0.9999989638510193,
+      "best_seed": 43,
+      "best_refined_worst_fidelity": 0.9999982563611104,
+      "seed_spread": 0.029825338542954105,
+      "largest_refinement_change": 0.004022206357641389,
+      "lowest_nominal_fidelity": 0.9706729484241738
+    },
+    {
+      "levels": 3,
+      "T_ns": 20.0,
+      "rabi_ghz": 0.06,
+      "Csh_fF": 60.0,
+      "best_worst_fidelity": 0.9999998450845831,
+      "best_seed": 43,
+      "best_refined_worst_fidelity": 0.9999819233218675,
+      "seed_spread": 0.0004395671661797662,
+      "largest_refinement_change": 0.014285233756786253,
+      "lowest_nominal_fidelity": 0.9995976021586405
+    },
+    {
+      "levels": 3,
+      "T_ns": 20.0,
+      "rabi_ghz": 0.06,
+      "Csh_fF": 90.0,
+      "best_worst_fidelity": 0.9999998858091165,
+      "best_seed": 7,
+      "best_refined_worst_fidelity": 0.9999845855229416,
+      "seed_spread": 4.6411558229930705e-07,
+      "largest_refinement_change": 0.07373504769187089,
+      "lowest_nominal_fidelity": 0.9999999983220489
+    },
+    {
+      "levels": 3,
+      "T_ns": 10.0,
+      "rabi_ghz": 0.1,
+      "Csh_fF": 10.0,
+      "best_worst_fidelity": 0.7857493033348876,
+      "best_seed": 43,
+      "best_refined_worst_fidelity": 0.7857586334834362,
+      "seed_spread": 0.010139735355456425,
+      "largest_refinement_change": 1.487929211574368e-05,
+      "lowest_nominal_fidelity": 0.9999999972427337
+    },
+    {
+      "levels": 3,
+      "T_ns": 10.0,
+      "rabi_ghz": 0.1,
+      "Csh_fF": 20.0,
+      "best_worst_fidelity": 0.9970852659463278,
+      "best_seed": 43,
+      "best_refined_worst_fidelity": 0.9970620397301039,
+      "seed_spread": 0.002019049415911578,
+      "largest_refinement_change": 9.876621363358318e-05,
+      "lowest_nominal_fidelity": 0.9999999999312873
+    },
+    {
+      "levels": 3,
+      "T_ns": 10.0,
+      "rabi_ghz": 0.1,
+      "Csh_fF": 30.0,
+      "best_worst_fidelity": 0.9999292653750572,
+      "best_seed": 7,
+      "best_refined_worst_fidelity": 0.9999145589534731,
+      "seed_spread": 0.0009108213821626965,
+      "largest_refinement_change": 0.000810709171580215,
+      "lowest_nominal_fidelity": 0.9999999911930297
+    },
+    {
+      "levels": 3,
+      "T_ns": 10.0,
+      "rabi_ghz": 0.1,
+      "Csh_fF": 45.0,
+      "best_worst_fidelity": 0.9999996698803519,
+      "best_seed": 19,
+      "best_refined_worst_fidelity": 0.9999941265500527,
+      "seed_spread": 1.0064714067725689e-06,
+      "largest_refinement_change": 5.465179919772467e-05,
+      "lowest_nominal_fidelity": 0.99999999810472
+    },
+    {
+      "levels": 3,
+      "T_ns": 10.0,
+      "rabi_ghz": 0.1,
+      "Csh_fF": 60.0,
+      "best_worst_fidelity": 0.9999998660814683,
+      "best_seed": 19,
+      "best_refined_worst_fidelity": 0.999972259716591,
+      "seed_spread": 4.953435317478494e-08,
+      "largest_refinement_change": 0.0006194133744705788,
+      "lowest_nominal_fidelity": 0.9999999997303246
+    },
+    {
+      "levels": 3,
+      "T_ns": 10.0,
+      "rabi_ghz": 0.1,
+      "Csh_fF": 90.0,
+      "best_worst_fidelity": 0.9999998921181583,
+      "best_seed": 7,
+      "best_refined_worst_fidelity": 0.9992175854205051,
+      "seed_spread": 1.100192015268675e-08,
+      "largest_refinement_change": 0.018049321473870394,
+      "lowest_nominal_fidelity": 0.9999999971361125
+    },
+    {
+      "levels": 3,
+      "T_ns": 6.0,
+      "rabi_ghz": 0.15,
+      "Csh_fF": 10.0,
+      "best_worst_fidelity": 0.9224595552397243,
+      "best_seed": 19,
+      "best_refined_worst_fidelity": 0.9224923974271725,
+      "seed_spread": 0.004862001175322539,
+      "largest_refinement_change": 5.5056429993927125e-05,
+      "lowest_nominal_fidelity": 0.999999996254964
+    },
+    {
+      "levels": 3,
+      "T_ns": 6.0,
+      "rabi_ghz": 0.15,
+      "Csh_fF": 20.0,
+      "best_worst_fidelity": 0.9978523095580596,
+      "best_seed": 19,
+      "best_refined_worst_fidelity": 0.9977144818889582,
+      "seed_spread": 0.01186379649871061,
+      "largest_refinement_change": 0.0021499272056519914,
+      "lowest_nominal_fidelity": 0.9999999966664327
+    },
+    {
+      "levels": 3,
+      "T_ns": 6.0,
+      "rabi_ghz": 0.15,
+      "Csh_fF": 30.0,
+      "best_worst_fidelity": 0.9998546742300186,
+      "best_seed": 7,
+      "best_refined_worst_fidelity": 0.9997337337593906,
+      "seed_spread": 6.513239727157227e-05,
+      "largest_refinement_change": 0.00023705916933192128,
+      "lowest_nominal_fidelity": 0.9999999996594043
+    },
+    {
+      "levels": 3,
+      "T_ns": 6.0,
+      "rabi_ghz": 0.15,
+      "Csh_fF": 45.0,
+      "best_worst_fidelity": 0.9999995939192917,
+      "best_seed": 43,
+      "best_refined_worst_fidelity": 0.9998814321891113,
+      "seed_spread": 2.563565925650657e-06,
+      "largest_refinement_change": 0.00026569042453405967,
+      "lowest_nominal_fidelity": 0.999999998627532
+    },
+    {
+      "levels": 3,
+      "T_ns": 6.0,
+      "rabi_ghz": 0.15,
+      "Csh_fF": 60.0,
+      "best_worst_fidelity": 0.9999998775719585,
+      "best_seed": 7,
+      "best_refined_worst_fidelity": 0.9998672301832573,
+      "seed_spread": 1.3404420351470492e-08,
+      "largest_refinement_change": 0.0006473718077937285,
+      "lowest_nominal_fidelity": 0.9999999968531967
+    },
+    {
+      "levels": 3,
+      "T_ns": 6.0,
+      "rabi_ghz": 0.15,
+      "Csh_fF": 90.0,
+      "best_worst_fidelity": 0.9999999039607798,
+      "best_seed": 43,
+      "best_refined_worst_fidelity": 0.941554762012449,
+      "seed_spread": 1.1252117904092529e-08,
+      "largest_refinement_change": 0.058445141948330726,
+      "lowest_nominal_fidelity": 0.9999999989499216
+    },
+    {
+      "levels": 5,
+      "T_ns": 20.0,
+      "rabi_ghz": 0.06,
+      "Csh_fF": 10.0,
+      "best_worst_fidelity": 0.8092394735486278,
+      "best_seed": 7,
+      "best_refined_worst_fidelity": 0.8092394735477133,
+      "seed_spread": 0.37488598545098434,
+      "largest_refinement_change": 6.945721775508673e-11,
+      "lowest_nominal_fidelity": 0.9770532988296373
+    },
+    {
+      "levels": 5,
+      "T_ns": 20.0,
+      "rabi_ghz": 0.06,
+      "Csh_fF": 20.0,
+      "best_worst_fidelity": 0.9900185717435647,
+      "best_seed": 43,
+      "best_refined_worst_fidelity": 0.990018571746179,
+      "seed_spread": 0.03125516854470578,
+      "largest_refinement_change": 2.0531154554248587e-10,
+      "lowest_nominal_fidelity": 0.9830884641521352
+    },
+    {
+      "levels": 5,
+      "T_ns": 20.0,
+      "rabi_ghz": 0.06,
+      "Csh_fF": 30.0,
+      "best_worst_fidelity": 0.9857806067962427,
+      "best_seed": 7,
+      "best_refined_worst_fidelity": 0.985780607367068,
+      "seed_spread": 0.0012655620220599628,
+      "largest_refinement_change": 1.0464090705042395e-09,
+      "lowest_nominal_fidelity": 0.9897228279314595
+    },
+    {
+      "levels": 5,
+      "T_ns": 20.0,
+      "rabi_ghz": 0.06,
+      "Csh_fF": 45.0,
+      "best_worst_fidelity": 0.9999985378454076,
+      "best_seed": 43,
+      "best_refined_worst_fidelity": 0.9999985378458418,
+      "seed_spread": 0.030600577814823837,
+      "largest_refinement_change": 7.522106382218396e-09,
+      "lowest_nominal_fidelity": 0.969925329638828
+    },
+    {
+      "levels": 5,
+      "T_ns": 20.0,
+      "rabi_ghz": 0.06,
+      "Csh_fF": 60.0,
+      "best_worst_fidelity": 0.9999997584279923,
+      "best_seed": 43,
+      "best_refined_worst_fidelity": 0.9999997583399193,
+      "seed_spread": 0.0018654598901983732,
+      "largest_refinement_change": 3.3578142055734617e-07,
+      "lowest_nominal_fidelity": 0.9982174509924547
+    },
+    {
+      "levels": 5,
+      "T_ns": 20.0,
+      "rabi_ghz": 0.06,
+      "Csh_fF": 90.0,
+      "best_worst_fidelity": 0.9999993862520604,
+      "best_seed": 43,
+      "best_refined_worst_fidelity": 0.9999992347629764,
+      "seed_spread": 0.024174405525420384,
+      "largest_refinement_change": 1.9795685046730682e-07,
+      "lowest_nominal_fidelity": 0.9760482768271891
+    },
+    {
+      "levels": 5,
+      "T_ns": 10.0,
+      "rabi_ghz": 0.1,
+      "Csh_fF": 10.0,
+      "best_worst_fidelity": 0.7857313066063774,
+      "best_seed": 43,
+      "best_refined_worst_fidelity": 0.7857313066101334,
+      "seed_spread": 0.0101426606135947,
+      "largest_refinement_change": 1.0202727551700264e-11,
+      "lowest_nominal_fidelity": 0.9999999459689438
+    },
+    {
+      "levels": 5,
+      "T_ns": 10.0,
+      "rabi_ghz": 0.1,
+      "Csh_fF": 20.0,
+      "best_worst_fidelity": 0.9970745866273036,
+      "best_seed": 43,
+      "best_refined_worst_fidelity": 0.9970745866351072,
+      "seed_spread": 0.00217875632800979,
+      "largest_refinement_change": 7.8035355954853e-12,
+      "lowest_nominal_fidelity": 0.9999995224740673
+    },
+    {
+      "levels": 5,
+      "T_ns": 10.0,
+      "rabi_ghz": 0.1,
+      "Csh_fF": 30.0,
+      "best_worst_fidelity": 0.9998489533438715,
+      "best_seed": 7,
+      "best_refined_worst_fidelity": 0.9998489533549767,
+      "seed_spread": 0.0007815159790030002,
+      "largest_refinement_change": 7.745981633888732e-10,
+      "lowest_nominal_fidelity": 0.9999999742223986
+    },
+    {
+      "levels": 5,
+      "T_ns": 10.0,
+      "rabi_ghz": 0.1,
+      "Csh_fF": 45.0,
+      "best_worst_fidelity": 0.9999995473016662,
+      "best_seed": 7,
+      "best_refined_worst_fidelity": 0.9999995473171271,
+      "seed_spread": 7.030982535072283e-07,
+      "largest_refinement_change": 2.0592271221531178e-09,
+      "lowest_nominal_fidelity": 0.9999998138268955
+    },
+    {
+      "levels": 5,
+      "T_ns": 10.0,
+      "rabi_ghz": 0.1,
+      "Csh_fF": 60.0,
+      "best_worst_fidelity": 0.9999998271182801,
+      "best_seed": 19,
+      "best_refined_worst_fidelity": 0.9999998270507519,
+      "seed_spread": 0.002865830826353166,
+      "largest_refinement_change": 8.599393756636431e-06,
+      "lowest_nominal_fidelity": 0.9971988035408939
+    },
+    {
+      "levels": 5,
+      "T_ns": 10.0,
+      "rabi_ghz": 0.1,
+      "Csh_fF": 90.0,
+      "best_worst_fidelity": 0.9999997962108574,
+      "best_seed": 19,
+      "best_refined_worst_fidelity": 0.9999998013920944,
+      "seed_spread": 2.6177321554854416e-07,
+      "largest_refinement_change": 1.5365424821389695e-08,
+      "lowest_nominal_fidelity": 0.9999996468649889
+    },
+    {
+      "levels": 5,
+      "T_ns": 6.0,
+      "rabi_ghz": 0.15,
+      "Csh_fF": 10.0,
+      "best_worst_fidelity": 0.9224929223172026,
+      "best_seed": 19,
+      "best_refined_worst_fidelity": 0.9224929223192676,
+      "seed_spread": 0.0048616477768412825,
+      "largest_refinement_change": 1.0651479698253752e-11,
+      "lowest_nominal_fidelity": 0.9999998485722422
+    },
+    {
+      "levels": 5,
+      "T_ns": 6.0,
+      "rabi_ghz": 0.15,
+      "Csh_fF": 20.0,
+      "best_worst_fidelity": 0.997704820525252,
+      "best_seed": 19,
+      "best_refined_worst_fidelity": 0.9977048205256028,
+      "seed_spread": 0.008860797610941606,
+      "largest_refinement_change": 4.708964329580567e-10,
+      "lowest_nominal_fidelity": 0.9999995793448794
+    },
+    {
+      "levels": 5,
+      "T_ns": 6.0,
+      "rabi_ghz": 0.15,
+      "Csh_fF": 30.0,
+      "best_worst_fidelity": 0.9999266524005569,
+      "best_seed": 43,
+      "best_refined_worst_fidelity": 0.9999266524365874,
+      "seed_spread": 6.542716713764385e-05,
+      "largest_refinement_change": 6.826202936238701e-10,
+      "lowest_nominal_fidelity": 0.9999999815522704
+    },
+    {
+      "levels": 5,
+      "T_ns": 6.0,
+      "rabi_ghz": 0.15,
+      "Csh_fF": 45.0,
+      "best_worst_fidelity": 0.9999989230601573,
+      "best_seed": 43,
+      "best_refined_worst_fidelity": 0.9999989243654013,
+      "seed_spread": 1.907389341360144e-06,
+      "largest_refinement_change": 1.7590527923161403e-09,
+      "lowest_nominal_fidelity": 0.9999999439232603
+    },
+    {
+      "levels": 5,
+      "T_ns": 6.0,
+      "rabi_ghz": 0.15,
+      "Csh_fF": 60.0,
+      "best_worst_fidelity": 0.9999998545301324,
+      "best_seed": 19,
+      "best_refined_worst_fidelity": 0.9999998545457222,
+      "seed_spread": 2.8849419497767315e-07,
+      "largest_refinement_change": 1.1628597973434296e-08,
+      "lowest_nominal_fidelity": 0.999999733647145
+    },
+    {
+      "levels": 5,
+      "T_ns": 6.0,
+      "rabi_ghz": 0.15,
+      "Csh_fF": 90.0,
+      "best_worst_fidelity": 0.9999998872248462,
+      "best_seed": 19,
+      "best_refined_worst_fidelity": 0.9999998348334799,
+      "seed_spread": 2.2049630232778838e-07,
+      "largest_refinement_change": 1.275943275480529e-07,
+      "lowest_nominal_fidelity": 0.9999997768828283
+    }
+  ],
+  "runs": [
+    {
+      "levels": 3,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 10.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.9770530186457715,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 40,
+        "objective_evaluations": 48
+      },
+      "nominal_fidelity": 0.9770530186470882,
+      "worst_fidelity": 0.8070146599753292,
+      "refined_worst_fidelity": 0.8069565250647251,
+      "largest_refinement_change": 0.00023536375525501363,
+      "seconds": 1.347361599910073
+    },
+    {
+      "levels": 3,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 10.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9770528991041921,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 40,
+        "objective_evaluations": 46
+      },
+      "nominal_fidelity": 0.9770528991055866,
+      "worst_fidelity": 0.7957968655569484,
+      "refined_worst_fidelity": 0.7956026905575223,
+      "largest_refinement_change": 0.00020267053149503056,
+      "seconds": 0.920698523055762
+    },
+    {
+      "levels": 3,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 10.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.9999999963669268,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 10,
+        "objective_evaluations": 18
+      },
+      "nominal_fidelity": 0.9999999963669158,
+      "worst_fidelity": 0.434336198933821,
+      "refined_worst_fidelity": 0.4343356324616147,
+      "largest_refinement_change": 7.285730416750624e-07,
+      "seconds": 0.7614139870274812
+    },
+    {
+      "levels": 3,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 20.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.9840188148728592,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 35,
+        "objective_evaluations": 41
+      },
+      "nominal_fidelity": 0.9840188148728318,
+      "worst_fidelity": 0.9694734738210306,
+      "refined_worst_fidelity": 0.9692448722523029,
+      "largest_refinement_change": 0.00031407315947740155,
+      "seconds": 0.7755368370562792
+    },
+    {
+      "levels": 3,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 20.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9832523851458902,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 34,
+        "objective_evaluations": 47
+      },
+      "nominal_fidelity": 0.9832523851458136,
+      "worst_fidelity": 0.9584759663301915,
+      "refined_worst_fidelity": 0.9582301102682225,
+      "largest_refinement_change": 0.00032340669731922844,
+      "seconds": 0.7749786439817399
+    },
+    {
+      "levels": 3,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 20.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.99999999923205,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 10,
+        "objective_evaluations": 22
+      },
+      "nominal_fidelity": 0.9999999992320386,
+      "worst_fidelity": 0.9900802882275482,
+      "refined_worst_fidelity": 0.9900834707971634,
+      "largest_refinement_change": 3.980200775077769e-06,
+      "seconds": 0.700331246946007
+    },
+    {
+      "levels": 3,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 30.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.9895925915132169,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 22,
+        "objective_evaluations": 28
+      },
+      "nominal_fidelity": 0.9895925915130785,
+      "worst_fidelity": 0.9854799237292785,
+      "refined_worst_fidelity": 0.9837910839041268,
+      "largest_refinement_change": 0.001770496589287518,
+      "seconds": 0.7243279810063541
+    },
+    {
+      "levels": 3,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 30.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9897574649727163,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 21,
+        "objective_evaluations": 31
+      },
+      "nominal_fidelity": 0.9897574649725754,
+      "worst_fidelity": 0.9849273165044968,
+      "refined_worst_fidelity": 0.9830002154187621,
+      "largest_refinement_change": 0.0019397703289425472,
+      "seconds": 0.7401688050013036
+    },
+    {
+      "levels": 3,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 30.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.9895925849906886,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 23,
+        "objective_evaluations": 29
+      },
+      "nominal_fidelity": 0.9895925849905524,
+      "worst_fidelity": 0.9854283724280926,
+      "refined_worst_fidelity": 0.9837399964380941,
+      "largest_refinement_change": 0.001770829948074315,
+      "seconds": 0.7396430129883811
+    },
+    {
+      "levels": 3,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 45.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.9960436978819707,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 21,
+        "objective_evaluations": 28
+      },
+      "nominal_fidelity": 0.9960436978817189,
+      "worst_fidelity": 0.9957638810576394,
+      "refined_worst_fidelity": 0.9918609920116569,
+      "largest_refinement_change": 0.0039957392486023036,
+      "seconds": 0.6886246689828113
+    },
+    {
+      "levels": 3,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 45.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9706729484243555,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 51,
+        "objective_evaluations": 109
+      },
+      "nominal_fidelity": 0.9706729484241738,
+      "worst_fidelity": 0.9701736253080652,
+      "refined_worst_fidelity": 0.9662338841458135,
+      "largest_refinement_change": 0.004022206357641389,
+      "seconds": 0.7479806350311264
+    },
+    {
+      "levels": 3,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 45.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.9999999962686293,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 13,
+        "objective_evaluations": 31
+      },
+      "nominal_fidelity": 0.9999999962686189,
+      "worst_fidelity": 0.9999989638510193,
+      "refined_worst_fidelity": 0.9999982563611104,
+      "largest_refinement_change": 7.147673524166009e-07,
+      "seconds": 0.6934252890059724
+    },
+    {
+      "levels": 3,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 60.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.9995976021590274,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 57,
+        "objective_evaluations": 81
+      },
+      "nominal_fidelity": 0.9995976021586405,
+      "worst_fidelity": 0.9995602779184033,
+      "refined_worst_fidelity": 0.9866311536633111,
+      "largest_refinement_change": 0.012995322320039526,
+      "seconds": 0.6913914419710636
+    },
+    {
+      "levels": 3,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 60.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9996012096362792,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 29,
+        "objective_evaluations": 37
+      },
+      "nominal_fidelity": 0.999601209635844,
+      "worst_fidelity": 0.9995642385618405,
+      "refined_worst_fidelity": 0.9853431960449225,
+      "largest_refinement_change": 0.014285233756786253,
+      "seconds": 0.6651734570041299
+    },
+    {
+      "levels": 3,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 60.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.9999999976896096,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 15,
+        "objective_evaluations": 34
+      },
+      "nominal_fidelity": 0.9999999976895807,
+      "worst_fidelity": 0.9999998450845831,
+      "refined_worst_fidelity": 0.9999819233218675,
+      "largest_refinement_change": 1.7921762715533696e-05,
+      "seconds": 0.6315995419863611
+    },
+    {
+      "levels": 3,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 90.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.9999999997470228,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 16,
+        "objective_evaluations": 36
+      },
+      "nominal_fidelity": 0.9999999997469974,
+      "worst_fidelity": 0.9999998858091165,
+      "refined_worst_fidelity": 0.9999845855229416,
+      "largest_refinement_change": 1.5302623173174545e-05,
+      "seconds": 0.6135284749325365
+    },
+    {
+      "levels": 3,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 90.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9999999983227259,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 25,
+        "objective_evaluations": 46
+      },
+      "nominal_fidelity": 0.9999999983220489,
+      "worst_fidelity": 0.9999998094506662,
+      "refined_worst_fidelity": 0.9705974442620254,
+      "largest_refinement_change": 0.0294023757664319,
+      "seconds": 0.6435881400248036
+    },
+    {
+      "levels": 3,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 90.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.9999999994260844,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 24,
+        "objective_evaluations": 44
+      },
+      "nominal_fidelity": 0.9999999994255577,
+      "worst_fidelity": 0.9999994216935342,
+      "refined_worst_fidelity": 0.9262643740016633,
+      "largest_refinement_change": 0.07373504769187089,
+      "seconds": 0.6422876779688522
+    },
+    {
+      "levels": 3,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 10.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.9999999972427474,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 9,
+        "objective_evaluations": 15
+      },
+      "nominal_fidelity": 0.9999999972427337,
+      "worst_fidelity": 0.7756095679794311,
+      "refined_worst_fidelity": 0.7756145271549784,
+      "largest_refinement_change": 1.085998801164667e-05,
+      "seconds": 0.6806969370227307
+    },
+    {
+      "levels": 3,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 10.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9999999999429785,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 8,
+        "objective_evaluations": 15
+      },
+      "nominal_fidelity": 0.9999999999429604,
+      "worst_fidelity": 0.7848108773233514,
+      "refined_worst_fidelity": 0.7848257566154672,
+      "largest_refinement_change": 1.487929211574368e-05,
+      "seconds": 0.6805039870087057
+    },
+    {
+      "levels": 3,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 10.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.9999999988571033,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 10,
+        "objective_evaluations": 17
+      },
+      "nominal_fidelity": 0.9999999988570858,
+      "worst_fidelity": 0.7857493033348876,
+      "refined_worst_fidelity": 0.7857586334834362,
+      "largest_refinement_change": 1.2591974951403628e-05,
+      "seconds": 0.6741436849115416
+    },
+    {
+      "levels": 3,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 20.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.9999999999950193,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 11,
+        "objective_evaluations": 22
+      },
+      "nominal_fidelity": 0.9999999999950034,
+      "worst_fidelity": 0.9950662165304163,
+      "refined_worst_fidelity": 0.9949675239877633,
+      "largest_refinement_change": 9.876621363358318e-05,
+      "seconds": 0.642010935000144
+    },
+    {
+      "levels": 3,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 20.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9999999999940437,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 13,
+        "objective_evaluations": 23
+      },
+      "nominal_fidelity": 0.9999999999940309,
+      "worst_fidelity": 0.9955302716474056,
+      "refined_worst_fidelity": 0.9954494165979296,
+      "largest_refinement_change": 8.096386484868212e-05,
+      "seconds": 0.6957148109795526
+    },
+    {
+      "levels": 3,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 20.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.9999999999312996,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 14,
+        "objective_evaluations": 24
+      },
+      "nominal_fidelity": 0.9999999999312873,
+      "worst_fidelity": 0.9970852659463278,
+      "refined_worst_fidelity": 0.9970620397301039,
+      "largest_refinement_change": 2.3293243113342577e-05,
+      "seconds": 0.6496215920196846
+    },
+    {
+      "levels": 3,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 30.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.9999999999931022,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 15,
+        "objective_evaluations": 26
+      },
+      "nominal_fidelity": 0.9999999999930845,
+      "worst_fidelity": 0.9999292653750572,
+      "refined_worst_fidelity": 0.9999145589534731,
+      "largest_refinement_change": 1.4847510115489904e-05,
+      "seconds": 0.6260863250354305
+    },
+    {
+      "levels": 3,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 30.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9999999911930699,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 9,
+        "objective_evaluations": 22
+      },
+      "nominal_fidelity": 0.9999999911930297,
+      "worst_fidelity": 0.9995263445388236,
+      "refined_worst_fidelity": 0.9993901815855127,
+      "largest_refinement_change": 0.00013616295331086992,
+      "seconds": 0.6276125280419365
+    },
+    {
+      "levels": 3,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 30.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.9999999990811214,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 14,
+        "objective_evaluations": 25
+      },
+      "nominal_fidelity": 0.9999999990810579,
+      "worst_fidelity": 0.9990184439928945,
+      "refined_worst_fidelity": 0.9982077348213143,
+      "largest_refinement_change": 0.000810709171580215,
+      "seconds": 0.6387358360225335
+    },
+    {
+      "levels": 3,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 45.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.9999999985382808,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 12,
+        "objective_evaluations": 25
+      },
+      "nominal_fidelity": 0.9999999985382656,
+      "worst_fidelity": 0.99999963318852,
+      "refined_worst_fidelity": 0.9999935114852136,
+      "largest_refinement_change": 6.121703306383175e-06,
+      "seconds": 0.6120188910281286
+    },
+    {
+      "levels": 3,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 45.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9999999981047304,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 12,
+        "objective_evaluations": 28
+      },
+      "nominal_fidelity": 0.99999999810472,
+      "worst_fidelity": 0.9999996698803519,
+      "refined_worst_fidelity": 0.9999941265500527,
+      "largest_refinement_change": 5.5433302992291544e-06,
+      "seconds": 0.6164956770371646
+    },
+    {
+      "levels": 3,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 45.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.9999999991612644,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 19,
+        "objective_evaluations": 35
+      },
+      "nominal_fidelity": 0.9999999991612132,
+      "worst_fidelity": 0.9999986634089452,
+      "refined_worst_fidelity": 0.9999440116097474,
+      "largest_refinement_change": 5.465179919772467e-05,
+      "seconds": 0.6199883159715682
+    },
+    {
+      "levels": 3,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 60.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.9999999997303562,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 14,
+        "objective_evaluations": 29
+      },
+      "nominal_fidelity": 0.9999999997303246,
+      "worst_fidelity": 0.9999998165471151,
+      "refined_worst_fidelity": 0.9999225683918412,
+      "largest_refinement_change": 7.724815527387907e-05,
+      "seconds": 0.5978317509870976
+    },
+    {
+      "levels": 3,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 60.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9999999998756307,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 14,
+        "objective_evaluations": 30
+      },
+      "nominal_fidelity": 0.9999999998756074,
+      "worst_fidelity": 0.9999998660814683,
+      "refined_worst_fidelity": 0.999972259716591,
+      "largest_refinement_change": 2.7606364877308387e-05,
+      "seconds": 0.5924926119623706
+    },
+    {
+      "levels": 3,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 60.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.9999999999899588,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 18,
+        "objective_evaluations": 37
+      },
+      "nominal_fidelity": 0.9999999999899268,
+      "worst_fidelity": 0.9999998372041476,
+      "refined_worst_fidelity": 0.9993804238296771,
+      "largest_refinement_change": 0.0006194133744705788,
+      "seconds": 0.5786290030227974
+    },
+    {
+      "levels": 3,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 90.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.9999999999511943,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 15,
+        "objective_evaluations": 31
+      },
+      "nominal_fidelity": 0.9999999999511752,
+      "worst_fidelity": 0.9999998921181583,
+      "refined_worst_fidelity": 0.9992175854205051,
+      "largest_refinement_change": 0.0007823067650261084,
+      "seconds": 0.5857539069838822
+    },
+    {
+      "levels": 3,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 90.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9999999995821441,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 20,
+        "objective_evaluations": 34
+      },
+      "nominal_fidelity": 0.9999999995821184,
+      "worst_fidelity": 0.9999998894199579,
+      "refined_worst_fidelity": 0.9984064032730836,
+      "largest_refinement_change": 0.0015934930996344132,
+      "seconds": 0.6426403890363872
+    },
+    {
+      "levels": 3,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 90.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.9999999971361936,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 17,
+        "objective_evaluations": 30
+      },
+      "nominal_fidelity": 0.9999999971361125,
+      "worst_fidelity": 0.9999998811162382,
+      "refined_worst_fidelity": 0.9819505596423678,
+      "largest_refinement_change": 0.018049321473870394,
+      "seconds": 0.5850115480134264
+    },
+    {
+      "levels": 3,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 10.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.9999999962549766,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 7,
+        "objective_evaluations": 12
+      },
+      "nominal_fidelity": 0.999999996254964,
+      "worst_fidelity": 0.9175975540644018,
+      "refined_worst_fidelity": 0.9176248525730145,
+      "largest_refinement_change": 3.5441967936922225e-05,
+      "seconds": 0.633335471036844
+    },
+    {
+      "levels": 3,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 10.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9999999976207625,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 8,
+        "objective_evaluations": 14
+      },
+      "nominal_fidelity": 0.9999999976207533,
+      "worst_fidelity": 0.9224595552397243,
+      "refined_worst_fidelity": 0.9224923974271725,
+      "largest_refinement_change": 3.299974999748656e-05,
+      "seconds": 0.6374136030208319
+    },
+    {
+      "levels": 3,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 10.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.9999999999988797,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 14,
+        "objective_evaluations": 20
+      },
+      "nominal_fidelity": 0.9999999999988661,
+      "worst_fidelity": 0.9223092646926369,
+      "refined_worst_fidelity": 0.9222608348181165,
+      "largest_refinement_change": 5.5056429993927125e-05,
+      "seconds": 0.6427689340198413
+    },
+    {
+      "levels": 3,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 20.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.9999999999991727,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 12,
+        "objective_evaluations": 21
+      },
+      "nominal_fidelity": 0.9999999999991589,
+      "worst_fidelity": 0.9971535761340276,
+      "refined_worst_fidelity": 0.99694229713503,
+      "largest_refinement_change": 0.00021149491519500963,
+      "seconds": 0.6180086289532483
+    },
+    {
+      "levels": 3,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 20.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9999999966664443,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 12,
+        "objective_evaluations": 21
+      },
+      "nominal_fidelity": 0.9999999966664327,
+      "worst_fidelity": 0.9978523095580596,
+      "refined_worst_fidelity": 0.9977144818889582,
+      "largest_refinement_change": 0.00013798824493516104,
+      "seconds": 0.6137252689804882
+    },
+    {
+      "levels": 3,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 20.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.9999999991959998,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 17,
+        "objective_evaluations": 27
+      },
+      "nominal_fidelity": 0.9999999991959244,
+      "worst_fidelity": 0.985988513059349,
+      "refined_worst_fidelity": 0.9838440198659423,
+      "largest_refinement_change": 0.0021499272056519914,
+      "seconds": 0.6210734529886395
+    },
+    {
+      "levels": 3,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 30.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.9999999996594228,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 11,
+        "objective_evaluations": 22
+      },
+      "nominal_fidelity": 0.9999999996594043,
+      "worst_fidelity": 0.9998546742300186,
+      "refined_worst_fidelity": 0.9997337337593906,
+      "largest_refinement_change": 0.00012094047062805036,
+      "seconds": 0.5978412510594353
+    },
+    {
+      "levels": 3,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 30.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9999999999999646,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 13,
+        "objective_evaluations": 22
+      },
+      "nominal_fidelity": 0.9999999999999426,
+      "worst_fidelity": 0.9998444690103536,
+      "refined_worst_fidelity": 0.9997193875262623,
+      "largest_refinement_change": 0.00012508148409129394,
+      "seconds": 0.6013393469620496
+    },
+    {
+      "levels": 3,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 30.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.9999999999932215,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 17,
+        "objective_evaluations": 28
+      },
+      "nominal_fidelity": 0.9999999999931699,
+      "worst_fidelity": 0.999789541832747,
+      "refined_worst_fidelity": 0.9995524826634151,
+      "largest_refinement_change": 0.00023705916933192128,
+      "seconds": 0.6124142999760807
+    },
+    {
+      "levels": 3,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 45.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.999999999664408,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 13,
+        "objective_evaluations": 25
+      },
+      "nominal_fidelity": 0.9999999996643911,
+      "worst_fidelity": 0.9999987214434114,
+      "refined_worst_fidelity": 0.9998837594178308,
+      "largest_refinement_change": 0.00011496202558058943,
+      "seconds": 0.6128160210791975
+    },
+    {
+      "levels": 3,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 45.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9999999986275571,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 12,
+        "objective_evaluations": 22
+      },
+      "nominal_fidelity": 0.999999998627532,
+      "worst_fidelity": 0.9999970303533661,
+      "refined_worst_fidelity": 0.999731339928832,
+      "largest_refinement_change": 0.00026569042453405967,
+      "seconds": 0.5861197019694373
+    },
+    {
+      "levels": 3,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 45.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.9999999996732718,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 16,
+        "objective_evaluations": 28
+      },
+      "nominal_fidelity": 0.9999999996732564,
+      "worst_fidelity": 0.9999995939192917,
+      "refined_worst_fidelity": 0.9998814321891113,
+      "largest_refinement_change": 0.0001182798326260226,
+      "seconds": 0.6580606020288542
+    },
+    {
+      "levels": 3,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 60.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.9999999999906999,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 14,
+        "objective_evaluations": 24
+      },
+      "nominal_fidelity": 0.999999999990679,
+      "worst_fidelity": 0.9999998775719585,
+      "refined_worst_fidelity": 0.9998672301832573,
+      "largest_refinement_change": 0.0001326473887012236,
+      "seconds": 0.5734111990313977
+    },
+    {
+      "levels": 3,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 60.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9999999968532238,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 15,
+        "objective_evaluations": 25
+      },
+      "nominal_fidelity": 0.9999999968531967,
+      "worst_fidelity": 0.9999998720005013,
+      "refined_worst_fidelity": 0.9993525310096651,
+      "largest_refinement_change": 0.0006473718077937285,
+      "seconds": 0.5708887880900875
+    },
+    {
+      "levels": 3,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 60.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.9999999998674096,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 14,
+        "objective_evaluations": 24
+      },
+      "nominal_fidelity": 0.9999999998673782,
+      "worst_fidelity": 0.9999998641675382,
+      "refined_worst_fidelity": 0.9994586341108483,
+      "largest_refinement_change": 0.000541240247968533,
+      "seconds": 0.5795641890726984
+    },
+    {
+      "levels": 3,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 90.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.9999999995662004,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 13,
+        "objective_evaluations": 24
+      },
+      "nominal_fidelity": 0.9999999995661821,
+      "worst_fidelity": 0.9999998958352198,
+      "refined_worst_fidelity": 0.9971806645611392,
+      "largest_refinement_change": 0.002819231274080569,
+      "seconds": 0.5636705859797075
+    },
+    {
+      "levels": 3,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 90.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9999999989499464,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 13,
+        "objective_evaluations": 23
+      },
+      "nominal_fidelity": 0.9999999989499216,
+      "worst_fidelity": 0.9999998927086619,
+      "refined_worst_fidelity": 0.9967772258790423,
+      "largest_refinement_change": 0.0032226790254021864,
+      "seconds": 0.576445935992524
+    },
+    {
+      "levels": 3,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 90.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.9999999995085656,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 16,
+        "objective_evaluations": 26
+      },
+      "nominal_fidelity": 0.9999999995084691,
+      "worst_fidelity": 0.9999999039607798,
+      "refined_worst_fidelity": 0.941554762012449,
+      "largest_refinement_change": 0.058445141948330726,
+      "seconds": 0.5858001610031351
+    },
+    {
+      "levels": 5,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 10.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.9770532988296399,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 42,
+        "objective_evaluations": 51
+      },
+      "nominal_fidelity": 0.9770532988296373,
+      "worst_fidelity": 0.8092394735486278,
+      "refined_worst_fidelity": 0.8092394735477133,
+      "largest_refinement_change": 6.842704181053705e-11,
+      "seconds": 1.2863610989879817
+    },
+    {
+      "levels": 5,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 10.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9770532994519894,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 35,
+        "objective_evaluations": 39
+      },
+      "nominal_fidelity": 0.9770532994519892,
+      "worst_fidelity": 0.7959350499825848,
+      "refined_worst_fidelity": 0.7959350500497081,
+      "largest_refinement_change": 6.945721775508673e-11,
+      "seconds": 1.2283860900206491
+    },
+    {
+      "levels": 5,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 10.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.9999999957099726,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 10,
+        "objective_evaluations": 18
+      },
+      "nominal_fidelity": 0.9999999957099767,
+      "worst_fidelity": 0.43435348809764346,
+      "refined_worst_fidelity": 0.4343534881021019,
+      "largest_refinement_change": 2.1742940781166453e-11,
+      "seconds": 0.9974807439139113
+    },
+    {
+      "levels": 5,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 20.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.9840868460263177,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 33,
+        "objective_evaluations": 36
+      },
+      "nominal_fidelity": 0.9840868460263138,
+      "worst_fidelity": 0.9696783159168699,
+      "refined_worst_fidelity": 0.9696783157380011,
+      "largest_refinement_change": 1.788688086534762e-10,
+      "seconds": 1.1304260650649667
+    },
+    {
+      "levels": 5,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 20.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9830884641521416,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 31,
+        "objective_evaluations": 40
+      },
+      "nominal_fidelity": 0.9830884641521352,
+      "worst_fidelity": 0.9587634031988589,
+      "refined_worst_fidelity": 0.9587634032964374,
+      "largest_refinement_change": 2.0531154554248587e-10,
+      "seconds": 1.0876642169896513
+    },
+    {
+      "levels": 5,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 20.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.9999999843785529,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 9,
+        "objective_evaluations": 22
+      },
+      "nominal_fidelity": 0.9999999843785532,
+      "worst_fidelity": 0.9900185717435647,
+      "refined_worst_fidelity": 0.990018571746179,
+      "largest_refinement_change": 2.9416469260468148e-12,
+      "seconds": 0.9224153589457273
+    },
+    {
+      "levels": 5,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 30.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.9899450597291303,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 26,
+        "objective_evaluations": 33
+      },
+      "nominal_fidelity": 0.9899450597291309,
+      "worst_fidelity": 0.9857806067962427,
+      "refined_worst_fidelity": 0.985780607367068,
+      "largest_refinement_change": 5.708252759362153e-10,
+      "seconds": 0.9575146100251004
+    },
+    {
+      "levels": 5,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 30.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9897228279314636,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 21,
+        "objective_evaluations": 31
+      },
+      "nominal_fidelity": 0.9897228279314595,
+      "worst_fidelity": 0.9845150447741827,
+      "refined_worst_fidelity": 0.9845150458205918,
+      "largest_refinement_change": 1.0464090705042395e-09,
+      "seconds": 1.0160172859905288
+    },
+    {
+      "levels": 5,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 30.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.9899450594610717,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 19,
+        "objective_evaluations": 26
+      },
+      "nominal_fidelity": 0.9899450594610668,
+      "worst_fidelity": 0.985731364179807,
+      "refined_worst_fidelity": 0.9857313647538378,
+      "largest_refinement_change": 5.740308228752156e-10,
+      "seconds": 1.0141731720650569
+    },
+    {
+      "levels": 5,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 45.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.99598261681511,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 20,
+        "objective_evaluations": 29
+      },
+      "nominal_fidelity": 0.9959826168151045,
+      "worst_fidelity": 0.9957336945719776,
+      "refined_worst_fidelity": 0.9957336900916864,
+      "largest_refinement_change": 7.375871913239962e-09,
+      "seconds": 0.9315050330478698
+    },
+    {
+      "levels": 5,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 45.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9699253296388362,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 34,
+        "objective_evaluations": 42
+      },
+      "nominal_fidelity": 0.969925329638828,
+      "worst_fidelity": 0.9693979600305838,
+      "refined_worst_fidelity": 0.9693979525084774,
+      "largest_refinement_change": 7.522106382218396e-09,
+      "seconds": 0.9867302099009976
+    },
+    {
+      "levels": 5,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 45.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.9999998205021359,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 13,
+        "objective_evaluations": 32
+      },
+      "nominal_fidelity": 0.9999998205021313,
+      "worst_fidelity": 0.9999985378454076,
+      "refined_worst_fidelity": 0.9999985378458418,
+      "largest_refinement_change": 8.542055951465954e-13,
+      "seconds": 0.8206069009611383
+    },
+    {
+      "levels": 5,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 60.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.9984141669719351,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 35,
+        "objective_evaluations": 46
+      },
+      "nominal_fidelity": 0.9984141669719294,
+      "worst_fidelity": 0.9983292327650292,
+      "refined_worst_fidelity": 0.99832890988476,
+      "largest_refinement_change": 3.3578142055734617e-07,
+      "seconds": 0.915040131076239
+    },
+    {
+      "levels": 5,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 60.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9982174509924562,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 32,
+        "objective_evaluations": 52
+      },
+      "nominal_fidelity": 0.9982174509924547,
+      "worst_fidelity": 0.9981342985377939,
+      "refined_worst_fidelity": 0.9981341216827188,
+      "largest_refinement_change": 1.9185215327510718e-07,
+      "seconds": 0.8879861519671977
+    },
+    {
+      "levels": 5,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 60.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.9999999539229371,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 16,
+        "objective_evaluations": 37
+      },
+      "nominal_fidelity": 0.9999999539229374,
+      "worst_fidelity": 0.9999997584279923,
+      "refined_worst_fidelity": 0.9999997583399193,
+      "largest_refinement_change": 2.558957490350622e-10,
+      "seconds": 0.8254558760672808
+    },
+    {
+      "levels": 5,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 90.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.9760482768271929,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 39,
+        "objective_evaluations": 62
+      },
+      "nominal_fidelity": 0.9760482768271891,
+      "worst_fidelity": 0.97582498072664,
+      "refined_worst_fidelity": 0.9758249784135987,
+      "largest_refinement_change": 2.857657221966292e-08,
+      "seconds": 0.863318670890294
+    },
+    {
+      "levels": 5,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 90.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9999992770896697,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 31,
+        "objective_evaluations": 52
+      },
+      "nominal_fidelity": 0.999999277089671,
+      "worst_fidelity": 0.9999985040576617,
+      "refined_worst_fidelity": 0.9999985241095377,
+      "largest_refinement_change": 2.3154357431387496e-08,
+      "seconds": 0.8937204199610278
+    },
+    {
+      "levels": 5,
+      "T_ns": 20.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.06,
+        "du_ghz_per_ns": 0.099,
+        "ddu_ghz_per_ns2": 0.099
+      },
+      "Csh_fF": 90.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.9999999950867144,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 29,
+        "objective_evaluations": 52
+      },
+      "nominal_fidelity": 0.999999995086713,
+      "worst_fidelity": 0.9999993862520604,
+      "refined_worst_fidelity": 0.9999992347629764,
+      "largest_refinement_change": 1.9795685046730682e-07,
+      "seconds": 0.8499696200015023
+    },
+    {
+      "levels": 5,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 10.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.9999999459689439,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 9,
+        "objective_evaluations": 15
+      },
+      "nominal_fidelity": 0.9999999459689438,
+      "worst_fidelity": 0.7755886459927827,
+      "refined_worst_fidelity": 0.7755886459959974,
+      "largest_refinement_change": 1.0202727551700264e-11,
+      "seconds": 0.9115795129910111
+    },
+    {
+      "levels": 5,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 10.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9999999576141685,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 8,
+        "objective_evaluations": 15
+      },
+      "nominal_fidelity": 0.9999999576141674,
+      "worst_fidelity": 0.7847899349105713,
+      "refined_worst_fidelity": 0.7847899349131064,
+      "largest_refinement_change": 1.0104916903230787e-11,
+      "seconds": 0.9120901600690559
+    },
+    {
+      "levels": 5,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 10.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.9999999859536524,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 10,
+        "objective_evaluations": 17
+      },
+      "nominal_fidelity": 0.9999999859536594,
+      "worst_fidelity": 0.7857313066063774,
+      "refined_worst_fidelity": 0.7857313066101334,
+      "largest_refinement_change": 9.79083480956433e-12,
+      "seconds": 0.8840519649675116
+    },
+    {
+      "levels": 5,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 20.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.9999995505911452,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 12,
+        "objective_evaluations": 22
+      },
+      "nominal_fidelity": 0.999999550591142,
+      "worst_fidelity": 0.9948958302992938,
+      "refined_worst_fidelity": 0.9948958302958811,
+      "largest_refinement_change": 4.678701870375335e-12,
+      "seconds": 0.824275398044847
+    },
+    {
+      "levels": 5,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 20.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9999996648376928,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 13,
+        "objective_evaluations": 22
+      },
+      "nominal_fidelity": 0.9999996648376911,
+      "worst_fidelity": 0.9953790626538156,
+      "refined_worst_fidelity": 0.9953790626508532,
+      "largest_refinement_change": 4.150346732956223e-12,
+      "seconds": 0.7824141450691968
+    },
+    {
+      "levels": 5,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 20.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.999999522474064,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 14,
+        "objective_evaluations": 24
+      },
+      "nominal_fidelity": 0.9999995224740673,
+      "worst_fidelity": 0.9970745866273036,
+      "refined_worst_fidelity": 0.9970745866351072,
+      "largest_refinement_change": 7.8035355954853e-12,
+      "seconds": 0.8100183699280024
+    },
+    {
+      "levels": 5,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 30.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.9999999888324128,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 19,
+        "objective_evaluations": 30
+      },
+      "nominal_fidelity": 0.9999999888324109,
+      "worst_fidelity": 0.9998489533438715,
+      "refined_worst_fidelity": 0.9998489533549767,
+      "largest_refinement_change": 1.7957191289497132e-11,
+      "seconds": 0.7707753849681467
+    },
+    {
+      "levels": 5,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 30.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9999999742224022,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 16,
+        "objective_evaluations": 28
+      },
+      "nominal_fidelity": 0.9999999742223986,
+      "worst_fidelity": 0.9995009854938862,
+      "refined_worst_fidelity": 0.9995009854885498,
+      "largest_refinement_change": 5.3363979901632774e-12,
+      "seconds": 0.7568027850938961
+    },
+    {
+      "levels": 5,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 30.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.999999988123544,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 20,
+        "objective_evaluations": 31
+      },
+      "nominal_fidelity": 0.9999999881235432,
+      "worst_fidelity": 0.9990674373648685,
+      "refined_worst_fidelity": 0.9990674374068278,
+      "largest_refinement_change": 7.745981633888732e-10,
+      "seconds": 0.8006660960381851
+    },
+    {
+      "levels": 5,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 45.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.9999999990392716,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 18,
+        "objective_evaluations": 32
+      },
+      "nominal_fidelity": 0.9999999990392722,
+      "worst_fidelity": 0.9999995473016662,
+      "refined_worst_fidelity": 0.9999995473171271,
+      "largest_refinement_change": 1.547728611939192e-11,
+      "seconds": 0.7135586579097435
+    },
+    {
+      "levels": 5,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 45.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9999999929318517,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 19,
+        "objective_evaluations": 35
+      },
+      "nominal_fidelity": 0.9999999929318536,
+      "worst_fidelity": 0.999999358692131,
+      "refined_worst_fidelity": 0.999999358705181,
+      "largest_refinement_change": 2.804045884374773e-11,
+      "seconds": 0.7200378050329164
+    },
+    {
+      "levels": 5,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 45.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.999999813826894,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 21,
+        "objective_evaluations": 37
+      },
+      "nominal_fidelity": 0.9999998138268955,
+      "worst_fidelity": 0.9999988442034127,
+      "refined_worst_fidelity": 0.9999988441065231,
+      "largest_refinement_change": 2.0592271221531178e-09,
+      "seconds": 0.7544160700635985
+    },
+    {
+      "levels": 5,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 60.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.9999999920072568,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 15,
+        "objective_evaluations": 32
+      },
+      "nominal_fidelity": 0.9999999920072552,
+      "worst_fidelity": 0.9999998036073539,
+      "refined_worst_fidelity": 0.9999998036596427,
+      "largest_refinement_change": 6.902389770857553e-11,
+      "seconds": 0.6937985769473016
+    },
+    {
+      "levels": 5,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 60.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9999999912571871,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 14,
+        "objective_evaluations": 27
+      },
+      "nominal_fidelity": 0.9999999912571874,
+      "worst_fidelity": 0.9999998271182801,
+      "refined_worst_fidelity": 0.9999998270507519,
+      "largest_refinement_change": 1.081992273554988e-10,
+      "seconds": 0.7553168690064922
+    },
+    {
+      "levels": 5,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 60.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.9971988035408967,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 37,
+        "objective_evaluations": 45
+      },
+      "nominal_fidelity": 0.9971988035408939,
+      "worst_fidelity": 0.9971339962919269,
+      "refined_worst_fidelity": 0.9971425956856835,
+      "largest_refinement_change": 8.599393756636431e-06,
+      "seconds": 0.7908956180326641
+    },
+    {
+      "levels": 5,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 90.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.9999996468649895,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 17,
+        "objective_evaluations": 35
+      },
+      "nominal_fidelity": 0.9999996468649889,
+      "worst_fidelity": 0.9999995344376419,
+      "refined_worst_fidelity": 0.9999995190722171,
+      "largest_refinement_change": 1.5365424821389695e-08,
+      "seconds": 0.6724648280069232
+    },
+    {
+      "levels": 5,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 90.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9999999174625915,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 17,
+        "objective_evaluations": 34
+      },
+      "nominal_fidelity": 0.9999999174625916,
+      "worst_fidelity": 0.9999997962108574,
+      "refined_worst_fidelity": 0.9999998013920944,
+      "largest_refinement_change": 5.184095597243754e-09,
+      "seconds": 0.6618538009934127
+    },
+    {
+      "levels": 5,
+      "T_ns": 10.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.1,
+        "du_ghz_per_ns": 0.198,
+        "ddu_ghz_per_ns2": 0.396
+      },
+      "Csh_fF": 90.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.9999998890787074,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 31,
+        "objective_evaluations": 49
+      },
+      "nominal_fidelity": 0.9999998890787066,
+      "worst_fidelity": 0.999999784449177,
+      "refined_worst_fidelity": 0.9999997766067455,
+      "largest_refinement_change": 8.885037705574916e-09,
+      "seconds": 0.6778156789951026
+    },
+    {
+      "levels": 5,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 10.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.9999998485722428,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 7,
+        "objective_evaluations": 12
+      },
+      "nominal_fidelity": 0.9999998485722422,
+      "worst_fidelity": 0.9176312745403613,
+      "refined_worst_fidelity": 0.9176312745417685,
+      "largest_refinement_change": 1.0651479698253752e-11,
+      "seconds": 0.7600030449684709
+    },
+    {
+      "levels": 5,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 10.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9999999313583379,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 8,
+        "objective_evaluations": 14
+      },
+      "nominal_fidelity": 0.9999999313583379,
+      "worst_fidelity": 0.9224929223172026,
+      "refined_worst_fidelity": 0.9224929223192676,
+      "largest_refinement_change": 4.506728323860898e-12,
+      "seconds": 0.7581920400261879
+    },
+    {
+      "levels": 5,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 10.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.9999998500788236,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 14,
+        "objective_evaluations": 20
+      },
+      "nominal_fidelity": 0.9999998500788226,
+      "worst_fidelity": 0.9223758466460662,
+      "refined_worst_fidelity": 0.9223758466440216,
+      "largest_refinement_change": 8.462675005205256e-12,
+      "seconds": 0.7628351770108566
+    },
+    {
+      "levels": 5,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 20.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.999999579344881,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 12,
+        "objective_evaluations": 21
+      },
+      "nominal_fidelity": 0.9999995793448794,
+      "worst_fidelity": 0.9970955932581043,
+      "refined_worst_fidelity": 0.9970955932411704,
+      "largest_refinement_change": 2.2495338924954922e-11,
+      "seconds": 0.7106720809824765
+    },
+    {
+      "levels": 5,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 20.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9999999372570536,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 12,
+        "objective_evaluations": 21
+      },
+      "nominal_fidelity": 0.9999999372570532,
+      "worst_fidelity": 0.997704820525252,
+      "refined_worst_fidelity": 0.9977048205256028,
+      "largest_refinement_change": 4.514055795823424e-12,
+      "seconds": 0.7192931590834633
+    },
+    {
+      "levels": 5,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 20.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.9999999611113727,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 21,
+        "objective_evaluations": 31
+      },
+      "nominal_fidelity": 0.9999999611113739,
+      "worst_fidelity": 0.9888440229143104,
+      "refined_worst_fidelity": 0.988844022443414,
+      "largest_refinement_change": 4.708964329580567e-10,
+      "seconds": 0.768751221941784
+    },
+    {
+      "levels": 5,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 30.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.9999999867755115,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 15,
+        "objective_evaluations": 25
+      },
+      "nominal_fidelity": 0.9999999867755113,
+      "worst_fidelity": 0.9998645960508868,
+      "refined_worst_fidelity": 0.9998645959970028,
+      "largest_refinement_change": 5.38840083663672e-11,
+      "seconds": 0.6853671199642122
+    },
+    {
+      "levels": 5,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 30.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.999999995588869,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 18,
+        "objective_evaluations": 27
+      },
+      "nominal_fidelity": 0.99999999558887,
+      "worst_fidelity": 0.9998612252334192,
+      "refined_worst_fidelity": 0.9998612251933171,
+      "largest_refinement_change": 4.0102143827880354e-11,
+      "seconds": 0.6926015990320593
+    },
+    {
+      "levels": 5,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 30.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.9999999815522682,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 25,
+        "objective_evaluations": 36
+      },
+      "nominal_fidelity": 0.9999999815522704,
+      "worst_fidelity": 0.9999266524005569,
+      "refined_worst_fidelity": 0.9999266524365874,
+      "largest_refinement_change": 6.826202936238701e-10,
+      "seconds": 0.7252906559733674
+    },
+    {
+      "levels": 5,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 45.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.9999999921870504,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 20,
+        "objective_evaluations": 31
+      },
+      "nominal_fidelity": 0.9999999921870507,
+      "worst_fidelity": 0.9999984988160634,
+      "refined_worst_fidelity": 0.9999984989013391,
+      "largest_refinement_change": 4.666429465061128e-10,
+      "seconds": 0.6795550259994343
+    },
+    {
+      "levels": 5,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 45.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9999999774840282,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 16,
+        "objective_evaluations": 26
+      },
+      "nominal_fidelity": 0.9999999774840278,
+      "worst_fidelity": 0.9999970156708159,
+      "refined_worst_fidelity": 0.9999970163773805,
+      "largest_refinement_change": 7.309343130756929e-10,
+      "seconds": 0.7547300379956141
+    },
+    {
+      "levels": 5,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 45.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.9999999439232607,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 23,
+        "objective_evaluations": 34
+      },
+      "nominal_fidelity": 0.9999999439232603,
+      "worst_fidelity": 0.9999989230601573,
+      "refined_worst_fidelity": 0.9999989243654013,
+      "largest_refinement_change": 1.7590527923161403e-09,
+      "seconds": 0.6971105840057135
+    },
+    {
+      "levels": 5,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 60.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.9999999578305787,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 17,
+        "objective_evaluations": 28
+      },
+      "nominal_fidelity": 0.9999999578305796,
+      "worst_fidelity": 0.9999998358713366,
+      "refined_worst_fidelity": 0.9999998364147648,
+      "largest_refinement_change": 9.905092301920604e-10,
+      "seconds": 0.6432906949194148
+    },
+    {
+      "levels": 5,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 60.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9999999865523163,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 18,
+        "objective_evaluations": 29
+      },
+      "nominal_fidelity": 0.999999986552317,
+      "worst_fidelity": 0.9999998545301324,
+      "refined_worst_fidelity": 0.9999998545457222,
+      "largest_refinement_change": 3.1209812512145163e-10,
+      "seconds": 0.6344158359570429
+    },
+    {
+      "levels": 5,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 60.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.9999997336471451,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 18,
+        "objective_evaluations": 28
+      },
+      "nominal_fidelity": 0.999999733647145,
+      "worst_fidelity": 0.9999995660359374,
+      "refined_worst_fidelity": 0.9999995772702746,
+      "largest_refinement_change": 1.1628597973434296e-08,
+      "seconds": 0.6630586331011727
+    },
+    {
+      "levels": 5,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 90.0,
+      "seed": 7,
+      "solver_reported_fidelity": 0.9999997768828257,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 23,
+        "objective_evaluations": 33
+      },
+      "nominal_fidelity": 0.9999997768828283,
+      "worst_fidelity": 0.9999996667285439,
+      "refined_worst_fidelity": 0.9999997514466781,
+      "largest_refinement_change": 8.471813417454399e-08,
+      "seconds": 0.6532279560342431
+    },
+    {
+      "levels": 5,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 90.0,
+      "seed": 19,
+      "solver_reported_fidelity": 0.9999999968067496,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 34,
+        "objective_evaluations": 44
+      },
+      "nominal_fidelity": 0.9999999968067486,
+      "worst_fidelity": 0.9999998872248462,
+      "refined_worst_fidelity": 0.9999998348334799,
+      "largest_refinement_change": 5.239136635637465e-08,
+      "seconds": 0.6590318490052596
+    },
+    {
+      "levels": 5,
+      "T_ns": 6.0,
+      "rabi_bounds": {
+        "subsystem": "junction_with_shunt",
+        "amplitude_ghz": 0.15,
+        "du_ghz_per_ns": 0.33,
+        "ddu_ghz_per_ns2": 1.1
+      },
+      "Csh_fF": 90.0,
+      "seed": 43,
+      "solver_reported_fidelity": 0.9999998337437361,
+      "termination": {
+        "converged": true,
+        "status": 0,
+        "message": "Optimization terminated successfully",
+        "iterations": 36,
+        "objective_evaluations": 49
+      },
+      "nominal_fidelity": 0.9999998337437367,
+      "worst_fidelity": 0.9999997258841242,
+      "refined_worst_fidelity": 0.9999996050680579,
+      "largest_refinement_change": 1.275943275480529e-07,
+      "seconds": 0.6515224570175633
+    }
+  ]
+}
