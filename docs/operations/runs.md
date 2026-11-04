@@ -6,6 +6,8 @@
 
 Commands in these references are the bare `entanglix` of an installation, run from the project directory, with input files in the project. From a source checkout, developers prefix them with `uv run --locked --exact`; commands that only a checkout uses are labelled.
 
+Installation commands (`components`, `plugins`, and `remove`) show readable summaries in a terminal, and JSON when stdout is captured or piped, including through an agent's shell tool. Installation progress goes to stderr; dependency setup output is shown on failure.
+
 The examples ship in the installation directory that `entanglix components` reports as `path`, such as `~/.local/share/entanglix/0.1.0/examples/`. Copy an example's whole directory into the project, so its files stay beside one another, and run it there; the example paths below assume that copy:
 
 ```sh

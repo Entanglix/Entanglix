@@ -44,14 +44,17 @@ main() {
     fi
     if [ ! -d "$target/.git" ]; then
       rm -rf "$target.partial"
-      echo "Cloning Entanglix $version"
-      git clone --quiet --depth 1 --branch "$ref" "$repository" "$target.partial"
+      echo "Cloning Entanglix $version" >&2
+      git init --quiet "$target.partial"
+      git -C "$target.partial" remote add origin "$repository"
+      git -C "$target.partial" fetch --quiet --depth 1 origin "$ref"
+      git -C "$target.partial" -c advice.detachedHead=false checkout --quiet --detach FETCH_HEAD
       mv "$target.partial" "$target"
     fi
     grep -q "^version = \"$version\"" "$target/pyproject.toml" ||
       fail "$ref of $repository is not Entanglix $version"
     if [ ! -x "$uv" ]; then
-      echo "Downloading uv $uv_version"
+      echo "Downloading uv $uv_version" >&2
       mkdir -p "$state/bin"
       archive=$state/uv.tar.gz
       curl -fsSL -o "$archive" \
@@ -66,7 +69,7 @@ main() {
   cache=$data/cache
 
   if [ ! -f "$state/installation.toml" ]; then
-    echo "Creating the Entanglix environment"
+    echo "Creating the Entanglix environment" >&2
     (
       # Inherited variables cannot redirect this uv; network settings pass.
       for name in $(compgen -e); do
@@ -79,7 +82,7 @@ main() {
       export UV_CACHE_DIR=$cache UV_PYTHON_INSTALL_DIR=$state/python
       export UV_PROJECT_ENVIRONMENT=$target/.venv
       # uv looks for .python-version from the working directory, so the pin is explicit.
-      "$uv" sync --project "$target" --locked --no-config --no-dev --managed-python \
+      "$uv" sync --quiet --project "$target" --locked --no-config --no-dev --managed-python \
         --python "$(cat "$target/.python-version")" --extra mcp
     )
   fi

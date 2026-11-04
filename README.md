@@ -32,10 +32,12 @@ curl -fsSL https://raw.githubusercontent.com/Entanglix/Entanglix/v0.1.0/install.
 
 This installs Entanglix 0.1.0 in `~/.local/share/entanglix/0.1.0`, with CPU engines and the GRAPE solver, and puts the `entanglix` command in `~/.local/bin`. It edits no shell profile; if that directory is not on your `PATH`, it says so and shows the line to add. Two components are added on request:
 
-- `entanglix components add gpu`: the cuDensityMat and dynamiqs GPU engines, about 7 GB, mostly NVIDIA libraries;
-- `entanglix components add piccolo`: the Piccolo solver with its own Julia, about 3.5 GB.
+- `entanglix components add gpu`: the cuDensityMat and dynamiqs GPU engines, about 7 GB installed, mostly NVIDIA libraries;
+- `entanglix components add piccolo`: the Piccolo solver with its own Julia, about 3.5 GB installed; setup can take several minutes.
 
 `entanglix components` shows what is installed. Your own engines and solvers attach as [plugins](docs/operations/runs.md#plugins-in-the-runner-environment), added with `entanglix plugins add PATH`. A newer version installs beside the old one and shares its package cache; `entanglix remove VERSION` deletes a version nothing is using, and removing the last one also deletes the cache and the `entanglix` command.
+
+These commands show readable summaries in a terminal and JSON when their output is captured or piped, including through an agent's shell tool.
 
 ## Start a project
 
@@ -66,6 +68,8 @@ Then start the fresh session yourself.
 The [documentation index](docs/README.md) lists the operational references: system files, simulations and sweeps, runs, control, calibration, the catalog, investigations, and the [MCP server](docs/operations/mcp.md), which also covers working from a source checkout. Shared execution guarantees are in [HARNESS_CONTRACT.md](HARNESS_CONTRACT.md), and [ADRs](docs/adr/) keep the decisions behind them.
 
 ## Changes and compatibility
+
+Unreleased: quieter installation and component setup, with readable component and plugin summaries in a terminal and JSON when output is captured or piped.
 
 0.1.0, the first public release: the modeling, simulation, sweep, control, calibration, catalog and investigation workflows; one-command installation with GPU and Piccolo components and project setup for agent runtimes; user-installed engine and solver plugins; the MCP server with versioned research conduct and skills; and operator commands for human decisions. Records written by earlier development builds remain readable under the [compatibility rule](docs/operations/runs.md#record-fields-and-ownership).
 

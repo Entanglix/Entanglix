@@ -157,7 +157,7 @@ def fixture_repository(work: Path, versions: list[str]) -> Path:
         current = version
         subprocess.run([*git, "add", "-A"], check=True)
         subprocess.run([*git, "commit", "-qm", f"fixture {version}", "--allow-empty"], check=True)
-        subprocess.run([*git, "tag", f"v{version}"], check=True)
+        subprocess.run([*git, "tag", "-a", f"v{version}", "-m", f"release {version}"], check=True)
     return repository
 
 
@@ -264,7 +264,9 @@ def cpu_world(work, repository, revisions):
     done = install(repository, "0.1.0", home, env)
     step(
         "base install, nvidia-smi hidden",
-        done.returncode == 0,
+        done.returncode == 0
+        and "warning:" not in done.stderr
+        and "detached HEAD" not in done.stderr,
         seconds=done.seconds,
         output=done.stdout[-3000:],
         stderr=done.stderr[-3000:],

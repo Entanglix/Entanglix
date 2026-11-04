@@ -67,6 +67,45 @@ def _varied_values(items: list[str]) -> dict[str, int | float] | None:
     return values or None
 
 
+def _print_installation_result(command: str, action: str | None, result: dict) -> None:
+    if command == "components":
+        if action == "add":
+            label = "GPU engines" if result["component"] == "gpu" else "Piccolo solver"
+            print(f"{label} {result['status']}.")
+            for check in result.get("gpu_check", []):
+                print(f"GPU check on {check['device']}: {check['status']}.")
+                if check.get("detail"):
+                    print(check["detail"])
+        else:
+            print(f"Entanglix {result['version']} at {result['path']}")
+            print(f"Installed components: {', '.join(result['components'])}")
+            for gpu in result["gpus"]:
+                print(f"Detected GPU: {gpu['name']} ({gpu['uuid']})")
+            for name, instruction in result["can_add"].items():
+                print(f"Add {name}: {instruction}")
+    elif command == "plugins":
+        if action == "remove":
+            print(f"Plugin {result['plugin']} {result['status']}.")
+            return
+        entries = {result["plugin"]: result} if action == "add" else result
+        if not entries:
+            print("No user-installed engine or solver plugins.")
+        else:
+            for name, plugin in entries.items():
+                registrations = "; ".join(
+                    f"{kind}: {', '.join(plugin[kind])}"
+                    for kind in ("engines", "solvers")
+                    if plugin.get(kind)
+                )
+                label = f"{name} {plugin['version']}" if "version" in plugin else name
+                if action == "add":
+                    label += f" {plugin['status']}"
+                print(label + (f" ({registrations})" if registrations else ""))
+    else:
+        print(f"Removed Entanglix {result['removed']}.")
+        print(result["note"])
+
+
 def main(argv: list[str] | None = None) -> int:
     try:
         return _main(argv)
@@ -396,7 +435,10 @@ def _main(argv: list[str] | None = None) -> int:
         print(f"entanglix: {failure_message(exc)}", file=sys.stderr)
         return 64
     if args.command in {"components", "plugins", "remove"}:
-        print(json.dumps(result, default=str, indent=2))
+        if not sys.stdout.isatty():
+            print(json.dumps(result, default=str, indent=2))
+        else:
+            _print_installation_result(args.command, getattr(args, "action", None), result)
         return 0
     if args.command in {
         "create-investigation",

@@ -1,6 +1,7 @@
 """Installed versions: recorded tools and extras, environment locks, components and removal."""
 
 import fcntl
+import json
 import os
 import re
 import signal
@@ -512,6 +513,7 @@ def test_plugins_install_by_name_with_the_installation_uv(tmp_path, monkeypatch)
             str(root / ".installation/bin/uv"),
             "pip",
             "install",
+            "--quiet",
             "--no-config",
             "--python",
             python,
@@ -697,6 +699,176 @@ def test_commands_check_record_paths_but_not_authored_inputs(arguments, records,
 def test_a_checkout_has_no_components_to_manage(capsys):
     assert main(["components"]) == 64
     assert "manages an installed Entanglix" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("terminal", [True, False])
+@pytest.mark.parametrize(
+    "arguments,handler,result,expected",
+    [
+        (
+            ["components"],
+            "status",
+            {
+                "version": "0.1.0",
+                "path": "/installed",
+                "components": ["base"],
+                "gpus": [{"name": "Test", "uuid": "GPU-1"}],
+                "can_add": {"gpu": "entanglix components add gpu (about 7 GB installed)"},
+            },
+            "Installed components: base",
+        ),
+        (
+            ["components", "add", "gpu"],
+            "add_component",
+            {
+                "component": "gpu",
+                "status": "added",
+                "gpu_check": [
+                    {"device": "GPU-1", "status": "passed"},
+                    {"device": "GPU-2", "status": "not checked", "detail": "device is busy"},
+                    {"device": "GPU-3", "status": "failed", "detail": "driver mismatch"},
+                ],
+            },
+            "GPU check on GPU-2: not checked.\ndevice is busy",
+        ),
+        (
+            ["components", "add", "piccolo"],
+            "add_component",
+            {"component": "piccolo", "status": "already added"},
+            "Piccolo solver already added.",
+        ),
+        (
+            ["plugins"],
+            "plugins",
+            {"my-plugin": {"version": "0.2.0", "engines": ["mine"], "solvers": []}},
+            "my-plugin 0.2.0 (engines: mine)",
+        ),
+        (["plugins"], "plugins", {}, "No user-installed engine or solver plugins."),
+        (
+            ["plugins", "add", "/plugin"],
+            "add_plugin",
+            {
+                "plugin": "my-plugin",
+                "status": "installed",
+                "version": "0.2.0",
+                "engines": ["mine"],
+                "solvers": ["my-solver"],
+            },
+            "my-plugin 0.2.0 installed (engines: mine; solvers: my-solver)",
+        ),
+        (
+            ["plugins", "remove", "my-plugin"],
+            "remove_plugin",
+            {"plugin": "my-plugin", "status": "removed"},
+            "Plugin my-plugin removed.",
+        ),
+        (
+            ["remove", "0.1.0"],
+            "remove_version",
+            {"removed": "0.1.0", "note": "deleted cache and launcher"},
+            "Removed Entanglix 0.1.0.\ndeleted cache and launcher",
+        ),
+    ],
+)
+def test_installation_cli_output(
+    arguments, handler, result, expected, terminal, monkeypatch, capsys
+):
+    monkeypatch.setattr(installation, handler, lambda *args: result)
+    monkeypatch.setattr(sys.stdout, "isatty", lambda: terminal)
+    assert main(arguments) == 0
+    output = capsys.readouterr().out
+    if not terminal:
+        assert json.loads(output) == result
+    else:
+        assert expected in output
+        if handler == "add_component" and result.get("gpu_check"):
+            assert "GPU check on GPU-1: passed." in output
+            assert "GPU check on GPU-3: failed.\ndriver mismatch" in output
+
+
+@pytest.mark.parametrize("exit_code", [0, 1])
+def test_dependency_output_is_quiet_on_success_and_available_on_failure(exit_code, capsys):
+    command = [
+        sys.executable,
+        "-c",
+        "import sys; print('dependency output'); "
+        f"sys.stderr.buffer.write(b'error detail: \\xff\\n'); sys.exit({exit_code})",
+    ]
+    if exit_code:
+        with pytest.raises(ValueError, match="setup failed"):
+            installation._run(command, dict(os.environ), "setup failed")
+    else:
+        installation._run(command, dict(os.environ), "setup failed")
+    output = capsys.readouterr()
+    assert not output.out
+    assert ("dependency output" in output.err) == bool(exit_code)
+    assert ("error detail" in output.err) == bool(exit_code)
+    if exit_code:
+        assert "error detail: \ufffd" in output.err
+
+
+def test_install_script_fetches_annotated_tags_without_warnings(tmp_path):
+    source = tmp_path / "source"
+    source.mkdir()
+    (source / "pyproject.toml").write_text('version = "0.1.0"\n')
+    (source / ".python-version").write_text("3.13.12\n")
+    # Finish the shell bootstrap without downloads or dependency installation.
+    uv = source / ".installation/bin/uv"
+    uv.parent.mkdir(parents=True)
+    uv.write_text(
+        '#!/bin/sh\nwhile [ "$1" != --project ]; do shift; done\ncd "$2"\n'
+        "mkdir -p .venv/bin\n"
+        "cp .installation/bin/finished .venv/bin/python\n"
+    )
+    uv.with_name("finished").write_text('#!/bin/sh\necho "installation finished"\n')
+    for path in (uv, uv.with_name("finished")):
+        path.chmod(0o755)
+    git = ["git", "-C", str(source), "-c", "user.name=Test", "-c", "user.email=test@invalid"]
+    for arguments in (
+        ["init", "-q"],
+        ["add", "."],
+        ["commit", "-qm", "fixture"],
+        ["tag", "-a", "v0.1.0", "-m", "release"],
+    ):
+        subprocess.run([*git, *arguments], check=True, capture_output=True)
+    environment = {
+        **os.environ,
+        "XDG_DATA_HOME": str(tmp_path / "data"),
+        "ENTANGLIX_INSTALL_REPOSITORY": source.as_uri(),
+        "ENTANGLIX_INSTALL_REF": "v0.1.0",
+    }
+    target = tmp_path / "data/entanglix/0.1.0"
+    done = subprocess.run(
+        ["bash", str(REPOSITORY / "install.sh")],
+        env=environment,
+        cwd=source,
+        capture_output=True,
+        text=True,
+    )
+    assert done.returncode == 0, done.stderr
+    assert "warning:" not in done.stderr and "detached HEAD" not in done.stderr
+    revision = subprocess.check_output([*git, "rev-parse", "v0.1.0^{commit}"], text=True).strip()
+    assert (
+        subprocess.check_output(["git", "-C", str(target), "rev-parse", "HEAD"], text=True).strip()
+        == revision
+    )
+    assert (
+        subprocess.check_output(
+            ["git", "-C", str(target), "rev-parse", "--is-shallow-repository"], text=True
+        ).strip()
+        == "true"
+    )
+    refused = subprocess.run(
+        ["bash", str(REPOSITORY / "install.sh")],
+        env={
+            **environment,
+            "XDG_DATA_HOME": str(tmp_path / "refused"),
+            "ENTANGLIX_INSTALL_REF": "missing",
+        },
+        capture_output=True,
+        text=True,
+    )
+    assert refused.returncode != 0 and "missing" in refused.stderr
 
 
 def test_installing_finishes_once_and_a_reinstall_changes_nothing(tmp_path, monkeypatch):

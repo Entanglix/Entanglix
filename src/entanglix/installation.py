@@ -57,6 +57,7 @@ NEEDS = {
 }
 PLUGIN_GROUPS = {"engines": "entanglix.integrators", "solvers": "entanglix.solvers"}
 CHECKOUT_PLUGINS = "installs plugins with uv pip install --python .venv-runner/bin/python"
+GPU_SIZE = "about 7 GB installed, mostly NVIDIA libraries"
 LAUNCHER = """#!/usr/bin/env bash
 # Entanglix launcher: runs the installation a project records, else the newest one.
 set -eu
@@ -295,7 +296,7 @@ def missing_hint(need: str, root: Path = ROOT) -> str:
         return ""
     if component == "gpu" and not gpus():
         return "; it comes with the GPU component, which needs an NVIDIA driver (none found)"
-    size = " (several GB)" if component == "gpu" else ""
+    size = f" ({GPU_SIZE})" if component == "gpu" else ""
     return f"; add it with `entanglix components add {component}`{size}"
 
 
@@ -333,17 +334,28 @@ def _julia_environment(root: Path, executable: Path) -> dict[str, str]:
 def _run(
     command: list[str], environment: dict[str, str], failure: str, lease: Lease | None = None
 ) -> None:
-    """Run a step; one that changes the environment inherits the lease, so it stays held if the
-    command that started it dies."""
+    """Show dependency output only on failure. A step that changes the environment inherits
+    the lease, so it stays held if the command that started it dies."""
     pass_fds = (lease.fileno(),) if lease is not None else ()
-    if subprocess.run(command, env=environment, pass_fds=pass_fds).returncode:
-        raise ValueError(failure)
+    with tempfile.TemporaryFile(mode="w+", encoding="utf-8", errors="replace") as output:
+        result = subprocess.run(
+            command,
+            env=environment,
+            pass_fds=pass_fds,
+            stdout=output,
+            stderr=subprocess.STDOUT,
+        )
+        if result.returncode:
+            output.seek(0)
+            shutil.copyfileobj(output, sys.stderr)
+            raise ValueError(failure)
 
 
 def _sync_runner(root: Path, extras: list[str], installed: dict, lease: Lease) -> None:
     command = [
         installed["uv"],
         "sync",
+        "--quiet",
         "--project",
         str(root),
         "--locked",
@@ -360,6 +372,12 @@ def _install_julia(root: Path, lease: Lease) -> str:
     machine = {"amd64": "x86_64", "arm64": "aarch64"}.get(platform.machine(), platform.machine())
     if machine not in JULIA:
         raise ValueError(f"Piccolo's Julia is available for x86_64 and aarch64, not {machine}")
+    print(
+        "Setting up Piccolo and its Julia environment (about 3.5 GB installed); "
+        "this can take several minutes.",
+        file=sys.stderr,
+        flush=True,
+    )
     url, digest = JULIA[machine]
     target = root / STATE / f"julia-{JULIA_VERSION}"
     executable = target / "bin/julia"
@@ -461,6 +479,7 @@ def add_component(name: str, root: Path = ROOT) -> dict:
         _publish(mark, {"component": name, "started_at": datetime.now(UTC)})
         updated = {**current, "components": sorted({*current["components"], name})}
         if name == "gpu":
+            print(f"Adding GPU engines ({GPU_SIZE}).", file=sys.stderr, flush=True)
             extras = sorted({*current["runner_extras"], *COMPONENT_EXTRAS["gpu"]})
             _publish(root / ".venv-runner-extras.toml", {"extras": extras})
             _sync_runner(root, extras, installed, lease)
@@ -483,7 +502,7 @@ def status(root: Path = ROOT) -> dict:
     addable = {}
     if "gpu" not in current["components"]:
         addable["gpu"] = (
-            "entanglix components add gpu (several GB)"
+            f"entanglix components add gpu ({GPU_SIZE})"
             if devices
             else "needs an NVIDIA driver (none found)"
         )
@@ -572,6 +591,7 @@ def add_plugin(source: Path, root: Path = ROOT) -> dict:
                 installed["uv"],
                 "pip",
                 "install",
+                "--quiet",
                 "--no-config",
                 "--python",
                 str(root / ".venv-runner/bin/python"),
@@ -602,6 +622,7 @@ def remove_plugin(name: str, root: Path = ROOT) -> dict:
                 installed["uv"],
                 "pip",
                 "uninstall",
+                "--quiet",
                 "--no-config",
                 "--python",
                 str(root / ".venv-runner/bin/python"),
@@ -716,6 +737,7 @@ def install(*, uv: str, cache: str, bin_directory: Path, root: Path = ROOT) -> l
         installed = {"uv": uv, "cache_dir": cache}
         extras = list(COMPONENT_EXTRAS["base"])
         with environment_lease(root, exclusive=True) as lease:
+            print("Creating the CPU job environment", file=sys.stderr, flush=True)
             _publish(root / ".venv-runner-extras.toml", {"extras": extras})
             _sync_runner(root, extras, installed, lease)
             _publish(
@@ -746,7 +768,7 @@ def install(*, uv: str, cache: str, bin_directory: Path, root: Path = ROOT) -> l
     if "gpu" not in current:
         lines.append(
             f"NVIDIA GPU found ({', '.join(device['name'] for device in devices)}); add GPU "
-            f"engines with: {command} components add gpu (several GB)"
+            f"engines with: {command} components add gpu ({GPU_SIZE})"
             if devices
             else "No NVIDIA driver found; CPU engines and GRAPE control are installed"
         )
