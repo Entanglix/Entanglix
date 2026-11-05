@@ -426,8 +426,7 @@ def _main(argv: list[str] | None = None) -> int:
             )
             print(
                 f"Set up {setup['directory']} for {', '.join(setup['runtimes'])} on Entanglix "
-                f"{setup['installation_version']} (device {setup['device']}, agent command "
-                f"privilege {setup['agent_command_privilege']})."
+                f"{setup['installation_version']} (device {setup['device']})."
             )
             print("\n".join(setup["next"]))
             return 0

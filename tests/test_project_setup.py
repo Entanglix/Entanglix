@@ -1,5 +1,6 @@
 """Project setup: verbatim copies, fixed runtime templates, conflicts, and refresh."""
 
+import hashlib
 import json
 import re
 import shutil
@@ -76,8 +77,13 @@ def test_claude_and_codex_receive_copies_and_their_configuration(tmp_path):
         "timeout": 3660000,
     }
     settings = json.loads((directory / ".claude/settings.json").read_text())
-    assert settings == {"permissions": {"deny": BLOCKED}}
-    codex = tomllib.loads((directory / ".codex/config.toml").read_text())["mcp_servers"]
+    assert settings == {
+        "permissions": {"deny": BLOCKED},
+        "env": {"CUDA_VISIBLE_DEVICES": ""},
+    }
+    config = tomllib.loads((directory / ".codex/config.toml").read_text())
+    assert config["shell_environment_policy"]["set"] == {"CUDA_VISIBLE_DEVICES": ""}
+    codex = config["mcp_servers"]
     assert codex["entanglix"]["args"] == arguments
     assert codex["entanglix"]["tool_timeout_sec"] == 3660
     rules = (directory / ".codex/rules/operator.rules").read_text()
@@ -88,29 +94,43 @@ def test_claude_and_codex_receive_copies_and_their_configuration(tmp_path):
     assert record["installation_version"] == "0.1.0"
     assert record["runtimes"] == ["claude", "codex"] and record["device"] == ""
     assert record["links"] == {".agents/skills": "../skills"}
-    assert any('CUDA_VISIBLE_DEVICES="" claude' in line for line in result["next"])
+    assert f"cd {directory} && claude" in result["next"]
+    assert f"cd {directory} && codex" in result["next"]
+    assert (
+        "Run the decision commands yourself: entanglix investigation-decision, "
+        "entanglix apply-device-update, entanglix promote."
+    ) in result["next"]
     assert any("close it first" in line for line in result["next"])
+    assert any("choose 'Use this MCP server'" in line for line in result["next"])
 
 
 def test_on_request_lets_the_runtime_ask_before_each_decision_command(tmp_path):
     root = installed(tmp_path / "0.1.0")
     directory = tmp_path / "project"
-    setup_project(directory, runtimes=("claude", "codex"), privilege="on-request", root=root)
+    result = setup_project(
+        directory, runtimes=("claude", "codex"), privilege="on-request", root=root
+    )
     settings = json.loads((directory / ".claude/settings.json").read_text())
-    assert settings == {"permissions": {"ask": BLOCKED}}
+    assert settings["permissions"] == {"ask": BLOCKED}
+    assert settings["env"] == {"CUDA_VISIBLE_DEVICES": ""}
     assert 'decision="prompt"' in (directory / ".codex/rules/operator.rules").read_text()
+    assert "approve that exact command in the runtime prompt" in "\n".join(result["next"])
 
 
-def test_another_runtime_receives_copies_and_printed_entries(tmp_path):
+@pytest.mark.parametrize("privilege, action", [("none", "block"), ("on-request", "ask before")])
+def test_another_runtime_receives_copies_and_printed_entries(tmp_path, privilege, action):
     root = installed(tmp_path / "0.1.0")
     directory = tmp_path / "project"
-    result = setup_project(directory, runtimes=("other",), root=root)
+    result = setup_project(directory, runtimes=("other",), privilege=privilege, root=root)
     assert (directory / "AGENTS.md").is_file()
     for name in (".mcp.json", ".claude", ".codex", ".agents"):
         assert not (directory / name).exists()
     printed = "\n".join(result["next"])
     assert str(root / ".venv/bin/python") in printed and "entanglix promote" in printed
-    assert "claimed only for configurations a retained test covers" in printed
+    assert 'CUDA_VISIBLE_DEVICES=""' in printed
+    assert f"Configure it to {action}" in printed
+    if privilege == "none":
+        assert "Run the decision commands yourself: entanglix investigation-decision" in printed
 
 
 def test_a_file_setup_did_not_write_stops_it_before_any_write(tmp_path):
@@ -164,6 +184,20 @@ def test_refresh_moves_the_project_to_the_newer_installation(tmp_path):
     root = installed(tmp_path / "0.1.0")
     directory = tmp_path / "project"
     setup_project(directory, runtimes=("claude", "codex"), root=root)
+    # Emulate an unchanged 0.1.0 project, whose templates lacked these settings.
+    previous = project_record(directory)
+    for name in (".claude/settings.json", ".codex/config.toml"):
+        path = directory / name
+        if name.endswith(".json"):
+            content = json.loads(path.read_text())
+            del content["env"]
+            path.write_text(json.dumps(content) + "\n")
+        else:
+            content = tomllib.loads(path.read_text())
+            del content["shell_environment_policy"]
+            path.write_text(tomli_w.dumps(content))
+        previous["files"][name] = hashlib.sha256(path.read_bytes()).hexdigest()
+    (directory / ".entanglix/project.toml").write_text(tomli_w.dumps(previous))
     (directory / "notes.md").write_text("mine\n")
     newer = installed(tmp_path / "0.2.0", version="0.2.0")
     skill = next((newer / "skills").glob("*/SKILL.md"))
@@ -175,6 +209,10 @@ def test_refresh_moves_the_project_to_the_newer_installation(tmp_path):
     assert (directory / skill.relative_to(newer)).read_text() == skill.read_text()
     entry = json.loads((directory / ".mcp.json").read_text())["mcpServers"]["entanglix"]
     assert entry["command"] == str(newer / ".venv/bin/python")
+    settings = json.loads((directory / ".claude/settings.json").read_text())
+    assert settings["env"]["CUDA_VISIBLE_DEVICES"] == ""
+    config = tomllib.loads((directory / ".codex/config.toml").read_text())
+    assert config["shell_environment_policy"]["set"]["CUDA_VISIBLE_DEVICES"] == ""
     assert (directory / "notes.md").read_text() == "mine\n"
 
 

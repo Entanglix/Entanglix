@@ -50,12 +50,14 @@ entanglix setup-project <project-dir> --runtime claude
 Then start a fresh session there, as setup prints:
 
 ```sh
-cd <project-dir> && CUDA_VISIBLE_DEVICES="" claude
+cd <project-dir> && claude
 ```
 
 A first prompt might be: "Model a flux-tunable transmon with EJ = 20 GHz and EC = 0.25 GHz, sweep its 0–1 transition over half a flux quantum, and tell me how far it tunes."
 
-A project stays on the version that set it up. After installing a newer one, move it with `entanglix setup-project <project-dir> --refresh`, which refuses if you edited a file setup wrote.
+Accept the runtime's project trust prompt so it loads the settings. Setup hides CUDA from Claude Code's and Codex's session commands; jobs still use the project's configured device. If Claude Code asks whether to use the Entanglix server, choose “Use this MCP server.” Tool-call approvals follow your runtime settings. Other runtimes use the launch instructions setup prints.
+
+A project stays on the version that set it up. After installing a newer one, move it with `entanglix setup-project <project-dir> --refresh`, which refuses if you edited a file setup wrote. Start a fresh session after refreshing.
 
 To have your agent do the setup, paste this into it:
 
@@ -69,7 +71,7 @@ The [documentation index](docs/README.md) lists the operational references: syst
 
 ## Changes and compatibility
 
-Unreleased: quieter installation and component setup, with readable component and plugin summaries in a terminal and JSON when output is captured or piped.
+Unreleased: quieter installation and component setup, with readable component and plugin summaries in a terminal and JSON when output is captured or piped. Project setup hides CUDA from Claude Code's and Codex's session commands and prints simpler startup instructions, including Claude Code's MCP server choice.
 
 0.1.0, the first public release: the modeling, simulation, sweep, control, calibration, catalog and investigation workflows; one-command installation with GPU and Piccolo components and project setup for agent runtimes; user-installed engine and solver plugins; the MCP server with versioned research conduct and skills; and operator commands for human decisions. Records written by earlier development builds remain readable under the [compatibility rule](docs/operations/runs.md#record-fields-and-ownership).
 

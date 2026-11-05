@@ -1,6 +1,6 @@
 # ADR-0004: Investigations, User Decisions, and Agent Sessions
 
-**Date:** 2026-10-06, revised 2026-10-28
+**Date:** 2026-10-06, revised 2026-11-04
 **Status:** Accepted
 **Purpose:** fix how an investigation is recorded, who may change its terms, how its jobs are admitted and stopped, how progress is assessed and work resumed, how the first agent-assisted investigation is evaluated, whose runtime drives the harness, and how a research workspace is set up and an agent session instructed, restricted, and audited. Field lists, formats, and command names are documented with the implementation.
 
@@ -129,7 +129,8 @@ Measurements: [readout threshold probe](../../tests/probes/m3_readout_results.js
   - For Claude Code and Codex it writes the MCP entry and the command settings. For another runtime it writes no runtime configuration and prints the entry and the commands to restrict.
   - It refuses, writing nothing, when a file it would write exists and is not its own, and it never merges into user configuration.
   - It records the installation and the digest of each file it wrote. A refresh rewrites them and moves the project to the newest installation only when none was edited.
-  - It ends with the instruction to start a fresh session with `CUDA_VISIBLE_DEVICES=""` and to close any session already open there. Files written into a running session's directory do not configure that session, and setup starts no runtime.
+  - For Claude Code and Codex it sets `CUDA_VISIBLE_DEVICES=""` in the runtime's project settings. Its launch instructions tell the user to choose the Entanglix MCP server when Claude Code asks; tool-call approval stays with the runtime's permission settings.
+  - It ends with the instruction to start a fresh session and to close any session already open there. Other runtimes need the `CUDA_VISIBLE_DEVICES=""` launch prefix. Files written into a running session's directory do not configure that session, and setup starts no runtime.
 - Operator commands run in a project use the installation the project records, the one its server uses.
 
 **User decisions**
@@ -145,7 +146,7 @@ Measurements: [readout threshold probe](../../tests/probes/m3_readout_results.js
 
 **Permissions**
 - An agent may request a job on either device through a supported protocol. Within an investigation the device is part of a base the user approved, and admission checks the base by digest, so a job request cannot change it. Which physical GPU the runner uses is operator configuration, and its runner extras follow the installation's components.
-- The user starts the runtime with `CUDA_VISIBLE_DEVICES=""`, and the server entry names the device for runner-launched jobs. This is CUDA visibility: ordinary CUDA code in the session finds no device. It is not an operating-system boundary.
+- The runtime's project settings, or a `CUDA_VISIBLE_DEVICES=""` launch prefix for other runtimes, hide CUDA from session commands. The user accepts the runtime's project trust prompt so it loads those settings, and the server entry names the device for runner-launched jobs. This is CUDA visibility: ordinary CUDA code in the session finds no device. It is not an operating-system boundary.
 - Where the runtime can restrict commands, setup configures it to refuse the human-action commands by default. A user who wants the agent to run one on request has setup configure the runtime to ask before each one. A setting's behaviour is claimed for a runtime and a command form only where a test shows it. Setup documents the invocation forms the setting covers, and conformance tests exercise those forms. In a runtime without such a setting, or one setup does not configure, the conduct text carries the rule, and no refusal or approval is claimed.
 - The server entry sets the runs root, the device, and the state directory when the user's shell sets one, because a runtime may not pass its own environment to the server. It names runner extras only where the user overrides the installation's set. The server and the operator commands use the same runs root and installation, and every runner instance uses the same GPU lock location.
 - The server's tools act only on attempts, launches, and investigations inside the configured runs root, and refuse a path that resolves outside it. Authored inputs, such as a system, protocol, or script file, may live elsewhere.

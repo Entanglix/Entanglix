@@ -67,10 +67,14 @@ def _files(root: Path, directory: Path, runtimes, device, privilege) -> tuple[di
             json.dumps({"mcpServers": {"entanglix": entry}}, indent=2) + "\n"
         ).encode()
         permission = "deny" if privilege == "none" else "ask"
-        settings = {"permissions": {permission: blocked}}
+        settings = {
+            "permissions": {permission: blocked},
+            "env": {"CUDA_VISIBLE_DEVICES": ""},
+        }
         files[".claude/settings.json"] = (json.dumps(settings, indent=2) + "\n").encode()
     if "codex" in runtimes:
         config = {
+            "shell_environment_policy": {"set": {"CUDA_VISIBLE_DEVICES": ""}},
             "mcp_servers": {
                 "entanglix": {
                     "command": command,
@@ -79,7 +83,7 @@ def _files(root: Path, directory: Path, runtimes, device, privilege) -> tuple[di
                     "tool_timeout_sec": MAX_WAIT + 60,
                     "default_tools_approval_mode": "approve",
                 }
-            }
+            },
         }
         files[".codex/config.toml"] = tomli_w.dumps(config).encode()
         decision, justification = (
@@ -230,16 +234,23 @@ def setup_project(
         "runtimes": list(runtimes),
         "device": device or "cpu",
         "agent_command_privilege": privilege,
-        "next": next_steps(root, directory, runtimes, device),
+        "next": next_steps(root, directory, runtimes, device, privilege),
     }
 
 
-def next_steps(root: Path, directory: Path, runtimes, device: str) -> list[str]:
+def next_steps(root: Path, directory: Path, runtimes, device: str, privilege: str) -> list[str]:
     """How to start the session that loads these files; setup starts no runtime."""
     lines = [
         "Start a fresh research session in this directory. A session already open here has "
         "not loaded these files and can still see CUDA: close it first."
     ]
+    commands = ", ".join(f"entanglix {name}" for name in DECISION_COMMANDS)
+    lines.append(
+        f"Run the decision commands yourself: {commands}."
+        if privilege == "none"
+        else "The agent may run a decision command when you request it and approve that "
+        f"exact command in the runtime prompt: {commands}."
+    )
     for runtime in runtimes:
         if runtime == "other":
             command, arguments = server_entry(root, directory, device)
@@ -248,13 +259,19 @@ def next_steps(root: Path, directory: Path, runtimes, device: str) -> list[str]:
                 f'Other runtime: start it in {directory} with CUDA_VISIBLE_DEVICES="", supply '
                 "AGENTS.md as its instructions, and add this MCP server entry: "
                 + json.dumps({"command": command, "args": arguments}),
-                f"Configure it to block {blocked}, and keep its tool timeout above "
+                f"Configure it to {'block' if privilege == 'none' else 'ask before'} {blocked}, "
+                "and keep its tool timeout above "
                 f"{MAX_WAIT} seconds.",
             ]
         else:
-            lines.append(f'cd {directory} && CUDA_VISIBLE_DEVICES="" {runtime}')
-    lines.append(
-        "These files configure the runtime; refusing or asking before the decision commands "
-        "is claimed only for configurations a retained test covers."
-    )
+            lines.append(f"cd {directory} && {runtime}")
+    if "claude" in runtimes or "codex" in runtimes:
+        lines.append(
+            "Accept the runtime's project trust prompt so it loads these settings. "
+            "They hide CUDA from session commands; Entanglix jobs use the configured device."
+        )
+    if "claude" in runtimes:
+        lines.append(
+            "If Claude Code asks about the Entanglix MCP server, choose 'Use this MCP server'."
+        )
     return lines

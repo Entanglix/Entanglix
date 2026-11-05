@@ -68,6 +68,19 @@ The CPU cases in the same test file exercise missing dependencies, driver/librar
 
 Observed on this workstation on 2026-10-28. A job environment with both GPU extras takes 7.0 GB, 4.5 GB of it NVIDIA's CUDA libraries, which JAX and cuQuantum ship as wheels instead of using a system CUDA; this is why GPU engines are a separate component. In the [clean-install run](../tests/probes/clean_install_results.json), Entanglix's uv cache, `~/.local/share/entanglix/cache`, took 0.86 GB, a first version with the Piccolo component 3.7 GB (mostly its Julia and precompiled depot), and a second, base-only version 190 MB more, its unchanged packages hardlinked from the cache, which sits beside the versions on one filesystem. Removing the last version deletes the cache.
 
+## Project session setup
+
+On 2026-11-04, the [project-session probe](../tests/probes/project_session.py) used the updated setup templates with the installed GPU environment. Claude Code 2.1.318 (claude-opus-5-5) and Codex 0.166.0 (gpt-6.1-sol) each started from a parent with the GPU UUID visible. Both session shells observed `CUDA_VISIBLE_DEVICES=""`, CUDA driver status 100 (no device), and zero devices; each then completed one cuDensityMat job through MCP on the RTX 5090. The [results](../tests/probes/project_session_results.json) retain the generated settings, invocations and run IDs. These were non-interactive sessions; Codex explicitly trusted the workspace and ran without a device sandbox, and Claude's requested tool calls were allowed for the test. This adds no command-restriction claim.
+
+An additional interactive Claude startup showed the MCP approval prompt while the workspace was not explicitly trusted. Selecting “Use this MCP server” connected it; a session-shell probe again found no CUDA device. These observations are labelled manual in the results. Setup prints that first-start instruction.
+
+To repeat the two non-interactive checks, choose a fresh workspace outside the checkout and a GPU installation:
+
+```sh
+python tests/probes/project_session.py --installation /path/to/installed/version \
+  --workspace /path/to/fresh/workspace --device GPU-UUID --output /tmp/project-session-results.json
+```
+
 ## Reproduce GPU compatibility from a source checkout
 
 Run where the NVIDIA driver and GPU device are accessible.
