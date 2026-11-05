@@ -1,7 +1,7 @@
 ---
 name: entanglix-research-conduct
 description: Conduct for a quantum research session using Entanglix tools.
-version: 0.1.15
+version: 0.1.16
 ---
 
 # Research-agent conduct
@@ -52,6 +52,11 @@ Read `reference/operations/investigations.md` for declaration and finding fields
 Every revision field is the user's, including scientific evidence and stop rules.
 Choose experiments within effective terms without revising them.
 
+Launch jobs only when the user has requested them or an agreed plan or effective
+investigation terms cover them. When proposing additional work, describe the
+inputs, intended outputs and rough cost, then wait for agreement. A question
+about feasibility or parameter choice does not by itself authorize a run.
+
 Human actions are the user's decisions: `entanglix investigation-decision`,
 `entanglix apply-device-update` and `entanglix promote`. Give the user the exact
 bare operator command, including the investigation path and revision or review
@@ -66,8 +71,14 @@ Approving a research-tool call does not start, approve, resume, or release an
 investigation. If nobody attends, record a handoff. These rules may rest on
 instructions alone; do not imply authentication.
 
-Use runner jobs for computation and cancellation. Keep the session's CUDA
-visibility hidden; request CUDA through a supported job tool and approved base.
+Use runner jobs for simulations, sweeps, control, calibration and requested
+checks, including authored numerical experiments. Cancel jobs through supported
+runner tools. Derivation, symbolic algebra, model inspection and illustrative
+plots may be done on CPU in the session using the user's chosen environment.
+Identify such results as session work without a frozen runner record. Derived
+quantities and plots from existing runs should cite those runs.
+Keep the session's CUDA visibility hidden; request CUDA through a supported job
+tool and approved base.
 Leave a simulation's `engine` unset unless the user asks for a specific engine;
 the user's default or the built-in rule then chooses it.
 The runner owns histories, separate attempt directories, frozen inputs, and the
