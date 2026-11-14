@@ -42,7 +42,7 @@ Tools use the same backing operations as the CLI, with MCP response summaries de
 | `abort_run`, `stop_investigation` | Cancel work using the existing process-group and investigation rules |
 | `create_investigation`, `revise_investigation`, `record_finding`, `reconcile_run`, `propose_device_update`, `register_result` | Draft terms, propose revisions, append findings, reconcile uncertain attempts, or stage a device-update proposal or catalog candidate |
 
-Only the first row carries the MCP read-only annotation. Jobs and writes may require runtime approval. Promotion, applying a device-update proposal, and investigation start/approval/resume/review release are absent. A proposed revision never changes the effective terms. See [investigations](investigations.md) for the operator decision path.
+Only the first row carries the MCP read-only annotation. [Project setup](#research-workspace) pre-approves every tool for Claude Code and Codex; in a runtime configured by hand, jobs and writes may require runtime approval. Promotion, applying a device-update proposal, and investigation start/approval/resume/review release are absent. A proposed revision never changes the effective terms. See [investigations](investigations.md) for the operator decision path.
 
 `register_result`, `list_catalog` and `read_entry` stage and read catalog designs; see the [catalog reference](catalog.md#research-tools) for arguments, source-run location and reply fields.
 
@@ -164,7 +164,7 @@ entanglix setup-project DIR --runtime claude,codex
 - `--agent-command-privilege none`, the default, configures the runtime to refuse the human-action commands; `on-request` configures it to ask before each one, for interactive sessions only ([human decisions](#human-decisions-and-continuation)).
 - Setup refuses, writing nothing, when a file it would write exists and is not its own, or when a file or symlink stands where it needs a directory; existing directories are used as they are. It then prints the server entry to add by hand, and it never merges into your configuration.
 - `.entanglix/project.toml` records the installation version, the settings and the digest of each file setup wrote. `entanglix setup-project DIR --refresh` rewrites the files from the newest complete installation and moves the project to it, keeping the recorded settings unless you pass new ones, `--runtime` included. It refuses, changing nothing, if a file it wrote was edited; it restores missing files and removes unchanged ones that are no longer shipped. Setup always runs on the newest installation, so a refresh works from inside the project and after its recorded version was removed.
-- Setup hides CUDA from session commands through Claude Code's `env` setting or Codex's `shell_environment_policy.set`. Accept the runtime's project trust prompt so it loads the settings. When Claude Code asks about the Entanglix MCP server, choose “Use this MCP server.” Server approval and tool-call approval are separate. Higher-precedence runtime settings can override project settings.
+- Setup hides CUDA from session commands through Claude Code's `env` setting or Codex's `shell_environment_policy.set`. Accept the runtime's project trust prompt so it loads the settings. When Claude Code asks about the Entanglix MCP server, choose “Use this MCP server.” Server approval and tool-call approval are separate. Both configurations pre-approve Entanglix tool calls, with `mcp__entanglix__*` under `permissions.allow` for Claude Code and `default_tools_approval_mode = "approve"` for Codex. In Claude Code an allow rule is applied before auto mode's review, so that review does not cover these calls. Launching a job is gated by the conduct: the agent launches one only when you have requested it or an agreed plan or investigation covers it. Higher-precedence runtime settings can override project settings.
 - Setup ends with the launch instruction for a fresh session, `cd DIR && claude` (or `codex`). A session already open in `DIR` has not loaded these files and can still see CUDA: close it first. Other runtimes still need the `CUDA_VISIBLE_DEVICES=""` launch prefix. To update an existing project's settings, refresh it and start a fresh session.
 
 Inside a project, the bare `entanglix` command runs the installation the project records, the one its server uses, and refuses with the `--refresh` command when that version was removed. A command given the records of a project on another version refuses and names the directory to run it from; authored inputs may come from anywhere.
@@ -210,7 +210,7 @@ tool_timeout_sec = 3660
 default_tools_approval_mode = "approve"
 ```
 
-`--max-wait 3600` lets one wait cover a job of up to an hour, and `tool_timeout_sec` stays above it so Codex does not abandon the wait first. The tool-approval setting allows job and write calls in an unattended session. Choose it according to the intended session; it is not a human investigation decision. If your operator shell sets a custom `XDG_STATE_HOME`, add `--state-directory` and the same absolute directory to `args`. Otherwise the server uses the runner default. No CUDA environment variable is needed on the entry: `--device` explicitly supplies the server's job visibility.
+`--max-wait 3600` lets one wait cover a job of up to an hour, and `tool_timeout_sec` stays above it so Codex does not abandon the wait first. The tool-approval setting lets Codex call the server's tools without asking. Setup writes it for every project, and an unattended session needs it, because nothing can answer a prompt there. It is not a human investigation decision. If your operator shell sets a custom `XDG_STATE_HOME`, add `--state-directory` and the same absolute directory to `args`. Otherwise the server uses the runner default. No CUDA environment variable is needed on the entry: `--device` explicitly supplies the server's job visibility.
 
 Create `.codex/rules/operator.rules`:
 
@@ -273,11 +273,12 @@ The entry's `timeout` is Claude Code's per-call limit for this server, in millis
 
 In four [retained sessions](../../tests/probes/m3_pickup_cutoff_results.json) the conduct was present before the first reply and no repository development instructions appeared. No command setting has been validated for Claude Code: a session without a shell tool cannot run an operator command, but no retained test covers a session that has one, so there the rule rests on the conduct. Claude Code can reject a large tool reply as over its output limit: use the status and paged table views for research reads, and the report command or retained files for full history.
 
-In an interactive session with a shell tool, a project `.claude/settings.json` sets how Claude Code handles the human-action commands: listed under `deny` they are refused, under `ask` Claude Code asks before each one. Setup lists them under `deny`, or under `ask` with `--agent-command-privilege on-request`.
+In an interactive session with a shell tool, a project `.claude/settings.json` sets how Claude Code handles the human-action commands: listed under `deny` they are refused, under `ask` Claude Code asks before each one. Setup lists them under `deny`, or under `ask` with `--agent-command-privilege on-request`. It also lists the server's tools under `allow`, the counterpart of the Codex entry's tool-approval setting; no retained session tests that rule.
 
 ```json
 {
   "permissions": {
+    "allow": ["mcp__entanglix__*"],
     "deny": [
       "Bash(entanglix investigation-decision:*)",
       "Bash(entanglix apply-device-update:*)",
@@ -287,7 +288,7 @@ In an interactive session with a shell tool, a project `.claude/settings.json` s
 }
 ```
 
-Approve each invocation on its own; a permission mode that skips prompts runs commands without asking and is not approval. No retained session tests either setting.
+Approve each invocation on its own; a permission mode that skips prompts runs commands without asking and is not approval. No retained session tests the `deny` or the `ask` setting.
 
 ### Other stdio runtimes
 

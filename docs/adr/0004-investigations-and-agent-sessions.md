@@ -1,6 +1,6 @@
 # ADR-0004: Investigations, User Decisions, and Agent Sessions
 
-**Date:** 2026-10-06, revised 2026-11-04
+**Date:** 2026-10-06, revised 2026-11-14
 **Status:** Accepted
 **Purpose:** fix how an investigation is recorded, who may change its terms, how its jobs are admitted and stopped, how progress is assessed and work resumed, how the first agent-assisted investigation is evaluated, whose runtime drives the harness, and how a research workspace is set up and an agent session instructed, restricted, and audited. Field lists, formats, and command names are documented with the implementation.
 
@@ -129,7 +129,8 @@ Measurements: [readout threshold probe](../../tests/probes/m3_readout_results.js
   - For Claude Code and Codex it writes the MCP entry and the command settings. For another runtime it writes no runtime configuration and prints the entry and the commands to restrict.
   - It refuses, writing nothing, when a file it would write exists and is not its own, and it never merges into user configuration.
   - It records the installation and the digest of each file it wrote. A refresh rewrites them and moves the project to the newest installation only when none was edited.
-  - For Claude Code and Codex it sets `CUDA_VISIBLE_DEVICES=""` in the runtime's project settings. Its launch instructions tell the user to choose the Entanglix MCP server when Claude Code asks; tool-call approval stays with the runtime's permission settings.
+  - For Claude Code and Codex it sets `CUDA_VISIBLE_DEVICES=""` in the runtime's project settings. Its launch instructions tell the user to choose the Entanglix MCP server when Claude Code asks.
+  - Both configurations pre-approve research-tool calls. The conduct, not a runtime prompt, gates launching a job.
   - It ends with the instruction to start a fresh session and to close any session already open there. Other runtimes need the `CUDA_VISIBLE_DEVICES=""` launch prefix. Files written into a running session's directory do not configure that session, and setup starts no runtime.
 - Operator commands run in a project use the installation the project records, the one its server uses.
 

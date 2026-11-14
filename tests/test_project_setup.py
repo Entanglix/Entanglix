@@ -78,7 +78,7 @@ def test_claude_and_codex_receive_copies_and_their_configuration(tmp_path):
     }
     settings = json.loads((directory / ".claude/settings.json").read_text())
     assert settings == {
-        "permissions": {"deny": BLOCKED},
+        "permissions": {"allow": ["mcp__entanglix__*"], "deny": BLOCKED},
         "env": {"CUDA_VISIBLE_DEVICES": ""},
     }
     config = tomllib.loads((directory / ".codex/config.toml").read_text())
@@ -86,6 +86,8 @@ def test_claude_and_codex_receive_copies_and_their_configuration(tmp_path):
     codex = config["mcp_servers"]
     assert codex["entanglix"]["args"] == arguments
     assert codex["entanglix"]["tool_timeout_sec"] == 3660
+    # Both runtimes pre-approve the research tools.
+    assert codex["entanglix"]["default_tools_approval_mode"] == "approve"
     rules = (directory / ".codex/rules/operator.rules").read_text()
     assert 'decision="forbidden"' in rules and '"apply-device-update"' in rules
     assert (directory / ".agents/skills").readlink() == Path("../skills")
@@ -111,7 +113,7 @@ def test_on_request_lets_the_runtime_ask_before_each_decision_command(tmp_path):
         directory, runtimes=("claude", "codex"), privilege="on-request", root=root
     )
     settings = json.loads((directory / ".claude/settings.json").read_text())
-    assert settings["permissions"] == {"ask": BLOCKED}
+    assert settings["permissions"] == {"allow": ["mcp__entanglix__*"], "ask": BLOCKED}
     assert settings["env"] == {"CUDA_VISIBLE_DEVICES": ""}
     assert 'decision="prompt"' in (directory / ".codex/rules/operator.rules").read_text()
     assert "approve that exact command in the runtime prompt" in "\n".join(result["next"])
@@ -191,6 +193,7 @@ def test_refresh_moves_the_project_to_the_newer_installation(tmp_path):
         if name.endswith(".json"):
             content = json.loads(path.read_text())
             del content["env"]
+            del content["permissions"]["allow"]
             path.write_text(json.dumps(content) + "\n")
         else:
             content = tomllib.loads(path.read_text())
@@ -211,6 +214,7 @@ def test_refresh_moves_the_project_to_the_newer_installation(tmp_path):
     assert entry["command"] == str(newer / ".venv/bin/python")
     settings = json.loads((directory / ".claude/settings.json").read_text())
     assert settings["env"]["CUDA_VISIBLE_DEVICES"] == ""
+    assert settings["permissions"]["allow"] == ["mcp__entanglix__*"]
     config = tomllib.loads((directory / ".codex/config.toml").read_text())
     assert config["shell_environment_policy"]["set"]["CUDA_VISIBLE_DEVICES"] == ""
     assert (directory / "notes.md").read_text() == "mine\n"

@@ -67,8 +67,10 @@ def _files(root: Path, directory: Path, runtimes, device, privilege) -> tuple[di
             json.dumps({"mcpServers": {"entanglix": entry}}, indent=2) + "\n"
         ).encode()
         permission = "deny" if privilege == "none" else "ask"
+        # Both configurations pre-approve the research tools; the conduct gates
+        # launching a job.
         settings = {
-            "permissions": {permission: blocked},
+            "permissions": {"allow": ["mcp__entanglix__*"], permission: blocked},
             "env": {"CUDA_VISIBLE_DEVICES": ""},
         }
         files[".claude/settings.json"] = (json.dumps(settings, indent=2) + "\n").encode()
