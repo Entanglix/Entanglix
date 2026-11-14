@@ -373,6 +373,75 @@ def test_spectral_refinement_detects_cutoff_and_reports_only_requested_check(
     assert report["checks"][0]["outcome"] == "fail"
 
 
+def test_spectral_refinement_compares_energies_and_not_metric_values(tmp_path):
+    from entanglix.corrector.metrics import spectral_arrays
+    from entanglix.corrector.verification import spectral_refinement
+
+    for name in ("system.toml", "qubit.toml"):
+        shutil.copyfile(ROOT / "examples/qubit-resonator" / name, tmp_path / name)
+    plan = {
+        "format_version": 1,
+        "kind": "spectrum",
+        "levels": 5,
+        "refinement": {
+            "q": {"retained_levels_step": 1, "cutoff_steps": {"theta1": 2}},
+            "r": {"retained_levels_step": 1},
+        },
+        "metrics": {"chi": {"kind": "dispersive_shift", "qubit": "q", "resonator": "r"}},
+    }
+    (tmp_path / "plan.toml").write_text(tomli_w.dumps(plan))
+    loaded = load_plan(tmp_path / "system.toml", tmp_path / "plan.toml")
+    arrays = spectral_arrays(loaded.system, 5, loaded.definition.metrics)
+    energy_only = spectral_refinement(loaded, arrays, load_policy())["residual"]
+    # A stored shift 0.5 GHz away from the refined one leaves the comparison unchanged.
+    arrays["dressed.chi"] = arrays["dressed.chi"] + np.array([0, 0, 0, 1.0])
+    assert spectral_refinement(loaded, arrays, load_policy())["residual"] == energy_only < 0.1
+
+
+def test_spectral_refinement_does_not_assign_refined_dressed_labels(tmp_path):
+    from entanglix.corrector.metrics import spectral_arrays
+    from entanglix.corrector.verification import spectral_refinement
+
+    # Resonant oscillators: (0,1) and (1,0) mix equally, so the labels are ambiguous.
+    oscillator = {
+        "kind": "oscillator",
+        "frequency": {"value": 0.5, "unit": "GHz"},
+        "retained_levels": 3,
+    }
+    document = {
+        "format_version": 1,
+        "id": "resonant",
+        "units": {"energy": "GHz", "time": "ns"},
+        "model": {
+            "kind": "composite",
+            "subsystems": [{"id": "r", **oscillator}, {"id": "s", **oscillator}],
+            "interactions": [
+                {
+                    "coefficient": {"value": 1e-4, "unit": "GHz"},
+                    "factors": ["r.position", "s.position"],
+                }
+            ],
+        },
+    }
+    (tmp_path / "system.toml").write_text(tomli_w.dumps(document))
+    plan = {
+        "format_version": 1,
+        "kind": "spectrum",
+        "levels": 5,
+        "refinement": {"r": {"retained_levels_step": 1}, "s": {"retained_levels_step": 1}},
+        "metrics": {"chi": {"kind": "dispersive_shift", "qubit": "r", "resonator": "s"}},
+    }
+    (tmp_path / "plan.toml").write_text(tomli_w.dumps(plan))
+    loaded = load_plan(tmp_path / "system.toml", tmp_path / "plan.toml")
+    target = tmp_path / "refined"
+    target.mkdir()
+    refined = prepare_refinement(loaded, target, load_policy())
+    with pytest.raises(ValueError, match="ambiguous dressed labels"):
+        spectral_arrays(refined.system, 5, loaded.definition.metrics)
+    arrays = spectral_arrays(loaded.system, 5, {})
+    assert spectral_refinement(loaded, arrays, load_policy())["outcome"] == "pass"
+
+
 def test_replacement_refinement_runs_without_repeating_source_and_binds_request(
     tmp_path, runner_repository
 ):

@@ -142,18 +142,13 @@ def spectral_refinement(loaded, arrays, policy):
         )
     with tempfile.TemporaryDirectory(prefix="entanglix-spectral-refinement-") as directory:
         refined = prepare_refinement(loaded, Path(directory), policy)
-        refined_arrays = spectral_arrays(
-            refined.system, loaded.definition.levels, loaded.definition.metrics
-        )
-        energies = refined_arrays["energies_ghz"]
+        # Compare excitation energies only; dressed-state assignments and metrics are
+        # outside this check.
+        energies = spectral_arrays(refined.system, loaded.definition.levels, {})["energies_ghz"]
     stored = arrays["energies_ghz"]
     if stored.shape != energies.shape or not np.isfinite(stored).all():
         raise ValueError("stored spectrum does not match the declared reported levels")
     residual = float(np.max(abs(stored - stored[0] - energies + energies[0])))
-    for name, value in metric_values(loaded.definition.metrics, arrays).items():
-        residual = max(
-            residual, abs(value - metric_values(refined.definition.metrics, refined_arrays)[name])
-        )
     return check(
         "spectral_refinement",
         residual,

@@ -86,7 +86,7 @@ bare-product overlap. Assignments must be distinct and overlaps at least `0.9`;
 otherwise computation fails with the indices and overlaps. It reports
 `χ = (E11 − E10 − E01 + E00)/2` in GHz. The archive retains assigned energies,
 indices and overlaps as well as the lowest spectrum. Spectral refinement compares
-both reported excitation energies and these metric values.
+the reported excitation energies, not these metric values.
 Unknown formulas and undeclared observables are rejected. `result.toml` also
 summarizes observable endpoints and maximum magnitudes. `artifacts/output.npz`
 stores all states and expectations; `artifacts/observables.png` plots real and

@@ -1,7 +1,7 @@
 ---
 name: simulate
 description: Run and inspect one Entanglix spectrum or dynamics computation, request relevant checks, or replay frozen inputs.
-version: 0.1.3
+version: 0.1.4
 ---
 
 # One computation
@@ -37,8 +37,8 @@ operator decision and stays within effective terms.
 
 Explain relevant checks and issue `check` only for explicit or standing requests:
 integrity tests stored bookkeeping and state properties; segments compare local
-same-frame convergence; spectral refinement compares reported low energies and
-metrics; diagnostics report quantities without a pass/fail judgment. Passing
+same-frame convergence; spectral refinement compares reported low energies;
+diagnostics report quantities without a pass/fail judgment. Passing
 segments cover local windows and do not establish RWA or whole-window accuracy.
 Compare changed frames or truncations through separately recorded simulations
 when that evidence is needed.

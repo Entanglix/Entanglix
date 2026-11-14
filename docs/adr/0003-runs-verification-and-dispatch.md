@@ -1,6 +1,6 @@
 # ADR-0003: Run Records, Verification, and Engine Dispatch
 
-**Date:** 2026-09-30, revised 2026-10-28
+**Date:** 2026-09-30, revised 2026-11-14
 **Status:** Accepted
 **Purpose:** fix how runs are recorded, how a user checks completed runs, which engine runs a computation and how it reaches the GPU without a performance claim, and how driven evolution is represented in the lab and rotating frames. Field lists, formats, and threshold values are documented with the implementation.
 
@@ -74,7 +74,7 @@ Users may also supply their own engines and solvers as installed plugins.
   - A segment on QuTiP for a plugin-engine run also compares the engines, and its scope says so.
   - Before the user requests segments, the listing shows the source and refined dimensions, the CPU engine, and the selected windows.
 - **Diagnostics** (dynamics): top retained-level population, and static dressed-state shifts and weights at a refined cutoff or between full and rotating-wave Hamiltonians. They are reported and have no pass or fail outcome.
-- **Spectral refinement** (spectra): the reported quantities recomputed at refined cutoffs and retained levels. It catches a truncation too small for the reported energies.
+- **Spectral refinement** (spectra): the reported energies recomputed at refined cutoffs and retained levels. It catches a truncation too small for them. Metrics built from those energies are not compared separately.
 - **Declared expectation** (sweeps): the user declares an expected trend in the sweep spec, such as a metric's direction along an axis, and the check compares the results with it. A failure is reported as "declared expectation violated", because the expectation itself may be wrong.
 - **Stated limit:** no built-in check measures error accumulated over the whole window or the accuracy of a rotating-wave approximation. The check listing and each dynamics report say so. A user who needs that evidence requests another solve, for example in the lab frame or with more levels, and compares the two runs.
 - **GPU runs:** no scientific check precedes a launch. Checks on a GPU run execute on CPU.
