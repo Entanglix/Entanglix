@@ -57,7 +57,7 @@ Run `uv sync --locked --exact`, `uv run --locked --exact pytest`, `uv run --lock
 - `development` holds the full history and every document. Work and pull requests go here.
 - `main` holds the release history without the development history; each release adds one commit. It omits `docs/roadmap.md`, `docs/checklist.md`, `docs/development.md`, and `docs/*-guide.md`, and its own `AGENTS.md` and `CLAUDE.md` point to setup and the research workspace.
 - `checkpoint` holds each release's source without the development history: one commit per release, whose tree is that release's `development` commit before the omissions and `AGENTS.md` changes for `main`.
-- Never merge `development` into `main`. Before a release, `pyproject.toml` and the README release notes name the version, and the worktree is clean. Release `X.Y.Z` from `development` commit `C`:
+- Never merge `development` into `main`. Before a release, `pyproject.toml` and the README release notes name the version, `pyproject.toml` names a PyPI release of scqubits in place of the `nvidia-test` branch that development follows, and the worktree is clean. Release `X.Y.Z` from `development` commit `C`:
 
   ```
   git switch main                           # first release: git switch --orphan main

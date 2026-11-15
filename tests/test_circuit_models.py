@@ -50,9 +50,8 @@ def test_lc_operators_follow_node_orientation():
     model = load_system(ROOT / "lc-circuit/system.toml")
     ec = e**2 / (2 * h * 80e-15 * 1e9)
     el = (h / (2 * e * 2 * pi)) ** 2 / (12e-9 * h * 1e9)
-    circuit = scq.Circuit(
+    circuit = scq.Circuit.from_yaml_string(
         f"branches:\n- [C, 0, 1, {ec:.17g}]\n- [L, 0, 1, {el:.17g}]\n",
-        from_file=False,
         truncated_dim=6,
         ext_basis="harmonic",
     )
@@ -167,14 +166,13 @@ def test_two_mode_component_circuit_and_node_charge_reference(tmp_path):
     ec1 = e**2 / (2 * h * 60e-15 * 1e9)
     ec2 = e**2 / (2 * h * 70e-15 * 1e9)
     ecc = e**2 / (2 * h * 2e-15 * 1e9)
-    circuit = scq.Circuit(
+    circuit = scq.Circuit.from_yaml_string(
         "branches:\n"
         "- [JJ, 0, 1, 15, 2]\n"
         f"- [C, 0, 1, {ec1:.17g}]\n"
         "- [JJ, 0, 2, 18, 2]\n"
         f"- [C, 0, 2, {ec2:.17g}]\n"
         f"- [C, 1, 2, {ecc:.17g}]\n",
-        from_file=False,
         truncated_dim=6,
     )
     circuit.configure(transformation_matrix=np.eye(2, dtype=int))
@@ -224,13 +222,12 @@ def test_nontrivial_unimodular_transform_maps_node_charges(tmp_path):
     ec1 = e**2 / (2 * h * 60e-15 * 1e9)
     ec2 = e**2 / (2 * h * 70e-15 * 1e9)
     ecc = e**2 / (2 * h * 2e-15 * 1e9)
-    circuit = scq.Circuit(
+    circuit = scq.Circuit.from_yaml_string(
         "branches:\n- [JJ, 0, 1, 15, 2]\n"
         f"- [C, 0, 1, {ec1:.17g}]\n"
         "- [JJ, 0, 2, 18, 2]\n"
         f"- [C, 0, 2, {ec2:.17g}]\n"
         f"- [C, 1, 2, {ecc:.17g}]\n",
-        from_file=False,
         truncated_dim=6,
     )
     circuit.configure(transformation_matrix=np.array([[1, 1], [1, 0]]))

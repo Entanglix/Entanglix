@@ -409,9 +409,8 @@ def _construct_circuit(spec: SystemSpec):
         else:
             lines.append(f"- [C, {first}, {second}, {ec:.17g}]")
     try:
-        circuit = scq.Circuit(
+        circuit = scq.Circuit.from_yaml_string(
             "\n".join(lines) + "\n",
-            from_file=False,
             truncated_dim=truncation.retained_levels,
             ext_basis="harmonic",
         )
