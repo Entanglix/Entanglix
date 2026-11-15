@@ -70,11 +70,9 @@ Observed on this workstation on 2026-10-28. A job environment with both GPU extr
 
 ## Project session setup
 
-On 2026-11-04, the [project-session probe](../tests/probes/project_session.py) used the updated setup templates with the installed GPU environment. Claude Code 2.1.318 (claude-opus-5-5) and Codex 0.166.0 (gpt-6.1-sol) each started from a parent with the GPU UUID visible. Both session shells observed `CUDA_VISIBLE_DEVICES=""`, CUDA driver status 100 (no device), and zero devices; each then completed one cuDensityMat job through MCP on the RTX 5090. The [results](../tests/probes/project_session_results.json) retain the generated settings, invocations and run IDs. These were non-interactive sessions; Codex explicitly trusted the workspace and ran without a device sandbox, and Claude's requested tool calls were allowed for the test. This adds no command-restriction claim.
+With setup's project settings, Claude Code 2.1.318 and Codex 0.166.0 hide CUDA from session commands while jobs use the GPU. Started with the GPU visible, each session's shell found no CUDA device, and each completed one cuDensityMat job through MCP ([probe](../tests/probes/project_session.py), [results](../tests/probes/project_session_results.json)). The check covers non-interactive sessions, with Codex trusting the workspace explicitly and running without a device sandbox, and with Claude Code's tool calls allowed for the test. It makes no command-restriction claim.
 
-An additional interactive Claude startup showed the MCP approval prompt while the workspace was not explicitly trusted. Selecting “Use this MCP server” connected it; a session-shell probe again found no CUDA device. These observations are labelled manual in the results. Setup prints that first-start instruction.
-
-To repeat the two non-interactive checks, choose a fresh workspace outside the checkout and a GPU installation:
+To repeat the check, choose a fresh workspace outside the checkout and a GPU installation:
 
 ```sh
 python tests/probes/project_session.py --installation /path/to/installed/version \

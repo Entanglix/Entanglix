@@ -158,14 +158,14 @@ entanglix setup-project DIR --runtime claude,codex
 
 `DIR` is the path of the project directory, new or existing; setup creates it if needed.
 
-- `--runtime` lists `claude`, `codex` and `other`. Setup copies the conduct verbatim as `CLAUDE.md` for Claude Code and `AGENTS.md` for Codex and other runtimes, with `skills/` and the seven references under `reference/operations/`. For Claude Code it writes `.mcp.json` and `.claude/settings.json`; for Codex, `.codex/config.toml`, `.codex/rules/operator.rules` and the `.agents/skills` link. For `other` it writes no runtime configuration and prints the server entry and the commands to block ([other runtimes](#other-stdio-runtimes)).
+- `--runtime` lists `claude`, `codex`, `cursor` and `other`. Setup copies the conduct verbatim as `CLAUDE.md` for Claude Code and `AGENTS.md` for the others, with `skills/` and the seven references under `reference/operations/`. With `AGENTS.md` it links `.agents/skills` to `skills/`. For Claude Code it writes `.mcp.json` and `.claude/settings.json`; for Codex, `.codex/config.toml` and `.codex/rules/operator.rules`; for Cursor, `.cursor/mcp.json` and `.cursor/hooks.json` ([Cursor](#cursor-example)). For `other` it writes no runtime configuration and prints the server entry and the commands to block ([other runtimes](#other-stdio-runtimes)).
 - The server entry names the installation's Python, `DIR/research_runs` as the runs root, the CLI's default from `DIR`, the device, `--max-wait 3600`, the runtime's tool timeouts, and `--state-directory` when your shell sets `XDG_STATE_HOME`. It names no runner extras, so each launch uses the installation's components.
 - `--device auto`, the default, computes on a GPU only with the GPU component and exactly one GPU; several GPUs are refused with a list to choose from with `--device UUID`. `--device cpu` supplies none.
 - `--agent-command-privilege none`, the default, configures the runtime to refuse the human-action commands; `on-request` configures it to ask before each one, for interactive sessions only ([human decisions](#human-decisions-and-continuation)).
 - Setup refuses, writing nothing, when a file it would write exists and is not its own, or when a file or symlink stands where it needs a directory; existing directories are used as they are. It then prints the server entry to add by hand, and it never merges into your configuration.
 - `.entanglix/project.toml` records the installation version, the settings and the digest of each file setup wrote. `entanglix setup-project DIR --refresh` rewrites the files from the newest complete installation and moves the project to it, keeping the recorded settings unless you pass new ones, `--runtime` included. It refuses, changing nothing, if a file it wrote was edited; it restores missing files and removes unchanged ones that are no longer shipped. Setup always runs on the newest installation, so a refresh works from inside the project and after its recorded version was removed.
-- Setup hides CUDA from session commands through Claude Code's `env` setting or Codex's `shell_environment_policy.set`. Accept the runtime's project trust prompt so it loads the settings. When Claude Code asks about the Entanglix MCP server, choose “Use this MCP server.” Server approval and tool-call approval are separate. Both configurations pre-approve Entanglix tool calls, with `mcp__entanglix__*` under `permissions.allow` for Claude Code and `default_tools_approval_mode = "approve"` for Codex. In Claude Code an allow rule is applied before auto mode's review, so that review does not cover these calls. Launching a job is gated by the conduct: the agent launches one only when you have requested it or an agreed plan or investigation covers it. Higher-precedence runtime settings can override project settings.
-- Setup ends with the launch instruction for a fresh session, `cd DIR && claude` (or `codex`). A session already open in `DIR` has not loaded these files and can still see CUDA: close it first. Other runtimes still need the `CUDA_VISIBLE_DEVICES=""` launch prefix. To update an existing project's settings, refresh it and start a fresh session.
+- Setup hides CUDA from session commands through Claude Code's `env` setting or Codex's `shell_environment_policy.set`. Accept the runtime's project trust prompt so it loads the settings. When Claude Code asks about the Entanglix MCP server, choose “Use this MCP server.” Server approval and tool-call approval are separate. The Claude Code and Codex configurations pre-approve Entanglix tool calls, with `mcp__entanglix__*` under `permissions.allow` for Claude Code and `default_tools_approval_mode = "approve"` for Codex. In Claude Code an allow rule is applied before auto mode's review, so that review does not cover these calls. Launching a job is gated by the conduct: the agent launches one only when you have requested it or an agreed plan or investigation covers it. Higher-precedence runtime settings can override project settings. For Cursor, setup writes neither the CUDA setting nor the tool approval ([Cursor](#cursor-example)).
+- Setup ends with the launch instruction for a fresh session, `cd DIR && claude` (or `codex`), or for Cursor to open `DIR` as its folder. A session already open in `DIR` has not loaded these files and can still see CUDA: close it first. Other runtimes still need the `CUDA_VISIBLE_DEVICES=""` launch prefix. To update an existing project's settings, refresh it and start a fresh session.
 
 Inside a project, the bare `entanglix` command runs the installation the project records, the one its server uses, and refuses with the `--refresh` command when that version was removed. A command given the records of a project on another version refuses and names the directory to run it from; authored inputs may come from anywhere.
 
@@ -195,7 +195,7 @@ cp "$ENTANGLIX_CHECKOUT/docs/operations/system-spec.md" \
   "$ENTANGLIX_WORKSPACE/reference/operations/"
 ```
 
-Use a new directory for these initial copies. Refresh them deliberately when upgrading; retain their versions with the session. `skills/` is the plain-text location named by the conduct; `.agents/skills` makes the same files discoverable in Codex. In a runtime that reads another workspace instruction filename, copy the same conduct there instead. If it reads no such file, supply the entire conduct through its initial-context mechanism. Keep the procedures readable at the named paths. Do not copy root development `AGENTS.md` or `CLAUDE.md`, planning documents, baseline answers, or contributor instructions into the research workspace.
+Use a new directory for these initial copies. Refresh them deliberately when upgrading; retain their versions with the session. `skills/` is the plain-text location named by the conduct; `.agents/skills` makes the same files discoverable in Codex and Cursor. In a runtime that reads another workspace instruction filename, copy the same conduct there instead. If it reads no such file, supply the entire conduct through its initial-context mechanism. Keep the procedures readable at the named paths. Do not copy root development `AGENTS.md` or `CLAUDE.md`, planning documents, baseline answers, or contributor instructions into the research workspace.
 
 ### Codex example
 
@@ -290,9 +290,50 @@ In an interactive session with a shell tool, a project `.claude/settings.json` s
 
 Approve each invocation on its own; a permission mode that skips prompts runs commands without asking and is not approval. No retained session tests the `deny` or the `ask` setting.
 
+### Cursor example
+
+Setup writes `AGENTS.md`, the `.agents/skills` link, `.cursor/mcp.json` and `.cursor/hooks.json` for an installation. Cursor's editor and its CLI read the same server entry:
+
+```json
+{
+  "mcpServers": {
+    "entanglix": {
+      "type": "stdio",
+      "command": "<absolute-installation-path>/.venv/bin/python",
+      "args": ["-m", "entanglix.mcp", "--runs-root", "<absolute-project-path>/research_runs", "--device", "", "--max-wait", "3600"]
+    }
+  }
+}
+```
+
+A hook on shell commands answers for the human-action commands. Its matcher selects a command line that contains one of the three, its command prints the answer, and `failClosed` blocks the command when the hook itself fails. Setup writes `deny`, or `ask` with `--agent-command-privilege on-request`:
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "beforeShellExecution": [
+      {
+        "command": "cat >/dev/null; echo '{\"permission\": \"deny\", \"user_message\": \"Human action: the operator runs this in their own terminal.\", \"agent_message\": \"Human action: the operator runs this in their own terminal.\"}'",
+        "matcher": "entanglix +(investigation-decision|apply-device-update|promote)",
+        "failClosed": true
+      }
+    ]
+  }
+}
+```
+
+Open the project as Cursor's folder and start a new agent chat. Trust the workspace so Cursor loads project hooks, and enable the server if Cursor shows it disabled. Setup leaves three things to Cursor and your own settings, because Cursor documents no project file for them:
+
+- Tool approval. Cursor asks before each Entanglix tool call unless your run mode or allowlist permits it.
+- The session's environment. Setup does not hide CUDA from session commands; the conduct requires GPU work to use the runner.
+- The per-call tool timeout. Whether Cursor keeps a wait of up to `--max-wait` open is not established; abandoning a wait never cancels the job.
+
+No retained session tests this template, so no refusal is claimed for Cursor and the rule on the human-action commands rests on the conduct there. Cursor's [MCP](https://cursor.com/docs/mcp), [hooks](https://cursor.com/docs/hooks) and [run modes](https://cursor.com/docs/agent/security/run-modes) document these mechanisms.
+
 ### Other stdio runtimes
 
-`setup-project --runtime other` copies the conduct as `AGENTS.md` with the skills and references, and prints the server entry and the commands to block. Use the same absolute Python command and arguments in your runtime's MCP entry, and supply the conduct under the instruction filename your runtime reads. Start the session with `CUDA_VISIBLE_DEVICES=""` and configure job/write tool approval as needed. Keep the runtime's per-call tool timeout, and any idle timeout, above `--max-wait`. Claim that the runtime refuses or asks before the human-action commands only after a retained live test shows it for the forms you document; until then the rule rests on the conduct. There is no list of supported model backends.
+`setup-project --runtime other` copies the conduct as `AGENTS.md` with the skills and references, links the skills at `.agents/skills`, where runtimes that follow that convention find them, and prints the server entry and the commands to block. Use the same absolute Python command and arguments in your runtime's MCP entry; you or the runtime's agent can add it. Supply the conduct under the instruction filename your runtime reads. Start the session with `CUDA_VISIBLE_DEVICES=""` and configure job/write tool approval as needed. Keep the runtime's per-call tool timeout, and any idle timeout, above `--max-wait`. Claim that the runtime refuses or asks before the human-action commands only after a retained live test shows it for the forms you document; until then the rule rests on the conduct. There is no list of supported model backends.
 
 ## Human decisions and continuation
 

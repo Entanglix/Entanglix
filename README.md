@@ -1,6 +1,6 @@
 # Entanglix
 
-Entanglix is a research harness for superconducting quantum circuits, driven by your own AI agent. You describe a device in a small TOML file. Entanglix builds its model, simulates it on CPU or an NVIDIA GPU, solves control pulses, and fits parameters to spectroscopy. It keeps every run with its frozen inputs, code and environment, so any result can be inspected, checked and rerun. Your agent (Claude Code, Codex or another MCP runtime) works through Entanglix's MCP server and research skills.
+Entanglix is a research harness for superconducting quantum circuits, driven by your own AI agent. You describe a device in a small TOML file. Entanglix builds its model, simulates it on CPU or an NVIDIA GPU, solves control pulses, and fits parameters to spectroscopy. It keeps every run with its frozen inputs, code and environment, so any result can be inspected, checked and rerun. Your agent (Claude Code, Codex, Cursor or another MCP runtime) works through Entanglix's MCP server and research skills.
 
 ## What you can do
 
@@ -45,7 +45,7 @@ These commands show readable summaries in a terminal and JSON when their output 
 entanglix setup-project <project-dir> --runtime claude
 ```
 
-`<project-dir>` is the path of your project's directory, new or existing; setup creates it if needed. `--runtime` takes `claude`, `codex`, `other`, or a list such as `claude,codex`. Setup copies the research conduct, skills and references into the directory and writes the runtime's MCP server entry and command rules. If a file it would write already exists, it writes nothing. For `other`, it prints the entry to add by hand. With the GPU component and one GPU, the project computes on that GPU; choose with `--device cpu` or `--device UUID`.
+`<project-dir>` is the path of your project's directory, new or existing; setup creates it if needed. `--runtime` takes `claude`, `codex`, `cursor`, `other`, or a list such as `claude,codex`. Setup copies the research conduct, skills and references into the directory and writes the runtime's MCP server entry and command rules. If a file it would write already exists, it writes nothing. For `other`, it prints the entry for you or your agent to add to the runtime's configuration. With the GPU component and one GPU, the project computes on that GPU; choose with `--device cpu` or `--device UUID`.
 
 Then start a fresh session there, as setup prints:
 
@@ -55,7 +55,7 @@ cd <project-dir> && claude
 
 A first prompt might be: "Model a flux-tunable transmon with EJ = 20 GHz and EC = 0.25 GHz, sweep its 0–1 transition over half a flux quantum, and tell me how far it tunes."
 
-Accept the runtime's project trust prompt so it loads the settings. Setup hides CUDA from Claude Code's and Codex's session commands; jobs still use the project's configured device. If Claude Code asks whether to use the Entanglix server, choose “Use this MCP server.” Setup's settings pre-approve Entanglix's tools in Claude Code and Codex, so the runtime need not ask before each call. By its conduct your agent launches a job only when you have requested or agreed to it, and the three commands above stay yours. Other runtimes use the launch instructions setup prints.
+Accept the runtime's project trust prompt so it loads the settings. Setup hides CUDA from Claude Code's and Codex's session commands; jobs still use the project's configured device. If Claude Code asks whether to use the Entanglix server, choose “Use this MCP server.” Setup's settings pre-approve Entanglix's tools in Claude Code and Codex, so the runtime need not ask before each call. Cursor keeps tool approval and the session's environment in your own settings, so setup writes neither there and prints what to do. By its conduct your agent launches a job only when you have requested or agreed to it, and the three commands above stay yours. Other runtimes use the launch instructions setup prints.
 
 A project stays on the version that set it up. After installing a newer one, move it with `entanglix setup-project <project-dir> --refresh`, which refuses if you edited a file setup wrote. Start a fresh session after refreshing.
 
@@ -71,7 +71,7 @@ The [documentation index](docs/README.md) lists the operational references: syst
 
 ## Changes and compatibility
 
-Unreleased: quieter installation and component setup, with readable component and plugin summaries in a terminal and JSON when output is captured or piped. Project setup hides CUDA from Claude Code's and Codex's session commands and prints simpler startup instructions, including Claude Code's MCP server choice. Research guidance clarifies authorization for jobs and permits CPU modeling in the session while identifying results without a frozen runner record. It also asks for lean code in the session and in authored job scripts. The references no longer say that grid sweeps are unavailable, and they name the module of `publish_toml`. The spectral refinement check compares excitation energies only, no longer the dispersive-shift value as well. Project setup pre-approves Entanglix's tools in Claude Code, as it already did in Codex.
+Unreleased: quieter installation and component setup, with readable component and plugin summaries in a terminal and JSON when output is captured or piped. Project setup hides CUDA from Claude Code's and Codex's session commands and prints simpler startup instructions, including Claude Code's MCP server choice. Research guidance clarifies authorization for jobs and permits CPU modeling in the session while identifying results without a frozen runner record. It also asks for lean code in the session and in authored job scripts. The references no longer say that grid sweeps are unavailable, and they name the module of `publish_toml`. The spectral refinement check compares excitation energies only, no longer the dispersive-shift value as well. Project setup pre-approves Entanglix's tools in Claude Code, as it already did in Codex. It adds a `cursor` runtime, and for `other` it now links the skills at `.agents/skills`.
 
 0.1.0, the first public release: the modeling, simulation, sweep, control, calibration, catalog and investigation workflows; one-command installation with GPU and Piccolo components and project setup for agent runtimes; user-installed engine and solver plugins; the MCP server with versioned research conduct and skills; and operator commands for human decisions. Records written by earlier development builds remain readable under the [compatibility rule](docs/operations/runs.md#record-fields-and-ownership).
 

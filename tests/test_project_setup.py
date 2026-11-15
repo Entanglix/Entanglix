@@ -4,6 +4,7 @@ import hashlib
 import json
 import re
 import shutil
+import subprocess
 import tomllib
 from pathlib import Path
 
@@ -125,14 +126,50 @@ def test_another_runtime_receives_copies_and_printed_entries(tmp_path, privilege
     directory = tmp_path / "project"
     result = setup_project(directory, runtimes=("other",), privilege=privilege, root=root)
     assert (directory / "AGENTS.md").is_file()
-    for name in (".mcp.json", ".claude", ".codex", ".agents"):
+    # The shared skills location serves any runtime that follows the convention.
+    assert (directory / ".agents/skills").readlink() == Path("../skills")
+    for name in (".mcp.json", ".claude", ".codex", ".cursor"):
         assert not (directory / name).exists()
     printed = "\n".join(result["next"])
     assert str(root / ".venv/bin/python") in printed and "entanglix promote" in printed
-    assert 'CUDA_VISIBLE_DEVICES=""' in printed
+    assert 'CUDA_VISIBLE_DEVICES=""' in printed and "or have its agent add it" in printed
     assert f"Configure it to {action}" in printed
     if privilege == "none":
         assert "Run the decision commands yourself: entanglix investigation-decision" in printed
+
+
+@pytest.mark.parametrize("privilege, permission", [("none", "deny"), ("on-request", "ask")])
+def test_cursor_receives_its_server_entry_and_a_command_hook(tmp_path, privilege, permission):
+    root = installed(tmp_path / "0.1.0")
+    directory = tmp_path / "project"
+    result = setup_project(directory, runtimes=("cursor",), privilege=privilege, root=root)
+    assert (directory / "AGENTS.md").read_bytes() == (root / "docs/research-agent.md").read_bytes()
+    assert (directory / ".agents/skills").readlink() == Path("../skills")
+    entry = json.loads((directory / ".cursor/mcp.json").read_text())["mcpServers"]["entanglix"]
+    assert entry["type"] == "stdio" and entry["command"] == str(root / ".venv/bin/python")
+    assert entry["args"][:3] == ["-m", "entanglix.mcp", "--runs-root"]
+    hooks = json.loads((directory / ".cursor/hooks.json").read_text())
+    [hook] = hooks["hooks"]["beforeShellExecution"]
+    assert hooks["version"] == 1 and hook["failClosed"] is True
+    for command in (
+        "entanglix investigation-decision start research_runs/i1",
+        "cd project && entanglix  apply-device-update p1",
+        "~/.local/bin/entanglix promote s1",
+    ):
+        assert re.search(hook["matcher"], command)
+    assert not re.search(hook["matcher"], "entanglix simulate system.toml protocol.toml")
+    # The hook's command prints its answer as JSON, after shell quoting.
+    answered = subprocess.run(
+        ["sh", "-c", hook["command"]], input="{}", capture_output=True, text=True, check=True
+    )
+    answer = json.loads(answered.stdout)
+    assert answer["permission"] == permission and "Human action" in answer["agent_message"]
+    for name in (".mcp.json", ".claude", ".codex"):
+        assert not (directory / name).exists()
+    printed = "\n".join(result["next"])
+    assert f"Cursor: open {directory} as its folder" in printed
+    assert "Cursor keeps tool approval in your own settings" in printed
+    assert "Setup does not hide CUDA from its session commands" in printed
 
 
 def test_a_file_setup_did_not_write_stops_it_before_any_write(tmp_path):
@@ -273,4 +310,4 @@ def test_setup_requires_an_installation_and_a_runtime(tmp_path):
     with pytest.raises(ValueError, match="--runtime names at least one"):
         setup_project(tmp_path / "project", root=root)
     with pytest.raises(ValueError, match="unknown runtimes"):
-        setup_project(tmp_path / "project", runtimes=("cursor",), root=root)
+        setup_project(tmp_path / "project", runtimes=("gemini",), root=root)

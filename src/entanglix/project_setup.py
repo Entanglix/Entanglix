@@ -12,7 +12,7 @@ import tomli_w
 
 from entanglix import installation
 
-RUNTIMES = ("claude", "codex", "other")
+RUNTIMES = ("claude", "codex", "cursor", "other")
 PRIVILEGES = ("none", "on-request")
 REFERENCES = (
     "system-spec",
@@ -50,8 +50,10 @@ def _files(root: Path, directory: Path, runtimes, device, privilege) -> tuple[di
     links = {}
     if "claude" in runtimes:
         files["CLAUDE.md"] = conduct
-    if "codex" in runtimes or "other" in runtimes:
+    if set(runtimes) - {"claude"}:
         files["AGENTS.md"] = conduct
+        # Codex and Cursor find skills here, as does any runtime that follows the convention.
+        links[".agents/skills"] = "../skills"
     for path in sorted((root / "skills").rglob("*")):
         if path.is_file() and "__pycache__" not in path.parts:
             files[str(Path("skills") / path.relative_to(root / "skills"))] = path.read_bytes()
@@ -61,13 +63,18 @@ def _files(root: Path, directory: Path, runtimes, device, privilege) -> tuple[di
         ).read_bytes()
     command, arguments = server_entry(root, directory, device)
     blocked = [f"Bash(entanglix {name}:*)" for name in DECISION_COMMANDS]
+    permission = "deny" if privilege == "none" else "ask"
+    justification = (
+        "Human action: the operator runs this in their own terminal."
+        if privilege == "none"
+        else "Human action: run only the exact command the user asked for."
+    )
     if "claude" in runtimes:
         entry = {"command": command, "args": arguments, "timeout": (MAX_WAIT + 60) * 1000}
         files[".mcp.json"] = (
             json.dumps({"mcpServers": {"entanglix": entry}}, indent=2) + "\n"
         ).encode()
-        permission = "deny" if privilege == "none" else "ask"
-        # Both configurations pre-approve the research tools; the conduct gates
+        # Claude Code and Codex pre-approve the research tools; the conduct gates
         # launching a job.
         settings = {
             "permissions": {"allow": ["mcp__entanglix__*"], permission: blocked},
@@ -88,11 +95,7 @@ def _files(root: Path, directory: Path, runtimes, device, privilege) -> tuple[di
             },
         }
         files[".codex/config.toml"] = tomli_w.dumps(config).encode()
-        decision, justification = (
-            ("forbidden", "Human action: the operator runs this in their own terminal.")
-            if privilege == "none"
-            else ("prompt", "Human action: run only the exact command the user asked for.")
-        )
+        decision = "forbidden" if privilege == "none" else "prompt"
         files[".codex/rules/operator.rules"] = (
             "prefix_rule(\n"
             f'    pattern=["entanglix", {json.dumps(list(DECISION_COMMANDS))}],\n'
@@ -100,7 +103,28 @@ def _files(root: Path, directory: Path, runtimes, device, privilege) -> tuple[di
             f'    justification="{justification}",\n'
             ")\n"
         ).encode()
-        links[".agents/skills"] = "../skills"
+    if "cursor" in runtimes:
+        entry = {"type": "stdio", "command": command, "args": arguments}
+        files[".cursor/mcp.json"] = (
+            json.dumps({"mcpServers": {"entanglix": entry}}, indent=2) + "\n"
+        ).encode()
+        # A hook on shell commands answers for the decision commands. Cursor keeps tool
+        # approval and the session's environment in the user's own settings.
+        answer = json.dumps(
+            {
+                "permission": permission,
+                "user_message": justification,
+                "agent_message": justification,
+            }
+        )
+        hook = {
+            "command": f"cat >/dev/null; echo '{answer}'",
+            "matcher": f"entanglix +({'|'.join(DECISION_COMMANDS)})",
+            "failClosed": True,
+        }
+        files[".cursor/hooks.json"] = (
+            json.dumps({"version": 1, "hooks": {"beforeShellExecution": [hook]}}, indent=2) + "\n"
+        ).encode()
     return files, links
 
 
@@ -170,7 +194,7 @@ def setup_project(
     elif refresh:
         raise ValueError(f"{directory} has no Entanglix project setup to refresh")
     if not runtimes:
-        raise ValueError("--runtime names at least one of claude, codex and other")
+        raise ValueError("--runtime names at least one of claude, codex, cursor and other")
     unknown = set(runtimes) - set(RUNTIMES)
     if unknown:
         raise ValueError(f"unknown runtimes: {sorted(unknown)}; choose from {list(RUNTIMES)}")
@@ -259,11 +283,21 @@ def next_steps(root: Path, directory: Path, runtimes, device: str, privilege: st
             blocked = ", ".join(f"entanglix {name}" for name in DECISION_COMMANDS)
             lines += [
                 f'Other runtime: start it in {directory} with CUDA_VISIBLE_DEVICES="", supply '
-                "AGENTS.md as its instructions, and add this MCP server entry: "
+                "AGENTS.md as its instructions, and add this MCP server entry to its "
+                "configuration, or have its agent add it: "
                 + json.dumps({"command": command, "args": arguments}),
                 f"Configure it to {'block' if privilege == 'none' else 'ask before'} {blocked}, "
                 "and keep its tool timeout above "
                 f"{MAX_WAIT} seconds.",
+            ]
+        elif runtime == "cursor":
+            lines += [
+                f"Cursor: open {directory} as its folder and start a new agent chat. Trust the "
+                "workspace, and enable the entanglix MCP server if Cursor shows it disabled, "
+                "so it loads the server entry and the command hook.",
+                "Cursor keeps tool approval in your own settings: allow the entanglix server's "
+                "tools there, or approve each call. Setup does not hide CUDA from its session "
+                "commands; by its conduct the agent sends GPU work through the runner.",
             ]
         else:
             lines.append(f"cd {directory} && {runtime}")

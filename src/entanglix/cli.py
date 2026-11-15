@@ -356,7 +356,7 @@ def _main(argv: list[str] | None = None) -> int:
     setting.add_argument("directory", type=Path)
     setting.add_argument(
         "--runtime",
-        help="comma-separated runtimes: claude, codex, other (a refresh defaults to the recorded)",
+        help="comma-separated runtimes: claude, codex, cursor, other (a refresh uses the recorded)",
     )
     setting.add_argument("--device", help="auto (default), cpu, or a GPU UUID")
     setting.add_argument(

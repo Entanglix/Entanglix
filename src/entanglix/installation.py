@@ -776,7 +776,9 @@ def install(*, uv: str, cache: str, bin_directory: Path, root: Path = ROOT) -> l
         lines.append(
             f"Add the Piccolo solver (its own Julia) with: {command} components add piccolo"
         )
-    lines.append(f"Set up a project: {command} setup-project DIR --runtime claude|codex|other")
+    lines.append(
+        f"Set up a project: {command} setup-project DIR --runtime claude|codex|cursor|other"
+    )
     return lines
 
 
