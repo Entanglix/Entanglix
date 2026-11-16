@@ -2,7 +2,7 @@
 # Install Entanglix for the current user, without root:
 #   curl -fsSL https://raw.githubusercontent.com/Entanglix/Entanglix/vX.Y.Z/install.sh | bash
 # Everything runs inside main, called on the last line, so a truncated download runs nothing.
-# Written for bash 3.2, so that it reaches its refusal on macOS.
+# Written for bash 3.2, which macOS ships.
 
 main() {
   set -eu
@@ -11,23 +11,34 @@ main() {
   repository=${ENTANGLIX_INSTALL_REPOSITORY:-https://github.com/Entanglix/Entanglix.git}
   ref=${ENTANGLIX_INSTALL_REF:-v$version}
 
-  if [ "$(uname -s)" != Linux ]; then
-    fail "Entanglix supports Linux only"
-  fi
-  for tool in git curl tar sha256sum flock; do
-    command -v "$tool" >/dev/null 2>&1 || fail "Entanglix needs $tool; install it and run this again"
-  done
-  case "$(uname -m)" in
-    x86_64 | amd64)
+  system=$(uname -s)
+  case "$system $(uname -m)" in
+    "Linux x86_64" | "Linux amd64")
       uv_target=x86_64-unknown-linux-musl
       uv_sha256=3340a9d8cffc4d801bc1a7459ebfaf5790c79400720d9b6963d806f058526684
       ;;
-    aarch64 | arm64)
+    "Linux aarch64" | "Linux arm64")
       uv_target=aarch64-unknown-linux-musl
       uv_sha256=936fbbf20188a2b1c66bce3dca3f4009a5c9cdf12bb2bbd084e71926f75d6a15
       ;;
-    *) fail "Entanglix supports x86_64 and aarch64 Linux, not $(uname -m)" ;;
+    "Darwin arm64")
+      uv_target=aarch64-apple-darwin
+      uv_sha256=2b9e582af54f84fa50c115427451a6c13e80f43b52f8282b8af5791077317bbf
+      ;;
+    *)
+      fail "Entanglix supports Linux on x86_64 and aarch64 and macOS on Apple Silicon," \
+        "not $system on $(uname -m)"
+      ;;
   esac
+  # macOS ships shasum and perl in place of sha256sum and flock.
+  if [ "$system" = Darwin ]; then
+    tools="git curl tar shasum perl"
+  else
+    tools="git curl tar sha256sum flock"
+  fi
+  for tool in $tools; do
+    command -v "$tool" >/dev/null 2>&1 || fail "Entanglix needs $tool; install it and run this again"
+  done
 
   data=${XDG_DATA_HOME:-$HOME/.local/share}/entanglix
   target=$data/$version
@@ -36,7 +47,12 @@ main() {
   mkdir -p "$data"
   # One install or removal at a time, so none sees another's directories half made.
   exec 9>>"$data/.lock"
-  flock -n 9 || fail "another Entanglix install or removal is running; run this again after it ends"
+  if [ "$system" = Darwin ]; then
+    # The same lock as flock takes, on the descriptor this shell keeps open.
+    perl -MFcntl=:flock -e 'open(my $lock, ">>&=", 9) or exit 1; flock($lock, LOCK_EX | LOCK_NB) or exit 1'
+  else
+    flock -n 9
+  fi || fail "another Entanglix install or removal is running; run this again after it ends"
 
   if [ ! -f "$state/installation.toml" ]; then
     if [ -e "$target" ] && [ ! -d "$target/.git" ]; then
@@ -59,8 +75,12 @@ main() {
       archive=$state/uv.tar.gz
       curl -fsSL -o "$archive" \
         "https://github.com/astral-sh/uv/releases/download/$uv_version/uv-$uv_target.tar.gz"
-      echo "$uv_sha256  $archive" | sha256sum -c --quiet - ||
-        fail "the uv download does not match its checksum"
+      if [ "$system" = Darwin ]; then
+        digest=$(shasum -a 256 "$archive")
+      else
+        digest=$(sha256sum "$archive")
+      fi
+      [ "${digest%% *}" = "$uv_sha256" ] || fail "the uv download does not match its checksum"
       tar -xzf "$archive" -C "$state/bin" --strip-components=1 "uv-$uv_target/uv"
       rm -f "$archive"
     fi

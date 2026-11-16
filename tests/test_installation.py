@@ -337,6 +337,14 @@ def test_julia_belongs_to_the_installation(tmp_path, monkeypatch):
     assert all(depot.startswith(str(root)) for depot in depots)
 
 
+def test_piccolo_julia_is_refused_where_none_is_pinned(tmp_path, monkeypatch):
+    assert ("Darwin", "aarch64") in installation.JULIA
+    monkeypatch.setattr(installation.platform, "system", lambda: "Darwin")
+    monkeypatch.setattr(installation.platform, "machine", lambda: "x86_64")
+    with pytest.raises(ValueError, match="macOS on Apple Silicon, not Darwin on x86_64"):
+        installation._install_julia(tmp_path, None)
+
+
 def test_capabilities_report_solvers_and_the_installation(tmp_path):
     root = fake_installation(tmp_path / "0.1.0")
     capabilities = list_capabilities(root)
@@ -869,6 +877,63 @@ def test_install_script_fetches_annotated_tags_without_warnings(tmp_path):
         text=True,
     )
     assert refused.returncode != 0 and "missing" in refused.stderr
+
+
+def as_macos(tmp_path, machine="arm64") -> Path:
+    """A directory to put first on PATH, whose uname reports macOS on any host."""
+    tools = tmp_path / "macos-tools"
+    tools.mkdir()
+    (tools / "uname").write_text(f'#!/bin/sh\n[ "$1" = -s ] && echo Darwin || echo {machine}\n')
+    (tools / "uname").chmod(0o755)
+    return tools
+
+
+def test_the_install_script_refuses_an_unsupported_platform(tmp_path):
+    tools = as_macos(tmp_path, machine="x86_64")
+    refused = subprocess.run(
+        ["bash", str(REPOSITORY / "install.sh")],
+        env={"PATH": f"{tools}{os.pathsep}{os.environ['PATH']}", "HOME": str(tmp_path / "home")},
+        capture_output=True,
+        text=True,
+    )
+    assert refused.returncode == 1
+    assert "macOS on Apple Silicon, not Darwin on x86_64" in refused.stderr
+    assert not (tmp_path / "home").exists()
+
+
+def test_the_install_script_locks_and_checks_its_download_on_macos(tmp_path):
+    tools = as_macos(tmp_path)
+    data = tmp_path / "data/entanglix"
+    target = data / "0.1.0"
+    # A clone is present, so the step after the lock is the uv download.
+    (target / ".git").mkdir(parents=True)
+    (target / "pyproject.toml").write_text('version = "0.1.0"\n')
+    (tools / "curl").write_text(
+        '#!/bin/sh\nwhile [ "$1" != -o ]; do shift; done\necho other > "$2"\n'
+    )
+    (tools / "curl").chmod(0o755)
+    command = dict(
+        args=["bash", str(REPOSITORY / "install.sh")],
+        env={
+            "PATH": f"{tools}{os.pathsep}{os.environ['PATH']}",
+            "HOME": str(tmp_path / "home"),
+            "XDG_DATA_HOME": str(tmp_path / "data"),
+        },
+        capture_output=True,
+        text=True,
+    )
+    other = holder(data / ".lock", mode="exclusive")
+    try:
+        busy = subprocess.run(**command)
+    finally:
+        other.kill()
+        other.wait()
+    assert busy.returncode == 1
+    assert "another Entanglix install or removal is running" in busy.stderr
+    wrong = subprocess.run(**command)
+    assert wrong.returncode == 1
+    assert "the uv download does not match its checksum" in wrong.stderr
+    assert not (target / ".installation/bin/uv").exists()
 
 
 def test_installing_finishes_once_and_a_reinstall_changes_nothing(tmp_path, monkeypatch):

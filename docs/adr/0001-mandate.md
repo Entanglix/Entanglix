@@ -1,6 +1,6 @@
 # ADR-0001: Mandate and Constraints
 
-**Date:** 2026-09-28, revised 2026-10-28
+**Date:** 2026-09-28, revised 2026-11-15
 **Status:** Accepted — Decision 0 closed on 2026-09-28. The agreed modeling mandate, local target, numerical conventions, license, and installation are recorded in §3; concrete model schemas, supported representation details, and fixtures are recorded in [ADR-0002](0002-system-model-representation.md).
 **Purpose:** record the foundation choices needed before model construction and engine integration. Implementation starting points are distinguished from mandate decisions. Sweep metrics, investigation design, and deployment mechanisms are decided when their prerequisites are available (§4).
 
@@ -61,15 +61,16 @@ Entanglix supports expert-guided superconducting-circuit research through indepe
 
 - **Binds:** how users install Entanglix, add optional components, upgrade, and remove a version, and where its runtimes live.
 - **Decision — agreed 2026-10-28:**
-  - Entanglix supports Linux. One command installs it per user, without root: a bootstrap script pinned to a release tag clones that tag into a directory for its version, with its own pinned uv and Python and a base job environment, and installs a launcher in the user's local `bin` directory. It edits no shell profile; when that directory is not on `PATH`, it says so and shows the full launcher path.
+  - Entanglix supports Linux, and macOS on Apple Silicon without the GPU engines. One command installs it per user, without root: a bootstrap script pinned to a release tag clones that tag into a directory for its version, with its own pinned uv and Python and a base job environment, and installs a launcher in the user's local `bin` directory. It edits no shell profile; when that directory is not on `PATH`, it says so and shows the full launcher path.
   - The base installation serves CPU work, including the open control baseline. GPU engines and the Piccolo solver are components the user adds on request; the installation records which it has.
   - Each version keeps its own directory. All versions share one uv cache, Entanglix's own, beside them. The launcher runs the version a project records, otherwise the newest complete installation; project setup always runs on the newest. Installs and removals run one at a time. A version is removed only while none of its processes, launches, or jobs is running. Removing the last version also removes the cache and the launcher; removal deletes only Entanglix-owned paths.
   - An installation's runtimes and state live in one directory that Git ignores, so its runs record clean code.
-  - macOS, Windows, and a package-index distribution are not offered.
+  - Windows, macOS on Intel processors, and a package-index distribution are not offered.
 - **Rationale:**
   - A user-level install needs no administrator. Runs record Git provenance, so the installation is a clone.
   - A clone updated in place would change code under running jobs and under projects set up with it. Separate versions keep both on their code, and a shared cache avoids downloading again and, where uv can hardlink, storing again what versions share. The environments are hardlinks into the cache, so only a cache of Entanglix's own lets removal free the space, and it leaves the user's uv cache alone.
   - The GPU set is large, and a detected GPU may serve only a display, so it is added on request rather than by detection.
+  - The GPU engines' CUDA libraries are published for Linux only, so macOS receives the CPU engines and Windows would receive no more.
   - A version removed under a running process or job would take its code away. Concurrent installs and removals would work on the same directories, and running them in parallel gains little on one workstation.
 
 ## 4. Later decisions and implementation evidence

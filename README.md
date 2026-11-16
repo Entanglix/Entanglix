@@ -22,7 +22,7 @@ Project setup configures the agent's runtime to refuse those commands, or, with 
 
 ## Requirements
 
-Linux on x86_64 or aarch64, with git, curl, tar, sha256sum and flock. No root and no Python of your own: the installer brings its own uv and Python. GPU engines need an NVIDIA driver.
+Linux on x86_64 or aarch64, with git, curl, tar, sha256sum and flock, or macOS on Apple Silicon, with git. No root and no Python of your own: the installer brings its own uv and Python. GPU engines need Linux and an NVIDIA driver.
 
 ## Install
 
@@ -71,7 +71,7 @@ The [documentation index](docs/README.md) lists the operational references: syst
 
 ## Changes and compatibility
 
-Unreleased: quieter installation and component setup, with readable component and plugin summaries in a terminal and JSON when output is captured or piped. Project setup hides CUDA from Claude Code's and Codex's session commands and prints simpler startup instructions, including Claude Code's MCP server choice. Research guidance clarifies authorization for jobs and permits CPU modeling in the session while identifying results without a frozen runner record. It also asks for lean code in the session and in authored job scripts. The references no longer say that grid sweeps are unavailable, and they name the module of `publish_toml`. The spectral refinement check compares excitation energies only, no longer the dispersive-shift value as well. Project setup pre-approves Entanglix's tools in Claude Code, as it already did in Codex. It adds a `cursor` runtime, and for `other` it now links the skills at `.agents/skills`.
+Unreleased: quieter installation and component setup, with readable component and plugin summaries in a terminal and JSON when output is captured or piped. Project setup hides CUDA from Claude Code's and Codex's session commands and prints simpler startup instructions, including Claude Code's MCP server choice. Research guidance clarifies authorization for jobs and permits CPU modeling in the session while identifying results without a frozen runner record. It also asks for lean code in the session and in authored job scripts. The references no longer say that grid sweeps are unavailable, and they name the module of `publish_toml`. The spectral refinement check compares excitation energies only, no longer the dispersive-shift value as well. Project setup pre-approves Entanglix's tools in Claude Code, as it already did in Codex. It adds a `cursor` runtime, and for `other` it now links the skills at `.agents/skills`. Installation supports macOS on Apple Silicon, for CPU engines and both control solvers. On macOS, installation and the example control jobs are checked by hand; the test suite runs on Linux.
 
 0.1.0, the first public release: the modeling, simulation, sweep, control, calibration, catalog and investigation workflows; one-command installation with GPU and Piccolo components and project setup for agent runtimes; user-installed engine and solver plugins; the MCP server with versioned research conduct and skills; and operator commands for human decisions. Records written by earlier development builds remain readable under the [compatibility rule](docs/operations/runs.md#record-fields-and-ownership).
 

@@ -39,13 +39,17 @@ NETWORK_VARIABLES = frozenset(
 )
 JULIA_VERSION = "1.13.0"
 JULIA = {
-    "x86_64": (
+    ("Linux", "x86_64"): (
         "https://julialang-s3.julialang.org/bin/linux/x64/1.13/julia-1.13.0-linux-x86_64.tar.gz",
         "8975da61c128a5e5ded3e719e868da8c8781deb7ad7913d37fb99be02a81904b",
     ),
-    "aarch64": (
+    ("Linux", "aarch64"): (
         "https://julialang-s3.julialang.org/bin/linux/aarch64/1.13/julia-1.13.0-linux-aarch64.tar.gz",
         "6cd4a3e4baa2dc5f55638c28e9835fc294f41c78ada4a740dc408436778ab8b4",
+    ),
+    ("Darwin", "aarch64"): (
+        "https://julialang-s3.julialang.org/bin/mac/aarch64/1.13/julia-1.13.0-macaarch64.tar.gz",
+        "c8546ad39de9df9edd74b8104066fb23be0ece60890bb2dbfffadd24e73ba2c2",
     ),
 }
 # What a refused request lacks: its installation component and a checkout's own remedy.
@@ -370,15 +374,19 @@ def _sync_runner(root: Path, extras: list[str], installed: dict, lease: Lease) -
 
 def _install_julia(root: Path, lease: Lease) -> str:
     machine = {"amd64": "x86_64", "arm64": "aarch64"}.get(platform.machine(), platform.machine())
-    if machine not in JULIA:
-        raise ValueError(f"Piccolo's Julia is available for x86_64 and aarch64, not {machine}")
+    system = platform.system()
+    if (system, machine) not in JULIA:
+        raise ValueError(
+            "Piccolo's Julia is available for Linux on x86_64 and aarch64 and for macOS on "
+            f"Apple Silicon, not {system} on {machine}"
+        )
     print(
         "Setting up Piccolo and its Julia environment (about 3.5 GB installed); "
         "this can take several minutes.",
         file=sys.stderr,
         flush=True,
     )
-    url, digest = JULIA[machine]
+    url, digest = JULIA[system, machine]
     target = root / STATE / f"julia-{JULIA_VERSION}"
     executable = target / "bin/julia"
     if not executable.exists():
