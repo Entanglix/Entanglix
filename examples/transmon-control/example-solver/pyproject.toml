@@ -1,0 +1,13 @@
+[project]
+name = "example-solver"
+version = "0.1.0"
+description = "Example Entanglix solver plugin: SciPy's SLSQP behind the solver interface"
+requires-python = ">=3.13"
+dependencies = ["numpy", "scipy"]
+
+[project.entry-points."entanglix.solvers"]
+example-solver = "example_solver:Backend"
+
+[build-system]
+requires = ["uv_build>=0.12,<0.13"]
+build-backend = "uv_build"

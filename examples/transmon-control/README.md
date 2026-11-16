@@ -65,3 +65,14 @@ entanglix check research_runs/<system_id>/<run_id> replay target constraints
 ```
 
 These checks establish the returned pulse's behavior within the declared closed rotating-frame model. They do not establish device-model, dissipative or lab-frame accuracy. To solve inside an investigation or rerun a retained candidate, use the [control reference](../../docs/operations/control.md#investigations-and-reruns); each solver selection belongs to its own exact approved base.
+
+## Your own solver
+
+[example-solver](example-solver/) is a small solver plugin: an adapter that solves this problem with SciPy's SLSQP and finite-difference gradients. It is a template for attaching another solver, described in the [control reference](../../docs/operations/control.md#your-own-solver). [example-solver.toml](example-solver.toml) changes only the solver selection. In an installation, with this directory copied into the project:
+
+```sh
+entanglix plugins add transmon-control/example-solver
+entanglix control transmon-control/example-solver.toml --runs-root research_runs
+```
+
+A checkout installs the plugin with `uv pip install`, as the [plugin reference](../../docs/operations/runs.md#plugins-in-the-runner-environment) describes.

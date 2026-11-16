@@ -490,11 +490,13 @@ def plugin_project(directory: Path, name="My_Plugin", engines=True) -> Path:
     return directory
 
 
-def plugin_wheel(path: Path) -> Path:
+def plugin_wheel(path: Path, requires=()) -> Path:
     with zipfile.ZipFile(path, "w") as wheel:
         info = "my_plugin-0.2.0.dist-info"
         wheel.writestr(
-            f"{info}/METADATA", "Metadata-Version: 2.1\nName: My_Plugin\nVersion: 0.2.0\n"
+            f"{info}/METADATA",
+            "Metadata-Version: 2.1\nName: My_Plugin\nVersion: 0.2.0\n"
+            + "".join(f"Requires-Dist: {requirement}\n" for requirement in requires),
         )
         wheel.writestr(
             f"{info}/entry_points.txt", "[entanglix.solvers]\nmine = my_plugin:Backend\n"
@@ -531,6 +533,63 @@ def test_plugins_install_by_name_with_the_installation_uv(tmp_path, monkeypatch)
         ]
         assert environment["UV_CACHE_DIR"] == str(tmp_path / "uv-cache")
         assert "UV_PROJECT_ENVIRONMENT" not in environment and "VIRTUAL_ENV" not in environment
+
+
+def test_plugins_add_reinstalls_the_dependencies_declared_as_local_folders(tmp_path, monkeypatch):
+    root = fake_installation(tmp_path / "0.1.0")
+    calls = []
+    monkeypatch.setattr(installation, "_run", lambda command, *_: calls.append(command))
+    for folder in ("by-url", "By_Source", "by marker", "by-list", "transitive"):
+        (tmp_path / folder).mkdir()
+    (tmp_path / "library.whl").touch()
+    requires = [
+        f"by-url @ file://{tmp_path / 'by-url'}",
+        # uv applies the marker; an inapplicable one leaves the option without effect.
+        f"By.Marker[extra] @ {(tmp_path / 'by marker').as_uri()} ; python_version < '3'",
+        f"a-wheel @ file://{tmp_path / 'library.whl'}",
+        f"absent @ file://{tmp_path / 'absent'}",
+        "remote @ https://example.invalid/remote-1.0-py3-none-any.whl",
+        "numpy>=2",
+    ]
+    project = plugin_project(tmp_path / "plugin")
+    document = tomllib.loads((project / "pyproject.toml").read_text())
+    document["project"]["dependencies"] = [
+        *requires,
+        "by-source",
+        "by-list>=1",
+        "absent-source",
+        "from-git",
+    ]
+    document["tool"] = {
+        "uv": {
+            "sources": {
+                "By_Source": {"path": "../By_Source"},
+                "by-list": [
+                    {"git": "https://example.invalid/by-list", "marker": "sys_platform == 'win32'"},
+                    {"path": "../by-list", "marker": "sys_platform != 'win32'"},
+                ],
+                # Not a direct requirement: a dependency of a dependency is left alone.
+                "transitive": {"path": "../transitive"},
+                "absent-source": {"path": "../absent"},
+                "from-git": {"git": "https://example.invalid/from-git"},
+            }
+        }
+    }
+    (project / "pyproject.toml").write_text(tomli_w.dumps(document))
+    wheel = plugin_wheel(tmp_path / "my_plugin-0.2.0-py3-none-any.whl", requires)
+    for source, folders in (
+        (project, ["by-list", "by-marker", "by-source", "by-url"]),
+        (wheel, ["by-marker", "by-url"]),
+    ):
+        installation.add_plugin(source, root)
+        command = calls.pop()
+        reinstalled = [
+            command[index + 1]
+            for index, part in enumerate(command)
+            if part == "--reinstall-package"
+        ]
+        assert reinstalled == ["my-plugin", *folders]
+        assert command[-1] == str(source)
 
 
 def test_plugin_changes_are_refused_while_the_environment_is_used_or_incomplete(

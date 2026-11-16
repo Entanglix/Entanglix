@@ -68,7 +68,7 @@ entanglix plugins                # installed plugins and the engines and solvers
 entanglix plugins remove NAME
 ```
 
-`plugins add` installs a project or wheel that registers an engine or a solver, declared in a project's `pyproject.toml`, with the installation's uv, which resolves its dependencies. Repeat it after editing the plugin's code: it reinstalls the plugin even when its version is unchanged. A plugin need not be a whole upstream codebase. A small project can hold the adapter and the modules it imports, with its code in `src/my_integrator/`:
+`plugins add` installs a project or wheel that registers an engine or a solver, declared in a project's `pyproject.toml`, with the installation's uv, which resolves its dependencies. Repeat it after editing the plugin's code: it reinstalls the plugin even when its version is unchanged, together with its direct dependencies that it declares as local folders (`name @ file:///folder`, or a `path` under `[tool.uv.sources]`). A local folder that only one of those dependencies requires is not reinstalled. A plugin need not be a whole upstream codebase. A small project can hold the adapter and the modules it imports, with its code in `src/my_integrator/`:
 
 ```toml
 [project]

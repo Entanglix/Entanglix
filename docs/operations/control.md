@@ -101,7 +101,7 @@ entanglix control transmon-control/control.toml --runs-root research_runs
 
 A control job runs on CPU, with CUDA hidden. `--detach`, `read-run --wait`, timeouts, cancellation and interrupted-attempt reconciliation follow the [run reference](runs.md).
 
-Solvers are discovered through `entanglix.solvers` entry points. Each entry loads a backend factory implementing `capabilities()` and `solve(problem_spec, options)`. The `problem_spec` argument is a `Path` to the frozen, unchanged `RUN/spec/problem.toml`; `options` is the separate solver-options table. Backends may derive `RUN` from that path and list retained native files in `Solution.trace["native_artifacts"]` as names mapped to paths relative to `RUN`, for the job to digest and record. This gives every backend the same file, including one that passes it to another process. The built-in entries are `grape` and `piccolo`. A private or local solver is a distribution the user installs in the runner environment ([plugins](runs.md#plugins-in-the-runner-environment)); the run records it with every installed distribution. An optional `validate(problem_spec, options)` method checks support before admission and again in the job; any returned runtime provenance is included in the environment hash. A backend whose capabilities report `initial_pulse = true` also takes an optional `initial_pulse` keyword in `validate` and `solve`: an `entanglix.solvers.Pulse` with the supplied knot times and the matched amplitudes in channel order. The keyword is passed only for a declared starting pulse, and never to a backend without that capability. A missing named solver fails before any attempt is created, unless a declared `fallback` exists. A fallback is used only when the named entry is absent; it does not hide an installed solver's unsupported input or execution failure. The preview, manifest and result name the requested and actual solver, its distribution, version and install-record digest, and whether fallback was used. The job refuses to start if the solver's installation changed after launch validation.
+Solvers are discovered through `entanglix.solvers` entry points. Each entry loads a backend factory implementing `capabilities()` and `solve(problem_spec, options)`. The `problem_spec` argument is a `Path` to the frozen, unchanged `RUN/spec/problem.toml`; `options` is the separate solver-options table. Backends may derive `RUN` from that path and list retained native files in `Solution.trace["native_artifacts"]` as names mapped to paths relative to `RUN`, for the job to digest and record. This gives every backend the same file, including one that passes it to another process. The built-in entries are `grape` and `piccolo`. A private or local solver is a distribution the user installs in the runner environment ([your own solver](#your-own-solver)); the run records it with every installed distribution. An optional `validate(problem_spec, options)` method checks support before admission and again in the job; any returned runtime provenance is included in the environment hash. A backend whose capabilities report `initial_pulse = true` also takes an optional `initial_pulse` keyword in `validate` and `solve`: an `entanglix.solvers.Pulse` with the supplied knot times and the matched amplitudes in channel order. The keyword is passed only for a declared starting pulse, and never to a backend without that capability. A missing named solver fails before any attempt is created, unless a declared `fallback` exists. A fallback is used only when the named entry is absent; it does not hide an installed solver's unsupported input or execution failure. The preview, manifest and result name the requested and actual solver, its distribution, version and install-record digest, and whether fallback was used. The job refuses to start if the solver's installation changed after launch validation.
 
 For `grape`, `solver.options.max_iter` is a positive integer mapped to SLSQP `maxiter`, and `solver.options.tol` is a finite positive value mapped to `ftol`. Unknown options are refused by name. Only declared settings are passed; otherwise SLSQP's defaults apply (currently 100 iterations and `1e-6`). The trace distinguishes declared settings from these upstream defaults. `timeout_seconds`, if present, is enforced independently by the runner.
 
@@ -164,6 +164,77 @@ Piccolo declares no starting-pulse support, so a control input with a starting p
 
 The Julia entry exports the stored N knot values without shifting or resampling them. Interval k uses knot k, and the terminal knot participates in the discrete differences. The narrow equal-step bracket holds the declared duration within its relative half-width `1e-7`; returned times are preserved. Native `artifacts/piccolo/result.toml` and the JLD2 pulse are retained with digests beside the neutral pulse. `options.toml` is transport for the settings recorded in the frozen control spec and solver trace. Julia stays in the job's process group, so cancellation and timeout terminate it through the ordinary runner.
 
+
+## Your own solver
+
+A solver that Entanglix does not ship, including one that is never published, attaches as a plugin: a Python package on your disk, added with `entanglix plugins add PATH` ([plugins](runs.md#plugins-in-the-runner-environment)). The package is a folder with a `pyproject.toml`, or a wheel built from one.
+
+The package holds an adapter: one class, registered under the `entanglix.solvers` entry point, that reads the frozen problem file, calls the solver and returns the pulse. The solver is the adapter's dependency, not the plugin. A control or optimization library, or its wheel, registers no entry point and is refused by `plugins add`; it becomes usable once an adapter calls it. A library whose developer ships the entry point and the class inside it is a plugin by itself.
+
+```toml
+[project]
+name = "my-solver"
+version = "0.1.0"
+dependencies = ["numpy", "scipy"]
+
+[project.entry-points."entanglix.solvers"]
+my-solver = "my_solver:Backend"
+
+[build-system]
+requires = ["uv_build>=0.12,<0.13"]
+build-backend = "uv_build"
+```
+
+With its code in `src/my_solver/`:
+
+```python
+import tomllib
+
+from entanglix.solvers import Pulse, Solution
+
+
+class Backend:
+    def capabilities(self):
+        return {
+            "gradients": True,
+            "constraints": ["amplitude", "du", "ddu"],
+            "gpu": False,
+            "problem_kinds": ["unitary"],
+        }
+
+    def solve(self, problem_spec, options):
+        problem = tomllib.loads(problem_spec.read_text())
+        ...  # build the solver's own input from the problem, and solve
+        return Solution(Pulse(times_ns, amplitudes_ghz), objective, {"converged": True}, {})
+```
+
+- `capabilities()` reports `gradients` and `gpu` as booleans and lists the supported `problem_kinds` and `constraints`. A problem that declares `du_bound` or `ddu_bound` is refused for a solver that does not list `du` or `ddu`. A solver that accepts a [starting pulse](#starting-pulse) adds `initial_pulse = true`.
+- `solve` receives the path of `RUN/spec/problem.toml` ([export](#export-and-preview)) and the `solver.options` table. `entanglix.protocols.control.Goal` reads the file's goal table and gives the target as a matrix.
+- It returns an `entanglix.solvers.Solution`: the `Pulse` ([neutral pulse](#neutral-pulse-and-candidate-record)), the solver's native objective, a termination table and a trace table. `solver_reported_fidelity` is a separate, optional argument.
+- An optional `validate(problem_spec, options)` method receives the parsed problem. It refuses unsupported input before an attempt exists and again in the job. `entanglix.solvers.validate_problem` checks the fixed-step unitary subset and the `max_iter` and `tol` options that the built-in solvers accept.
+
+The solver runs in one of two places:
+
+- **In the job's process.** The adapter imports a Python library. The library must install in the job environment, on its Python and beside the versions Entanglix locks.
+- **In its own process.** The adapter starts any other program: another language, a licensed binary, or Python that needs other versions. It passes the problem file and reads the pulse back. Entanglix neither installs nor pins such a program. `validate` is where the adapter checks that the program is available and returns its version and other provenance; the run records the returned table under `environment.solver_runtime`, includes it in the environment hash, and refuses a change between launch and execution. The adapter lists the program's own output files in `Solution.trace["native_artifacts"]`. A program that starts no new session stays in the job's process group, so cancellation and timeouts stop it too. The built-in Piccolo adapter, [`piccolo.py`](../../src/entanglix/solvers/piccolo.py), works this way.
+
+A dependency that is not on PyPI is named by its location, as a folder or as a wheel, which may hold compiled code only:
+
+```toml
+dependencies = [
+    "my-library @ file:///home/me/my-library",
+    "their-library @ file:///home/me/wheels/their_library-1.0-py3-none-any.whl",
+]
+```
+
+A bare name is looked up on PyPI: the lookup discloses the name, and may install an unrelated package that has it. After editing the adapter or a library folder it names, repeat `plugins add`.
+
+The `transmon-control` example includes a small adapter, [`example-solver`](../../examples/transmon-control/example-solver/src/example_solver/__init__.py), which solves the example's problem with SciPy:
+
+```sh
+entanglix plugins add transmon-control/example-solver
+entanglix control transmon-control/example-solver.toml --runs-root research_runs
+```
 
 ## Requested checks
 

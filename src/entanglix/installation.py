@@ -549,15 +549,24 @@ def plugins(root: Path = ROOT) -> dict[str, dict]:
     return dict(sorted(found.items()))
 
 
-def _plugin_name(source: Path) -> str:
-    """A plugin source's name, refused unless it registers an engine or a solver."""
-    from importlib.metadata import PathDistribution
+def _plugin_source(source: Path) -> tuple[str, list[str]]:
+    """A plugin source's name and the dependencies it declares as local folders.
 
+    Refused unless it registers an engine or a solver.
+    """
+    from importlib.metadata import PathDistribution
+    from urllib.parse import urlsplit
+    from urllib.request import url2pathname
+
+    sources = {}
     if source.is_dir():
         path = source / "pyproject.toml"
-        project = _load(path).get("project", {}) if path.is_file() else {}
+        document = _load(path) if path.is_file() else {}
+        project = document.get("project", {})
         name = project.get("name")
         groups = {group for group, entries in project.get("entry-points", {}).items() if entries}
+        requirements = project.get("dependencies", [])
+        sources = document.get("tool", {}).get("uv", {}).get("sources", {})
     elif source.is_file() and source.suffix == ".whl":
         try:
             with zipfile.ZipFile(source) as wheel:
@@ -569,6 +578,7 @@ def _plugin_name(source: Path) -> str:
                 dist = PathDistribution(zipfile.Path(wheel, at=f"{info}/"))
                 name = dist.metadata["Name"]
                 groups = {entry.group for entry in dist.entry_points}
+                requirements = dist.requires or []
         except (zipfile.BadZipFile, ValueError) as exc:
             raise ValueError(f"{source} is not a wheel") from exc
     else:
@@ -582,18 +592,37 @@ def _plugin_name(source: Path) -> str:
             f"{source} registers no entanglix.integrators or entanglix.solvers entry point; "
             "a project declares them in its pyproject.toml"
         )
-    return _normalized(name)
+    # uv's own way to name a folder: `name = { path = "../folder" }` under [tool.uv.sources],
+    # or a list of such tables.
+    by_source = {
+        _normalized(dependency)
+        for dependency, entries in sources.items()
+        for entry in (entries if isinstance(entries, list) else [entries])
+        if isinstance(entry, dict) and "path" in entry and (source / str(entry["path"])).is_dir()
+    }
+    # Direct requirements only; uv applies their markers when it installs.
+    folders = set()
+    for requirement in requirements:
+        # A requirement may name its folder itself: `name @ file:///folder`.
+        declared = re.match(r"\s*([\w.-]+)\s*(?:\[[^]]*])?\s*(?:@\s*(file:\S+))?", str(requirement))
+        if declared and (
+            _normalized(declared[1]) in by_source
+            or (declared[2] and Path(url2pathname(urlsplit(declared[2]).path)).is_dir())
+        ):
+            folders.add(_normalized(declared[1]))
+    return _normalized(name), sorted(folders)
 
 
 def add_plugin(source: Path, root: Path = ROOT) -> dict:
     """Install a plugin from a project directory or a wheel, or refresh it, while no job runs."""
     installed = _require(root, CHECKOUT_PLUGINS)
     source = source.resolve()
-    name = _plugin_name(source)
+    name, folders = _plugin_source(source)
+    # A reinstall by name, so a code-only edit at the same version reaches jobs whatever uv's
+    # default for local sources: the plugin, and the folders it declares as dependencies.
+    reinstall = [part for package in (name, *folders) for part in ("--reinstall-package", package)]
     with environment_lease(root, exclusive=True) as lease:
         _refuse_incomplete(root)
-        # A reinstall by name, so a code-only edit at the same version reaches jobs whatever
-        # uv's default for local sources.
         _run(
             [
                 installed["uv"],
@@ -603,8 +632,7 @@ def add_plugin(source: Path, root: Path = ROOT) -> dict:
                 "--no-config",
                 "--python",
                 str(root / ".venv-runner/bin/python"),
-                "--reinstall-package",
-                name,
+                *reinstall,
                 str(source),
             ],
             uv_environment(os.environ, root, installed),

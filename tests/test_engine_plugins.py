@@ -2,6 +2,7 @@
 
 import shutil
 import subprocess
+import tomllib
 from pathlib import Path
 
 import pytest
@@ -16,6 +17,7 @@ from entanglix.protocols.simulate import simulate
 from entanglix.runner import _load_record, read_run, rerun
 
 PLUGIN = "entanglix-test-plugin"
+LIBRARY = "entanglix-test-library"
 ENGINE = '''"""Test plugin engine: QuTiP under another name, as a separate distribution."""
 
 from dataclasses import replace
@@ -79,6 +81,20 @@ def write_plugin(root, *, method="fixture-1", dependencies=()):
         "build-system": {"requires": ["uv_build==0.12.0"], "build-backend": "uv_build"},
     }
     (root / "pyproject.toml").write_text(tomli_w.dumps(project))
+    return root
+
+
+def write_library(root, method):
+    """A local folder a plugin depends on; a rewrite changes its code and nothing else."""
+    package = root / "src/entanglix_test_library"
+    package.mkdir(parents=True, exist_ok=True)
+    (package / "__init__.py").write_text(f"METHOD = {method!r}\n")
+    if not (root / "pyproject.toml").exists():
+        project = {
+            "project": {"name": LIBRARY, "version": "0.1.0", "requires-python": ">=3.13"},
+            "build-system": {"requires": ["uv_build==0.12.0"], "build-backend": "uv_build"},
+        }
+        (root / "pyproject.toml").write_text(tomli_w.dumps(project))
     return root
 
 
@@ -202,6 +218,71 @@ def test_plugins_add_refreshes_a_code_only_edit_and_remove_uninstalls(
     assert plugins_command(runner_repository, cache, installation.plugins) == {}
     with pytest.raises(ValueError, match="fixture-engine' is not installed"):
         simulate(path, runs_root=root, repository=runner_repository, dry_run=True)
+
+
+@pytest.mark.parametrize("declared", ["url", "marked source"])
+def test_plugins_add_refreshes_a_code_only_edit_in_a_local_folder_dependency(
+    tmp_path, runner_repository, monkeypatch, declared
+):
+    path, _ = protocol_files(tmp_path / "work")
+    root = tmp_path / "runs"
+    cache = tmp_path / "uv-cache"
+    simulate(path, runs_root=root, repository=runner_repository, dry_run=True)
+    library = write_library(tmp_path / "library", "library-1")
+    if declared == "url":
+        plugin = write_plugin(tmp_path / "plugin", dependencies=[f"{LIBRARY} @ {library.as_uri()}"])
+    else:
+        # uv's own source table, in the list form that carries a marker.
+        plugin = write_plugin(tmp_path / "plugin", dependencies=[LIBRARY])
+        project = tomllib.loads((plugin / "pyproject.toml").read_text())
+        project["tool"] = {
+            "uv": {
+                "sources": {LIBRARY: [{"path": "../library", "marker": "python_version >= '3'"}]}
+            }
+        }
+        (plugin / "pyproject.toml").write_text(tomli_w.dumps(project))
+    # The engine reports the library's value, so a result shows which library code ran.
+    (plugin / "src/entanglix_test_plugin/__init__.py").write_text(
+        "from entanglix_test_library import METHOD\n" + ENGINE.replace("{method!r}", "METHOD")
+    )
+    monkeypatch.setenv("ENTANGLIX_ENGINES", "cpu=fixture-engine")
+    for method in ("library-1", "library-2"):
+        # The second pass changes only the library's code; neither pyproject.toml is touched.
+        write_library(library, method)
+        plugins_command(runner_repository, cache, installation.add_plugin, plugin)
+        result = simulate(path, runs_root=root, repository=runner_repository)
+        assert result["exit_code"] == 0, (Path(result["path"]) / "run.log").read_text()
+        assert _load_record(Path(result["path"]) / "result.toml")["method"] == method
+
+
+def test_the_example_solver_plugin_is_added_and_solves_through_the_runner(
+    tmp_path, runner_repository
+):
+    example = Path(__file__).resolve().parents[1] / "examples/transmon-control"
+    protocol = example / "example-solver.toml"
+    root = tmp_path / "runs"
+    # The refused launch creates the runner environment that plugins are added to.
+    with pytest.raises(ValueError, match="example-solver' is unavailable"):
+        control(protocol, runs_root=root, repository=runner_repository, dry_run=True)
+    added = plugins_command(
+        runner_repository,
+        tmp_path / "uv-cache",
+        installation.add_plugin,
+        example / "example-solver",
+    )
+    assert added == {
+        "plugin": "example-solver",
+        "status": "installed",
+        "version": "0.1.0",
+        "engines": [],
+        "solvers": ["example-solver"],
+    }
+    result = control(protocol, runs_root=root, repository=runner_repository)
+    assert result["exit_code"] == 0, (Path(result["path"]) / "run.log").read_text()
+    record = _load_record(Path(result["path"]) / "result.toml")
+    assert record["solver"]["distribution"] == "example-solver"
+    assert record["termination"]["converged"] is True
+    assert record["metrics"]["solver_reported_fidelity"] > 0.999
 
 
 def test_cuda_plugin_loads_in_the_gate_with_the_job_cuda_settings(
