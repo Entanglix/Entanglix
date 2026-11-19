@@ -42,7 +42,8 @@ def main(operation="simulate"):
                 os.fstat(int(os.environ["ENTANGLIX_GPU_LOCK_FD"]))
                 record = _load_record(Path(os.environ["ENTANGLIX_RUN_DIR"]) / "run.toml")
                 observed = check_gpu_environment(
-                    os.environ["CUDA_VISIBLE_DEVICES"], engine=record["engine"]
+                    os.environ["CUDA_VISIBLE_DEVICES"],
+                    engine=record["engine"] if operation in {"simulate", "sweep"} else None,
                 )
                 if observed["gpu"] != record["environment"]["gpu"]:
                     raise ValueError("GPU runtime changed after launch validation")

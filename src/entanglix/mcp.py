@@ -547,7 +547,7 @@ def build_server(config: Configuration):
         values: dict[str, int | float] | None = None,
         parent_run_ids: list[str] | None = None,
     ) -> dict[str, object]:
-        """Admit a CPU control solve against an approved base when investigating."""
+        """Admit a control solve against an approved base when investigating."""
         return await job(
             "control",
             protocol=protocol,

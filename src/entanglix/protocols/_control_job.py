@@ -12,7 +12,8 @@ from entanglix.solvers import select_solver
 
 def execute(problem: Path):
     run = Path(os.environ["ENTANGLIX_RUN_DIR"])
-    launch = _load_record(run / "run.toml")["launch"]
+    record = _load_record(run / "run.toml")
+    launch = record["launch"]
     if _digest(problem.read_bytes()) != launch["problem_sha256"]:
         raise ValueError("frozen ProblemSpec digest changed")
     control = _load_record(run / "spec/control.toml")
@@ -34,7 +35,7 @@ def execute(problem: Path):
         raise ValueError("solver installation changed after launch validation")
     if preflight := getattr(backend, "validate", None):
         runtime = preflight(_load_record(problem), solver.get("options", {}), **start)
-        expected = _load_record(run / "run.toml")["environment"].get("solver_runtime")
+        expected = record["environment"].get("solver_runtime")
         if runtime != expected:
             raise ValueError("solver runtime changed after launch validation")
     solution = backend.solve(problem, solver.get("options", {}), **start)
@@ -55,7 +56,7 @@ def execute(problem: Path):
         {
             "kind": "control",
             "engine": selection["actual"],
-            "device": "cpu",
+            "device": record["device"],
             "solver": selection,
             "problem_sha256": launch["problem_sha256"],
             "objective": solution.objective,

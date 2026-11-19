@@ -12,7 +12,11 @@ from entanglix.solvers import Pulse, Solution, validate_problem
 
 class Backend:
     def capabilities(self):
-        return {"problem_kinds": ["unitary"], "constraints": ["amplitude", "du", "ddu"]}
+        return {
+            "problem_kinds": ["unitary"],
+            "constraints": ["amplitude", "du", "ddu"],
+            "gpu": True,
+        }
 
     def validate(self, problem, options):
         validate_problem(problem, {}, "fixture")

@@ -1,6 +1,6 @@
 # ADR-0005: Control Problems, Solvers, and Control Checks
 
-**Date:** 2026-10-11, revised 2026-10-28
+**Date:** 2026-10-11, revised 2026-11-19
 **Status:** Accepted
 **Purpose:** fix how a control problem is stated and shared between solvers, where the solver is named, how solvers attach, what they report and how they receive a supplied starting pulse, how Piccolo is run, and which checks a control result offers. Field lists, formats, and command names are documented with the implementation.
 
@@ -74,6 +74,7 @@ The harness does only what the user requests.
 - Each solver reads its options in its own meaning. An option name that two solvers share does not make their settings equal.
 - The termination report is the solver's own: the status it gives, its iteration count, and whether a cap was reached. It and the solver's reported objective are labelled as solver-reported and certify nothing.
 - Every solver writes the pulse in one neutral form, readable without the solver: knot times in ns, amplitudes per channel in GHz, and the interpolation kind. A solver's native file is kept beside it.
+- The control spec chooses CPU or CUDA, with CPU as the default. It carries the device into approved investigation bases and frozen inputs. A CUDA launch requires the resolved solver to advertise GPU support and uses the shared device lease and supervision. A plugin supplies its own CUDA dependencies and can check device initialization in its optional preflight.
 - A starting pulse is supplied outside the ProblemSpec, which stays unchanged. A solver that declares the capability receives it as an optional argument to its `validate` preflight and to `solve`, and starts from exactly the supplied amplitudes, or refuses the pulse in its preflight before a run exists. When a starting pulse is declared, any other solver is refused at launch, including as a fallback. Matching and recording are fixed in [ADR-0008 §2.7](0008-results-catalog.md#27-starting-pulse).
 
 **Rationale:** the problem file carries the system, so a solver needs no second system argument. A solver's convergence settings are not a resource limit, and absence of a limit stays valid. Solvers stop by different rules on different objectives, so equal option values do not mean equal work. Piccolo's convergence flag shows that a solver's report can be a heuristic. A starting pulse is where the user chose to begin the search, so a solver that ignored it would report a result from a start the user did not choose; kept out of the problem file, it leaves that file identical between solvers.
@@ -83,14 +84,14 @@ The harness does only what the user requests.
 - The baseline is GRAPE-style: the gate infidelity is differentiated with respect to the piecewise-constant amplitudes, and a constrained optimiser from SciPy takes the steps.
 - The baseline has its own propagator. Each interval's propagator is the matrix exponential of that interval's constant Hamiltonian, built from the exported matrices; one compiled loop runs over the intervals, and JAX differentiates it. The shared simulation engine is not used.
 - Amplitude bounds and derivative bounds are explicit constraints of that optimiser, subject to its numerical feasibility tolerances. They are not penalty terms. Whether a returned pulse holds its bounds is established by the requested check.
-- The baseline adds no optimiser of its own.
+- SciPy's optimiser runs on the host. The baseline's JAX objective and gradient run on the requested device. CUDA preflight initializes the leased device and the solve records the gradient's placement.
 - It accepts a starting pulse, and refuses one outside its own bounds, including its zero end knots, instead of letting the optimiser clip it.
 
 **Rationale:** the control model is closed and constant within each interval (§2.2, §2.3). The matrix exponential gives the exact-arithmetic propagator for each constant interval, without adaptive time stepping; its numerical evaluation and derivatives remain subject to floating-point error. The engine-based loss unrolled one adaptive solve per interval at compilation, so compile time dominated each job and grew faster than the interval count, and its gradient deviated from finite differences at a zero-amplitude first interval. On a piecewise-constant pulse, amplitude and derivative bounds are bounds and linear constraints on the amplitudes, which an existing optimiser takes as explicit constraints. Evolution that needs an integrator, such as lab-frame or open-system simulation, stays with the shared engine.
 
 ### 2.6 The Piccolo adapter
 
-- The adapter is an ordinary job. It runs Piccolo's ProblemSpec runner in Julia directly, in the job's own process group.
+- The adapter runs Piccolo's ProblemSpec runner directly in Julia on CPU, in the job's own process group.
 - It passes the iteration cap and the tolerance as arguments, so the shared file is unchanged.
 - It writes the neutral pulse inside Julia.
 - The repository holds a pinned Julia project for it. A Piccolo run records the Julia version, the Julia executable, and the digest of that project's manifest.

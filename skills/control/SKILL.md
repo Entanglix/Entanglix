@@ -1,7 +1,7 @@
 ---
 name: control
 description: Solve an Entanglix closed-system gate problem, reuse a device or starting pulse, inspect candidates, request checks, or re-solve frozen inputs.
-version: 0.1.5
+version: 0.1.6
 ---
 
 # Closed-system control
@@ -15,7 +15,9 @@ Read `reference/operations/catalog.md` when reusing an entry or citing its check
 Declare the gate, duration, amplitude and derivative bounds, reported target and
 control frame. The supported control model is closed and uses an explicit RWA;
 omitted dissipators appear in the launch listing. These choices do not establish
-lab-frame or device-model accuracy. Control solves and their checks run on CPU.
+lab-frame or device-model accuracy. For a requested CUDA solve, set
+`needs.device = "cuda"` with a supporting solver. CPU is the default. Requested
+checks run on CPU.
 
 Use `system_entry` instead of `system` for a promoted device. A `starting_pulse`
 may name an entry, a control run or a neutral pulse file, and replaces `pulse.init`
@@ -28,7 +30,7 @@ the source candidate.
 Call `control` with the authored protocol. In an investigation read effective
 terms first and name an approved base; pass the device parameters and seeds it
 permits in `values`, leaving the authored protocol unchanged.
-A different solver or options table needs another approved base, even when the
+A different device, solver or options table needs another approved base, even when the
 generated ProblemSpec digest is identical. A fallback applies only to an absent
 named solver; it does not hide unsupported input or a failed solve.
 

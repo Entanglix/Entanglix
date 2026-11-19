@@ -28,7 +28,7 @@ from entanglix.investigations import (
 )
 from entanglix.mcp_views import attempt_data
 from entanglix.protocols.control import control, load_control
-from entanglix.runner import _cpu_job_context, _load_record, read_run, rerun
+from entanglix.runner import _cpu_job_context, _load_record, acquire_gpu, read_run, rerun
 
 
 @pytest.fixture
@@ -41,6 +41,9 @@ def plugin_repository(runner_repository):
     project = runner_repository / "pyproject.toml"
     config = tomllib.loads(project.read_text())
     config["project"]["entry-points"]["entanglix.solvers"]["fixture"] = (
+        "entanglix._fixture_control:Backend"
+    )
+    config["project"]["entry-points"]["entanglix.solvers"]["cudensitymat"] = (
         "entanglix._fixture_control:Backend"
     )
     project.write_text(tomli_w.dumps(config))
@@ -364,11 +367,32 @@ def test_control_varies_parameters_and_seeds_inside_one_base(varied_study):
     assert len(list(root.glob("*/*/run.toml"))) == count + 1
 
 
-@pytest.mark.parametrize("reason", ["stop", "deadline", "job_seconds"])
-def test_control_execution_obeys_investigation_lifecycle(control_study, reason):
+@pytest.mark.parametrize("reason", ["stop", "deadline", "job_seconds", "cuda_stop"])
+def test_control_execution_obeys_investigation_lifecycle(
+    control_study, reason, tmp_path, monkeypatch
+):
     protocol, _, root, path, repository = control_study
     definition = tomllib.loads(protocol.read_text())
     definition["solver"]["options"] = {"delay_seconds": 60}
+    cuda = reason == "cuda_stop"
+    gpu_device = "GPU-fixture"
+    if cuda:
+        # Exercise the real gate and worker with a synthetic device and no CUDA packages.
+        # Solver entry-point names are independent of simulation engine names.
+        driver = tmp_path / "nvidia-smi"
+        driver.write_text(
+            "#!/bin/sh\n"
+            'case "$*" in\n'
+            f"  *uuid,driver_version*) echo '{gpu_device}, 595.99.02' ;;\n"
+            f"  *) echo '{gpu_device}' ;;\n"
+            "esac\n"
+        )
+        driver.chmod(0o755)
+        monkeypatch.setenv("PATH", str(tmp_path) + os.pathsep + os.environ["PATH"])
+        monkeypatch.setenv("CUDA_VISIBLE_DEVICES", gpu_device)
+        monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path / "state"))
+        definition["needs"] = {"device": "cuda"}
+        definition["solver"].update(backend="absent", fallback="cudensitymat")
     protocol.write_text(tomli_w.dumps(definition))
     # Sync and preflight before setting a deadline, without consuming allowance.
     control(protocol, repository=repository, dry_run=True)
@@ -382,7 +406,7 @@ def test_control_execution_obeys_investigation_lifecycle(control_study, reason):
     with ThreadPoolExecutor(max_workers=1) as pool:
         result = pool.submit(launch, control_study)
         try:
-            if reason == "stop":
+            if reason in {"stop", "cuda_stop"}:
                 until = time.monotonic() + 30
                 while time.monotonic() < until:
                     started = list(root.glob("*/*/artifacts/plugin-started"))
@@ -405,10 +429,18 @@ def test_control_execution_obeys_investigation_lifecycle(control_study, reason):
     with pytest.raises(ProcessLookupError):
         os.killpg(record["start"]["process_group"], 0)
     usage = read_investigation(path)["usage"]
-    assert usage["jobs"] == 1 and usage["job_seconds"] > 0 and usage["gpu_seconds"] == 0
+    assert usage["jobs"] == 1 and usage["job_seconds"] > 0
+    if cuda:
+        assert record["manifest"]["launch"]["selection"]["fallback_used"]
+        assert record["start"]["gpu_devices"] == [gpu_device]
+        assert usage["gpu_seconds"] >= usage["job_seconds"]
+        with acquire_gpu(gpu_device):
+            pass
+    else:
+        assert usage["gpu_seconds"] == 0
     if reason == "job_seconds":
         assert "job_seconds" in record["log_tail"]
-    if reason == "stop":
+    if reason in {"stop", "cuda_stop"}:
         record_user_decision(path, "resume")
         assert read_investigation(path)["state"] == "active"
 

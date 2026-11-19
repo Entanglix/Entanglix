@@ -159,7 +159,7 @@ def process_failure(process, context: str) -> str:
     return detail.strip() or context
 
 
-def check_gpu_environment(device_uuid: str, *, engine: str) -> dict:
+def check_gpu_environment(device_uuid: str, *, engine: str | None = None) -> dict:
     """Check a selected device before dispatch; only cuDensityMat initializes its library."""
     try:
         query = subprocess.run(
@@ -794,7 +794,7 @@ def select_gpu() -> str:
     """Resolve the configured single device without creating a CUDA context."""
     visible = os.environ.get("CUDA_VISIBLE_DEVICES")
     if visible == "":
-        raise ValueError("CUDA simulation requires exactly one visible GPU")
+        raise ValueError("CUDA execution requires exactly one visible GPU")
     command = ["nvidia-smi", "--query-gpu=uuid", "--format=csv,noheader"]
     if visible is not None:
         command.append(f"--id={visible}")
@@ -806,7 +806,7 @@ def select_gpu() -> str:
         ) from exc
     devices = query.stdout.split()
     if len(devices) != 1:
-        raise ValueError("CUDA simulation requires exactly one visible GPU")
+        raise ValueError("CUDA execution requires exactly one visible GPU")
     return devices[0]
 
 
@@ -1090,6 +1090,7 @@ def _cpu_job_context(repository: Path, module: str) -> tuple[list[str], dict, li
     environment.pop("PYTHONPATH", None)
     environment.pop("UV_NO_SYNC", None)
     environment.pop("UV_FROZEN", None)
+    environment.pop("ENTANGLIX_GPU_LOCK_FD", None)
     return command, environment, extras
 
 

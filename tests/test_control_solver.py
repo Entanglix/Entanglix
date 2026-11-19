@@ -1,4 +1,4 @@
-"""Control solver constraints, gradients, discovery, and owned CPU launches."""
+"""Control solver constraints, gradients, discovery, and owned launches."""
 
 import copy
 import subprocess
@@ -12,7 +12,7 @@ from scipy.linalg import expm
 from test_control import control_files as control_files
 
 from entanglix.protocols.control import control, load_control
-from entanglix.runner import read_run
+from entanglix.runner import _load_record, read_run
 from entanglix.solvers import Pulse, Solution, select_solver, validate_problem
 from entanglix.solvers.grape import GrapeBackend, decode, objective, validate
 from entanglix.solvers.piccolo import PiccoloBackend
@@ -114,6 +114,7 @@ def test_control_generated_seed_reproduces_initialization(control_files, monkeyp
     problem_path = control_files[0].parent / "problem.toml"
     problem_path.write_text(tomli_w.dumps(problem))
     first = GrapeBackend().solve(problem_path, {"max_iter": 1})
+    assert first.trace["gradient_device"] == "cpu"
     seed = first.trace["effective_seed"]
     assert type(seed) is int and 0 <= seed < 2**63
     problem["pulse"]["seed"] = seed
@@ -130,7 +131,7 @@ def test_control_generated_seed_reproduces_initialization(control_files, monkeyp
 @pytest.mark.parametrize("fidelity", [0.8, None])
 def test_control_job_keeps_native_objective_separate_from_fidelity(tmp_path, monkeypatch, fidelity):
     from entanglix.protocols._control_job import execute
-    from entanglix.runner import _digest, _load_record, publish_toml
+    from entanglix.runner import _digest, publish_toml
 
     (tmp_path / "spec").mkdir()
     (tmp_path / "artifacts").mkdir()
@@ -139,7 +140,13 @@ def test_control_job_keeps_native_objective_separate_from_fidelity(tmp_path, mon
     selection = {"actual": "plugin"}
     publish_toml(
         tmp_path / "run.toml",
-        {"launch": {"selection": selection, "problem_sha256": _digest(problem_path.read_bytes())}},
+        {
+            "device": "cpu",
+            "launch": {
+                "selection": selection,
+                "problem_sha256": _digest(problem_path.read_bytes()),
+            },
+        },
     )
     publish_toml(tmp_path / "spec/control.toml", {"solver": {"backend": "plugin"}})
     solution = Solution(
@@ -355,6 +362,9 @@ def test_control_cli_retains_fallback_pulse_and_nonconvergence(
     assert not record["result"]["termination"]["converged"]
     assert record["result"]["solver"]["actual"] == "grape"
     assert record["result"]["solver"]["fallback_used"]
+    assert record["manifest"]["device"] == record["result"]["device"] == "cpu"
+    assert record["manifest"]["needs"] == {"device": "cpu", "gradients": True}
+    assert record["finished"]["usage"]["gpu_seconds"] == 0
     assert "check_history" not in record
     run = Path(record["path"])
     with np.load(run / "artifacts/pulse.npz", allow_pickle=False) as pulse:
@@ -395,18 +405,86 @@ def test_control_dry_run_and_bad_settings_create_no_attempt(
     assert not root.exists()
 
 
-def test_control_invalid_cuda_request_never_acquires_gpu(
-    control_files, runner_repository, tmp_path, monkeypatch
+@pytest.mark.parametrize(
+    "needs, field",
+    [({"device": "gpu"}, "device"), ({"device": "cuda", "gradients": True}, "gradients")],
+)
+def test_control_invalid_device_needs_never_acquire_gpu(
+    control_files, runner_repository, tmp_path, monkeypatch, needs, field
 ):
     path, definition = control_files
-    definition["needs"] = {"device": "cuda"}
+    definition["needs"] = needs
     path.write_text(tomli_w.dumps(definition))
 
     def unexpected():
-        pytest.fail("CPU control validation must not acquire a GPU")
+        pytest.fail("invalid device needs must be refused before acquiring a GPU")
 
     monkeypatch.setattr("entanglix.protocols.simulate.select_gpu", unexpected)
     root = tmp_path / "runs"
-    with pytest.raises(ValueError, match="needs"):
+    with pytest.raises(ValueError, match=field):
         control(path, repository=runner_repository, runs_root=root)
     assert not root.exists()
+
+
+@pytest.mark.parametrize(
+    "solver",
+    [{"backend": "piccolo", "fallback": "grape"}, {"backend": "absent", "fallback": "piccolo"}],
+)
+def test_cuda_control_refuses_piccolo_before_its_preflight(
+    control_files, runner_repository, tmp_path, monkeypatch, solver
+):
+    from entanglix.runner import acquire_gpu
+
+    path, definition = control_files
+    definition.update(needs={"device": "cuda"}, solver=solver)
+    path.write_text(tomli_w.dumps(definition))
+    device = "GPU-fixture"
+    monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path / "state"))
+    monkeypatch.setattr("entanglix.protocols.simulate.select_gpu", lambda: device)
+    root = tmp_path / "runs"
+    with pytest.raises(ValueError, match="solver 'piccolo' does not support device cuda"):
+        control(path, repository=runner_repository, runs_root=root)
+    assert not root.exists()
+    with acquire_gpu(device):
+        pass
+
+
+@pytest.mark.gpu
+def test_grape_cuda_matches_cpu_replay(control_files, tmp_path, monkeypatch):
+    from conftest import _runner_repository
+
+    pytest.importorskip("jax_cuda12_plugin")
+    monkeypatch.delenv("ENTANGLIX_RUNNER_EXTRAS", raising=False)
+    monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path / "state"))
+    repository = _runner_repository(tmp_path / "cuda-runner", ["differentiable-cuda12"])
+    path, definition = control_files
+    definition["pulse"]["T"] = 10.0
+    definition["solver"]["options"] = {"tol": 1e-10}
+    fidelity = {}
+    digests = set()
+    for device in ("cpu", "cuda"):
+        definition["needs"] = {"device": device}
+        path.write_text(tomli_w.dumps(definition))
+        job = control(path, repository=repository, runs_root=tmp_path / "runs")
+        run = Path(job["path"])
+        record = read_run(run)
+        assert job["exit_code"] == 0, record["log_tail"]
+        assert record["manifest"]["device"] == record["result"]["device"] == device
+        trace = _load_record(run / "artifacts/solver-trace.toml")
+        assert trace["gradient_device"] == ("gpu" if device == "cuda" else "cpu")
+        digests.add(record["manifest"]["launch"]["problem_sha256"])
+        with np.load(run / "artifacts/pulse.npz", allow_pickle=False) as pulse:
+            fidelity[device] = exact_fidelity(
+                _load_record(run / "spec/problem.toml"), pulse["amplitudes_ghz"]
+            )
+        assert record["result"]["termination"]["converged"]
+        assert fidelity[device] > 0.9999
+        assert fidelity[device] == pytest.approx(
+            record["result"]["metrics"]["solver_reported_fidelity"], abs=2e-9, rel=0
+        )
+    assert len(digests) == 1
+    assert fidelity["cuda"] == pytest.approx(fidelity["cpu"], abs=2e-9, rel=0)
+    assert _load_record(run / "spec/control.toml")["needs"] == {"device": "cuda"}
+    assert record["start"]["gpu_devices"][0].startswith("GPU-")
+    assert record["manifest"]["environment"]["gpu"]["driver"] != "unobserved"
+    assert record["finished"]["usage"]["gpu_seconds"] > 0

@@ -346,15 +346,18 @@ def _launch_leased(
             spec = SweepSpec.model_validate(_load_record(protocol))
             source = _adjacent(protocol.parent, spec.base)
         document = _load_record(source)
-        device = (
-            "cpu"
-            if operation in {"control", "calibrate"}
-            else Needs.model_validate(document.get("needs", {})).device
-        )
+        if operation == "calibrate":
+            device = "cpu"
+        elif operation == "control":
+            from entanglix.protocols.control import ControlNeeds
+
+            device = ControlNeeds.model_validate(document.get("needs", {})).device
+        else:
+            device = Needs.model_validate(document.get("needs", {})).device
     except (OSError, ValueError) as exc:
         raise ValueError(f"{operation} rejected: {exc}") from exc
     with acquire_gpu(select_gpu()) if device == "cuda" else nullcontext() as gpu:
-        # The gate loads plugin engines, so it sees the job's CUDA settings.
+        # The gate loads plugins, so it sees the job's CUDA settings.
         if gpu is not None:
             environment.update(
                 CUDA_VISIBLE_DEVICES=gpu.device,

@@ -1,5 +1,6 @@
 """JAX matrix-exponential gradients, with SciPy's constrained optimizer."""
 
+import os
 import secrets
 import time
 import tomllib
@@ -48,15 +49,37 @@ def validate(problem_spec, options, initial_pulse=None):
             )
 
 
+def _cuda_device():
+    """Return the leased JAX GPU for a CUDA job."""
+    if "ENTANGLIX_GPU_LOCK_FD" not in os.environ:
+        return None
+    try:
+        import jax
+
+        devices = jax.devices("gpu")
+        if len(devices) != 1:
+            raise ValueError(f"expected one visible JAX GPU, found {len(devices)}")
+        return devices[0]
+    except (ImportError, RuntimeError, ValueError) as exc:
+        from entanglix.installation import missing_hint
+
+        uuid = os.environ["CUDA_VISIBLE_DEVICES"]
+        raise ValueError(
+            f"grape could not initialize JAX CUDA on {uuid}: {exc}" + missing_hint("dynamiqs-cuda")
+        ) from exc
+
+
 def objective(problem_spec):
-    """Propagate subspace columns on CPU for the leakage-aware average fidelity."""
+    """Propagate subspace columns for the leakage-aware average fidelity."""
     import jax
     import jax.numpy as jnp
     from jax.scipy.linalg import expm
     from jax.sharding import SingleDeviceSharding
 
     jax.config.update("jax_enable_x64", True)
-    device = jax.devices("cpu")[0]
+    device = _cuda_device()
+    if device is None:
+        device = jax.devices("cpu")[0]
     placement = SingleDeviceSharding(device)
     goal = Goal.model_validate(problem_spec["goal"])
     indices = np.asarray(goal.subspace[0]) - 1
@@ -89,13 +112,14 @@ def objective(problem_spec):
 
 class GrapeBackend:
     def validate(self, problem_spec, options, initial_pulse=None):
+        _cuda_device()
         validate(problem_spec, options, initial_pulse)
 
     def capabilities(self):
         return {
             "gradients": True,
             "constraints": ["amplitude", "du", "ddu"],
-            "gpu": False,
+            "gpu": True,
             "problem_kinds": ["unitary"],
             "initial_pulse": True,
         }
@@ -134,10 +158,15 @@ class GrapeBackend:
                     if maximum:
                         initial *= min(1, problem[field] / maximum)
         calls, iterations = [], []
+        gradient_device = None
 
         def evaluate(flat):
+            nonlocal gradient_device
             started = time.monotonic()
             value, gradient = value_and_grad(np.asarray(flat, dtype=float).reshape(shape))
+            if not calls:
+                device = gradient.device
+                gradient_device = device if isinstance(device, str) else device.platform
             value, gradient = float(value), np.asarray(gradient).ravel()
             calls.append({"objective": value, "seconds": time.monotonic() - started})
             return value, gradient
@@ -196,6 +225,7 @@ class GrapeBackend:
                 "method": "SLSQP",
                 "optimizer_version": version("scipy"),
                 "gradient_backend_version": version("jax"),
+                **({"gradient_device": gradient_device} if gradient_device is not None else {}),
                 "propagator": "jax.scipy.linalg.expm per constant interval",
             },
             solver_reported_fidelity=1 - float(result.fun),

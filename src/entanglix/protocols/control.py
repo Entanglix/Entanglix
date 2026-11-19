@@ -3,6 +3,7 @@
 import hashlib
 import io
 import math
+import os
 import re
 import tomllib
 from dataclasses import dataclass, replace
@@ -192,6 +193,10 @@ class Evaluation(StrictModel):
         return self
 
 
+class ControlNeeds(StrictModel):
+    device: Literal["cpu", "cuda"] = "cpu"
+
+
 class ControlSpec(SystemSource):
     format_version: Literal[1]
     parameters: dict[str, Finite] = Field(default_factory=dict)
@@ -204,6 +209,7 @@ class ControlSpec(SystemSource):
     starting_pulse: StartingPulse | None = None
     problem: Problem
     solver: Solver
+    needs: ControlNeeds = Field(default_factory=ControlNeeds)
     timeout_seconds: float | None = Field(default=None, gt=0, allow_inf_nan=False)
 
     @model_validator(mode="after")
@@ -610,6 +616,7 @@ def load_control(
         "frame": prepared.diagnostics["frame"],
         "energy_origin_ghz": energy_origin_ghz,
         "solver": spec.solver.model_dump(exclude_none=True),
+        "device": spec.needs.device,
         "duration_ns": spec.pulse.T,
         "interval_count": spec.problem.N - 1,
         "problem_sha256": digest,
@@ -648,13 +655,24 @@ def compile_control(
         start = {"initial_pulse": initial}
     selection = None
     runtime = None
+    gpu_check = None
+    device = loaded.definition.needs.device
     if repository is not None:
+        from entanglix.runner import check_gpu_environment
         from entanglix.solvers import select_solver
 
         backend, selection = select_solver(
             loaded.definition.solver.backend, loaded.definition.solver.fallback
         )
         capabilities = backend.capabilities()
+        if device == "cuda":
+            if capabilities.get("gpu") is not True:
+                raise ValueError(f"solver {selection['actual']!r} does not support device cuda")
+            descriptor = os.environ.get("ENTANGLIX_GPU_LOCK_FD")
+            if descriptor is None:
+                raise ValueError("GPU launch check requires the inherited device lock")
+            os.fstat(int(descriptor))
+            gpu_check = check_gpu_environment(os.environ["CUDA_VISIBLE_DEVICES"])
         if start:
             # Support is read from the solver that will run, after any fallback.
             if capabilities.get("initial_pulse") is not True:
@@ -674,7 +692,7 @@ def compile_control(
             capabilities["constraints"]
         ):
             raise ValueError(
-                f"solver {selection['actual']!r} does not support the declared CPU control problem and constraints"
+                f"solver {selection['actual']!r} does not support the declared control problem and constraints"
             )
     frozen = read_inputs(loaded.inputs, loaded.input_digests, "control")
     base_inputs = loaded.input_digests if retain_base else {}
@@ -685,6 +703,9 @@ def compile_control(
             base_inputs = {**base_inputs, STARTING_PULSE: start_record["sha256"]}
     base = base_files(frozen, loaded.definition.system, "control") if retain_base else {}
     definition = loaded.definition.frozen_document()
+    if device == "cpu":
+        # Keep the canonical CPU spec compatible with earlier runs.
+        definition.pop("needs")
     if start:
         # The start is frozen beside the unchanged ProblemSpec, so reruns need no catalog.
         definition["starting_pulse"] = {"file": STARTING_PULSE}
@@ -711,10 +732,13 @@ def compile_control(
 
         result.update(
             engine=selection["actual"],
-            device="cpu",
-            needs={"gradients": True, "device": "cpu"},
+            device=device,
+            needs={"gradients": True, "device": device},
             environment=capture_environment(
-                repository / "uv.lock", extras=tuple(extras), solver_runtime=runtime
+                repository / "uv.lock",
+                extras=tuple(extras),
+                gpu=gpu_check["gpu"] if gpu_check else None,
+                solver_runtime=runtime,
             ),
             timeout_seconds=loaded.definition.timeout_seconds,
             kind="control",
@@ -722,6 +746,8 @@ def compile_control(
             protocol_sha256=loaded.input_digests["control.toml"],
         )
         result["preview"]["solver_selection"] = selection
+        if gpu_check is not None:
+            result["preview"]["gpu_check"] = gpu_check
         result["preview"].update(control_listing(loaded))
     return result
 
@@ -737,7 +763,7 @@ def control(
     base: str | None = None,
     values: dict[str, float] | None = None,
 ):
-    """Solve a closed-system control problem as one owned CPU job."""
+    """Solve a closed-system control problem as one owned job."""
     from entanglix.protocols.simulate import _launch_protocol
 
     return _launch_protocol(
