@@ -37,7 +37,10 @@ def load_policy(expected_version: str | None = None) -> Policy:
     return Policy(version, thresholds)
 
 
-def validate_refinement(plan, document: dict, root: Path, policy: Policy) -> None:
+def validate_refinement(plan, document: dict, root: Path, policy: Policy, system) -> None:
+    """Check a declaration against the source document and its constructed ``system``."""
+    from entanglix.models import hierarchy_problem
+
     model = document["model"]
     if model["kind"] == "composite":
         subsystems = {}
@@ -69,6 +72,38 @@ def validate_refinement(plan, document: dict, root: Path, policy: Policy) -> Non
             raise ValueError(
                 f"refinement.{name}: cutoff steps must cover {sorted(cutoffs)} and meet policy minimum"
             )
+        truncation = leaf.get("truncation", {})
+        groups = truncation.get("hierarchy")
+        if groups is None:
+            if step.hierarchy_levels_steps:
+                raise ValueError(
+                    f"refinement.{name}: hierarchy_levels_steps apply only to a hierarchical circuit"
+                )
+            continue
+        if len(step.hierarchy_levels_steps) != len(groups) or any(
+            value < minimum["min_retained_levels_step"] for value in step.hierarchy_levels_steps
+        ):
+            raise ValueError(
+                f"refinement.{name}: hierarchy_levels_steps must give one step per group "
+                "and meet the retained-level policy minimum"
+            )
+        provenance = system.provenance
+        if model["kind"] == "composite":
+            provenance = provenance["subsystems"][name]
+        problem = hierarchy_problem(
+            provenance["coordinates"],
+            {key: value + step.cutoff_steps[key] for key, value in truncation["cutoffs"].items()},
+            groups,
+            [
+                value + increment
+                for value, increment in zip(
+                    truncation["hierarchy_levels"], step.hierarchy_levels_steps, strict=True
+                )
+            ],
+            truncation["retained_levels"] + step.retained_levels_step,
+        )
+        if problem:
+            raise ValueError(f"refinement.{name}: after refinement, {problem}")
 
 
 CHECK_DEFINITIONS = {

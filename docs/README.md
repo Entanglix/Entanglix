@@ -22,7 +22,7 @@ Operational entry points are the root README, the harness contract, and the rese
 
 - [adr/](adr/) — Public decision records, kept current and retained during operation.
 - [adr/0001-mandate.md](adr/0001-mandate.md) — Accepted foundation mandate and constraints. Future decisions add records as implementation proceeds.
-- [adr/0002-system-model-representation.md](adr/0002-system-model-representation.md) — Accepted system model representation: model kinds, units, circuit coordinates, cutoffs, biases, operator names, and composite basis.
+- [adr/0002-system-model-representation.md](adr/0002-system-model-representation.md) — Accepted system model representation: model kinds, units, circuit coordinates, cutoffs and hierarchical diagonalization, biases, operator names, composite basis and construction, and dressed-state labels.
 - [adr/0003-runs-verification-and-dispatch.md](adr/0003-runs-verification-and-dispatch.md) — Accepted run records, verification checks on request, engine dispatch by declared needs, and drives and frames.
 - [adr/0004-investigations-and-agent-sessions.md](adr/0004-investigations-and-agent-sessions.md) — Accepted investigation records, revision authority and user decisions, admission and stopping, checkpoints and reviews, the evaluation protocol, and the user's own agent runtime.
 - [adr/0005-control-problems-and-solvers.md](adr/0005-control-problems-and-solvers.md) — Accepted control spec and generated ProblemSpec, shared problem subset, solver interface, direct Piccolo adapter, and control checks on request.

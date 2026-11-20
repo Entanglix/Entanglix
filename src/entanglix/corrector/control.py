@@ -79,6 +79,7 @@ def uncertainty_reason(loaded, name, declaration, policy):
                 tomllib.loads(system.read_text()),
                 system.parent,
                 policy,
+                loaded.system,
             )
         except ValueError as exc:
             return str(exc)

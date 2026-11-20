@@ -194,7 +194,8 @@ def test_two_mode_component_circuit_and_node_charge_reference(tmp_path):
 
 def test_two_mode_cutoff_refinement(tmp_path):
     values = []
-    for cutoff in (5, 8, 10):
+    # Cutoff 5 gives 11 charge states, too few for the example's 10 group levels.
+    for cutoff in (6, 8, 10):
         model = load_system(
             _variant(
                 tmp_path,
@@ -209,16 +210,7 @@ def test_two_mode_cutoff_refinement(tmp_path):
     assert np.max(np.abs(values[1] - values[2])) <= 1e-5
 
 
-def test_nontrivial_unimodular_transform_maps_node_charges(tmp_path):
-    source = _variant(tmp_path, "two-mode-circuit", "[[1, 0], [0, 1]]", "[[1, 1], [1, 0]]")
-    source.write_text(
-        source.read_text().replace(
-            'offset_charges = { "1" = 0.0, "2" = 0.0 }',
-            'offset_charges = { "1" = 0.2, "2" = -0.1 }',
-        )
-    )
-    model = load_system(source)
-    np.testing.assert_allclose(model.provenance["coordinate_offsets"], [0.1, 0.2])
+def _two_mode_reference(transformation, cutoff, offsets):
     ec1 = e**2 / (2 * h * 60e-15 * 1e9)
     ec2 = e**2 / (2 * h * 70e-15 * 1e9)
     ecc = e**2 / (2 * h * 2e-15 * 1e9)
@@ -230,20 +222,257 @@ def test_nontrivial_unimodular_transform_maps_node_charges(tmp_path):
         f"- [C, 1, 2, {ecc:.17g}]\n",
         truncated_dim=6,
     )
-    circuit.configure(transformation_matrix=np.array([[1, 1], [1, 0]]))
-    circuit.cutoff_n_1 = 10
-    circuit.cutoff_n_2 = 10
-    circuit.ng1 = -0.1
-    circuit.ng2 = -0.2
+    circuit.configure(transformation_matrix=np.array(transformation))
+    circuit.cutoff_n_1 = cutoff
+    circuit.cutoff_n_2 = cutoff
+    circuit.ng1, circuit.ng2 = offsets
+    return circuit
+
+
+def _shear(tmp_path, cutoff, levels):
+    source = _variant(tmp_path, "two-mode-circuit", "[[1, 0], [0, 1]]", "[[1, 1], [1, 0]]")
+    source.write_text(
+        source.read_text()
+        .replace(
+            'offset_charges = { "1" = 0.0, "2" = 0.0 }',
+            'offset_charges = { "1" = 0.2, "2" = -0.1 }',
+        )
+        .replace("theta1 = 10, theta2 = 10", f"theta1 = {cutoff}, theta2 = {cutoff}")
+        .replace("hierarchy_levels = [10, 10]", f"hierarchy_levels = [{levels}, {levels}]")
+    )
+    return load_system(source)
+
+
+def test_nontrivial_unimodular_transform_maps_node_charges(tmp_path):
+    # The shear couples the two groups strongly, so they keep nearly their whole bases.
+    model = _shear(tmp_path, 15, 29)
+    np.testing.assert_allclose(model.provenance["coordinate_offsets"], [0.1, 0.2])
+    circuit = _two_mode_reference([[1, 1], [1, 0]], 15, (-0.1, -0.2))
     energies, vectors = circuit.eigensys(evals_count=6)
     np.testing.assert_allclose(np.diag(model.hamiltonian_ghz), energies, rtol=0, atol=1e-8)
-    q1 = circuit.n2_operator() - 0.2 * np.eye(441)
-    q2 = circuit.n1_operator() - circuit.n2_operator() + 0.1 * np.eye(441)
+    q1 = circuit.n2_operator() - 0.2 * np.eye(961)
+    q2 = circuit.n1_operator() - circuit.n2_operator() + 0.1 * np.eye(961)
     for name, raw in (("node1.charge", q1), ("node2.charge", q2)):
         expected = vectors.conj().T @ raw @ vectors
         np.testing.assert_allclose(
             np.diag(model.operators[name]), np.diag(expected), rtol=0, atol=1e-8
         )
+
+
+def test_group_levels_converge_more_slowly_under_a_shear(tmp_path):
+    def error(model, transformation, offsets):
+        energies = _two_mode_reference(transformation, 10, offsets).eigenvals(evals_count=6)
+        return np.max(np.abs(np.diag(model.hamiltonian_ghz).real - energies))
+
+    identity = load_system(ROOT / "two-mode-circuit/system.toml")
+    assert error(identity, [[1, 0], [0, 1]], (0.0, 0.0)) < 1e-9
+    # The same partition and group levels are far from converged under the shear.
+    errors = [
+        error(_shear(tmp_path, 10, levels), [[1, 1], [1, 0]], (-0.1, -0.2)) for levels in (10, 19)
+    ]
+    assert errors[0] > 1e-2 and errors[1] < 1e-5
+
+
+def test_flux_bias_survives_the_hierarchy(tmp_path):
+    source = tmp_path / "system.toml"
+    source.write_text(
+        """format_version = 2
+id = "junction_loop"
+
+[units]
+energy = "GHz"
+time = "ns"
+
+[model]
+kind = "circuit"
+nodes = [0, 1, 2]
+ground = 0
+transformation = [[1, 0], [0, 1]]
+offset_charges = { "1" = 0.1, "2" = 0.0 }
+
+[[model.branches]]
+id = "left"
+kind = "JJ"
+nodes = [0, 1]
+josephson_energy = { value = 12.0, unit = "GHz" }
+charging_energy = { value = 1.0, unit = "GHz" }
+
+[[model.branches]]
+id = "right"
+kind = "JJ"
+nodes = [0, 2]
+josephson_energy = { value = 14.0, unit = "GHz" }
+charging_energy = { value = 1.2, unit = "GHz" }
+
+[[model.branches]]
+id = "bridge"
+kind = "JJ"
+nodes = [1, 2]
+josephson_energy = { value = 4.0, unit = "GHz" }
+charging_energy = { value = 3.0, unit = "GHz" }
+
+[[model.external_fluxes]]
+branch = "bridge"
+value = 0.3
+unit = "Phi0"
+
+[truncation]
+cutoffs = { theta1 = 8, theta2 = 8 }
+hierarchy = [[1], [2]]
+hierarchy_levels = [12, 12]
+retained_levels = 6
+"""
+    )
+    model = load_system(source)
+    circuit = scq.Circuit.from_yaml_string(
+        "branches:\n- [JJ, 0, 1, 12, 1]\n- [JJ, 0, 2, 14, 1.2]\n- [JJ, 1, 2, 4, 3]\n",
+        truncated_dim=6,
+    )
+    circuit.configure(
+        transformation_matrix=np.eye(2, dtype=int), closure_branches=[circuit.branches[2]]
+    )
+    circuit.cutoff_n_1 = 8
+    circuit.cutoff_n_2 = 8
+    circuit.ng1 = -0.1
+    unbiased = circuit.eigenvals(evals_count=6)
+    circuit.Φ1 = 0.3
+    energies, vectors = circuit.eigensys(evals_count=6)
+    # The bias moves these levels by about 3 GHz; the hierarchy keeps it.
+    assert np.max(np.abs(energies - unbiased)) > 1
+    np.testing.assert_allclose(np.diag(model.hamiltonian_ghz), energies, rtol=0, atol=1e-8)
+    for node, offset in ((1, 0.1), (2, 0.0)):
+        expected = vectors.conj().T @ getattr(circuit, f"n{node}_operator")() @ vectors
+        np.testing.assert_allclose(
+            np.diag(model.operators[f"node{node}.charge"]),
+            np.diag(expected) - offset,
+            rtol=0,
+            atol=1e-8,
+        )
+
+
+def test_group_of_two_coordinates_matches_native_diagonalization(tmp_path):
+    import tomli_w
+
+    def branch(kind, nodes, ec, ej=None):
+        energies = {"charging_energy": {"value": ec, "unit": "GHz"}}
+        if ej is not None:
+            energies["josephson_energy"] = {"value": ej, "unit": "GHz"}
+        return {"id": f"{kind}{nodes[0]}{nodes[1]}", "kind": kind, "nodes": nodes, **energies}
+
+    branches = [
+        branch("JJ", [0, 1], 1.0, 10.0),
+        branch("JJ", [0, 2], 1.1, 12.0),
+        branch("JJ", [0, 3], 0.9, 15.0),
+        branch("C", [1, 2], 2.0),
+        branch("C", [2, 3], 8.0),
+    ]
+    offsets = {"1": 0.1, "2": -0.2, "3": 0.15}
+    document = {
+        "format_version": 2,
+        "id": "three_node",
+        "units": {"energy": "GHz", "time": "ns"},
+        "model": {
+            "kind": "circuit",
+            "nodes": [0, 1, 2, 3],
+            "ground": 0,
+            "transformation": np.eye(3, dtype=int).tolist(),
+            "offset_charges": offsets,
+            "branches": branches,
+        },
+        # Groups of unequal size, one of them holding two coordinates out of order.
+        "truncation": {
+            "cutoffs": {"theta1": 4, "theta2": 4, "theta3": 5},
+            "hierarchy": [[2, 1], [3]],
+            "hierarchy_levels": [60, 9],
+            "retained_levels": 6,
+        },
+    }
+    (tmp_path / "system.toml").write_text(tomli_w.dumps(document))
+    model = load_system(tmp_path / "system.toml")
+    circuit = scq.Circuit.from_yaml_string(
+        "branches:\n- [JJ, 0, 1, 10, 1]\n- [JJ, 0, 2, 12, 1.1]\n- [JJ, 0, 3, 15, 0.9]\n"
+        "- [C, 1, 2, 2]\n- [C, 2, 3, 8]\n",
+        truncated_dim=6,
+    )
+    circuit.configure(transformation_matrix=np.eye(3, dtype=int))
+    circuit.cutoff_n_1, circuit.cutoff_n_2, circuit.cutoff_n_3 = 4, 4, 5
+    circuit.ng1, circuit.ng2, circuit.ng3 = -0.1, 0.2, -0.15
+    energies, vectors = circuit.eigensys(evals_count=6)
+    np.testing.assert_allclose(np.diag(model.hamiltonian_ghz), energies, rtol=0, atol=1e-8)
+    # The levels are nondegenerate, so magnitudes do not depend on eigenvector phases.
+    for node, offset in offsets.items():
+        raw = getattr(circuit, f"n{node}_operator")()
+        expected = vectors.conj().T @ raw @ vectors - offset * np.eye(6)
+        np.testing.assert_allclose(
+            np.abs(model.operators[f"node{node}.charge"]), np.abs(expected), rtol=0, atol=1e-8
+        )
+
+
+def test_multinode_circuits_need_version_2_and_a_hierarchy(tmp_path, capsys):
+    version_1 = _variant(tmp_path, "two-mode-circuit", "format_version = 2", "format_version = 1")
+    version_1.write_text(
+        version_1.read_text().replace("hierarchy = [[1], [2]]\nhierarchy_levels = [10, 10]\n", "")
+    )
+    assert main(["validate", str(version_1)]) == 64
+    captured = capsys.readouterr()
+    assert "need format_version = 2 with truncation.hierarchy" in captured.err
+    assert "partition to adopt: hierarchy = [[1], [2]]" in captured.err
+    version_2 = _variant(tmp_path, "two-mode-circuit", "hierarchy = [[1], [2]]\n", "")
+    version_2.write_text(version_2.read_text().replace("hierarchy_levels = [10, 10]\n", ""))
+    with pytest.raises(SpecError, match="multi-node circuits require truncation.hierarchy"):
+        load_system(version_2)
+    with pytest.raises(SpecError, match="requires format_version = 2"):
+        load_system(
+            _variant(tmp_path, "two-mode-circuit", "format_version = 2", "format_version = 1")
+        )
+    assert main(["validate", str(ROOT / "two-mode-circuit/system.toml")]) == 0
+    assert "circuit hierarchy: [[1], [2]], keeping [10, 10] eigenstates per group" in (
+        capsys.readouterr().out
+    )
+
+
+@pytest.mark.parametrize(
+    ("old", "new", "message"),
+    [
+        ("hierarchy = [[1], [2]]", "hierarchy = [[1, 2]]", "at least two nonempty groups"),
+        ("hierarchy = [[1], [2]]", "hierarchy = [[1], []]", "at least two nonempty groups"),
+        ("hierarchy = [[1], [2]]", "hierarchy = [[1], [1, 2]]", "each coordinate in one"),
+        ("hierarchy = [[1], [2]]", "hierarchy = [[1], [3]]", "each coordinate in one"),
+        ("hierarchy_levels = [10, 10]", "hierarchy_levels = [10]", "one positive count per group"),
+        (
+            "hierarchy_levels = [10, 10]",
+            "hierarchy_levels = [10, 0]",
+            "one positive count per group",
+        ),
+        ("hierarchy_levels = [10, 10]\n", "", "declared together"),
+        ("hierarchy_levels = [10, 10]", "hierarchy_levels = [20, 10]", "exceeds 19, the most kept"),
+        ("retained_levels = 6", "retained_levels = 99", "exceeds 98, the most kept"),
+    ],
+)
+def test_hierarchy_refusals(tmp_path, old, new, message):
+    with pytest.raises(SpecError, match=message):
+        load_system(_variant(tmp_path, "two-mode-circuit", old, new))
+
+
+def test_eigensolver_keeps_two_fewer_states_than_the_groups_product(tmp_path):
+    source = _variant(tmp_path, "two-mode-circuit", "[10, 10]", "[3, 3]")
+    assert load_system(source).dimensions == (6,)
+    source.write_text(source.read_text().replace("retained_levels = 6", "retained_levels = 7"))
+    assert load_system(source).dimensions == (7,)
+    source.write_text(source.read_text().replace("retained_levels = 7", "retained_levels = 8"))
+    with pytest.raises(SpecError, match="retained_levels = 8 exceeds 7"):
+        load_system(source)
+
+
+def test_single_coordinate_circuit_takes_no_hierarchy(tmp_path):
+    source = _variant(tmp_path, "lc-circuit", "format_version = 1", "format_version = 2")
+    source.write_text(
+        source.read_text().replace(
+            "retained_levels = 6", "retained_levels = 6\nhierarchy = [[1]]\nhierarchy_levels = [6]"
+        )
+    )
+    with pytest.raises(SpecError, match="single-coordinate circuit takes no truncation.hierarchy"):
+        load_system(source)
 
 
 @pytest.mark.parametrize(

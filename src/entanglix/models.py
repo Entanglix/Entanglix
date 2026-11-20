@@ -211,6 +211,14 @@ ModelSpec = Annotated[CircuitSpec | OperatorsSpec | CompositeSpec, Field(discrim
 class Truncation(StrictModel):
     cutoffs: dict[str, int]
     retained_levels: int = Field(gt=0)
+    hierarchy: list[list[int]] | None = None
+    hierarchy_levels: list[int] | None = None
+
+    @model_validator(mode="after")
+    def check_hierarchy(self) -> Truncation:
+        if (self.hierarchy is None) != (self.hierarchy_levels is None):
+            raise ValueError("hierarchy and hierarchy_levels are declared together")
+        return self
 
 
 class Dissipator(StrictModel):
@@ -225,7 +233,7 @@ class Drive(StrictModel):
 
 
 class SystemSpec(StrictModel):
-    format_version: Literal[1]
+    format_version: Literal[1, 2]
     id: str = Field(min_length=1)
     units: Units
     parameters: dict[str, Parameter] = Field(default_factory=dict)
@@ -233,6 +241,12 @@ class SystemSpec(StrictModel):
     truncation: Truncation | None = None
     drives: list[Drive] = Field(default_factory=list)
     dissipators: list[Dissipator] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def check_version(self) -> SystemSpec:
+        if self.format_version == 1 and self.truncation and self.truncation.hierarchy is not None:
+            raise ValueError("truncation.hierarchy requires format_version = 2")
+        return self
 
 
 @dataclass(frozen=True)
@@ -299,6 +313,39 @@ def _inductive_energy(branch: Branch, parameters: dict[str, Parameter]) -> float
         )
     inductance_nh = _positive(_resolved(branch.inductance, parameters, "nH", branch.id), branch.id)
     return (h / (2 * e * 2 * math.pi)) ** 2 / (inductance_nh * 1e-9 * h * 1e9)
+
+
+def hierarchy_problem(
+    coordinates: dict[str, str],
+    cutoffs: dict[str, int],
+    groups: list[list[int]],
+    levels: list[int],
+    retained_levels: int,
+) -> str:
+    """Why scqubits' eigensolver cannot keep these hierarchy levels, or an empty string."""
+    # scqubits' sparse eigensolver returns at most two fewer states than its basis holds.
+    sizes = [
+        math.prod(
+            2 * cutoffs[f"theta{index}"] + 1
+            if coordinates[f"theta{index}"] == "periodic"
+            else cutoffs[f"theta{index}"]
+            for index in group
+        )
+        for group in groups
+    ]
+    for index, (group, size, count) in enumerate(zip(groups, sizes, levels, strict=True)):
+        if count > size - 2:
+            return (
+                f"truncation.hierarchy_levels[{index}] = {count} exceeds {size - 2}, the most "
+                f"kept from group {group}'s {size} construction states"
+            )
+    product = math.prod(levels)
+    if retained_levels > product - 2:
+        return (
+            f"truncation.retained_levels = {retained_levels} exceeds {product - 2}, the most "
+            f"kept from the groups' {product} product states"
+        )
+    return ""
 
 
 def _tensor(factors: tuple[np.ndarray, ...]) -> np.ndarray:
@@ -478,6 +525,30 @@ def _construct_circuit(spec: SystemSpec):
             raise SpecError("multi-node circuits with extended coordinates are not yet supported")
         if set(truncation.cutoffs) != {f"theta{index}" for index in active}:
             raise SpecError(f"truncation.cutoffs must name {sorted(active)} as thetaK")
+        groups, levels = truncation.hierarchy, truncation.hierarchy_levels
+        singletons = [[index] for index in sorted(active)]
+        if count > 1 and groups is None:
+            needs = "need format_version = 2 with" if spec.format_version == 1 else "require"
+            raise SpecError(
+                f"multi-node circuits {needs} truncation.hierarchy and truncation.hierarchy_levels; "
+                f"partition to adopt: hierarchy = {singletons}, with hierarchy_levels giving "
+                "the eigenstates each group keeps"
+            )
+        if count == 1 and groups is not None:
+            raise SpecError("a single-coordinate circuit takes no truncation.hierarchy")
+        if groups is not None:
+            members = sorted(index for group in groups for index in group)
+            if len(groups) < 2 or not all(groups) or members != sorted(active):
+                raise SpecError(
+                    f"truncation.hierarchy must split coordinates {sorted(active)} into at least "
+                    f"two nonempty groups, each coordinate in one; to adopt: {singletons}"
+                )
+            if len(levels) != len(groups) or any(level < 1 for level in levels):
+                raise SpecError("truncation.hierarchy_levels needs one positive count per group")
+        coordinates = {
+            f"theta{index}": "periodic" if index in categories["periodic"] else "extended"
+            for index in sorted(active)
+        }
         for index in active:
             cutoff = truncation.cutoffs[f"theta{index}"]
             if cutoff < 1 or (index in categories["extended"] and cutoff < 2):
@@ -495,14 +566,21 @@ def _construct_circuit(spec: SystemSpec):
                     f"{cutoff // 2} usable levels; set theta{index} to at least "
                     f"{2 * truncation.retained_levels}"
                 )
-        basis_size = math.prod(
-            2 * truncation.cutoffs[f"theta{index}"] + 1
-            if index in categories["periodic"]
-            else truncation.cutoffs[f"theta{index}"]
-            for index in sorted(active)
-        )
-        if truncation.retained_levels > basis_size:
-            raise SpecError("truncation: insufficient cutoff for retainable levels")
+        if groups is not None:
+            problem = hierarchy_problem(
+                coordinates, truncation.cutoffs, groups, levels, truncation.retained_levels
+            )
+            if problem:
+                raise SpecError(problem)
+        else:
+            basis_size = math.prod(
+                2 * truncation.cutoffs[f"theta{index}"] + 1
+                if index in categories["periodic"]
+                else truncation.cutoffs[f"theta{index}"]
+                for index in sorted(active)
+            )
+            if truncation.retained_levels > basis_size:
+                raise SpecError("truncation: insufficient cutoff for retainable levels")
         node_keys = {str(index) for index in range(1, count + 1)}
         if not set(model.offset_charges) <= node_keys or any(
             not math.isfinite(value) for value in model.offset_charges.values()
@@ -523,6 +601,18 @@ def _construct_circuit(spec: SystemSpec):
             coordinate_offsets[index - 1] = 0
         for index in categories["periodic"]:
             setattr(circuit, f"ng{index}", -coordinate_offsets[index - 1])
+        if groups is not None:
+            # scqubits sizes each group from the cutoffs set before the hierarchy is configured;
+            # fluxes and offsets carry over.
+            circuit.configure(
+                transformation_matrix=matrix,
+                closure_branches=[circuit.branches[branch_ids[key]] for key in closure_ids]
+                if closure_ids
+                else None,
+                system_hierarchy=groups,
+                subsystem_trunc_dims=levels,
+                ext_basis="harmonic",
+            )
         eigenvalues, eigenvectors = circuit.eigensys(evals_count=truncation.retained_levels)
         charge_vectors = (
             np.asarray(eigenvectors) if count == 1 and categories["periodic"] == [1] else None
@@ -589,6 +679,8 @@ def _construct_circuit(spec: SystemSpec):
         if model.transformation is not None
         else "scqubits default",
         "cutoffs": dict(truncation.cutoffs),
+        "coordinates": coordinates,
+        **({"hierarchy": groups, "hierarchy_levels": levels} if groups is not None else {}),
         "oriented_loops": [
             {
                 "branch": bias.branch,

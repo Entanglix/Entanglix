@@ -96,6 +96,13 @@ def write_refined_system(inputs, refinement, directory: Path) -> Path:
                 target["cutoff"] += increment
             else:
                 target["cutoffs"][name] += increment
+        if step.hierarchy_levels_steps:
+            target["hierarchy_levels"] = [
+                count + increment
+                for count, increment in zip(
+                    target["hierarchy_levels"], step.hierarchy_levels_steps, strict=True
+                )
+            ]
 
     if model["kind"] == "composite":
         for index, item in enumerate(model["subsystems"]):

@@ -1,4 +1,4 @@
-format_version = 1
+format_version = 2
 id = "two_mode_circuit"
 
 [units]
@@ -46,4 +46,6 @@ capacitance = { value = 2.0, unit = "fF" }
 
 [truncation]
 cutoffs = { theta1 = 10, theta2 = 10 }
+hierarchy = [[1], [2]]
+hierarchy_levels = [10, 10]
 retained_levels = 6

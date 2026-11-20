@@ -1,6 +1,6 @@
 # ADR-0002: System Model Representation
 
-**Date:** 2026-09-29, revised 2026-10-27
+**Date:** 2026-09-29, revised 2026-11-20
 **Status:** Accepted
 **Purpose:** fix how a system specification describes circuits, coupled subsystems, and explicit operators, so that an authored file keeps one physical meaning across scqubits versions and engine exports. The syntax and field reference are documented with the implementation.
 
@@ -11,6 +11,8 @@
 [ADR-0001](0001-mandate.md) §3.1 requires modeling of component-defined circuits, coupled quantum subsystems, and explicit operators, with declared bases, units, truncations, and parameter provenance, and it leaves the concrete representation to this record. §3.3 fixes GHz and ns, a single explicit angular-frequency conversion, and declared, separately refined cutoffs and retained levels.
 
 scqubits quantizes circuits through a coordinate transformation `φ = Mθ` from node fluxes `φ` to quantized coordinates `θ`, classifies each coordinate as periodic, extended, or eliminated (frozen or free), and numbers coordinates and loops internally. Those internal choices depend on topology and can change between releases. The decisions below keep authored inputs tied to user-named objects wherever the physics allows it.
+
+A multi-node circuit's full construction basis is the product of its coordinates' bases, so it soon becomes too large to diagonalize. scqubits can instead diagonalize a circuit hierarchically: groups of coordinates first, then the circuit in the product of the groups' lowest eigenstates. Its `HilbertSpace` composes subsystems in their truncated eigenbases and can label each dressed state with the bare product state it corresponds to.
 
 ## 2. Decisions
 
@@ -36,6 +38,7 @@ scqubits quantizes circuits through a coordinate transformation `φ = Mθ` from 
 
 - Quantized coordinates are identified as `thetaK`, where `K` is the coordinate index under the circuit's transformation.
 - Circuits with a single quantized coordinate, and the three constructors, need no transformation input.
+- A multi-node circuit's active coordinates may be periodic, extended, or a mixture. Free and frozen coordinates are not supported and produce a diagnostic.
 - A multi-node circuit specification includes its transformation matrix `M`. It is passed to scqubits as the transformation. `M` must preserve the periodic identification lattice, so that the integer charge basis of §2.4 represents the same quantum system. The periodic columns must form a primitive basis of the circuit's periodic identification lattice; changes between such bases are integer and unimodular. It must also keep the supported coordinate categories separate. A matrix that violates either condition produces a diagnostic. `validate` can print scqubits' default transformation for the author to adopt.
 
 **Rationale:** cutoffs must address quantized coordinates (§2.4), so the meaning of `thetaK` must not depend on scqubits' default choice. Pinning `M` in the file prevents a scqubits upgrade from silently reassigning an existing file's cutoffs.
@@ -45,8 +48,14 @@ scqubits quantizes circuits through a coordinate transformation `φ = Mθ` from 
 - Each active quantized coordinate declares an explicit cutoff. There is no universal default.
 - Periodic coordinates use a charge basis: cutoff `N` means charge states `−N…N`. Extended coordinates use a harmonic basis: cutoff `N` means `N` oscillator states.
 - `retained_levels` is separate from the construction cutoffs and sets the number of eigenstates kept after diagonalization. The `transmon` and `fluxonium` constructors use the same cutoff meanings for their single coordinate. The `oscillator` constructor takes only `retained_levels`, because its Fock basis is already its energy eigenbasis.
+- A multi-node circuit is diagonalized hierarchically, never in its full construction basis:
+  - its truncation declares a `hierarchy`, which partitions the active coordinates into at least two groups, each coordinate in exactly one, and `hierarchy_levels`, the number of eigenstates each group keeps;
+  - each group is diagonalized in its construction basis, and the circuit is then diagonalized in the product of the groups' kept eigenstates, keeping `retained_levels` of them;
+  - groups are not nested.
+- The partition and the group levels are declared explicitly, like cutoffs. `validate` offers one coordinate per group as a partition to adopt; the levels are the author's.
+- The hierarchy is part of system format version 2. A version-1 multi-node circuit is refused at construction with a diagnostic that gives the partition to adopt; runs that froze one remain inspectable ([ADR-0009](0009-published-formats.md) §2.1). Version-1 files without a multi-node circuit are unaffected.
 
-**Rationale:** these meanings follow scqubits' conventions, and keeping cutoffs separate from retained levels lets each one be refined independently, as ADR-0001 §3.3 requires.
+**Rationale:** these meanings follow scqubits' conventions, and keeping cutoffs separate from retained levels lets each one be refined independently, as ADR-0001 §3.3 requires. Diagonalizing groups first bounds a multi-node circuit's basis by the product of the groups' kept levels, not the product of every coordinate's basis. How fast a partition converges depends on the circuit and its transformation, so neither the partition nor the levels has a default, and the group levels are refined like the other truncations. A single group would be the full basis, so at least two are required. Requiring a hierarchy keeps one construction path for multi-node circuits. A newly required field changes the format version ([ADR-0009](0009-published-formats.md) §2.1).
 
 ### 2.5 Biases
 
@@ -88,11 +97,15 @@ Operators are referenced as `<subsystem>.<name>`. Available names depend on the 
 ### 2.7 Composite basis and tensor order
 
 - Circuit and constructor subsystems are diagonalized, and their lowest `retained_levels` eigenstates form their basis. Interaction, drive, and dissipator operators are expressed in that basis.
+- A hierarchical circuit is one subsystem. Its basis is the lowest `retained_levels` eigenstates of the whole circuit, and its groups stay internal to its construction.
 - Explicit-operator subsystems keep their declared basis and dimensions, which may carry computational-state meaning. A later optional basis change must transform operators and state definitions together.
+- A composite is built as a scqubits `HilbertSpace` of its subsystems with the declared interactions:
+  - during each load, a circuit or constructor subsystem's one eigensystem gives both the `HilbertSpace`'s bare states and the basis of the exported operators;
+  - an explicit-operator subsystem enters with its declared basis states, in declared order, as bare states, with the diagonal of its declared Hamiltonian as bare energies; the rest of that Hamiltonian is a term on that subsystem alone.
 - Interactions are sums of operator products with explicit coefficients.
-- Subsystem list order determines the tensor product, and the rightmost subsystem index varies fastest in flattened arrays. Exports keep dimension metadata and per-subsystem factors.
+- Subsystem list order determines the tensor product, and the rightmost subsystem index varies fastest in flattened arrays. Exports keep dimension metadata and per-subsystem factors, with the local Hamiltonians first, in subsystem order, then the interactions in declared order.
 
-**Rationale:** the eigenbasis gives the smallest dimensions for composites and dynamics. Eigenvector phases are arbitrary, so comparisons use phase-invariant quantities or projectors.
+**Rationale:** the eigenbasis gives the smallest dimensions for composites and dynamics. Eigenvector phases are arbitrary, so comparisons use phase-invariant quantities or projectors. Building through `HilbertSpace` gives jobs and state labels (§2.9) one Hamiltonian, and uses scqubits' maintained composition. Reusing each circuit or constructor leaf's eigensystem keeps the exported factors in the same basis and avoids duplicate work within a load. Moving the off-diagonal part of an explicit Hamiltonian into a one-subsystem term keeps its declared basis exactly.
 
 ### 2.8 Explicit-operator arrays
 
@@ -100,6 +113,15 @@ Operators are referenced as `<subsystem>.<name>`. Available names depend on the 
 - Shapes are checked against the declared dimensions. The Hamiltonian is in the `[units]` energy unit, and other declared operators are dimensionless. The file's content digest is kept as provenance.
 
 **Rationale:** a numeric-only format supports effective and custom models without executing stored code.
+
+### 2.9 Dressed-state labels
+
+- Labelling is a modeling operation done on request. The loaded model provides its `HilbertSpace`, a composite's or a hierarchical circuit's, and labels come from scqubits' lookup on it. The lookup adds nothing to construction, the export, or job results.
+- A label assigns a dressed state the bare product state it corresponds to: one entry per subsystem in tensor order, or per group in a hierarchical circuit. A circuit inside a composite takes one entry, its own eigenstate index. Only dressed indices below a circuit's `retained_levels` belong to its exported basis.
+- The default assignment follows dressed energy and overlap (scqubits' `DE` ordering). Branch analysis (`LX`) assigns the dressed ground state the bare label `(0, …, 0)` and follows each subsystem's excitation ladder in declared order, so it applies only where the declared order is the intended excitation ladder and its first state the intended ground state. A state the lookup cannot assign is reported as unassigned.
+- A model derived with a different Hamiltonian, such as a rotating-frame control model, provides no `HilbertSpace`.
+
+**Rationale:** labels interpret a model for a study the user chooses. Constructing or running the model does not need them, and an assignment that suits one study can mislead in another. scqubits' lookup is maintained and tested. A derived model's Hamiltonian is no longer the `HilbertSpace`'s, so labels from it would describe a different operator.
 
 ## 3. Alternatives not adopted
 
@@ -110,6 +132,12 @@ Operators are referenced as `<subsystem>.<name>`. Available names depend on the 
 | Offsets addressed by quantized coordinate | Simpler adapter, but ties authored biases to coordinates instead of physical islands |
 | Unpinned transformation for multi-node circuits | A scqubits upgrade could silently reassign cutoffs in existing files |
 | Construction basis for composites | Much larger dimensions for composites and dynamics |
+| Full construction basis for multi-node circuits | Grows as the product of the coordinates' bases and soon cannot be diagonalized |
+| Optional hierarchy, with the full basis when absent | Keeps version-1 multi-node files constructible, but leaves two construction paths, one of which fails at realistic cutoffs |
+| A default partition or default group levels | Convergence depends on the circuit and its transformation; a default would hide a truncation choice |
+| Composites tensored by Entanglix's own code | A second construction beside scqubits'; labels would need a separately built `HilbertSpace` kept in agreement with it |
+| Explicit-operator subsystems diagonalized for the `HilbertSpace` | Replaces the declared basis, which may carry computational-state meaning |
+| Dressed-state labels in every model or spectrum result | Labelling is an interpretation chosen per study, which most runs do not use |
 | Canonical charge `n` as `charge` | Differs between coordinate types after gauge removal, and interactions built from it omit single-subsystem terms |
 | Each backend's own offset sign | scqubits' construction paths disagree, so the same authored offset would mean different physics |
 | Oscillator as the only constructor | Once names are shared, the transmon and fluxonium constructors cost little and reuse existing reference tests |
@@ -119,4 +147,6 @@ Operators are referenced as `<subsystem>.<name>`. Available names depend on the 
 - The schema, `validate`, and the model adapter implement these rules. The derived coordinate offsets, available operator names, and scqubits' default transformation are reported by `validate`.
 - The coordinate maps `Mᵀ` and `M⁻ᵀ`, the gauge and eliminated-coordinate rules, the transformation constraint, and the node-phase availability rule need tests. The custom two-mode circuit fixture exercises them.
 - Offset and flux signs need observable checks, such as charge expectations or a multi-loop case, because opposite signs can give identical spectra.
-- Branch-phase operators, further constructors, and additional units or bases are extensions.
+- The partition rules, the convergence of group levels against the full basis where it is small enough, and a transformation that slows convergence need tests.
+- Composite construction needs tests of the matrix, of the per-subsystem factors and their order, and of an explicit-operator subsystem whose declared Hamiltonian is off-diagonal and unsorted.
+- Branch-phase operators, further constructors, nested hierarchies, and additional units or bases are extensions.

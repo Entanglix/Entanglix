@@ -38,6 +38,11 @@ def _print_circuit_diagnostics(provenance: dict[str, object], label: str) -> Non
         print(
             f"{label} transformation ({provenance['transformation_source']}): {provenance['transformation']}"
         )
+        if "hierarchy" in provenance:
+            print(
+                f"{label} hierarchy: {provenance['hierarchy']}, keeping "
+                f"{provenance['hierarchy_levels']} eigenstates per group"
+            )
         print(f"{label} node offset charges: {provenance['node_offsets']}")
         print(f"{label} derived coordinate offset charges: {provenance['coordinate_offsets']}")
         if provenance["dropped_offsets"]:

@@ -206,6 +206,7 @@ def refinement_reason(loaded, declaration, policy) -> str:
             loaded.document,
             loaded.system_path.parent,
             policy,
+            loaded.system,
         )
     except ValueError as exc:
         return str(exc)

@@ -26,6 +26,7 @@ def refinement_reason(loaded, policy):
             tomllib.loads(loaded.inputs["system.toml"].read_text()),
             loaded.inputs["system.toml"].parent,
             policy,
+            loaded.system,
         )
     except ValueError as exc:
         return str(exc)

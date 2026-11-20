@@ -21,6 +21,10 @@ from entanglix.models import ConstructedSystem, StrictModel, load_system
 class Refinement(StrictModel):
     retained_levels_step: int = Field(strict=True, gt=0)
     cutoff_steps: dict[str, Annotated[int, Field(strict=True, gt=0)]] = Field(default_factory=dict)
+    # Omitted when empty, so declarations without a hierarchy dump as before.
+    hierarchy_levels_steps: list[Annotated[int, Field(strict=True, gt=0)]] = Field(
+        default_factory=list, exclude_if=lambda steps: not steps
+    )
 
 
 class CarrierSpec(StrictModel):

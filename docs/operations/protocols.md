@@ -62,7 +62,11 @@ those lowest energies are reported.
 Optional `[refinement.<subsystem>]` declares `retained_levels_step` and applicable
 `cutoff_steps`. Steps must be positive integers. Checks currently require every
 truncated subsystem to be covered, at least one added retained level and two cutoff
-units. A missing or below-policy declaration does not block computation: the launch
+units. A hierarchical circuit also declares `hierarchy_levels_steps`, one step per
+group in hierarchy order, each at least the retained-level minimum, and the refined
+group and retained levels must stay within the eigensolver's limits at the refined
+cutoffs. Only `retained_levels_step` changes the subsystem's exported dimension.
+A missing or below-policy declaration does not block computation: the launch
 lists the affected checks as unavailable, with the reason. Explicit finite matrices
 have no truncation refinement. When a rotating frame declares `excitation_numbers` for
 a refined subsystem, they must be the canonical `0, 1, …`; refinement extends them to

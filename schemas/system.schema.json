@@ -650,6 +650,39 @@
           "exclusiveMinimum": 0,
           "title": "Retained Levels",
           "type": "integer"
+        },
+        "hierarchy": {
+          "anyOf": [
+            {
+              "items": {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hierarchy"
+        },
+        "hierarchy_levels": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hierarchy Levels"
         }
       },
       "required": [
@@ -709,7 +742,10 @@
   "additionalProperties": false,
   "properties": {
     "format_version": {
-      "const": 1,
+      "enum": [
+        1,
+        2
+      ],
       "title": "Format Version",
       "type": "integer"
     },

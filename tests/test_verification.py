@@ -398,6 +398,88 @@ def test_spectral_refinement_compares_energies_and_not_metric_values(tmp_path):
     assert spectral_refinement(loaded, arrays, load_policy())["residual"] == energy_only < 0.1
 
 
+HIERARCHY_STEP = {
+    "retained_levels_step": 1,
+    "cutoff_steps": {"theta1": 2, "theta2": 2},
+    "hierarchy_levels_steps": [2, 2],
+}
+
+
+def _spectrum_plan(directory, refinement):
+    plan = {"format_version": 1, "kind": "spectrum", "levels": 4, "refinement": refinement}
+    (directory / "plan.toml").write_text(tomli_w.dumps(plan))
+    return load_plan(directory / "system.toml", directory / "plan.toml")
+
+
+def test_spectral_refinement_steps_each_hierarchy_group(tmp_path):
+    from entanglix.corrector.dynamics import refinement_reason
+    from entanglix.corrector.metrics import spectral_arrays
+    from entanglix.corrector.verification import spectral_refinement
+
+    policy = load_policy()
+    shutil.copyfile(ROOT / "examples/two-mode-circuit/system.toml", tmp_path / "system.toml")
+    loaded = _spectrum_plan(tmp_path, {"two_mode_circuit": HIERARCHY_STEP})
+    assert refinement_reason(loaded, policy) == ""
+    target = tmp_path / "refined"
+    target.mkdir()
+    refined = prepare_refinement(loaded, target, policy).system
+    assert refined.provenance["hierarchy_levels"] == [12, 12]
+    assert refined.provenance["cutoffs"] == {"theta1": 12, "theta2": 12}
+    # Only the outer retained-level step changes the exported dimension.
+    assert refined.dimensions == (7,)
+    arrays = spectral_arrays(loaded.system, 4, {})
+    assert spectral_refinement(loaded, arrays, policy)["outcome"] == "pass"
+    for steps, reason in (
+        ([], "one step per group"),
+        ([2], "one step per group"),
+        ([14, 14], "after refinement, truncation.hierarchy_levels[0] = 24 exceeds 23"),
+    ):
+        declaration = {"two_mode_circuit": {**HIERARCHY_STEP, "hierarchy_levels_steps": steps}}
+        assert reason in refinement_reason(_spectrum_plan(tmp_path, declaration), policy)
+
+
+def test_refinement_steps_a_hierarchical_circuit_inside_a_composite(tmp_path):
+    from entanglix.corrector.dynamics import refinement_reason
+
+    policy = load_policy()
+    shutil.copyfile(ROOT / "examples/two-mode-circuit/system.toml", tmp_path / "circuit.toml")
+    document = {
+        "format_version": 1,
+        "id": "circuit_and_resonator",
+        "units": {"energy": "GHz", "time": "ns"},
+        "model": {
+            "kind": "composite",
+            "subsystems": [
+                {"id": "c", "source": "circuit.toml"},
+                {
+                    "id": "r",
+                    "kind": "oscillator",
+                    "frequency": {"value": 7.0, "unit": "GHz"},
+                    "retained_levels": 3,
+                },
+            ],
+            "interactions": [
+                {
+                    "coefficient": {"value": 0.05, "unit": "GHz"},
+                    "factors": ["c.node1.charge", "r.position"],
+                }
+            ],
+        },
+    }
+    (tmp_path / "system.toml").write_text(tomli_w.dumps(document))
+    loaded = _spectrum_plan(tmp_path, {"c": HIERARCHY_STEP, "r": {"retained_levels_step": 1}})
+    assert refinement_reason(loaded, policy) == ""
+    target = tmp_path / "refined"
+    target.mkdir()
+    refined = prepare_refinement(loaded, target, policy).system
+    assert refined.provenance["subsystems"]["c"]["hierarchy_levels"] == [12, 12]
+    assert refined.dimensions == (7, 4)
+    flat = {"c": HIERARCHY_STEP, "r": {"retained_levels_step": 1, "hierarchy_levels_steps": [1]}}
+    assert "apply only to a hierarchical circuit" in refinement_reason(
+        _spectrum_plan(tmp_path, flat), policy
+    )
+
+
 def test_spectral_refinement_does_not_assign_refined_dressed_labels(tmp_path):
     from entanglix.corrector.metrics import spectral_arrays
     from entanglix.corrector.verification import spectral_refinement
