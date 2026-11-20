@@ -5,7 +5,7 @@ from typing import Annotated, Literal
 import numpy as np
 from pydantic import Field
 
-from entanglix.models import StrictModel
+from entanglix.models import StrictModel, unavailable_operators
 
 
 class Population(StrictModel):
@@ -71,6 +71,8 @@ def spectral_arrays(system, levels, definitions):
 def observable_operator(system, definition):
     if isinstance(definition, str):
         if definition not in system.operators:
+            if reason := unavailable_operators(system.provenance).get(definition):
+                raise ValueError(f"observable operator {definition!r} is unavailable: {reason}")
             raise ValueError(f"unknown observable operator: {definition}")
         return system.operators[definition]
     if definition.subsystem not in system.subsystem_ids:

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import io
+import itertools
 import math
 import tomllib
 from dataclasses import dataclass, field
@@ -322,7 +323,18 @@ def hierarchy_problem(
     levels: list[int],
     retained_levels: int,
 ) -> str:
-    """Why scqubits' eigensolver cannot keep these hierarchy levels, or an empty string."""
+    """Why these hierarchy levels cannot be kept, or an empty string."""
+    # scqubits' truncated harmonic construction adds a spurious state at index N/2, which lies
+    # above at least N/2 states of any group holding that coordinate.
+    for group, count in zip(groups, levels, strict=True):
+        for index in group:
+            cutoff = cutoffs[f"theta{index}"]
+            if coordinates[f"theta{index}"] == "extended" and count > cutoff // 2:
+                return (
+                    f"truncation: harmonic cutoff theta{index} = {cutoff} gives at most "
+                    f"{cutoff // 2} usable levels to group {group}; set theta{index} to at "
+                    f"least {2 * count}"
+                )
     # scqubits' sparse eigensolver returns at most two fewer states than its basis holds.
     sizes = [
         math.prod(
@@ -415,6 +427,33 @@ def _construct_operators(spec: SystemSpec, source: Path):
     )
 
 
+def _determinant(rows: list[list[int]]) -> int:
+    """Exact determinant of a square integer matrix, by fraction-free (Bareiss) elimination."""
+    rows = [list(row) for row in rows]
+    sign, previous = 1, 1
+    for k in range(len(rows) - 1):
+        if rows[k][k] == 0:
+            swap = next((i for i in range(k + 1, len(rows)) if rows[i][k]), None)
+            if swap is None:
+                return 0
+            rows[k], rows[swap], sign = rows[swap], rows[k], -sign
+        for i in range(k + 1, len(rows)):
+            for j in range(k + 1, len(rows)):
+                rows[i][j] = (rows[i][j] * rows[k][k] - rows[i][k] * rows[k][j]) // previous
+        previous = rows[k][k]
+    return sign * rows[-1][-1]
+
+
+def _primitive(columns: list[list[int]]) -> bool:
+    """Whether integer columns extend to a unimodular basis: their maximal minors have gcd 1."""
+    width = len(columns[0])
+    minors = (
+        _determinant([columns[row] for row in chosen])
+        for chosen in itertools.combinations(range(len(columns)), width)
+    )
+    return math.gcd(*minors) == 1
+
+
 def _construct_circuit(spec: SystemSpec):
     scq = _scqubits()
 
@@ -471,10 +510,9 @@ def _construct_circuit(spec: SystemSpec):
             )
         categories = circuit.var_categories
         active = set(categories["periodic"] + categories["extended"])
+        periodic_count = len(categories["periodic"])
         if active != set(range(1, count + 1)):
             raise SpecError("circuit has unsupported frozen or free coordinates")
-        if count > 1 and categories["extended"]:
-            raise SpecError("multi-node circuits with extended coordinates are not yet supported")
         matrix = np.asarray(
             model.transformation
             if model.transformation is not None
@@ -485,11 +523,8 @@ def _construct_circuit(spec: SystemSpec):
             raise SpecError(f"transformation must be a finite {count}x{count} matrix")
         if count == 1 and not np.isclose(abs(matrix[0, 0]), 1, atol=1e-12):
             raise SpecError("single-node transformation must preserve node orientation")
-        if count > 1 and (
-            not np.allclose(matrix, np.rint(matrix), atol=1e-12)
-            or not np.isclose(abs(np.linalg.det(matrix)), 1, atol=1e-12)
-        ):
-            raise SpecError("periodic transformation must be integer and unimodular")
+        if count > 1 and np.linalg.matrix_rank(matrix) < count:
+            raise SpecError("transformation must be invertible")
         closure_ids = [bias.branch for bias in model.external_fluxes]
         if len(set(closure_ids)) != len(closure_ids):
             raise SpecError("external_fluxes: closure branches must be unique")
@@ -519,10 +554,27 @@ def _construct_circuit(spec: SystemSpec):
         for index, flux in enumerate(fluxes, start=1):
             setattr(circuit, f"Φ{index}", flux)
         categories = circuit.var_categories
-        if set(categories["periodic"] + categories["extended"]) != active:
+        # scqubits counts a column outside the periodic subspace as extended, with a warning only.
+        if (
+            set(categories["periodic"] + categories["extended"]) != active
+            or len(categories["periodic"]) != periodic_count
+        ):
             raise SpecError("transformation changes the quantized coordinate categories")
-        if count > 1 and categories["extended"]:
-            raise SpecError("multi-node circuits with extended coordinates are not yet supported")
+        # The periodic columns must be a primitive basis of the periodic identification lattice.
+        # They are checked exactly: construction uses these entries, so a tiny fraction counts.
+        periodic = matrix[:, [index - 1 for index in categories["periodic"]]]
+        if (
+            count > 1
+            and periodic.size
+            and (
+                not np.array_equal(periodic, np.rint(periodic))
+                or not _primitive(np.rint(periodic).astype(int).tolist())
+            )
+        ):
+            raise SpecError(
+                "transformation: periodic columns must be integer and primitive "
+                "(integer and unimodular when every coordinate is periodic)"
+            )
         if set(truncation.cutoffs) != {f"theta{index}" for index in active}:
             raise SpecError(f"truncation.cutoffs must name {sorted(active)} as thetaK")
         groups, levels = truncation.hierarchy, truncation.hierarchy_levels
@@ -557,8 +609,9 @@ def _construct_circuit(spec: SystemSpec):
                 setattr(circuit, f"cutoff_n_{index}", cutoff)
             else:
                 setattr(circuit, f"cutoff_ext_{index}", cutoff)
-        # scqubits' truncated harmonic construction adds a spurious state at index N/2.
-        for index in categories["extended"]:
+        # scqubits' truncated harmonic construction adds a spurious state at index N/2; under a
+        # hierarchy the groups keep it out instead.
+        for index in categories["extended"] if groups is None else ():
             cutoff = truncation.cutoffs[f"theta{index}"]
             if truncation.retained_levels > cutoff // 2:
                 raise SpecError(
@@ -586,8 +639,18 @@ def _construct_circuit(spec: SystemSpec):
             not math.isfinite(value) for value in model.offset_charges.values()
         ):
             raise SpecError("offset_charges must use finite values on declared non-ground nodes")
-        if categories["periodic"] and set(model.offset_charges) != node_keys:
-            raise SpecError("offset_charges requires an explicit value for every periodic node")
+        # A node reaches a periodic coordinate through a nonzero entry in that coordinate's column.
+        required = {
+            str(node)
+            for node in range(1, count + 1)
+            for index in categories["periodic"]
+            if matrix[node - 1, index - 1] != 0
+        }
+        if missing := sorted(required - set(model.offset_charges)):
+            raise SpecError(
+                "offset_charges requires an explicit value for every node reaching a periodic "
+                f"coordinate; missing: {missing}"
+            )
         node_offsets = np.array(
             [model.offset_charges.get(str(index), 0.0) for index in range(1, count + 1)]
         )
@@ -619,6 +682,7 @@ def _construct_circuit(spec: SystemSpec):
         )
         projection = eigenvectors.conj().T
         identity = np.eye(truncation.retained_levels)
+        unavailable = {}
         coordinate_charges = {}
         for index in active:
             raw = (
@@ -664,6 +728,24 @@ def _construct_circuit(spec: SystemSpec):
                 )
                 for node in range(1, count + 1)
             }
+            # φ_K = Σⱼ M_Kj θⱼ is single-valued only when every weighted coordinate is extended.
+            for node in range(1, count + 1):
+                weights = {
+                    index: matrix[node - 1, index - 1]
+                    for index in sorted(active)
+                    if matrix[node - 1, index - 1] != 0
+                }
+                blocking = [f"theta{index}" for index in weights if index in categories["periodic"]]
+                if blocking:
+                    unavailable[f"node{node}.phase"] = (
+                        f"node {node}'s phase depends on periodic coordinate {', '.join(blocking)}"
+                    )
+                else:
+                    operators[f"node{node}.phase"] = sum(
+                        weight
+                        * (projection @ getattr(circuit, f"θ{index}_operator")() @ eigenvectors)
+                        for index, weight in weights.items()
+                    )
     except SpecError:
         raise
     except (ValueError, RuntimeError, KeyError, AttributeError, np.linalg.LinAlgError) as exc:
@@ -681,6 +763,7 @@ def _construct_circuit(spec: SystemSpec):
         "cutoffs": dict(truncation.cutoffs),
         "coordinates": coordinates,
         **({"hierarchy": groups, "hierarchy_levels": levels} if groups is not None else {}),
+        **({"unavailable_operators": unavailable} if unavailable else {}),
         "oriented_loops": [
             {
                 "branch": bias.branch,
@@ -771,14 +854,26 @@ def _construct_named_subsystem(
     )
 
 
+def unavailable_operators(provenance: dict) -> dict[str, str]:
+    """Names a circuit cannot export, with the reason, as a spec would reference them."""
+    reasons = dict(provenance.get("unavailable_operators", {}))
+    for subsystem, child in provenance.get("subsystems", {}).items():
+        for name, reason in child.get("unavailable_operators", {}).items():
+            reasons[f"{subsystem}.{name}"] = reason
+    return reasons
+
+
 def _composite_factors(
     names: list[str],
     operators: dict[str, tuple[np.ndarray, ...]],
     dimensions: tuple[int, ...],
     label: str,
+    unavailable: dict[str, str],
 ) -> tuple[np.ndarray, ...]:
     factors = [np.eye(dimension, dtype=np.complex128) for dimension in dimensions]
     for name in names:
+        if name in unavailable:
+            raise SpecError(f"{label}: operator {name!r} is unavailable: {unavailable[name]}")
         if name not in operators:
             raise SpecError(f"{label}: unknown operator {name!r}; available: {sorted(operators)}")
         for index, factor in enumerate(operators[name]):
@@ -825,10 +920,15 @@ def _construct_composite(spec: SystemSpec, source: Path):
             key = f"{item.id}.{name}"
             operator_factors[key] = tuple(factors)
             operators[key] = _tensor(tuple(factors))
+    unavailable = unavailable_operators(
+        {"subsystems": {item.id: leaf.provenance for item, leaf in zip(model.subsystems, leaves)}}
+    )
     for index, interaction in enumerate(model.interactions):
         label = f"model.interactions.{index}"
         coefficient = _resolved(interaction.coefficient, spec.parameters, "GHz", label)
-        factors = _composite_factors(interaction.factors, operator_factors, dimensions, label)
+        factors = _composite_factors(
+            interaction.factors, operator_factors, dimensions, label, unavailable
+        )
         terms.append(TensorTerm(coefficient, factors))
         if interaction.add_hermitian_conjugate:
             terms.append(TensorTerm(coefficient, tuple(factor.conj().T for factor in factors)))
@@ -899,6 +999,7 @@ def _load_system(
         subsystem_ids = (spec.id,)
     if not np.allclose(hamiltonian, hamiltonian.conj().T, rtol=0, atol=1e-10):
         raise SpecError("model.hamiltonian: matrix must be Hermitian")
+    unavailable = unavailable_operators(provenance)
     drives = {}
     dissipators = {}
     drive_factors = {}
@@ -907,7 +1008,7 @@ def _load_system(
         if drive.id in drives or drive.id in dissipators:
             raise SpecError(f"duplicate drive or dissipator ID {drive.id!r}")
         factors = _composite_factors(
-            drive.factors, operator_factors, dimensions, f"drives.{drive.id}"
+            drive.factors, operator_factors, dimensions, f"drives.{drive.id}", unavailable
         )
         operator = _tensor(factors)
         if not np.allclose(operator, operator.conj().T, rtol=0, atol=1e-10):
@@ -918,7 +1019,11 @@ def _load_system(
         if dissipator.id in dissipators or dissipator.id in drives:
             raise SpecError(f"duplicate drive or dissipator ID {dissipator.id!r}")
         factors = _composite_factors(
-            dissipator.factors, operator_factors, dimensions, f"dissipators.{dissipator.id}"
+            dissipator.factors,
+            operator_factors,
+            dimensions,
+            f"dissipators.{dissipator.id}",
+            unavailable,
         )
         rate = _resolved(dissipator.rate, spec.parameters, "1/ns", dissipator.id)
         if rate < 0:

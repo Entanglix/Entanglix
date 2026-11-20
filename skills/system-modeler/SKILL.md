@@ -1,7 +1,7 @@
 ---
 name: system-modeler
 description: Formulate and validate Entanglix quantum system models from circuit components, constructors, or explicit operators.
-version: 0.1.1
+version: 0.1.2
 ---
 
 # System modeling
@@ -21,8 +21,10 @@ inventing an operator or silently replacing the model. For multi-node circuits
 the author supplies the transformation and the hierarchy with its group levels,
 and validation offers a default transformation and one coordinate per group to
 adopt. Refine the group levels like cutoffs; a transformation that mixes the
-groups' coordinates can need many more levels. Offset charge addresses physical nodes, not derived coordinates; dropped
-extended-coordinate offsets are reported. Flux is tied to an oriented closure
+groups' coordinates can need many more levels. Their coordinates may be
+periodic, extended, or both; a node's phase is exported only when every
+coordinate it involves is extended. Offset charge addresses physical nodes, not
+derived coordinates; dropped extended-coordinate offsets are reported. Flux is tied to an oriented closure
 branch. Constructor and circuit flux signs need not coincide.
 
 Keep units explicit: energies/frequencies in GHz and evolution times in ns; the

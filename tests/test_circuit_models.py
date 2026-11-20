@@ -8,7 +8,7 @@ import scqubits as scq
 from scipy.constants import e, h, pi
 
 from entanglix.cli import main
-from entanglix.models import SpecError, load_system
+from entanglix.models import SpecError, hierarchy_problem, load_system
 
 ROOT = Path(__file__).resolve().parents[1] / "examples"
 
@@ -500,6 +500,217 @@ def test_missing_multinode_transformation_shows_default_to_author(tmp_path, caps
     captured = capsys.readouterr()
     assert "scqubits default to adopt: [[" in captured.err
     assert captured.out == ""
+
+
+def _two_node_circuit(
+    path, branches, fluxes, *, transformation, cutoffs, levels, offsets="{}", tail=""
+) -> Path:
+    """A grounded two-node circuit with one coordinate per group, branch values in GHz."""
+    parts = [
+        'format_version = 2\nid = "two_node"\n\n[units]\nenergy = "GHz"\ntime = "ns"\n',
+        f'[model]\nkind = "circuit"\nnodes = [0, 1, 2]\nground = 0\n'
+        f"transformation = {transformation}\noffset_charges = {offsets}\n",
+    ]
+    for identifier, kind, nodes, values in branches:
+        fields = "".join(
+            f'{key} = {{ value = {value}, unit = "GHz" }}\n' for key, value in values.items()
+        )
+        parts.append(
+            f'[[model.branches]]\nid = "{identifier}"\nkind = "{kind}"\nnodes = {nodes}\n{fields}'
+        )
+    for branch, value in fluxes.items():
+        parts.append(
+            f'[[model.external_fluxes]]\nbranch = "{branch}"\nvalue = {value}\nunit = "Phi0"\n'
+        )
+    parts.append(
+        f"[truncation]\ncutoffs = {cutoffs}\nhierarchy = [[1], [2]]\n"
+        f"hierarchy_levels = {levels}\nretained_levels = 6\n{tail}"
+    )
+    path.write_text("\n".join(parts))
+    return path
+
+
+# Two fluxoniums coupled by an inductor between their nodes; the fluxes are symmetric, because
+# constructor and circuit flux signs need not coincide.
+FLUXONIUMS = [(5.7, 1.2, 0.4), (4.8, 1.0, 0.5)]
+COUPLER_EL = 0.05
+FLUXONIUM_PAIR = [
+    branch
+    for node, (ej, ec, el) in enumerate(FLUXONIUMS, start=1)
+    for branch in (
+        (f"junction_{node}", "JJ", [0, node], {"josephson_energy": ej, "charging_energy": ec}),
+        (f"inductor_{node}", "L", [0, node], {"inductive_energy": el}),
+    )
+] + [("coupler", "L", [1, 2], {"inductive_energy": COUPLER_EL})]
+PAIR_FLUXES = {"junction_1": 0.5, "junction_2": 0.5, "coupler": 0.0}
+
+
+def _phase_products(model, first, second):
+    """Low transitions and Re(⟨0|φ₁|k⟩⟨k|φ₂|0⟩), whose sign follows the coupling's."""
+    energies, vectors = np.linalg.eigh(model.hamiltonian_ghz)
+    one, two = (vectors.conj().T @ model.operators[name] @ vectors for name in (first, second))
+    return energies[1:4] - energies[0], (one[0, 1:3] * two[1:3, 0]).real
+
+
+def test_coupled_fluxonium_netlist_matches_the_composite_workaround(tmp_path):
+    netlist = load_system(
+        _two_node_circuit(
+            tmp_path / "system.toml",
+            FLUXONIUM_PAIR,
+            PAIR_FLUXES,
+            transformation="[[1, 0], [0, 1]]",
+            cutoffs="{ theta1 = 110, theta2 = 110 }",
+            levels="[10, 10]",
+        )
+    )
+    # The coupler's E_L(φ₁ − φ₂)²/2 renormalizes each inductive energy and couples the phases.
+    composite = tmp_path / "composite.toml"
+    composite.write_text(
+        'format_version = 1\nid = "pair"\n\n[units]\nenergy = "GHz"\ntime = "ns"\n\n'
+        '[model]\nkind = "composite"\n\n'
+        + "".join(
+            f'[[model.subsystems]]\nid = "f{node}"\nkind = "fluxonium"\n'
+            f'josephson_energy = {{ value = {ej}, unit = "GHz" }}\n'
+            f'charging_energy = {{ value = {ec}, unit = "GHz" }}\n'
+            f'inductive_energy = {{ value = {el + COUPLER_EL!r}, unit = "GHz" }}\n'
+            'flux = { value = 0.5, unit = "Phi0" }\ncutoff = 110\nretained_levels = 10\n\n'
+            for node, (ej, ec, el) in enumerate(FLUXONIUMS, start=1)
+        )
+        + f'[[model.interactions]]\ncoefficient = {{ value = {-COUPLER_EL}, unit = "GHz" }}\n'
+        'factors = ["f1.phase", "f2.phase"]\n'
+    )
+    transitions, products = _phase_products(netlist, "node1.phase", "node2.phase")
+    expected_transitions, expected_products = _phase_products(
+        load_system(composite), "f1.phase", "f2.phase"
+    )
+    # Each group is one renormalized fluxonium keeping 10 levels, as in the workaround, so the
+    # two agree to roundoff.
+    np.testing.assert_allclose(transitions, expected_transitions, rtol=0, atol=1e-10)
+    np.testing.assert_allclose(products, expected_products, rtol=0, atol=1e-10)
+    assert np.all(np.abs(products) > 0.1)
+    with pytest.raises(SpecError, match="theta2 = 10 gives at most 5 usable levels to group"):
+        load_system(
+            _two_node_circuit(
+                tmp_path / "system.toml",
+                FLUXONIUM_PAIR,
+                PAIR_FLUXES,
+                transformation="[[1, 0], [0, 1]]",
+                cutoffs="{ theta1 = 110, theta2 = 10 }",
+                levels="[10, 10]",
+            )
+        )
+
+
+def test_each_extended_coordinate_bounds_its_group_levels():
+    coordinates = {"theta1": "extended", "theta2": "extended", "theta3": "periodic"}
+    cutoffs = {"theta1": 30, "theta2": 20, "theta3": 5}
+    assert hierarchy_problem(coordinates, cutoffs, [[1, 2], [3]], [10, 5], 6) == ""
+    assert "theta2 = 20 gives at most 10 usable levels to group [1, 2]" in hierarchy_problem(
+        coordinates, cutoffs, [[1, 2], [3]], [11, 5], 6
+    )
+
+
+# A fluxonium on node 1 and a transmon on node 2, coupled by a capacitor.
+FLUXONIUM_TRANSMON = [
+    ("junction_f", "JJ", [0, 1], {"josephson_energy": 5.7, "charging_energy": 1.2}),
+    ("inductor_f", "L", [0, 1], {"inductive_energy": 0.4}),
+    ("junction_t", "JJ", [0, 2], {"josephson_energy": 15.0, "charging_energy": 2.0}),
+    ("shunt_t", "C", [0, 2], {"charging_energy": 0.32}),
+    ("coupling", "C", [1, 2], {"charging_energy": 9.7}),
+]
+# The transmon group keeps 29 of its 31 charge states.
+IDENTITY = ("[[1, 0], [0, 1]]", "{ theta1 = 110, theta2 = 15 }", "[40, 29]")
+# Swaps the coordinate order and gives the extended coordinate a real scale and shear.
+SHEARED = ("[[0, 1.25], [1, 0.25]]", "{ theta1 = 15, theta2 = 110 }", "[29, 40]")
+
+
+def _mixed(tmp_path, transformation, cutoffs, levels, offsets='{ "2" = 0.2 }', tail=""):
+    return _two_node_circuit(
+        tmp_path / "system.toml",
+        FLUXONIUM_TRANSMON,
+        {"inductor_f": 0.25},
+        transformation=transformation,
+        cutoffs=cutoffs,
+        levels=levels,
+        offsets=offsets,
+        tail=tail,
+    )
+
+
+def test_mixed_circuit_is_unchanged_by_a_valid_transformation(tmp_path, capsys):
+    source = _mixed(tmp_path, *IDENTITY)
+    assert main(["validate", str(source)]) == 0
+    assert "node1.phase: node phase in radians" in capsys.readouterr().out
+    identity = load_system(source)
+    sheared = load_system(_mixed(tmp_path, *SHEARED))
+
+    def observables(model):
+        energies = np.diag(model.hamiltonian_ghz).real
+        elements = (model.operators[name][0, 1:5] for name in ("node1.phase", "node1.charge"))
+        return [energies[1:5] - energies[0], *map(np.abs, elements)]
+
+    # M maps the phase and M⁻ᵀ the charge. The shear mixes the groups' coordinates, so they keep
+    # 40 fluxonium levels: at 30 these observables differ by 3e-7, at 40 by 2e-9.
+    for value, expected in zip(observables(sheared), observables(identity), strict=True):
+        np.testing.assert_allclose(value, expected, rtol=0, atol=1e-7)
+    assert identity.provenance["coordinate_offsets"] == [0.0, 0.2]
+    assert sheared.provenance["coordinate_offsets"] == [0.2, 0.0]
+    # The transmon offset reaches the sheared extended coordinate, where it is dropped.
+    assert sheared.provenance["dropped_offsets"] == pytest.approx({"theta2": 0.05})
+    assert "node2.phase" not in identity.operators
+    supplied = load_system(_mixed(tmp_path, *IDENTITY, offsets='{ "1" = 0.3, "2" = 0.2 }'))
+    assert supplied.provenance["dropped_offsets"] == {"theta1": 0.3}
+    np.testing.assert_array_equal(supplied.hamiltonian_ghz, identity.hamiltonian_ghz)
+
+
+@pytest.mark.parametrize(
+    ("transformation", "offsets", "tail", "message"),
+    [
+        # The second column leaves the periodic subspace; scqubits only warns.
+        ("[[1, 1], [0, 1]]", '{ "2" = 0.2 }', "", "changes the quantized coordinate categories"),
+        # Keeps the categories but doubles the periodic identification.
+        ("[[1, 0], [0, 2]]", '{ "2" = 0.2 }', "", "integer and primitive"),
+        ("[[1, 0], [0, 1.0000001]]", '{ "2" = 0.2 }', "", "integer and primitive"),
+        # Construction would use the tiny entry, which ties node 1 to the periodic coordinate.
+        ("[[1, 1e-16], [0, 1]]", '{ "2" = 0.2 }', "", "integer and primitive"),
+        (
+            "[[1, 0], [0, 1]]",
+            '{ "1" = 0.0 }',
+            "",
+            r"reaching a periodic coordinate; missing: \['2'\]",
+        ),
+        (
+            "[[1, 0], [0, 1]]",
+            '{ "2" = 0.2 }',
+            '\n[[drives]]\nid = "flux"\nfactors = ["node2.phase"]\n',
+            "'node2.phase' is unavailable: node 2's phase depends on periodic coordinate theta2",
+        ),
+    ],
+)
+def test_mixed_circuit_refusals(tmp_path, transformation, offsets, tail, message):
+    with pytest.raises(SpecError, match=message):
+        load_system(_mixed(tmp_path, transformation, *IDENTITY[1:], offsets, tail))
+
+
+def test_observables_name_why_a_node_phase_is_unavailable(tmp_path):
+    from entanglix.corrector.metrics import observable_operator
+
+    reason = "is unavailable: node 2's phase depends on periodic coordinate theta2"
+    circuit = load_system(_mixed(tmp_path, *IDENTITY))
+    with pytest.raises(ValueError, match=f"'node2.phase' {reason}"):
+        observable_operator(circuit, "node2.phase")
+    composite = tmp_path / "composite.toml"
+    composite.write_text(
+        'format_version = 1\nid = "pair"\n\n[units]\nenergy = "GHz"\ntime = "ns"\n\n'
+        '[model]\nkind = "composite"\n\n'
+        '[[model.subsystems]]\nid = "c"\nsource = "system.toml"\n\n'
+        '[[model.subsystems]]\nid = "r"\nkind = "oscillator"\n'
+        'frequency = { value = 7.0, unit = "GHz" }\nretained_levels = 3\n'
+    )
+    with pytest.raises(ValueError, match=f"'c.node2.phase' {reason}"):
+        observable_operator(load_system(composite), "c.node2.phase")
+    with pytest.raises(ValueError, match="unknown observable operator: c.node3.phase"):
+        observable_operator(load_system(composite), "c.node3.phase")
 
 
 FLUX_LITERAL = 'value = 0.25\nunit = "Phi0"'

@@ -23,6 +23,8 @@ def _operator_meaning(name: str, provenance: dict[str, object]) -> str:
         return _operator_meaning(local, provenance["subsystems"][subsystem])
     if name == "charge" or (name.startswith("node") and name.endswith(".charge")):
         return "n − ng in Cooper-pair units"
+    if name.startswith("node") and name.endswith(".phase"):
+        return "node phase in radians"
     return {
         "phase": "extended-coordinate phase in radians",
         "cos_phase": "cosine of phase",
