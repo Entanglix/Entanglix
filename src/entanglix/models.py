@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import functools
 import hashlib
 import io
 import itertools
@@ -13,6 +14,7 @@ from typing import Annotated, Literal
 from zipfile import BadZipFile
 
 import numpy as np
+import scipy.sparse
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 from scipy.constants import e, h
 
@@ -278,6 +280,75 @@ class ConstructedSystem:
         import qutip as qt
 
         return qt.Qobj(self.hamiltonian_ghz, dims=[list(self.dimensions), list(self.dimensions)])
+
+
+@dataclass(frozen=True)
+class _Leaf:
+    """A subsystem as a composite's `HilbertSpace` takes it."""
+
+    subsystem: object
+    energies: np.ndarray
+    vectors: np.ndarray
+    # Operators in the subsystem's own basis, offset-relative; the export projects them on vectors.
+    native: dict[str, object]
+    # An explicit subsystem's off-diagonal Hamiltonian, a term on that subsystem alone.
+    local: np.ndarray | None = None
+
+
+@functools.cache
+def _declared_class():
+    from scqubits.core.qubit_base import QuantumSystem
+
+    class Declared(QuantumSystem):
+        """An explicit-operator subsystem whose bare states are its declared basis states."""
+
+        def __init__(self, energies: np.ndarray):
+            # First, as in scqubits' classes: subsystems compare by attributes, the ID leading.
+            super().__init__(id_str=None)
+            self.energies = energies
+            self.truncated_dim = len(energies)
+
+        @staticmethod
+        def default_params():
+            return {}
+
+        def hilbertdim(self):
+            return self.truncated_dim
+
+        def eigenvals(self, evals_count=None):
+            return self.energies[:evals_count]
+
+        def eigensys(self, evals_count=None):
+            return self.energies[:evals_count], np.eye(self.truncated_dim)[:, :evals_count]
+
+    return Declared
+
+
+def _declared_leaf(system: ConstructedSystem) -> _Leaf:
+    """Declared states in declared order, the diagonal as bare energies."""
+    hamiltonian = system.hamiltonian_ghz
+    energies = np.real(np.diag(hamiltonian))
+    local = hamiltonian - np.diag(energies)
+    return _Leaf(
+        _declared_class()(energies),
+        energies,
+        np.eye(len(energies)),
+        dict(system.operators),
+        local if np.any(local) else None,
+    )
+
+
+def _shifted(operator, offset: float):
+    """The operator minus offset times the identity, kept sparse when it is sparse."""
+    if offset == 0:
+        return operator
+    size = operator.shape[0]
+    identity = (
+        scipy.sparse.identity(size, format="csc")
+        if scipy.sparse.issparse(operator)
+        else np.eye(size)
+    )
+    return operator - offset * identity
 
 
 def _resolved(value: Value, parameters: dict[str, Parameter], unit: str, label: str) -> float:
@@ -680,48 +751,25 @@ def _construct_circuit(spec: SystemSpec):
         charge_vectors = (
             np.asarray(eigenvectors) if count == 1 and categories["periodic"] == [1] else None
         )
-        projection = eigenvectors.conj().T
-        identity = np.eye(truncation.retained_levels)
         unavailable = {}
-        coordinate_charges = {}
-        for index in active:
-            raw = (
-                getattr(circuit, f"n{index}_operator")()
-                if index in categories["periodic"]
-                else getattr(circuit, f"Q{index}_operator")()
-            )
-            coordinate_charges[index] = projection @ raw @ eigenvectors
-            if index in categories["periodic"]:
-                coordinate_charges[index] -= coordinate_offsets[index - 1] * identity
+        # Operators are built in the circuit's own basis, then projected on its eigenvectors.
+        coordinate_charges = {
+            index: _shifted(getattr(circuit, f"n{index}_operator")(), coordinate_offsets[index - 1])
+            if index in categories["periodic"]
+            else getattr(circuit, f"Q{index}_operator")()
+            for index in active
+        }
         if count == 1:
             direction = float(matrix[0, 0])
-            operators = {"charge": coordinate_charges[1] / direction}
-            if 1 in categories["periodic"]:
-                operators.update(
-                    {
-                        "cos_phase": projection @ circuit.cosθ1_operator() @ eigenvectors,
-                        "sin_phase": direction
-                        * projection
-                        @ circuit.sinθ1_operator()
-                        @ eigenvectors,
-                    }
-                )
-            else:
-                phase = direction * projection @ circuit.θ1_operator() @ eigenvectors
-                operators.update({"phase": phase})
-                if any(branch.kind == "JJ" for branch in model.branches):
-                    operators.update(
-                        {
-                            "cos_phase": projection @ circuit.cosθ1_operator() @ eigenvectors,
-                            "sin_phase": direction
-                            * projection
-                            @ circuit.sinθ1_operator()
-                            @ eigenvectors,
-                        }
-                    )
+            native = {"charge": coordinate_charges[1] / direction}
+            if 1 not in categories["periodic"]:
+                native["phase"] = direction * circuit.θ1_operator()
+            if 1 in categories["periodic"] or any(branch.kind == "JJ" for branch in model.branches):
+                native["cos_phase"] = circuit.cosθ1_operator()
+                native["sin_phase"] = direction * circuit.sinθ1_operator()
         else:
             inverse_transpose = np.linalg.inv(matrix.T)
-            operators = {
+            native = {
                 f"node{node}.charge": sum(
                     inverse_transpose[node - 1, index - 1] * coordinate_charges[index]
                     for index in sorted(active)
@@ -741,11 +789,15 @@ def _construct_circuit(spec: SystemSpec):
                         f"node {node}'s phase depends on periodic coordinate {', '.join(blocking)}"
                     )
                 else:
-                    operators[f"node{node}.phase"] = sum(
-                        weight
-                        * (projection @ getattr(circuit, f"θ{index}_operator")() @ eigenvectors)
+                    native[f"node{node}.phase"] = sum(
+                        weight * getattr(circuit, f"θ{index}_operator")()
                         for index, weight in weights.items()
                     )
+        projection = eigenvectors.conj().T
+        operators = {
+            name: np.asarray(projection @ operator @ eigenvectors)
+            for name, operator in native.items()
+        }
     except SpecError:
         raise
     except (ValueError, RuntimeError, KeyError, AttributeError, np.linalg.LinAlgError) as exc:
@@ -786,12 +838,13 @@ def _construct_circuit(spec: SystemSpec):
         "isolated_eigenstates",
         provenance,
         charge_vectors,
+        _Leaf(circuit, eigenvalues, eigenvectors, native),
     )
 
 
 def _construct_named_subsystem(
     item: SubsystemSpec, parameters: dict[str, Parameter]
-) -> ConstructedSystem:
+) -> tuple[ConstructedSystem, _Leaf]:
     scq = _scqubits()
 
     count = item.retained_levels
@@ -799,9 +852,8 @@ def _construct_named_subsystem(
         if item.kind == "oscillator":
             frequency = _positive(_resolved(item.frequency, parameters, "GHz", item.id), item.id)
             source = scq.Oscillator(E_osc=frequency, truncated_dim=count)
-            energies = source.eigenvals(evals_count=count)
             lower = np.asarray(source.annihilation_operator(), dtype=np.complex128)
-            operators = {
+            native = {
                 "annihilation": lower,
                 "number": lower.conj().T @ lower,
                 "position": lower + lower.conj().T,
@@ -824,23 +876,24 @@ def _construct_named_subsystem(
                 source = scq.Fluxonium(
                     EJ=ej, EC=ec, EL=el, flux=flux, cutoff=cutoff, truncated_dim=count
                 )
-            energies, eigenvectors = source.eigensys(evals_count=count)
-            projection = eigenvectors.conj().T
-            operators = {
-                "charge": projection @ source.n_operator() @ eigenvectors,
-                "cos_phase": projection @ source.cos_phi_operator() @ eigenvectors,
-                "sin_phase": projection @ source.sin_phi_operator() @ eigenvectors,
+            native = {
+                "charge": _shifted(source.n_operator(), item.ng if item.kind == "transmon" else 0),
+                "cos_phase": source.cos_phi_operator(),
+                "sin_phase": source.sin_phi_operator(),
             }
-            if item.kind == "transmon":
-                operators["charge"] -= item.ng * np.eye(count)
-            else:
-                operators["phase"] = projection @ source.phi_operator() @ eigenvectors
+            if item.kind == "fluxonium":
+                native["phase"] = source.phi_operator()
+        energies, eigenvectors = source.eigensys(evals_count=count)
+        projection = eigenvectors.conj().T
+        operators = {
+            name: projection @ operator @ eigenvectors for name, operator in native.items()
+        }
     except SpecError:
         raise
     except (ValueError, RuntimeError, AttributeError, np.linalg.LinAlgError) as exc:
         raise SpecError(f"{item.id}: constructor failed: {exc}") from exc
     hamiltonian = np.diag(energies).astype(np.complex128)
-    return ConstructedSystem(
+    system = ConstructedSystem(
         item.id,
         hamiltonian,
         operators,
@@ -852,6 +905,7 @@ def _construct_named_subsystem(
         hamiltonian_terms=(TensorTerm(1, (hamiltonian,)),),
         operator_factors={name: (operator,) for name, operator in operators.items()},
     )
+    return system, _Leaf(source, energies, eigenvectors, native)
 
 
 def unavailable_operators(provenance: dict) -> dict[str, str]:
@@ -899,30 +953,40 @@ def _construct_composite(spec: SystemSpec, source: Path):
         leaf_path = (source.parent / path).resolve()
         if leaf_path.parent != source.parent:
             raise SpecError(f"{item.id}: source resolves outside the composite directory")
-        leaf = _load_system(leaf_path, allow_composite=False)
+        leaf, bare = _load_system(leaf_path, allow_composite=False)
         if leaf.drives or leaf.dissipators:
             raise SpecError(f"{item.id}: declare leaf drives and dissipators on the composite")
         if len(leaf.dimensions) != 1:
             raise SpecError(f"{item.id}: source must be a single subsystem")
-        leaves.append(leaf)
-    dimensions = tuple(leaf.dimensions[0] for leaf in leaves)
+        leaves.append((leaf, bare or _declared_leaf(leaf)))
+    dimensions = tuple(leaf.dimensions[0] for leaf, _ in leaves)
     identities = tuple(np.eye(dimension, dtype=np.complex128) for dimension in dimensions)
+    # The leaves give GHz matrices, so scqubits' unit setting does not apply here.
+    from scqubits import HilbertSpace
+
+    space = HilbertSpace([bare.subsystem for _, bare in leaves])
     terms = []
     operators = {}
     operator_factors = {}
-    for index, (item, leaf) in enumerate(zip(model.subsystems, leaves)):
+    native = {}
+    for index, (item, (leaf, bare)) in enumerate(zip(model.subsystems, leaves)):
         local = list(identities)
         local[index] = leaf.hamiltonian_ghz
         terms.append(TensorTerm(1, tuple(local)))
+        if bare.local is not None:
+            space.add_interaction(g=1, op1=(bare.local, bare.subsystem), check_validity=False)
         for name, operator in leaf.operators.items():
             factors = list(identities)
             factors[index] = operator
             key = f"{item.id}.{name}"
             operator_factors[key] = tuple(factors)
             operators[key] = _tensor(tuple(factors))
-    unavailable = unavailable_operators(
-        {"subsystems": {item.id: leaf.provenance for item, leaf in zip(model.subsystems, leaves)}}
-    )
+            native[key] = (bare.native[name], bare.subsystem)
+    provenance = {
+        "subsystems": {name: leaf.provenance for name, (leaf, _) in zip(ids, leaves)},
+        "subsystem_bases": {name: leaf.basis for name, (leaf, _) in zip(ids, leaves)},
+    }
+    unavailable = unavailable_operators(provenance)
     for index, interaction in enumerate(model.interactions):
         label = f"model.interactions.{index}"
         coefficient = _resolved(interaction.coefficient, spec.parameters, "GHz", label)
@@ -932,14 +996,15 @@ def _construct_composite(spec: SystemSpec, source: Path):
         terms.append(TensorTerm(coefficient, factors))
         if interaction.add_hermitian_conjugate:
             terms.append(TensorTerm(coefficient, tuple(factor.conj().T for factor in factors)))
-    hamiltonian = sum(
-        (term.coefficient_ghz * _tensor(term.factors) for term in terms),
-        np.zeros((math.prod(dimensions),) * 2, dtype=np.complex128),
-    )
-    provenance = {
-        "subsystems": {item.id: leaf.provenance for item, leaf in zip(model.subsystems, leaves)},
-        "subsystem_bases": {item.id: leaf.basis for item, leaf in zip(model.subsystems, leaves)},
-    }
+        space.add_interaction(
+            g=coefficient,
+            **{f"op{place}": native[name] for place, name in enumerate(interaction.factors, 1)},
+            add_hc=interaction.add_hermitian_conjugate,
+            check_validity=False,
+        )
+    # scqubits projects each native operator on the eigenvectors the export was projected on.
+    bare_esys = {index: (bare.energies, bare.vectors) for index, (_, bare) in enumerate(leaves)}
+    hamiltonian = space.hamiltonian(bare_esys=bare_esys).full()
     return (
         hamiltonian,
         operators,
@@ -954,8 +1019,8 @@ def _construct_composite(spec: SystemSpec, source: Path):
 
 def _load_system(
     path: str | Path, *, allow_composite: bool, content: bytes | None = None
-) -> ConstructedSystem:
-    """Validate a v1 system file and construct the supported CPU model."""
+) -> tuple[ConstructedSystem, _Leaf | None]:
+    """Validate a system file and construct the CPU model, with a circuit's leaf for composites."""
     source = Path(path).resolve()
     try:
         content = source.read_bytes() if content is None else content
@@ -972,6 +1037,7 @@ def _load_system(
         )
         raise SpecError(issues) from exc
     charge_vectors = None
+    leaf = None
     if isinstance(spec.model, CompositeSpec):
         if not allow_composite:
             raise SpecError("referenced subsystem cannot itself be a composite")
@@ -991,8 +1057,8 @@ def _load_system(
         operator_factors = {name: (operator,) for name, operator in operators.items()}
         subsystem_ids = (spec.id,)
     else:
-        hamiltonian, operators, dimensions, basis, provenance, charge_vectors = _construct_circuit(
-            spec
+        hamiltonian, operators, dimensions, basis, provenance, charge_vectors, leaf = (
+            _construct_circuit(spec)
         )
         terms = (TensorTerm(1, (hamiltonian,)),)
         operator_factors = {name: (operator,) for name, operator in operators.items()}
@@ -1034,7 +1100,7 @@ def _load_system(
         name: parameter.model_dump(exclude_none=True) for name, parameter in spec.parameters.items()
     }
     provenance["system_sha256"] = hashlib.sha256(content).hexdigest()
-    return ConstructedSystem(
+    system = ConstructedSystem(
         spec.id,
         np.asarray(hamiltonian, dtype=np.complex128),
         operators,
@@ -1050,8 +1116,9 @@ def _load_system(
         dissipator_factors,
         charge_vectors,
     )
+    return system, leaf
 
 
 def load_system(path: str | Path, *, content: bytes | None = None) -> ConstructedSystem:
     """Load a system file; ``content`` replaces its bytes, resolving references beside it."""
-    return _load_system(path, allow_composite=True, content=content)
+    return _load_system(path, allow_composite=True, content=content)[0]

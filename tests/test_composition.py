@@ -6,6 +6,7 @@ from shutil import copyfile
 
 import numpy as np
 import pytest
+import qutip as qt
 import scqubits as scq
 from scipy.constants import e, h
 
@@ -266,6 +267,116 @@ add_hermitian_conjugate = true
     )
     with pytest.raises(SpecError, match="Hermitian"):
         load_system(source)
+
+
+LEVELS = """format_version = 1
+id = "levels"
+[units]
+energy = "GHz"
+time = "ns"
+[model]
+kind = "operators"
+dimensions = [3]
+basis = "declared"
+array_file = "levels.npz"
+hamiltonian = "H"
+operators = { x = "x", lower = "lower" }
+"""
+
+
+def _levels(directory):
+    """An explicit three-level leaf, unsorted and non-diagonal."""
+    (directory / "levels.toml").write_text(LEVELS)
+    declared = np.array([[4.0, 0.3, 0.1j], [0.3, 0.0, 0.2], [-0.1j, 0.2, 2.5]])
+    x = np.array([[0.0, 1.0, 0.5], [1.0, 0.3, 0.0], [0.5, 0.0, -0.2]])
+    np.savez(directory / "levels.npz", H=declared, x=x, lower=np.eye(3, k=1))
+    return declared, x
+
+
+def test_composite_matches_its_leaves_and_keeps_term_order(tmp_path, monkeypatch):
+    """A hierarchical circuit beside one unsorted, non-diagonal explicit leaf used twice."""
+    copyfile(ROOT / "examples/two-mode-circuit/system.toml", tmp_path / "circuit.toml")
+    declared, x = _levels(tmp_path)
+    source = tmp_path / "system.toml"
+    source.write_text("""format_version = 1
+id = "mixed"
+[units]
+energy = "GHz"
+time = "ns"
+[model]
+kind = "composite"
+[[model.subsystems]]
+id = "c"
+source = "circuit.toml"
+[[model.subsystems]]
+id = "e1"
+source = "levels.toml"
+[[model.subsystems]]
+id = "e2"
+source = "levels.toml"
+[[model.interactions]]
+coefficient = { value = 0.03, unit = "GHz" }
+factors = ["c.node1.charge", "e1.x"]
+[[model.interactions]]
+coefficient = { value = 0.02, unit = "GHz" }
+factors = ["e1.lower", "e1.x", "e2.lower"]
+add_hermitian_conjugate = true
+[[model.interactions]]
+coefficient = { value = 0.01, unit = "GHz" }
+factors = ["c.node2.charge", "c.node2.charge"]
+""")
+    # QuTiP's process-wide cleanup stays on: other threads may be using QuTiP meanwhile.
+    cleanup = []
+    assemble = scq.HilbertSpace.hamiltonian
+
+    def observed(space, **options):
+        cleanup.append(qt.settings.core["auto_tidyup"])
+        return assemble(space, **options)
+
+    monkeypatch.setattr(scq.HilbertSpace, "hamiltonian", observed)
+    model = load_system(source)
+    assert cleanup and all(cleanup)
+    circuit = load_system(tmp_path / "circuit.toml")
+    leaf = load_system(tmp_path / "levels.toml")
+    one, three = np.eye(6), np.eye(3)
+    product = leaf.operators["lower"] @ leaf.operators["x"]
+    # Products on one leaf multiply its retained-basis operators, in authored order.
+    square = circuit.operators["node2.charge"] @ circuit.operators["node2.charge"]
+    expected = [
+        (1, (circuit.hamiltonian_ghz, three, three)),
+        (1, (one, declared, three)),
+        (1, (one, three, declared)),
+        (0.03, (circuit.operators["node1.charge"], x, three)),
+        (0.02, (one, product, leaf.operators["lower"])),
+        (0.02, (one, product.conj().T, leaf.operators["lower"].T)),
+        (0.01, (square, three, three)),
+    ]
+    assert model.dimensions == (6, 3, 3)
+    assert len(model.hamiltonian_terms) == len(expected)
+    reference = np.zeros((54, 54), dtype=complex)
+    for term, (coefficient, factors) in zip(model.hamiltonian_terms, expected, strict=True):
+        assert term.coefficient_ghz == coefficient
+        for factor, value in zip(term.factors, factors, strict=True):
+            np.testing.assert_allclose(factor, value, rtol=0, atol=1e-13)
+        reference += coefficient * np.kron(np.kron(factors[0], factors[1]), factors[2])
+    # The explicit leaf keeps its declared basis, order and off-diagonal part.
+    np.testing.assert_array_equal(model.hamiltonian_terms[1].factors[1], declared)
+    np.testing.assert_allclose(model.hamiltonian_ghz, reference, rtol=0, atol=1e-12)
+
+
+def test_explicit_composite_ignores_the_scqubits_unit_setting(tmp_path, monkeypatch):
+    declared, _ = _levels(tmp_path)
+    source = tmp_path / "system.toml"
+    source.write_text(
+        THREE.read_text().split("[[model.subsystems]]")[0]
+        + '[[model.subsystems]]\nid = "a"\nsource = "levels.toml"\n'
+        + '[[model.subsystems]]\nid = "b"\nsource = "levels.toml"\n'
+    )
+    monkeypatch.setattr(scq, "get_units", lambda: "MHz")
+    model = load_system(source)
+    np.testing.assert_allclose(
+        model.hamiltonian_ghz, np.kron(declared, np.eye(3)) + np.kron(np.eye(3), declared)
+    )
 
 
 def test_bad_composite_references_and_operator_names(tmp_path):
