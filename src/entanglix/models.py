@@ -1031,12 +1031,21 @@ def _construct_composite(spec: SystemSpec, source: Path):
 
 
 def _load_system(
-    path: str | Path, *, allow_composite: bool, content: bytes | None = None
+    path: str | Path,
+    *,
+    allow_composite: bool,
+    content: bytes | None = None,
+    parameters: dict[str, float] | None = None,
 ) -> tuple[ConstructedSystem, _Leaf | None]:
     """Validate a system file and construct the CPU model, with a circuit's leaf for composites."""
     source = Path(path).resolve()
     try:
         content = source.read_bytes() if content is None else content
+        if parameters:
+            # Imported here because the protocols package imports this module.
+            from entanglix.protocols import with_parameters
+
+            content = with_parameters(content, parameters)
         spec = SystemSpec.model_validate(tomllib.loads(content.decode("utf-8")))
     except OSError as exc:
         raise SpecError(f"cannot read system file {source}: {exc}") from exc
@@ -1137,6 +1146,14 @@ def _load_system(
     return system, leaf
 
 
-def load_system(path: str | Path, *, content: bytes | None = None) -> ConstructedSystem:
-    """Load a system file; ``content`` replaces its bytes, resolving references beside it."""
-    return _load_system(path, allow_composite=True, content=content)[0]
+def load_system(
+    path: str | Path,
+    *,
+    content: bytes | None = None,
+    parameters: dict[str, float] | None = None,
+) -> ConstructedSystem:
+    """Load a system file; ``content`` replaces its bytes, resolving references beside it.
+
+    ``parameters`` sets declared parameter values as a job's ``[parameters]`` does.
+    """
+    return _load_system(path, allow_composite=True, content=content, parameters=parameters)[0]

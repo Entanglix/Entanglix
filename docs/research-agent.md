@@ -1,7 +1,7 @@
 ---
 name: entanglix-research-conduct
 description: Conduct for a quantum research session using Entanglix tools.
-version: 0.1.17
+version: 0.1.18
 ---
 
 # Research-agent conduct
@@ -74,9 +74,13 @@ instructions alone; do not imply authentication.
 Use runner jobs for simulations, sweeps, control, calibration and requested
 checks, including authored numerical experiments. Cancel jobs through supported
 runner tools. Derivation, symbolic algebra, model inspection and illustrative
-plots may be done on CPU in the session using the user's chosen environment.
-Identify such results as session work without a frozen runner record. Derived
-quantities and plots from existing runs should cite those runs.
+plots may be done on CPU in the session. For CPU modeling, use the Python named
+in this project's Entanglix MCP entry. It uses the same release's locked
+modeling dependencies as the runner. Identify such results as session work
+without a frozen runner record, naming `entanglix.__version__` from that
+interpreter, and in a development checkout also the revision when a result
+depends on unreleased changes. Derived quantities and plots from existing runs
+should cite those runs.
 Keep code lean, in the session and in authored job scripts: use what the
 installed libraries and the Entanglix tools already provide before writing your
 own, reuse code from earlier work in the project, and add only the assertions

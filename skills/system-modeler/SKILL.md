@@ -1,13 +1,16 @@
 ---
 name: system-modeler
 description: Formulate and validate Entanglix quantum system models from circuit components, constructors, or explicit operators.
-version: 0.1.3
+version: 0.1.4
 ---
 
 # System modeling
 
 Before authoring a model, read `reference/operations/system-spec.md` in the
 research workspace for system fields, units, operator names, and circuit syntax.
+For modeling work in the session, such as deriving parameters, exploring a model
+with scqubits or sympy, or checking a numerical claim, read `modeling.md` beside
+this skill.
 
 Choose the representation from the question: a circuit for component-level
 parameters and topology; an oscillator, transmon, or fluxonium constructor for a
@@ -46,9 +49,9 @@ than guessing. Use branch analysis (`ordering="LX"`) only when each subsystem's
 declared order is its intended excitation ladder and its first state the intended
 ground state; an explicit subsystem declared out of energy order breaks that, and
 `LX` fails when a subsystem or group other than an oscillator retains one state,
-so keep `DE` there. To label at other parameters, change the spec and load it
-again: editing the returned `HilbertSpace` changes its lookup but not the loaded
-model's matrices. A
+so keep `DE` there. To label at other parameters, load the model again, with
+`load_system(path, parameters=...)` or a changed spec: editing the returned
+`HilbertSpace` changes its lookup but not the loaded model's matrices. A
 label has one entry per subsystem in tensor order, or per group of a hierarchical
 circuit; a circuit inside a composite takes one entry, its eigenstate index. Only
 dressed indices below a circuit's `retained_levels` belong to its exported basis.

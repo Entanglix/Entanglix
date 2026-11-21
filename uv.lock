@@ -358,6 +358,7 @@ dependencies = [
     { name = "qutip" },
     { name = "scipy" },
     { name = "scqubits" },
+    { name = "sympy" },
     { name = "tomli-w" },
 ]
 
@@ -398,6 +399,7 @@ requires-dist = [
     { name = "qutip-cuquantum", extras = ["cuda12"], marker = "sys_platform == 'linux' and extra == 'cuquantum'", specifier = "==0.3.1" },
     { name = "scipy", specifier = ">=1.15,<2" },
     { name = "scqubits", git = "https://github.com/scqubits/scqubits?rev=nvidia-test" },
+    { name = "sympy", specifier = ">=1.14,<2" },
     { name = "tomli-w", specifier = ">=1.2,<2" },
 ]
 provides-extras = ["differentiable", "differentiable-cuda12", "cuquantum", "mcp"]

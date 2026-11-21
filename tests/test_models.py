@@ -14,6 +14,7 @@ from scipy.constants import e, h
 
 from entanglix.engines import EvolutionInputError, evolve_cpu
 from entanglix.models import SpecError, SystemSpec, load_system
+from entanglix.protocols import with_parameters
 
 ROOT = Path(__file__).resolve().parents[1]
 TWO_LEVEL = ROOT / "examples/two-level/system.toml"
@@ -22,6 +23,66 @@ JUNCTION = ROOT / "examples/junction-shunt/system.toml"
 
 def test_readout_example_validates():
     assert load_system(ROOT / "examples/readout/system.toml").dimensions == (5, 6)
+
+
+PAIR = """format_version = 2
+id = "pair"
+
+[units]
+energy = "GHz"
+time = "ns"
+
+[parameters.EJt]
+value = 13.5
+unit = "GHz"
+
+[model]
+kind = "composite"
+
+[[model.subsystems]]
+id = "q"
+source = "qubit.toml"
+
+[[model.subsystems]]
+id = "t"
+kind = "transmon"
+josephson_energy = { parameter = "EJt" }
+charging_energy = { value = 0.25, unit = "GHz" }
+ng = 0.0
+cutoff = 15
+retained_levels = 3
+
+[[model.interactions]]
+coefficient = { value = 0.01, unit = "GHz" }
+factors = ["q.charge", "t.charge"]
+"""
+
+
+def test_session_parameters_build_the_job_model(tmp_path):
+    shutil.copyfile(ROOT / "examples/qubit-resonator/qubit.toml", tmp_path / "qubit.toml")
+    path = tmp_path / "system.toml"
+    path.write_text(PAIR)
+    content = PAIR.replace("value = 0.01", "value = 0.02").encode()
+    session = load_system(path, content=content, parameters={"EJt": 15.0})
+    job = load_system(path, content=with_parameters(content, {"EJt": 15.0}))
+    np.testing.assert_array_equal(session.hamiltonian_ghz, job.hamiltonian_ghz)
+    assert session.operators.keys() == job.operators.keys()
+    for name, operator in session.operators.items():
+        np.testing.assert_array_equal(operator, job.operators[name])
+    assert session.provenance["system_sha256"] == job.provenance["system_sha256"]
+    assert session.provenance["parameters"]["EJt"]["value"] == 15.0
+    assert session.subsystem_ids == ("q", "t")
+    unchanged = load_system(path, content=content)
+    assert not np.allclose(unchanged.hamiltonian_ghz, session.hamiltonian_ghz)
+
+
+@pytest.mark.parametrize("parameters", [{"missing": 1.0}, {"EJt": float("nan")}])
+def test_session_parameters_must_be_declared_and_finite(tmp_path, parameters):
+    shutil.copyfile(ROOT / "examples/qubit-resonator/qubit.toml", tmp_path / "qubit.toml")
+    path = tmp_path / "system.toml"
+    path.write_text(PAIR)
+    with pytest.raises(ValueError, match="finite declared parameter"):
+        load_system(path, parameters=parameters)
 
 
 def test_explicit_model_decay_and_closed_coherence():

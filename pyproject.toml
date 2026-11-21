@@ -12,6 +12,7 @@ dependencies = [
     "qutip>=5.2,<6",
     "scipy>=1.15,<2",
     "scqubits @ git+https://github.com/scqubits/scqubits@nvidia-test",
+    "sympy>=1.14,<2",
     "tomli-w>=1.2,<2",
 ]
 
