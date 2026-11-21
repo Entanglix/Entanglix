@@ -408,6 +408,20 @@ def test_group_of_two_coordinates_matches_native_diagonalization(tmp_path):
         )
 
 
+def test_hierarchical_circuit_labels_each_group_eigenstate():
+    model = load_system(ROOT / "two-mode-circuit/system.toml")
+    space = model.hilbert_space()
+    assert space.subsystem_dims == [10, 10]
+    space.generate_lookup()
+    # Only dressed indices below retained_levels belong to the exported basis.
+    np.testing.assert_allclose(
+        space["evals"][0][:6], np.diag(model.hamiltonian_ghz).real, rtol=0, atol=1e-10
+    )
+    assert [space.bare_index(index) for index in range(3)] == [(0, 0), (1, 0), (0, 1)]
+    with pytest.raises(ValueError, match="provides no HilbertSpace"):
+        load_system(ROOT / "fluxonium/system.toml").hilbert_space()
+
+
 def test_multinode_circuits_need_version_2_and_a_hierarchy(tmp_path, capsys):
     version_1 = _variant(tmp_path, "two-mode-circuit", "format_version = 2", "format_version = 1")
     version_1.write_text(

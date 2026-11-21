@@ -364,6 +364,36 @@ factors = ["c.node2.charge", "c.node2.charge"]
     np.testing.assert_allclose(model.hamiltonian_ghz, reference, rtol=0, atol=1e-12)
 
 
+def test_labels_follow_an_explicit_leaf_in_declared_order(tmp_path):
+    """Declared state 0 lies above state 1, so the ground state is labelled (1, 0)."""
+    (tmp_path / "leaf.toml").write_text(LEVELS.replace("dimensions = [3]", "dimensions = [2]"))
+    x = np.array([[0.0, 1.0], [1.0, 0.0]])
+    np.savez(
+        tmp_path / "levels.npz", H=np.array([[5.0, 0.1], [0.1, 0.0]]), x=x, lower=np.eye(2, k=1)
+    )
+    source = tmp_path / "system.toml"
+    source.write_text(
+        THREE.read_text().split("[[model.subsystems]]")[0]
+        + '[[model.subsystems]]\nid = "e"\nsource = "leaf.toml"\n'
+        + '[[model.subsystems]]\nid = "r"\nkind = "oscillator"\n'
+        + 'frequency = { value = 7.0, unit = "GHz" }\nretained_levels = 3\n'
+        + '[[model.interactions]]\ncoefficient = { value = 0.05, unit = "GHz" }\n'
+        + 'factors = ["e.x", "r.position"]\n'
+    )
+    model = load_system(source)
+    space = model.hilbert_space()
+    space.generate_lookup()
+    np.testing.assert_allclose(
+        space["evals"][0], np.linalg.eigvalsh(model.hamiltonian_ghz), rtol=0, atol=1e-10
+    )
+    assert space.bare_index(0) == (1, 0)
+    # Branch analysis assumes the first declared state is the ground state.
+    space.generate_lookup(ordering="LX")
+    assert space.bare_index(0) == (0, 0)
+    with pytest.raises(ValueError, match="provides no HilbertSpace"):
+        load_system(tmp_path / "leaf.toml").hilbert_space()
+
+
 def test_explicit_composite_ignores_the_scqubits_unit_setting(tmp_path, monkeypatch):
     declared, _ = _levels(tmp_path)
     source = tmp_path / "system.toml"

@@ -503,6 +503,9 @@ def test_composite_local_factors_and_leaf_inputs_are_retained(control_files, tmp
         atol=1e-13,
     )
     assert all(len(term.factors) == 2 for term in loaded.system.hamiltonian_terms)
+    # The rotating-frame model has another Hamiltonian, so it keeps no HilbertSpace.
+    with pytest.raises(ValueError, match="provides no HilbertSpace"):
+        loaded.system.hilbert_space()
 
 
 @pytest.mark.parametrize(

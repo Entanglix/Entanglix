@@ -275,11 +275,23 @@ class ConstructedSystem:
     dissipator_factors: dict[str, tuple[np.ndarray, ...]] = field(default_factory=dict)
     # Retained eigenstates in the charge basis of a single periodic circuit coordinate.
     charge_basis_vectors: np.ndarray | None = None
+    # The scqubits HilbertSpace built at load; a model derived with another Hamiltonian has none.
+    scqubits_space: object | None = field(default=None, repr=False, compare=False)
 
     def qutip_hamiltonian(self):
         import qutip as qt
 
         return qt.Qobj(self.hamiltonian_ghz, dims=[list(self.dimensions), list(self.dimensions)])
+
+    def hilbert_space(self):
+        """The scqubits `HilbertSpace` of a composite or a hierarchical circuit, for labels."""
+        if self.scqubits_space is None:
+            raise ValueError(
+                f"{self.id} provides no HilbertSpace: only a loaded composite or hierarchical "
+                "circuit does, not a single-coordinate circuit, an explicit model, or a model "
+                "derived with another Hamiltonian"
+            )
+        return self.scqubits_space
 
 
 @dataclass(frozen=True)
@@ -1014,6 +1026,7 @@ def _construct_composite(spec: SystemSpec, source: Path):
         tuple(terms),
         operator_factors,
         tuple(ids),
+        space,
     )
 
 
@@ -1038,6 +1051,7 @@ def _load_system(
         raise SpecError(issues) from exc
     charge_vectors = None
     leaf = None
+    space = None
     if isinstance(spec.model, CompositeSpec):
         if not allow_composite:
             raise SpecError("referenced subsystem cannot itself be a composite")
@@ -1050,6 +1064,7 @@ def _load_system(
             terms,
             operator_factors,
             subsystem_ids,
+            space,
         ) = _construct_composite(spec, source)
     elif isinstance(spec.model, OperatorsSpec):
         hamiltonian, operators, dimensions, basis, provenance = _construct_operators(spec, source)
@@ -1060,6 +1075,8 @@ def _load_system(
         hamiltonian, operators, dimensions, basis, provenance, charge_vectors, leaf = (
             _construct_circuit(spec)
         )
+        if spec.truncation.hierarchy is not None:
+            space = leaf.subsystem.hilbert_space
         terms = (TensorTerm(1, (hamiltonian,)),)
         operator_factors = {name: (operator,) for name, operator in operators.items()}
         subsystem_ids = (spec.id,)
@@ -1115,6 +1132,7 @@ def _load_system(
         drive_factors,
         dissipator_factors,
         charge_vectors,
+        space,
     )
     return system, leaf
 

@@ -581,6 +581,7 @@ def load_control(
         drives=drives,
         drive_factors={},
         provenance={**closed.provenance, "control": prepared.diagnostics},
+        scqubits_space=None,
     )
     goal = spec.goal.model_dump(exclude_none=True)
     if spec.goal.matrix is not None:

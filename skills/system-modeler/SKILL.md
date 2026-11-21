@@ -1,7 +1,7 @@
 ---
 name: system-modeler
 description: Formulate and validate Entanglix quantum system models from circuit components, constructors, or explicit operators.
-version: 0.1.2
+version: 0.1.3
 ---
 
 # System modeling
@@ -30,9 +30,28 @@ branch. Constructor and circuit flux signs need not coincide.
 Keep units explicit: energies/frequencies in GHz and evolution times in ns; the
 adapter applies the single 2π conversion. A rate in 1/ns enters a collapse
 operator as √γ A without 2π. Oscillator `position` means a + a†. Composite
-operators use each subsystem's retained eigenbasis and declared tensor order.
+operators use each circuit or constructor subsystem's retained eigenbasis, or an
+explicit subsystem's declared basis, in declared tensor order.
 Specs and numeric NPZ data stay beside one another; no pickle data or nested
 composite file references.
+
+Dressed-state labels are modeling work on the user's request, not part of every
+model or job. `load_system(path).hilbert_space()` returns the scqubits
+`HilbertSpace` of a composite or a hierarchical circuit; other models, and a
+control job's rotating-frame model, have none. Call its `generate_lookup()` and
+read labels with `bare_index` and `dressed_index`. Keep the default ordering
+(`DE`, by dressed energy and overlap), and report a state the lookup cannot
+assign (`dressed_index` gives `None`, `bare_index` raises) as unassigned rather
+than guessing. Use branch analysis (`ordering="LX"`) only when each subsystem's
+declared order is its intended excitation ladder and its first state the intended
+ground state; an explicit subsystem declared out of energy order breaks that, and
+`LX` fails when a subsystem or group other than an oscillator retains one state,
+so keep `DE` there. To label at other parameters, change the spec and load it
+again: editing the returned `HilbertSpace` changes its lookup but not the loaded
+model's matrices. A
+label has one entry per subsystem in tensor order, or per group of a hierarchical
+circuit; a circuit inside a composite takes one entry, its eigenstate index. Only
+dressed indices below a circuit's `retained_levels` belong to its exported basis.
 
 Choose retained levels and cutoffs for the reported quantity. A populated lossy
 mode exercises loss; a ground-state mode does not. Describe convergence evidence
